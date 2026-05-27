@@ -17,7 +17,7 @@ description: 当需求描述 API、前后端交互、外部系统、回调、请
 
 - 接口相关需求片段。
 - 结构化需求模型。
-- `knowledge/testcase-design-patterns/experience-based/error-guessing-checklist.md`。
+- `knowledge/test-techniques/experience-based/error-guessing-checklist.md`。
 - `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.md`。
 
 ## 分析步骤

@@ -12,6 +12,8 @@ from pathlib import Path
 TESTPOINT_HEADER = "| ID | 模块 | 测试点 | 类型 | 方法 | 需求依据 | 级别 | 风险/备注 |"
 ROUTE_HEADER = "| 需求片段 | 触发信号 | 适用方法 | 调用 skill | 必要性 | 置信度 | 说明 |"
 ROUTE_HEADER_WITH_DIMENSION = "| 需求片段 | 分析维度 | 触发信号 | 适用方法 | 调用 skill | 必要性 | 置信度 | 说明 |"
+ROUTE_HEADER_TECHNIQUE = "| 需求片段 | 触发信号 | 适用测试技术 | 调用 skill | 必要性 | 置信度 | 说明 |"
+ROUTE_HEADER_WITH_DIMENSION_TECHNIQUE = "| 需求片段 | 分析维度 | 触发信号 | 适用测试技术 | 调用 skill | 必要性 | 置信度 | 说明 |"
 QUESTION_HEADER = "| ID | 问题 | 影响 | 关联需求依据 |"
 EVIDENCE_HEADER = "| 证据ID | 方法 | 需求片段 | 分析结论 | 关联测试点/待确认 |"
 GATE_HEADER = "| 门禁 | 结果 | 失败/警告项 | 修正建议 |"
@@ -115,6 +117,11 @@ def main() -> int:
     if not route_rows:
         route_rows = collect_table(lines, ROUTE_HEADER_WITH_DIMENSION)
         route_has_dimension = bool(route_rows)
+    if not route_rows:
+        route_rows = collect_table(lines, ROUTE_HEADER_TECHNIQUE)
+    if not route_rows:
+        route_rows = collect_table(lines, ROUTE_HEADER_WITH_DIMENSION_TECHNIQUE)
+        route_has_dimension = bool(route_rows)
     question_rows = collect_table(lines, QUESTION_HEADER)
     evidence_rows = collect_table(lines, EVIDENCE_HEADER)
     gate_rows = collect_table(lines, GATE_HEADER)
@@ -122,13 +129,18 @@ def main() -> int:
 
     if not testpoint_rows:
         errors.append("未找到测试点明细表")
-    has_route_section = "测试方法路由" in text or "测试分析维度与方法路由" in text
+    has_route_section = (
+        "测试技术路由" in text
+        or "测试分析维度与测试技术路由" in text
+        or "测试方法路由" in text
+        or "测试分析维度与方法路由" in text
+    )
     has_evidence_section = "方法分析证据摘要" in text
     has_gate_section = "质量门禁结果" in text
     has_score_section = "专家评审评分" in text
 
     if has_route_section and not route_rows:
-        errors.append("存在测试方法路由章节，但未找到路由表")
+        errors.append("存在测试技术路由章节，但未找到路由表")
     if not has_evidence_section:
         errors.append("缺少方法分析证据摘要章节")
     if has_evidence_section and not evidence_rows:
@@ -194,16 +206,16 @@ def main() -> int:
     for line_number, cells in route_rows:
         expected_columns = 8 if route_has_dimension else 7
         if len(cells) != expected_columns:
-            warnings.append(f"第 {line_number} 行：方法路由表列数异常")
+            warnings.append(f"第 {line_number} 行：测试技术路由表列数异常")
             continue
         if route_has_dimension:
             _, dimension, _, methods, _, necessity, confidence, _ = cells
             if not dimension:
-                warnings.append(f"第 {line_number} 行：方法路由表缺少分析维度")
+                warnings.append(f"第 {line_number} 行：测试技术路由表缺少分析维度")
         else:
             _, _, methods, _, necessity, confidence, _ = cells
         if confidence not in {"高", "中", "低"}:
-            warnings.append(f"第 {line_number} 行：方法路由置信度建议使用 高/中/低")
+            warnings.append(f"第 {line_number} 行：测试技术路由置信度建议使用 高/中/低")
         if "必选" not in necessity:
             continue
         required_methods.update(split_methods(methods, allowed_methods))

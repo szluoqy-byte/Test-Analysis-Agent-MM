@@ -22,8 +22,8 @@
 | 3 | 需求可测性分析 | requirement-testability | 结构化需求模型、需求待确认候选 | pending |  |
 | 4 | 设计方案提取 | design-solution-extraction | 设计方案事实摘要、接口/状态/字段/数据依赖清单 | pending |  |
 | 5 | 待确认治理 | clarification-gate | CP-INPUT、CP-ANALYSIS、CP-REVIEW | pending |  |
-| 6 | 方法路由 | testing-method-router | 分析维度覆盖表、方法路由表 | pending |  |
-| 7 | 专项方法分析 | selected method skills | ME-* 方法证据、测试点候选、方法缺口候选 | pending |  |
+| 6 | 测试技术路由 | testing-method-router | 分析维度覆盖表、测试技术路由表 | pending |  |
+| 7 | 专项分析 | selected method skills | ME-* 方法证据、测试点候选、技术缺口候选 | pending |  |
 | 8 | 按源补读 | selected method skills | 按需补读记录、来源说明 | skipped |  |
 | 9 | 场景化测试点生成 | testpoint-generation | 场景、测试点、接口测试点 | pending |  |
 | 10 | 测试用例标题大纲生成 | testcase-title-outline-generation | deliverables/testcase-title-outline.md | pending |  |

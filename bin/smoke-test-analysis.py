@@ -28,7 +28,7 @@ REQUIRED_FILES = [
     "knowledge/basic-test-types.md",
     "knowledge/test-analysis-methodology.md",
     "knowledge/testcase-title-outline-standard.md",
-    "knowledge/testcase-design-patterns/README.md",
+    "knowledge/test-techniques/README.md",
     "templates/testcase-title-outline-template.md",
     "templates/task-list-template.md",
     "templates/context-pack-template.md",

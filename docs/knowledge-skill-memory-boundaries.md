@@ -27,17 +27,17 @@ project 和 personal 是当前 run 的一等输入源：必须由 `memory-contex
 | 测试场景、场景测试条件、测试点、标题项和完整测试用例边界 | `knowledge/test-analysis-methodology.md` | 标题大纲层级边界标准 |
 | 测试用例标题项字段、命名和粒度标准 | `knowledge/testcase-title-outline-standard.md` | 主交付件标题项标准 |
 | 标题大纲使用的测试类型大类和子类 | `knowledge/basic-test-types.md` | 本项目内置测试类型体系 |
-| 风险优先、异常优先、状态优先等专家原则 | `knowledge/testcase-design-patterns/README.md`、`knowledge/testcase-design-patterns/risk-based/risk-based-test-design.md` | 标题项设计模式的通用审视规则 |
-| 空值、重复提交、越权、幂等等通用缺陷模式 | `knowledge/testcase-design-patterns/experience-based/error-guessing-checklist.md` | 经验型标题项补充模式 |
+| 风险优先、异常优先、状态优先等专家原则 | `knowledge/test-techniques/README.md`、`knowledge/test-techniques/risk-based/risk-based-testing.md` | 测试技术的通用审视规则，分析层用于识别风险，设计层用于控制标题项深度 |
+| 空值、重复提交、越权、幂等等通用缺陷模式 | `knowledge/test-techniques/experience-based/error-guessing-checklist.md` | 经验型测试技术补充，分析层识别缺陷风险，设计层补充高价值标题项 |
 | 需求文档、需求依据、方法证据、记忆上下文包等框架术语 | `knowledge/test-analysis-methodology.md` | 稳定分析术语，所有 skill 共用 |
-| 分析维度、需求信号到测试方法的映射 | `knowledge/test-method-routing-matrix.md` | 稳定路由知识 |
+| 分析维度、需求信号到测试技术的映射 | `knowledge/test-method-routing-matrix.md` | 稳定路由知识 |
 | Level 0 到 Level 4 的定义 | `knowledge/testpoint-standard.md` | 级别定义应全局一致 |
-| Level 0 到 Level 4 的风险判定启发 | `knowledge/testcase-design-patterns/risk-based/risk-based-test-design.md` | 标题项等级和覆盖深度的风险模式规则 |
+| Level 0 到 Level 4 的风险判定启发 | `knowledge/test-techniques/risk-based/risk-based-testing.md` | 标题项等级和覆盖深度的风险策略规则 |
 | 方法分析证据字段和质量要求 | `knowledge/method-evidence-standard.md` | 证明测试理论被实际应用的统一标准 |
 | 设计方案事实摘要字段 | `templates/design-facts-template.md` | 设计事实是运行期结构化产物，模板定义形状，具体事实由 `design-solution-extraction` 提取 |
 | 项目风险画像、覆盖策略、术语映射、路由说明和测试 oracle 补充 | `knowledge/projects/<project-key>/**/*.md` | 项目级测试知识补充，确定 `project-key` 后按需扫描 |
 | 个人测试启发、检查清单和本地关注点 | `knowledge/user/**/*.md` | personal 层知识补充，按需扫描 |
-| 某个测试方法的执行步骤 | `skills/*/SKILL.md` | 过程性动作，不是事实库 |
+| 某个测试技术的执行步骤 | `skills/*/SKILL.md` | 过程性动作，不是事实库 |
 | 输入、输出、约束、质量门禁调用顺序 | `skills/*/SKILL.md` | 插件运行流程 |
 | 项目全局事实、全局约束、输出偏好和项目专属术语覆盖 | `memory/project-memory.md` | 项目专属且经确认 |
 | 不同业务域的业务术语、角色权限、接口约定、数据约定和设计约束 | `memory/domains/*.md` | 用户自定义扩展区，自动扫描并按需匹配 |

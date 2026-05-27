@@ -1,6 +1,6 @@
 ---
 name: analyze-requirement-testcase-outline
-description: 当用户提供需求文档和可选设计方案文档，并要求生成“测试场景 -> 测试点 -> 测试用例标题大纲”时使用。该 skill 是主入口，负责串联上下文、需求与设计方案分析、方法路由、测试点生成、用例标题大纲生成、覆盖审查和 Markdown 产物输出；入参来自 $ARGUMENTS。
+description: 当用户提供需求文档和可选设计方案文档，并要求生成“测试场景 -> 测试点 -> 测试用例标题大纲”时使用。该 skill 是主入口，负责串联上下文、需求与设计方案分析、测试技术路由、测试点生成、用例标题大纲生成、覆盖审查和 Markdown 产物输出；入参来自 $ARGUMENTS。
 ---
 
 # 需求到测试用例标题大纲主入口
@@ -26,7 +26,7 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 
 - 本 skill 只负责编排完整分析链路和写出本次运行产物。
 - 业务术语、项目事实和历史经验来自 `memory-context-builder` 生成的上下文包，不在本 skill 内重复维护。
-- 通用测试分析理论、测试类型、测试点标准、标题大纲标准和测试设计模式来自 `knowledge/`。
+- 通用测试分析理论、测试类型、测试点标准、标题大纲标准和测试技术来自 `knowledge/`。
 - 需求与设计方案的结构化结果用于支撑测试点和标题项，不直接作为主交付件输出。
 - `requirement-testability` 负责需求模型和可测性判断。
 - `design-solution-extraction` 负责设计方案事实摘要和设计缺口候选。
@@ -65,11 +65,11 @@ project/personal 层只能补充项目风险画像、覆盖策略、术语映射
 5. 使用 `requirement-testability` 分析需求文档，生成结构化需求模型，并登记需求待确认候选。
 6. 如果提供设计方案文档，使用 `design-solution-extraction` 提取架构决策、流程、接口、字段、状态机、权限、数据依赖、异常处理、配置开关、非功能指标和设计缺口；如果未提供设计方案，登记 `Q-DESIGN-*` 待确认候选。
 7. 使用 `clarification-gate` 执行 `CP-INPUT`，合并 memory、需求与设计方案之间的冲突、缺失和歧义，不向用户提问。
-8. 使用 `testing-method-router` 对需求片段和设计方案片段进行方法路由，选择适用测试方法。
-9. 使用路由选中的专项分析 skill 产出 `ME-*` 方法证据、测试点候选、方法缺口候选和按源补读记录。
+8. 使用 `testing-method-router` 对需求片段和设计方案片段进行测试技术路由，选择适用测试技术和专项分析 skill。
+9. 使用路由选中的专项分析 skill 产出 `ME-*` 方法证据、测试点候选、技术缺口候选和按源补读记录。
 10. 使用 `clarification-gate` 执行 `CP-ANALYSIS`，收口会导致测试点、方法覆盖或标题项失真的信息缺口。
 11. 使用 `testpoint-generation` 生成场景化测试点、接口测试点和场景测试条件。
-12. 使用 `testcase-title-outline-generation` 基于场景、测试点、设计模式知识库和需求/设计方案上下文生成测试用例标题大纲。
+12. 使用 `testcase-title-outline-generation` 基于场景、测试点、测试技术库和需求/设计方案上下文生成测试用例标题大纲。
 13. 使用 `coverage-review` 执行覆盖审查、标题粒度检查、质量门禁和专家评分。
 14. 使用 `clarification-gate` 执行 `CP-REVIEW`，刷新最终待确认信息；只保留后续标题项评审、细化或落地必须知道的问题。
 15. 将主输出写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/testcase-title-outline.md`，使用 `templates/testcase-title-outline-template.md`。
@@ -82,10 +82,10 @@ project/personal 层只能补充项目风险画像、覆盖策略、术语映射
 |---|---|---|
 | `task-list` | `process/task-list.md` | 全流程阶段顺序与状态追踪 |
 | `memory-context-builder` | `process/context-pack.md`、project/personal 来源使用摘要 | 需求与设计方案分析 |
-| `requirement-testability` | 结构化需求模型、需求待确认候选 | 方法路由、测试点生成 |
-| `design-solution-extraction` | 设计方案事实摘要、接口/状态/字段/数据依赖清单、设计缺口候选 | 方法路由、标题项输入条件 |
-| `testing-method-router` | 分析维度覆盖表、方法路由表 | 专项方法 skill、测试点生成 |
-| 专项方法 skill | `ME-*` 方法证据、测试点候选、方法缺口候选 | 测试点生成、标题项生成 |
+| `requirement-testability` | 结构化需求模型、需求待确认候选 | 测试技术路由、测试点生成 |
+| `design-solution-extraction` | 设计方案事实摘要、接口/状态/字段/数据依赖清单、设计缺口候选 | 测试技术路由、标题项输入条件 |
+| `testing-method-router` | 分析维度覆盖表、测试技术路由表 | 专项分析 skill、测试点生成 |
+| 专项分析 skill | `ME-*` 方法证据、测试点候选、技术缺口候选 | 测试点生成、标题项生成 |
 | `testpoint-generation` | 场景化测试点、接口测试点、场景测试条件 | 测试用例标题大纲生成 |
 | `testcase-title-outline-generation` | 测试用例标题项、输入条件与数据依赖、判定关注 | 覆盖审查 |
 | `coverage-review` | 门禁结果、专家评分、阻断项和修正建议 | 主交付件和过程报告刷新 |
@@ -102,7 +102,7 @@ project/personal 层只能补充项目风险画像、覆盖策略、术语映射
 - `输入条件与数据依赖` 应写清楚标题项评审、细化或落地时需要的条件与数据维度，例如角色、订单状态、字段长度、字段格式、依赖服务、配置开关、枚举值、边界范围或数据准备约束；不得展开成完整执行步骤。
 - `判定关注` 只写观察方向或 oracle，例如接口响应、状态变化、错误码、数据记录、消息通知、日志或 UI 展示；不得写完整预期结果清单。
 - 主输出不得包含操作步骤、前置步骤、有序测试步骤、完整预期结果、自动化脚本或执行数据表。
-- 如果保留过程分析报告，报告可以包含方法路由、方法证据、覆盖审查、质量门禁、专家评分和 memory 更新建议；这些过程字段不得进入主交付件。
+- 如果保留过程分析报告，报告可以包含测试技术路由、方法证据、覆盖审查、质量门禁、专家评分和 memory 更新建议；这些过程字段不得进入主交付件。
 
 ## 硬性约束
 

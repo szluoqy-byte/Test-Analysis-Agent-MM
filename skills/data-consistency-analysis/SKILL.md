@@ -17,7 +17,7 @@ description: 当需求涉及数据创建、更新、删除、同步、缓存、�
 
 - 结构化需求模型。
 - 数据对象、持久化规则、同步规则、缓存规则、统计、导出、日志和集成信息。
-- `knowledge/testcase-design-patterns/experience-based/error-guessing-checklist.md`。
+- `knowledge/test-techniques/experience-based/error-guessing-checklist.md`。
 - `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.md`。
 
 ## 分析步骤

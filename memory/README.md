@@ -36,7 +36,7 @@ Memory 是 Agent 在多次需求分析之间保留的、经人工确认的项目
 4. 扫描 `user/**/*.md`，只选择与当前需求直接相关的 personal 偏好或本地检查关注点。
 5. 同时读取 `testing-experience-memory.md` 和 `projects/<project-key>/testing-experience-memory.md` 中与本次需求相关的项目经验。
 6. 只选择与本次需求直接相关的条目，生成 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.md`。
-7. 后续需求分析、方法路由、标题大纲生成和覆盖审查默认读取当前 run 的 `context-pack.md`；如果上下文不足，可以按 context pack 记录的来源文件或当前需求明确指向的 project/personal 文件受控补读相关章节。
+7. 后续需求分析、测试技术路由、标题大纲生成和覆盖审查默认读取当前 run 的 `context-pack.md`；如果上下文不足，可以按 context pack 记录的来源文件或当前需求明确指向的 project/personal 文件受控补读相关章节。
 8. 过程分析报告给出“建议沉淀的 Memory 更新”。
 9. 用户确认后，才把建议追加到对应长期 memory 文件、业务域分片、项目化 memory 文件或 personal 本地文件。
 

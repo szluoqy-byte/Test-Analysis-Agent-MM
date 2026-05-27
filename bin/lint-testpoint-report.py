@@ -14,7 +14,7 @@ REQUIRED_SECTIONS = [
     "## 2. 记忆上下文包摘要",
     "## 3. 需求结构化摘要",
     "## 4. 待确认治理摘要",
-    "## 5. 测试方法路由",
+    "## 5. 测试技术路由",
     "## 6. 方法分析证据摘要",
     "## 7. 待确认问题",
     "## 8. 测试点明细",
@@ -32,7 +32,7 @@ MODERN_REQUIRED_SECTIONS = [
     "## 4. Project/Personal 上下文使用情况",
     "## 5. 需求结构化摘要",
     "## 6. 待确认治理摘要",
-    "## 7. 测试分析维度与方法路由",
+    "## 7. 测试分析维度与测试技术路由",
     "## 8. 方法分析证据摘要",
     "## 9. 待确认问题",
     "## 10. 测试点明细",
@@ -47,7 +47,7 @@ LEGACY_REQUIRED_SECTIONS = [
     "## 1. 分析范围",
     "## 2. 记忆上下文包摘要",
     "## 3. 需求结构化摘要",
-    "## 4. 测试方法路由",
+    "## 4. 测试技术路由",
     "## 5. 方法分析证据摘要",
     "## 6. 待确认问题",
     "## 7. 测试点明细",
@@ -77,9 +77,18 @@ VAGUE_TESTPOINTS = {
 }
 
 ROUTE_SECTION_ALIASES = {
-    "## 5. 测试方法路由": "## 5. 测试分析维度与方法路由",
-    "## 4. 测试方法路由": "## 4. 测试分析维度与方法路由",
-    "## 4. 待确认治理摘要": "## 4. 交互澄清摘要",
+    "## 5. 测试技术路由": [
+        "## 5. 测试分析维度与测试技术路由",
+        "## 5. 测试方法路由",
+        "## 5. 测试分析维度与方法路由",
+    ],
+    "## 4. 测试技术路由": [
+        "## 4. 测试分析维度与测试技术路由",
+        "## 4. 测试方法路由",
+        "## 4. 测试分析维度与方法路由",
+    ],
+    "## 7. 测试分析维度与测试技术路由": ["## 7. 测试分析维度与方法路由"],
+    "## 4. 待确认治理摘要": ["## 4. 交互澄清摘要"],
 }
 
 
@@ -146,7 +155,7 @@ def collect_evidence_rows(lines: list[str]) -> list[tuple[int, list[str]]]:
 
 
 def has_required_section(text: str, section: str) -> bool:
-    return section in text or ROUTE_SECTION_ALIASES.get(section, "") in text
+    return section in text or any(alias in text for alias in ROUTE_SECTION_ALIASES.get(section, []))
 
 
 def main() -> int:

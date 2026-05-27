@@ -1,23 +1,23 @@
 ---
 name: testcase-title-outline-generation
-description: 当需要把场景化测试点转换为测试用例标题大纲时使用；负责识别测试点信号、选择测试设计模式、生成测试用例标题项、输入条件与数据依赖、覆盖意图、级别、判定关注和待确认信息；不编写完整测试步骤或完整预期结果。
+description: 当需要把场景化测试点转换为测试用例标题大纲时使用；负责识别测试点信号、选择测试技术、生成测试用例标题项、输入条件与数据依赖、覆盖意图、级别、判定关注和待确认信息；不编写完整测试步骤或完整预期结果。
 ---
 
 # 测试用例标题大纲生成
 
-本 skill 负责从 `testpoint-generation` 产出的测试场景、场景测试条件、场景测试点和接口测试点生成 `测试用例标题大纲`。它使用本仓库内置的测试设计模式库，但输出停留在测试用例标题粒度，不进入完整测试用例编写。
+本 skill 负责从 `testpoint-generation` 产出的测试场景、场景测试条件、场景测试点和接口测试点生成 `测试用例标题大纲`。它使用本仓库内置的 `knowledge/test-techniques/` 测试技术库，在标题级测试设计阶段回答“如何把测试点展开成标题项”，但输出停留在测试用例标题粒度，不进入完整测试用例编写。
 
 ## 路径解析规则
 
 - 本 skill 中所有 `knowledge/...`、`templates/...`、`quality-gates/...` 路径均为仓库根目录相对路径。
-- 读取测试设计模式时，先读取 `knowledge/testcase-design-patterns/README.md`，再按 README 路由读取同目录下的具体模式文件。
+- 读取测试技术时，先读取 `knowledge/test-techniques/README.md`，再按 README 路由读取同目录下的具体技术文件。
 - 粒度边界读取 `knowledge/test-analysis-methodology.md` 和 `knowledge/testcase-title-outline-standard.md`。
 - 输出结构读取 `templates/testcase-title-outline-template.md`。
 
 ## 职责边界
 
 - 输出“应该有哪些测试用例标题项”，不输出完整用例正文。
-- 选择测试设计模式并说明覆盖意图。
+- 选择主测试技术和辅助测试技术，并说明覆盖意图。
 - 为每个标题项补充 `输入条件与数据依赖` 和 `判定关注`。
 - 保留测试点到标题项的层级关系。
 - 不生成前置步骤、测试步骤、完整预期结果或自动化脚本。
@@ -36,7 +36,7 @@ description: 当需要把场景化测试点转换为测试用例标题大纲时�
 1. 按 `knowledge/test-analysis-methodology.md` 检查输入是否满足 `测试场景 -> 测试点` 的层级关系；如果测试点已写成完整用例，先上收为验证目标。
 2. 按 `knowledge/testcase-title-outline-standard.md` 确认标题项粒度：标题项应是“用例名称 + 设计条件摘要”，不得包含可执行步骤或完整预期。
 3. 对每条测试点识别主要信号：流程、边界、枚举、字段格式、字段长度、组合、判定、周期、状态、权限、接口、历史缺陷、风险或质量属性。
-4. 按 `knowledge/testcase-design-patterns/README.md` 选择一个主模式，必要时选择一个辅助模式。
+4. 按 `knowledge/test-techniques/README.md` 选择一个主测试技术，必要时选择一个辅助测试技术。
 5. 基于场景测试条件、需求事实和设计方案事实，生成 1-N 个测试用例标题项：
    - 主路径或核心成功条件至少 1 个标题项。
    - 明确边界、枚举、状态、权限、接口错误码、组合或异常处理时，按风险拆出独立标题项。

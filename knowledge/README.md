@@ -6,7 +6,7 @@ Knowledge 保存本 Agent 稳定、可复用的测试分析与标题级测试设
 
 | 层级 | 路径 | 默认提交 Git | 主流程默认读取 | 说明 |
 |---|---|---|---|---|
-| core | `knowledge/*.md`、`knowledge/testcase-design-patterns/**/*.md` | 是 | 是 | 标题大纲生成所需的稳定标准、方法论和设计模式 |
+| core | `knowledge/*.md`、`knowledge/test-techniques/**/*.md` | 是 | 是 | 标题大纲生成所需的稳定标准、方法论和测试技术 |
 | project | `knowledge/projects/<project-key>/**/*.md` | 否 | 按需 | 项目级风险画像、覆盖策略、术语映射和测试启发 |
 | user | `knowledge/user/**/*.md` | 否 | 按需 | 个人测试启发、检查清单和本地关注点 |
 
@@ -16,8 +16,8 @@ Knowledge 保存本 Agent 稳定、可复用的测试分析与标题级测试设
 |---|---|---|
 | 方法论层 | `test-analysis-methodology.md` | 定义稳定术语、测试分析、测试场景、测试点、标题项和非完整用例输出边界 |
 | 标准层 | `testpoint-standard.md`、`testcase-title-outline-standard.md`、`basic-test-types.md` | 定义测试点字段、标题项字段、级别、类型和非用例化标准 |
-| 路由与证据层 | `test-method-routing-matrix.md`、`method-evidence-standard.md` | 定义方法路由和方法证据要求 |
-| 标题项设计层 | `testcase-design-patterns/` | 把测试点扩展成标题项，承载风险判断、缺陷启发、输入条件与数据依赖、判定关注 |
+| 路由与证据层 | `test-method-routing-matrix.md`、`method-evidence-standard.md` | 定义测试技术路由和方法证据要求 |
+| 测试技术层 | `test-techniques/` | 同时支持测试分析和标题级测试设计：分析层识别测试条件、覆盖项和风险；设计层把测试点扩展成标题项，承载输入条件与数据依赖、判定关注和数量控制 |
 
 覆盖检查、专家评分和追踪检查属于 `quality-gates/`，不再作为 `knowledge/` 根节点知识维护。
 

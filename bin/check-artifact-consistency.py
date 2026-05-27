@@ -19,8 +19,8 @@ REQUIRED_TASK_STAGES = [
     "需求可测性分析",
     "设计方案提取",
     "待确认治理",
-    "方法路由",
-    "专项方法分析",
+    "测试技术路由",
+    "专项分析",
     "按源补读",
     "场景化测试点生成",
     "测试用例标题大纲生成",
@@ -29,6 +29,10 @@ REQUIRED_TASK_STAGES = [
     "输出收口",
 ]
 OPTIONAL_TASK_STAGES = {"按源补读", "设计方案提取"}
+TASK_STAGE_ALIASES = {
+    "方法路由": "测试技术路由",
+    "专项方法分析": "专项分析",
+}
 QUESTION_HEADERS = {
     "| ID | 问题 | 影响 | 关联需求依据 |",
     "| 问题 ID | 问题 | 影响场景/测试点 | 当前处理 |",
@@ -171,12 +175,13 @@ def validate_task_list(path: Path) -> tuple[list[str], list[str]]:
             errors.append(f"任务清单第 {line_number} 行序号不是数字: {order}")
         if status not in TASK_STATUS_VALUES:
             errors.append(f"任务清单第 {line_number} 行状态非法: {status}")
+        canonical_stage = TASK_STAGE_ALIASES.get(stage, stage)
         if status == "in_progress":
-            in_progress.append(stage)
+            in_progress.append(canonical_stage)
         if status in {"done", "blocked", "skipped"} and not evidence:
             warnings.append(f"任务清单阶段 `{stage}` 状态为 {status} 但证据/路径为空")
-        stages.append(stage)
-        statuses[stage] = status
+        stages.append(canonical_stage)
+        statuses[canonical_stage] = status
 
     if len(in_progress) > 1:
         errors.append("任务清单同时存在多个 in_progress 阶段: " + "、".join(in_progress))

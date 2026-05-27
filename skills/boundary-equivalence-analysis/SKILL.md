@@ -17,7 +17,7 @@ description: 当需求包含范围、阈值、数量、金额、时间窗口、�
 
 - 结构化需求片段。
 - 需求依据。
-- `knowledge/testcase-design-patterns/experience-based/error-guessing-checklist.md`。
+- `knowledge/test-techniques/experience-based/error-guessing-checklist.md`。
 - `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.md`。
 
 ## 分析步骤

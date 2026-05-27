@@ -67,4 +67,4 @@
 - 主输出中优先使用上表子类，避免自造类型。
 - 一个测试点只选择一个最主要的大类和子类；其他关注点写入风险或判定关注。
 - 如果需求只有弱信号，不强行扩大为性能、安全或兼容专项；可写入待确认信息。
-- 类型用于表达覆盖视角，不替代测试方法。测试方法仍以 `knowledge/testpoint-standard.md` 和 `knowledge/test-method-routing-matrix.md` 为准。
+- 类型用于表达覆盖视角，不替代测试技术。测试技术仍以 `knowledge/test-techniques/README.md` 和 `knowledge/test-method-routing-matrix.md` 为准。

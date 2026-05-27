@@ -10,7 +10,7 @@ description: 当需要按产品、业务、数据、权限、集成、运维和�
 ## 职责边界
 
 - 本 skill 只产出风险方法证据、风险登记和级别建议，供 `testpoint-generation` 给测试点定级和补充风险备注。
-- 风险评分、失败模式和历史缺陷信号是优先级依据，不直接变成用例设计模式、用例数量或执行步骤。
+- 风险评分、失败模式和历史缺陷信号是优先级依据，不直接变成标题项展开规则、用例数量或执行步骤。
 - 标题大纲生成阶段会基于风险测试点决定标题项展开方式；本 skill 不写完整测试用例。
 
 ## 输入
@@ -19,17 +19,17 @@ description: 当需要按产品、业务、数据、权限、集成、运维和�
 - 记忆上下文包。
 - 记忆上下文包中命中的 project/personal 风险画像、个人关注点和 oracle 补充。
 - `knowledge/testpoint-standard.md`。
-- `knowledge/testcase-design-patterns/README.md`。
-- `knowledge/testcase-design-patterns/risk-based/risk-based-test-design.md`。
-- `knowledge/testcase-design-patterns/experience-based/error-guessing-checklist.md`。
+- `knowledge/test-techniques/README.md`。
+- `knowledge/test-techniques/risk-based/risk-based-testing.md`。
+- `knowledge/test-techniques/experience-based/error-guessing-checklist.md`。
 
 ## 风险识别方式
 
-- 使用 `knowledge/testcase-design-patterns/README.md` 中的专家审视顺序和 Oracle 规则判断风险覆盖方向。
-- 使用 `knowledge/testcase-design-patterns/experience-based/error-guessing-checklist.md` 匹配通用缺陷模式。
+- 使用 `knowledge/test-techniques/README.md` 中的专家审视顺序和 Oracle 规则判断风险覆盖方向。
+- 使用 `knowledge/test-techniques/experience-based/error-guessing-checklist.md` 匹配通用缺陷模式。
 - 使用 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.md` 中的项目历史缺陷和项目风险模式修正关注点。
 - 使用 context pack 中的 project/personal knowledge 补充识别项目级风险画像、个人关注点、覆盖策略和判定依据启发；补充不得写成已确认业务事实。
-- 使用 `knowledge/testcase-design-patterns/risk-based/risk-based-test-design.md` 判断建议级别，级别定义仍以 `knowledge/testpoint-standard.md` 为准。
+- 使用 `knowledge/test-techniques/risk-based/risk-based-testing.md` 判断建议级别，级别定义仍以 `knowledge/testpoint-standard.md` 为准。
 
 风险识别必须区分三类来源：
 
