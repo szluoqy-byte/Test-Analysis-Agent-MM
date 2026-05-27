@@ -36,7 +36,7 @@ outputs/
 
 - run 目录名使用 `<YYYYMMDD-HHMMSS>-<需求文件名安全短名>-<短哈希>`。
 - run 目录内文件名固定，不再使用需求文件名作为产物文件名前缀。
-- 下游完整用例编写只读取 `outputs/runs/<run-id>/deliverables/testcase-title-outline.md`。
+- 下游标题项评审、细化或落地只读取 `outputs/runs/<run-id>/deliverables/testcase-title-outline.md`。
 - 不生成 `<需求文件名安全短名>.test-points.md`、`<需求文件名安全短名>.testpoint-details.md` 或其他旧格式同义文件。
 
 ## 精简原则
@@ -44,7 +44,7 @@ outputs/
 - 主交付件必须自包含，不能要求后续使用者读取输入需求、设计方案、`process/`、`reports/` 或 memory。
 - `process/task-list.md` 必须在创建 run 目录后立即生成，最终输出前所有必选阶段应为 `done`，可选阶段可为 `skipped` 并说明原因。
 - `process/context-pack.md` 必须记录 project/personal 的绑定结果、已扫描来源、命中来源、未采用来源、冲突处理和后续补读建议。
-- 如果 context pack 命中了 `*/projects/<project-key>/` 或 `*/user/`，后续完整用例编写需要知道的项目风险、覆盖策略、术语映射、个人关注点或判定依据必须上收到主交付件。
+- 如果 context pack 命中了 `*/projects/<project-key>/` 或 `*/user/`，后续标题项评审、细化或落地需要知道的项目风险、覆盖策略、术语映射、个人关注点或判定依据必须上收到主交付件。
 - 过程报告中可以包含方法路由、方法证据、覆盖审查和专家评分，但不得替代主交付件。
 - `process/` 只保留运行恢复和追溯必需文件。
 

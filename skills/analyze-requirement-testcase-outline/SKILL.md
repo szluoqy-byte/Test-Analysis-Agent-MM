@@ -13,7 +13,7 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 
 - 主交付件名称：`测试用例标题大纲`。
 - 单条明细名称：`测试用例标题项`。
-- 条件字段名称：`输入条件与数据依赖`，用于承载生成完整用例前必须知道的角色、状态、字段、枚举、边界、配置、依赖服务和数据准备约束。
+- 条件字段名称：`输入条件与数据依赖`，用于承载标题项评审、细化或落地前必须知道的角色、状态、字段、枚举、边界、配置、依赖服务和数据准备约束。
 
 ## 必需输入
 
@@ -28,9 +28,11 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 - 业务术语、项目事实和历史经验来自 `memory-context-builder` 生成的上下文包，不在本 skill 内重复维护。
 - 通用测试分析理论、测试类型、测试点标准、标题大纲标准和测试设计模式来自 `knowledge/`。
 - 需求与设计方案的结构化结果用于支撑测试点和标题项，不直接作为主交付件输出。
+- `requirement-testability` 负责需求模型和可测性判断。
+- `design-solution-extraction` 负责设计方案事实摘要和设计缺口候选。
 - `testpoint-generation` 负责生成场景化测试点。
 - `testcase-title-outline-generation` 负责把测试点扩展为测试用例标题项。
-- 主交付件是 `outputs/runs/<run-id>/deliverables/testcase-title-outline.md`；凡是后续完整用例编写必须知道的场景条件、输入条件、数据依赖、接口契约、状态、字段、边界、设计约束和未确认问题，都必须进入主交付件。
+- 主交付件是 `outputs/runs/<run-id>/deliverables/testcase-title-outline.md`；凡是后续标题项评审、细化或落地必须知道的场景条件、输入条件、数据依赖、接口契约、状态、字段、边界、设计约束和未确认问题，都必须进入主交付件。
 
 ## 项目根目录与输出路径
 
@@ -60,20 +62,19 @@ project/personal 层只能补充项目风险画像、覆盖策略、术语映射
 2. 将当前 agent 会话工作目录固定为 `PROJECT_ROOT`，生成本次运行 ID，并创建 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/`、`process/` 和 `reports/`。
 3. 使用 `templates/task-list-template.md` 创建 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/task-list.md`，并按阶段维护状态。
 4. 解析可选 `project-key` 和 `personal-key`，使用 `memory-context-builder` 扫描 core、project 和 personal 三层配置，生成 `process/context-pack.md`。
-5. 使用 `clarification-gate` 执行 `CP-MEMORY`，记录 memory 冲突或项目归属缺口。
-6. 使用 `requirement-testability` 分析需求文档，生成结构化需求模型，并登记需求待确认候选。
-7. 如果提供设计方案文档，执行“设计方案提取”：提取架构决策、流程、接口、字段、状态机、权限、数据依赖、异常处理、配置开关、非功能指标和设计缺口；如果未提供设计方案，登记 `Q-DESIGN-*` 待确认候选。
-8. 使用 `clarification-gate` 执行 `CP-REQUIREMENT-DESIGN`，合并需求与设计方案之间的冲突、缺失和歧义，不向用户提问。
-9. 使用 `testing-method-router` 对需求片段和设计方案片段进行方法路由，选择适用测试方法。
-10. 使用路由选中的专项分析 skill 产出 `ME-*` 方法证据、测试点候选、方法缺口候选和按源补读记录。
-11. 使用 `clarification-gate` 执行 `CP-METHOD`，收口会导致测试点或标题项失真的信息缺口。
-12. 使用 `testpoint-generation` 生成场景化测试点、接口测试点和场景测试条件。
-13. 使用 `testcase-title-outline-generation` 基于场景、测试点、设计模式知识库和需求/设计方案上下文生成测试用例标题大纲。
-14. 使用 `coverage-review` 执行覆盖审查、标题粒度检查、质量门禁和专家评分。
-15. 使用 `clarification-gate` 执行 `CP-REVIEW`，刷新最终待确认信息；只保留后续完整用例编写必须知道的问题。
-16. 将主输出写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/testcase-title-outline.md`，使用 `templates/testcase-title-outline-template.md`。
-17. 如需保留过程审查信息，将分析报告写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md`。
-18. 最终输出前刷新 `process/task-list.md`：所有必选阶段必须为 `done`，未触发的可选阶段为 `skipped` 并说明原因；如果存在 `blocked`，必须在最终待确认信息或过程报告中说明。
+5. 使用 `requirement-testability` 分析需求文档，生成结构化需求模型，并登记需求待确认候选。
+6. 如果提供设计方案文档，使用 `design-solution-extraction` 提取架构决策、流程、接口、字段、状态机、权限、数据依赖、异常处理、配置开关、非功能指标和设计缺口；如果未提供设计方案，登记 `Q-DESIGN-*` 待确认候选。
+7. 使用 `clarification-gate` 执行 `CP-INPUT`，合并 memory、需求与设计方案之间的冲突、缺失和歧义，不向用户提问。
+8. 使用 `testing-method-router` 对需求片段和设计方案片段进行方法路由，选择适用测试方法。
+9. 使用路由选中的专项分析 skill 产出 `ME-*` 方法证据、测试点候选、方法缺口候选和按源补读记录。
+10. 使用 `clarification-gate` 执行 `CP-ANALYSIS`，收口会导致测试点、方法覆盖或标题项失真的信息缺口。
+11. 使用 `testpoint-generation` 生成场景化测试点、接口测试点和场景测试条件。
+12. 使用 `testcase-title-outline-generation` 基于场景、测试点、设计模式知识库和需求/设计方案上下文生成测试用例标题大纲。
+13. 使用 `coverage-review` 执行覆盖审查、标题粒度检查、质量门禁和专家评分。
+14. 使用 `clarification-gate` 执行 `CP-REVIEW`，刷新最终待确认信息；只保留后续标题项评审、细化或落地必须知道的问题。
+15. 将主输出写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/testcase-title-outline.md`，使用 `templates/testcase-title-outline-template.md`。
+16. 如需保留过程审查信息，将分析报告写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md`。
+17. 最终输出前刷新 `process/task-list.md`：所有必选阶段必须为 `done`，未触发的可选阶段为 `skipped` 并说明原因；如果存在 `blocked`，必须在最终待确认信息或过程报告中说明。
 
 ## 阶段产物契约
 
@@ -82,7 +83,7 @@ project/personal 层只能补充项目风险画像、覆盖策略、术语映射
 | `task-list` | `process/task-list.md` | 全流程阶段顺序与状态追踪 |
 | `memory-context-builder` | `process/context-pack.md`、project/personal 来源使用摘要 | 需求与设计方案分析 |
 | `requirement-testability` | 结构化需求模型、需求待确认候选 | 方法路由、测试点生成 |
-| 设计方案提取 | 设计方案事实摘要、接口/状态/字段/数据依赖清单、设计缺口候选 | 方法路由、标题项输入条件 |
+| `design-solution-extraction` | 设计方案事实摘要、接口/状态/字段/数据依赖清单、设计缺口候选 | 方法路由、标题项输入条件 |
 | `testing-method-router` | 分析维度覆盖表、方法路由表 | 专项方法 skill、测试点生成 |
 | 专项方法 skill | `ME-*` 方法证据、测试点候选、方法缺口候选 | 测试点生成、标题项生成 |
 | `testpoint-generation` | 场景化测试点、接口测试点、场景测试条件 | 测试用例标题大纲生成 |
@@ -98,7 +99,7 @@ project/personal 层只能补充项目风险画像、覆盖策略、术语映射
 - 每个测试点下至少有 1 个标题项；如信息不足无法可靠生成，必须给出待确认项，并在该测试点下标记原因。
 - 标题项表必须包含 `标题项 ID | 测试用例标题 | 覆盖意图 | 级别 | 输入条件与数据依赖 | 判定关注 | 待确认信息`。
 - `测试用例标题` 应表达被测对象、条件/场景和验证目标，例如“验证下发订单 ID 总长度为 13 位时订单下发成功”。
-- `输入条件与数据依赖` 应写清楚标题项派生完整用例时需要的条件与数据维度，例如角色、订单状态、字段长度、字段格式、依赖服务、配置开关、枚举值、边界范围或数据准备约束；不得展开成完整执行步骤。
+- `输入条件与数据依赖` 应写清楚标题项评审、细化或落地时需要的条件与数据维度，例如角色、订单状态、字段长度、字段格式、依赖服务、配置开关、枚举值、边界范围或数据准备约束；不得展开成完整执行步骤。
 - `判定关注` 只写观察方向或 oracle，例如接口响应、状态变化、错误码、数据记录、消息通知、日志或 UI 展示；不得写完整预期结果清单。
 - 主输出不得包含操作步骤、前置步骤、有序测试步骤、完整预期结果、自动化脚本或执行数据表。
 - 如果保留过程分析报告，报告可以包含方法路由、方法证据、覆盖审查、质量门禁、专家评分和 memory 更新建议；这些过程字段不得进入主交付件。
@@ -110,7 +111,7 @@ project/personal 层只能补充项目风险画像、覆盖策略、术语映射
 - 不生成完整预期结果。
 - 不生成自动化脚本。
 - 不编造需求或设计方案中没有的业务规则、接口、字段、状态、角色、阈值或测试数据。
-- 不把“回读原始需求、设计方案、过程报告或 memory”作为后续完整用例编写的前提。
+- 不把“回读原始需求、设计方案、过程报告或 memory”作为后续标题项评审、细化或落地的前提。
 - 不直接覆盖历史运行产物；所有本次运行产物必须写入同一个 `${PROJECT_ROOT}/outputs/runs/<run-id>/` 目录，并使用固定文件名。
 - 不允许在 `skills/`、`.claude-plugin/`、`.opencode/`、插件缓存目录或 skill 工作目录下创建 `outputs/runs/`。
 - 全流程不调用用户交互能力；多个环节只登记待确认候选，不直接向用户提问，不暂停主流程。

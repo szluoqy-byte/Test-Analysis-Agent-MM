@@ -34,6 +34,7 @@ project 和 personal 是当前 run 的一等输入源：必须由 `memory-contex
 | Level 0 到 Level 4 的定义 | `knowledge/testpoint-standard.md` | 级别定义应全局一致 |
 | Level 0 到 Level 4 的风险判定启发 | `knowledge/testcase-design-patterns/risk-based/risk-based-test-design.md` | 标题项等级和覆盖深度的风险模式规则 |
 | 方法分析证据字段和质量要求 | `knowledge/method-evidence-standard.md` | 证明测试理论被实际应用的统一标准 |
+| 设计方案事实摘要字段 | `templates/design-facts-template.md` | 设计事实是运行期结构化产物，模板定义形状，具体事实由 `design-solution-extraction` 提取 |
 | 项目风险画像、覆盖策略、术语映射、路由说明和测试 oracle 补充 | `knowledge/projects/<project-key>/**/*.md` | 项目级测试知识补充，确定 `project-key` 后按需扫描 |
 | 个人测试启发、检查清单和本地关注点 | `knowledge/user/**/*.md` | personal 层知识补充，按需扫描 |
 | 某个测试方法的执行步骤 | `skills/*/SKILL.md` | 过程性动作，不是事实库 |

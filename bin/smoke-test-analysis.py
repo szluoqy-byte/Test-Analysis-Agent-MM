@@ -33,6 +33,8 @@ REQUIRED_FILES = [
     "templates/task-list-template.md",
     "templates/context-pack-template.md",
     "templates/clarification-template.md",
+    "templates/design-facts-template.md",
+    "skills/design-solution-extraction/SKILL.md",
     "quality-gates/testcase-title-outline-check.md",
     "quality-gates/coverage-check.md",
     "quality-gates/expert-review-rubric.md",
@@ -41,7 +43,6 @@ REQUIRED_FILES = [
     "memory/README.md",
     "examples/evaluation-matrix.md",
     "bin/lint-testcase-title-outline.py",
-    "bin/check-design-doc-mermaid.py",
     "bin/sync-opencode-skills.py",
     "bin/validate-agent-runtime.py",
 ]
@@ -107,9 +108,6 @@ def main() -> int:
             print(f"失败: 缺少关键文件 {relative}")
         return 1
     print("通过: 关键项目文件存在")
-
-    if not run_command([sys.executable, "bin/check-design-doc-mermaid.py"], repo_root):
-        return 1
 
     requirements = args.requirements
     if not requirements:

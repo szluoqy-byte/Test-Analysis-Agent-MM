@@ -42,7 +42,7 @@
 ## 主流程
 
 - 当用户要求基于需求和设计方案生成测试场景、测试点、测试用例标题粒度的大纲时，使用 `analyze-requirement-testcase-outline`。
-- 阶段性动作依次使用 `memory-context-builder`、`requirement-testability`、`clarification-gate`、`testing-method-router`、路由选中的专项分析 skills、`testpoint-generation`、`testcase-title-outline-generation` 和 `coverage-review`。
+- 阶段性动作依次使用 `memory-context-builder`、`requirement-testability`、`design-solution-extraction`、`clarification-gate`、`testing-method-router`、路由选中的专项分析 skills、`testpoint-generation`、`testcase-title-outline-generation` 和 `coverage-review`。
 - 设计方案输入用于补充接口、字段、状态、权限、数据依赖、配置开关、异常处理和非功能指标；没有设计方案时继续生成，并把设计缺口写入待确认信息。
 - 不编造业务事实、状态、角色、接口契约、阈值、错误码或测试数据。
 - 在认为报告完成前，运行 `bin/` 下的确定性检查。

@@ -6,6 +6,7 @@
 
 - Claude Code 加载 `.claude-plugin/plugin.json` 和根目录 `skills/`。
 - 主流程入口是 `skills/analyze-requirement-testcase-outline/SKILL.md`。
+- 需求由 `requirement-testability` 结构化；设计方案由 `design-solution-extraction` 提取为设计事实摘要。
 - `skills/` 是唯一手工维护的 skill 源。
 - `.opencode/skills/` 由 `skills/` 生成，不要直接编辑。
 - 修改 skills 后，运行 `python bin/sync-opencode-skills.py`。

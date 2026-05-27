@@ -23,7 +23,7 @@
 - 从设计方案中提取接口、字段、状态机、权限、数据依赖、配置开关、异常处理、非功能指标和设计缺口。
 - 使用内置测试分析方法和测试设计模式，把需求和设计方案转换成场景化测试点。
 - 将每个测试点扩展成 1-N 个测试用例标题项。
-- 输出自包含主交付件，不要求后续完整用例编写回读原始需求、设计方案、过程报告或 memory。
+- 输出自包含主交付件，不要求后续标题项评审、细化或落地回读原始需求、设计方案、过程报告或 memory。
 - 通过质量门禁和确定性 lint 检查标题大纲结构、粒度和非完整用例化约束。
 
 ### 2.2 非目标
@@ -42,7 +42,7 @@
 | 标题粒度可控 | 标题项只写标题、输入条件与数据依赖、判定关注，不写步骤和完整预期 |
 | 需求与设计并重 | 需求提供业务规则和验收范围，设计方案提供接口、字段、状态、数据依赖和实现约束 |
 | 方法可追溯 | 测试分析方法和设计模式通过过程报告或审查记录可追踪，主交付件保持清爽 |
-| 自包含交付 | 后续完整用例编写只读取主交付件即可继续工作 |
+| 自包含交付 | 后续标题项评审、细化或落地只读取主交付件即可继续工作 |
 | 待确认后置 | 缺失信息进入待确认信息，不中途打断用户 |
 | 平台无关 | Claude Code、OpenCode 或其他运行环境只是载体，核心逻辑沉淀在 Markdown 和轻量 Python 脚本中 |
 
@@ -60,6 +60,7 @@ PROJECT_ROOT/
 ├── skills/
 │   ├── analyze-requirement-testcase-outline/
 │   ├── requirement-testability/
+│   ├── design-solution-extraction/
 │   ├── testing-method-router/
 │   ├── risk-based-test-analysis/
 │   ├── boundary-equivalence-analysis/
@@ -103,32 +104,98 @@ PROJECT_ROOT/
 
 ## 5. 主运行流程
 
-主流程从需求和可选设计方案输入开始，经过上下文构建、需求与设计分析、测试方法分析、标题项生成和质量验收，最终输出测试用例标题大纲。Mermaid 图使用官方推荐的 flowchart 写法：先定义节点，再定义连线，避免在连线上重复声明节点文本。
+主流程从需求和可选设计方案输入开始，经过上下文构建、需求建模、设计事实提取、待确认治理、方法路由、专项分析、测试点生成、标题项生成和质量验收，最终输出测试用例标题大纲。
 
 ```mermaid
 flowchart TD
-  n01["需求文档"]
-  n02["设计方案文档"]
-  n03["运行准备"]
-  n04["上下文构建"]
-  n05["需求设计分析"]
-  n06["待确认治理"]
-  n07["方法专项分析"]
-  n08["场景测试点生成"]
-  n09["标题项生成"]
-  n10["覆盖校验"]
-  n11["交付标题大纲"]
+  subgraph Input["输入"]
+    req["需求 Markdown"]
+    design["可选设计方案 Markdown"]
+    project["可选 project-key / personal-key"]
+  end
 
-  n01 --> n03
-  n02 --> n03
-  n03 --> n04
-  n04 --> n05
-  n05 --> n06
-  n06 --> n07
-  n07 --> n08
-  n08 --> n09
-  n09 --> n10
-  n10 --> n11
+  subgraph Setup["运行准备"]
+    main["analyze-requirement-testcase-outline<br/>主入口编排"]
+    run["创建 outputs/runs/&lt;run-id&gt;<br/>deliverables / process / reports"]
+    task["创建并维护 process/task-list.md"]
+  end
+
+  subgraph Context["上下文构建"]
+    context["memory-context-builder<br/>扫描 core / project / personal"]
+    pack["process/context-pack.md<br/>绑定结果、命中来源、未采用来源、补读建议"]
+  end
+
+  subgraph RequirementDesign["需求与设计分析"]
+    reqModel["requirement-testability<br/>结构化需求模型、可测性、触发信号"]
+    designFacts["design-solution-extraction<br/>设计事实摘要、接口/字段/状态/权限/数据依赖"]
+    cpInput["clarification-gate<br/>CP-INPUT"]
+  end
+
+  subgraph Routing["方法路由"]
+    router["testing-method-router<br/>分析维度覆盖表、方法路由表"]
+  end
+
+  subgraph Specialists["专项方法分析（按路由选择）"]
+    risk["risk-based-test-analysis"]
+    boundary["boundary-equivalence-analysis"]
+    state["state-transition-analysis"]
+    decision["decision-table-analysis"]
+    scenario["scenario-flow-analysis"]
+    permission["permission-role-analysis"]
+    interface["interface-contract-analysis"]
+    data["data-consistency-analysis"]
+    combo["combinatorial-compatibility-analysis"]
+    evidence["ME-* 方法证据<br/>测试点候选 / 方法缺口候选"]
+    cpAnalysis["clarification-gate<br/>CP-ANALYSIS"]
+  end
+
+  subgraph Generation["生成主交付件"]
+    testpoints["testpoint-generation<br/>SC-* / TP-* / ITP-* / 场景测试条件"]
+    titles["testcase-title-outline-generation<br/>TCT-* / 输入条件与数据依赖 / 判定关注"]
+    outline["deliverables/testcase-title-outline.md"]
+  end
+
+  subgraph Review["质量闭环"]
+    review["coverage-review<br/>覆盖、追踪、方法应用、风险级别、结构、语义、专家评分"]
+    lint["确定性检查<br/>lint / consistency / semantic"]
+    cpReview["clarification-gate<br/>CP-REVIEW"]
+    report["可选 reports/test-analysis-report.md"]
+    final["输出收口<br/>最终待确认信息、任务清单状态、交付路径"]
+  end
+
+  req --> main
+  design -. 可选 .-> main
+  project -. 可选 .-> main
+  main --> run --> task --> context --> pack --> reqModel
+  pack --> reqModel
+  pack --> designFacts
+  design -. 提供时 .-> designFacts
+  reqModel --> designFacts
+  reqModel --> cpInput
+  designFacts --> cpInput
+  cpInput --> router
+  router --> risk
+  router --> boundary
+  router --> state
+  router --> decision
+  router --> scenario
+  router --> permission
+  router --> interface
+  router --> data
+  router --> combo
+  risk --> evidence
+  boundary --> evidence
+  state --> evidence
+  decision --> evidence
+  scenario --> evidence
+  permission --> evidence
+  interface --> evidence
+  data --> evidence
+  combo --> evidence
+  evidence --> cpAnalysis --> testpoints --> titles --> outline
+  outline --> review --> lint --> cpReview --> final
+  review -. 过程审查 .-> report
+  final --> outline
 ```
 
 流程分阶段说明：
@@ -136,7 +203,9 @@ flowchart TD
 | 阶段 | 输入 | 核心处理 | 输出 |
 |---|---|---|---|
 | 准备与上下文 | 需求文档、可选设计方案、project/personal 配置 | 固定项目根目录，创建运行目录，构建 context-pack | `process/context-pack.md` |
-| 需求与设计分析 | context-pack、需求文档、设计方案文档 | 需求结构化，提取接口、字段、状态、权限、数据依赖和设计缺口 | 结构化需求模型、设计方案事实摘要、待确认候选 |
+| 需求可测性分析 | context-pack、需求文档 | 提取业务规则、角色、流程、状态、接口依赖、分析维度和方法触发信号 | 结构化需求模型、需求待确认候选 |
+| 设计事实提取 | 设计方案文档、结构化需求模型、context-pack | 提取接口、字段、状态、权限、数据依赖、配置、异常处理、非功能约束和设计缺口 | 设计方案事实摘要、设计缺口候选 |
+| 待确认治理 | 各阶段候选问题 | 在固定检查点去重、分级、排序和降级，不中途打断用户 | 最终待确认候选和过程治理记录 |
 | 方法分析与测试点生成 | 结构化需求和设计事实 | 路由测试方法，生成方法证据，归并场景化测试点 | 场景、场景测试条件、`TP-*` 和 `ITP-*` |
 | 标题大纲生成与验收 | 场景化测试点、设计模式知识库 | 生成测试用例标题项，执行覆盖审查、质量门禁和 lint | `deliverables/testcase-title-outline.md` |
 
@@ -203,6 +272,7 @@ Knowledge 是本项目内置的稳定测试知识，按 core、project 和 perso
 
 - `memory-context-builder`
 - `requirement-testability`
+- `design-solution-extraction`
 - `clarification-gate`
 - `testing-method-router`
 

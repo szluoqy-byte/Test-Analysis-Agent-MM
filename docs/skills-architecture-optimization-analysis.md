@@ -2,7 +2,7 @@
 
 ## 1. 分析范围
 
-本文分析 `skills/` 下 17 个 skill 的职责分层、调用链、输入输出契约、质量门禁闭环和后续优化方向。分析基于当前仓库文件，不依赖历史项目假设。
+本文分析 `skills/` 下 18 个 skill 的职责分层、调用链、输入输出契约、质量门禁闭环和后续优化方向。分析基于当前仓库文件，不依赖历史项目假设。
 
 核心目标是判断当前 skill 架构是否能稳定支撑：
 
@@ -17,7 +17,8 @@
 | 编排入口 | `analyze-requirement-testcase-outline` | 固定项目根目录、创建 run、编排全链路、写出主交付件 | `deliverables/testcase-title-outline.md` |
 | 上下文层 | `memory-context-builder` | 发现并裁剪 core/project/personal 上下文 | `process/context-pack.md` |
 | 需求分析层 | `requirement-testability` | 提取可验证对象、角色、规则、流程、状态、接口和缺口 | 结构化需求模型、需求待确认候选 |
-| 待确认治理层 | `clarification-gate` | 在多个检查点收集、去重、分级、排序待确认候选 | `Q-*` 最终待确认信息、过程治理记录 |
+| 设计分析层 | `design-solution-extraction` | 提取接口、字段、状态、权限、数据依赖、配置、异常处理、非功能约束和设计缺口 | 设计方案事实摘要、设计缺口候选 |
+| 待确认治理层 | `clarification-gate` | 在 `CP-INPUT`、`CP-ANALYSIS`、`CP-REVIEW` 三个检查点收集、去重、分级、排序待确认候选 | `Q-*` 最终待确认信息、过程治理记录 |
 | 路由层 | `testing-method-router` | 根据分析维度和触发信号选择专项方法 | 方法路由表、方法范围待确认候选 |
 | 专项分析层 | 9 个专项 skill | 产出 `ME-*` 方法证据和测试点候选 | 方法证据、测试点候选、方法缺口候选 |
 | 测试点聚合层 | `testpoint-generation` | 把方法证据和候选归并为场景、场景条件、测试点和接口测试点 | `SC-*`、`TP-*`、`ITP-*` |
@@ -30,27 +31,27 @@
 
 | 证据 | 结论 |
 |---|---|
-| `skills/` 当前包含 17 个 skill | 主入口、上下文、需求、路由、专项分析、生成、审查层齐全 |
-| 11 个 skill 显式包含 `## 职责边界` | 主入口、标题生成和 9 个专项分析 skill 的边界较清楚 |
+| `skills/` 当前包含 18 个 skill | 主入口、上下文、需求、设计、路由、专项分析、生成、审查层齐全 |
+| 12 个 skill 显式包含 `## 职责边界` | 主入口、设计提取、标题生成和 9 个专项分析 skill 的边界较清楚 |
 | 所有 skill 均包含 `## 输入` 和 `## 输出` 或等价章节 | 输入输出契约在文档层基本完整 |
 | `bin/` 中存在 `lint-testpoint-report.py`、`semantic-testpoint-check.py`、`check-artifact-consistency.py` | `coverage-review` 引用的过程报告校验脚本真实存在 |
 | 两个示例报告均通过 `lint-testpoint-report.py` 和 `semantic-testpoint-check.py` | 过程报告校验链路可运行 |
 | `python bin/smoke-test-analysis.py` 通过 | 主输出示例和基础 runtime wiring 当前可用 |
-| Mermaid 主流程图通过 `bin/check-design-doc-mermaid.py`，且在线 SVG 渲染成功 | 设计文档主流程图已修复到可导出图片的 Mermaid 写法 |
+| 设计文档使用 Mermaid 展示完整调用过程 | 主流程图优先表达真实调用关系，不再设置项目内 Mermaid 语法限制 |
 
 ## 4. 主要发现
 
-### F1. 设计方案提取仍是入口内隐阶段
+### F1. 设计方案提取已独立，后续重点是稳定事实 schema
 
-`analyze-requirement-testcase-outline` 把“设计方案提取”定义为阶段，但仓库没有独立的 `design-solution-extraction` skill。当前做法适合轻量设计文档；当设计方案复杂时，会让主入口承担结构化提取、缺口判断和字段归一化职责。
+`design-solution-extraction` 已从主入口的隐式阶段独立出来，并通过 `templates/design-facts-template.md` 固定设计事实摘要字段。当前主入口只负责调度，设计方案的结构化提取、缺口判断和字段归一化归属该 skill。
 
 影响：
 
-- 主入口职责偏重，后续维护容易膨胀。
-- `testpoint-generation` 和 `testcase-title-outline-generation` 都依赖“设计方案事实摘要”，但该摘要的 schema 不如需求模型清晰。
-- 设计缺口候选与需求缺口候选容易混在 `CP-REQUIREMENT-DESIGN` 中。
+- 需求模型与设计事实的来源边界更清楚。
+- `testpoint-generation` 和 `testcase-title-outline-generation` 可以消费固定设计事实摘要，而不是依赖自由文本。
+- `CP-INPUT` 仍需要继续区分 memory 冲突、需求缺口、设计缺口和需求设计冲突。
 
-建议优先级：P1。
+建议优先级：P2，后续重点是示例和过程报告中稳定使用该 schema。
 
 ### F2. 专项分析 skill 输出模式相似，但缺少统一的机械契约
 
@@ -88,7 +89,7 @@
 
 ### F5. 主交付件与过程报告之间的关系已清晰，但示例 smoke 覆盖仍偏主输出
 
-`coverage-review` 和 `semantic-quality-check` 已要求过程报告校验；实际脚本也可运行。但 `smoke-test-analysis.py` 主要检查关键文件、Mermaid、标题大纲 lint，没有把过程报告 lint 和语义检查纳入固定 smoke。
+`coverage-review` 和 `semantic-quality-check` 已要求过程报告校验；实际脚本也可运行。但 `smoke-test-analysis.py` 主要检查关键文件和标题大纲 lint，没有把过程报告 lint 和语义检查纳入固定 smoke。
 
 影响：
 
@@ -105,7 +106,7 @@
 |---|---|---|
 | 编排入口 | 保持单入口 | 只负责调度、run 目录、任务清单和最终落盘 |
 | 上下文层 | 保持独立 | 将 project/personal 发现策略继续沉淀在 context pack，不下放给后续 skill 自行搜索 |
-| 需求与设计层 | 拆出设计提取契约 | 保留 `requirement-testability`，新增或规范化设计方案事实摘要 schema |
+| 需求与设计层 | 保持双输入契约 | `requirement-testability` 负责需求模型，`design-solution-extraction` 负责设计事实摘要 |
 | 路由层 | 保持独立 | 明确输出只到方法路由，不提前选择标题项设计模式 |
 | 专项分析层 | 统一输出骨架 | 所有专项 skill 使用同一方法证据表、候选测试点表和缺口候选表 |
 | 聚合生成层 | 强化 handoff | `testpoint-generation` 输出稳定的场景/测试点中间契约，标题生成只消费该契约 |
@@ -129,9 +130,9 @@
 - `python bin/validate-agent-runtime.py` 通过。
 - `python bin/smoke-test-analysis.py` 通过。
 
-### 阶段 2：设计方案事实摘要独立化
+### 阶段 2：设计方案事实摘要使用强化
 
-当设计方案文档成为常态输入时，建议新增 `design-solution-extraction` skill，或至少新增 `templates/design-facts-template.md`。
+当前已新增 `design-solution-extraction` skill 和 `templates/design-facts-template.md`。后续重点是让示例、过程报告和审查链路稳定消费该 schema。
 
 建议 schema：
 
@@ -148,7 +149,7 @@
 验收：
 
 - `testpoint-generation` 和 `testcase-title-outline-generation` 不再依赖自由文本的设计方案事实摘要。
-- `CP-REQUIREMENT-DESIGN` 能区分需求缺口与设计缺口。
+- `CP-INPUT` 能区分 memory 冲突、需求缺口、设计缺口和需求设计冲突。
 
 ### 阶段 3：审查链路分层
 
@@ -159,7 +160,7 @@
 | 机械校验 | lint、artifact consistency、report lint | 失败即阻断 |
 | 质量门禁 | 覆盖、追踪、方法应用、风险级别 | 失败则修正或登记待确认 |
 | 专家评分 | rubric 评分 | 低于通过线时给出修正建议 |
-| 待确认治理 | `CP-REVIEW` | 只保留影响后续完整用例编写的问题 |
+| 待确认治理 | `CP-REVIEW` | 只保留影响后续标题项评审、细化或落地的问题 |
 
 验收：
 
@@ -180,6 +181,6 @@
 最值得优先优化的是两个方向：
 
 1. 标准化契约：补齐核心 skill 的职责边界，并统一专项分析输出骨架。
-2. 独立化设计事实：把“设计方案提取”从主入口的隐式阶段沉淀为明确 schema 或独立 skill。
+2. 强化设计事实使用：让 `design-solution-extraction` 的结构化结果稳定进入方法路由、测试点生成和标题项生成。
 
 这两项能降低后续维护成本，也能让 `测试场景 -> 测试点 -> 测试用例标题项` 的链路更可验证。

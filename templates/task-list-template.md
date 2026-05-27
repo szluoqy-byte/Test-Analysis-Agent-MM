@@ -20,8 +20,8 @@
 | 1 | 固定 PROJECT_ROOT 与运行目录 | analyze-requirement-testcase-outline | outputs/runs/<run-id>/ | pending |  |
 | 2 | 构建上下文包 | memory-context-builder | process/context-pack.md | pending |  |
 | 3 | 需求可测性分析 | requirement-testability | 结构化需求模型、需求待确认候选 | pending |  |
-| 4 | 设计方案提取 | analyze-requirement-testcase-outline | 设计方案事实摘要、接口/状态/字段/数据依赖清单 | pending |  |
-| 5 | 待确认治理 | clarification-gate | CP-MEMORY、CP-REQUIREMENT-DESIGN、CP-ROUTING、CP-METHOD、CP-REVIEW | pending |  |
+| 4 | 设计方案提取 | design-solution-extraction | 设计方案事实摘要、接口/状态/字段/数据依赖清单 | pending |  |
+| 5 | 待确认治理 | clarification-gate | CP-INPUT、CP-ANALYSIS、CP-REVIEW | pending |  |
 | 6 | 方法路由 | testing-method-router | 分析维度覆盖表、方法路由表 | pending |  |
 | 7 | 专项方法分析 | selected method skills | ME-* 方法证据、测试点候选、方法缺口候选 | pending |  |
 | 8 | 按源补读 | selected method skills | 按需补读记录、来源说明 | skipped |  |
