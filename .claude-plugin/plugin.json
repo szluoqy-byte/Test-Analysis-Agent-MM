@@ -1,0 +1,19 @@
+{
+  "name": "testcase-title-outline-agent",
+  "description": "面向 Markdown 需求文档和设计方案的独立测试用例标题大纲插件，生成测试场景-测试点-测试用例标题项粒度的大纲，不生成完整测试用例。",
+  "version": "0.1.0",
+  "skills": "./skills/",
+  "author": {
+    "name": "Testcase Title Outline Agent Team"
+  },
+  "license": "UNLICENSED",
+  "keywords": [
+    "testing",
+    "requirements",
+    "design",
+    "testcase-title-outline",
+    "quality-analysis",
+    "memory",
+    "clarification"
+  ]
+}
