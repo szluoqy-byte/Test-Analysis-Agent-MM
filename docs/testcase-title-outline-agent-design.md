@@ -76,10 +76,15 @@ PROJECT_ROOT/
 │   ├── memory-context-builder/
 │   └── coverage-review/
 ├── knowledge/
+│   ├── basic-test-types.md
+│   ├── testpoint-standard.md
 │   ├── test-analysis-methodology.md
-│   ├── test-scenario-point-case-boundary.md
+│   ├── test-method-routing-matrix.md
+│   ├── method-evidence-standard.md
 │   ├── testcase-title-outline-standard.md
 │   ├── testcase-design-patterns/
+│   ├── projects/
+│   ├── user/
 │   └── ...
 ├── templates/
 │   ├── testcase-title-outline-template.md
@@ -174,15 +179,17 @@ ${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/testcase-title-outline.md
 
 ## 7. Knowledge 设计
 
-Knowledge 是本项目内置的稳定测试知识。它包含：
+Knowledge 是本项目内置的稳定测试知识，按 core、project 和 personal 分层维护：
 
-- 测试分析方法论、方法路由矩阵、风险级别规则和测试点标准。
-- 场景、测试点、测试用例标题项和完整测试用例的边界标准。
-- 测试用例标题大纲标准。
-- 测试设计模式库，用于从测试点派生标题项。
-- 缺陷模式、测试 oracle、覆盖分类和专家评审规则。
+| 层级 | 内容 | 主流程读取 |
+|---|---|---|
+| 方法论层 | 稳定术语、测试分析方法论、场景/测试点/标题项边界 | 是 |
+| 标准层 | 测试点标准、标题大纲标准、测试类型分类 | 是 |
+| 路由与证据层 | 方法路由矩阵、方法证据标准 | 是 |
+| 标题项设计层 | 标题大纲标准、标题项设计模式库 | 是 |
+| project/personal 层 | 项目风险画像、术语、覆盖策略、个人关注点 | 按需 |
 
-所有知识文件均为本项目自有维护内容。project/personal 层只能补充风险画像、术语、覆盖策略、个人关注点或本地门禁，不得覆盖 core 标准。
+所有 core 知识文件均为本项目自有维护内容。覆盖检查、专家评分和追踪检查归属 `quality-gates/`。project/personal 层只能补充风险画像、术语、覆盖策略、个人关注点或本地门禁，不得覆盖 core 标准。完整测试用例写作知识不在本 Agent 内维护。
 
 ## 8. Skill 设计
 

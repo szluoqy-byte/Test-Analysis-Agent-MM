@@ -4,7 +4,7 @@
 
 确保输出停留在本 Agent 的测试点和测试用例标题大纲粒度，而不是已经展开的完整测试用例文档。
 
-层级边界以 `knowledge/test-scenario-point-case-boundary.md` 为准。
+层级边界以 `knowledge/test-analysis-methodology.md` 为准。
 
 ## 失败条件
 

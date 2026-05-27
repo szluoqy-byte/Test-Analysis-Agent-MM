@@ -10,7 +10,7 @@
 - 必选测试方法是否有方法分析证据，或是否有待确认问题解释缺口。
 - 适用的测试分析维度是否落到主交付件，而不是只留在过程报告。
 - 标题大纲中的大类/子类是否来自 `knowledge/basic-test-types.md`。
-- 测试场景、场景测试条件、测试点是否符合 `knowledge/test-scenario-point-case-boundary.md` 的层级边界。
+- 测试场景、场景测试条件、测试点是否符合 `knowledge/test-analysis-methodology.md` 的层级边界。
 - 过程报告中的测试点类型和方法是否来自 `knowledge/testpoint-standard.md`。
 - 高等级测试点是否有风险备注。
 - 过程报告与测试用例标题大纲是否不冲突。

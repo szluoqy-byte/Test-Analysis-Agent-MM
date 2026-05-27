@@ -23,9 +23,8 @@ description: 当需要把需求分析、设计方案分析、风险分析和测�
 - 记忆上下文包中命中的 project/personal 风险画像、覆盖策略、术语映射、模板偏好、个人关注点和 oracle 补充。
 - `knowledge/testpoint-standard.md`。
 - `knowledge/test-analysis-methodology.md`。
-- `knowledge/test-scenario-point-case-boundary.md`。
 - `knowledge/basic-test-types.md`。
-- `knowledge/test-oracle-heuristics.md`。
+- `knowledge/testcase-design-patterns/README.md`。
 - `templates/testcase-title-outline-template.md`。
 - 如需保留过程审查信息，可同时参考 `templates/final-report-template.md`。
 
@@ -49,10 +48,9 @@ description: 当需要把需求分析、设计方案分析、风险分析和测�
 ## 标准来源
 
 - 内部分析的 `类型`、`方法`、`级别`、粒度和非用例化约束以 `knowledge/testpoint-standard.md` 为准。
-- 测试分析、标题级设计边界、分析维度和主交付件落点以 `knowledge/test-analysis-methodology.md` 为准。
-- 场景、场景测试条件、测试点、标题项和完整测试用例的层级边界以 `knowledge/test-scenario-point-case-boundary.md` 为准。
+- 测试分析、标题级设计边界、场景层级、分析维度和主交付件落点以 `knowledge/test-analysis-methodology.md` 为准。
 - 标题大纲中的 `场景测试类型`、测试点 `大类/子类` 和接口测试类型以 `knowledge/basic-test-types.md` 为准。
-- 判定依据启发以 `knowledge/test-oracle-heuristics.md` 为准。
+- 判定关注与 Oracle 启发以 `knowledge/testcase-design-patterns/README.md` 为准。
 - project/personal 补充以当前 run 的 `process/context-pack.md` 为准，只能补充风险画像、覆盖策略、术语映射、模板偏好、个人关注点和 oracle，不改变上述核心标准来源；personal 不得作为项目事实。
 
 ## 合并规则

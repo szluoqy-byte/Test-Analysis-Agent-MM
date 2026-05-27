@@ -11,7 +11,7 @@ description: 当需要把场景化测试点转换为测试用例标题大纲时�
 
 - 本 skill 中所有 `knowledge/...`、`templates/...`、`quality-gates/...` 路径均为仓库根目录相对路径。
 - 读取测试设计模式时，先读取 `knowledge/testcase-design-patterns/README.md`，再按 README 路由读取同目录下的具体模式文件。
-- 粒度边界读取 `knowledge/test-scenario-point-case-boundary.md` 和 `knowledge/testcase-title-outline-standard.md`。
+- 粒度边界读取 `knowledge/test-analysis-methodology.md` 和 `knowledge/testcase-title-outline-standard.md`。
 - 输出结构读取 `templates/testcase-title-outline-template.md`。
 
 ## 职责边界
@@ -33,7 +33,7 @@ description: 当需要把场景化测试点转换为测试用例标题大纲时�
 
 ## 生成步骤
 
-1. 按 `knowledge/test-scenario-point-case-boundary.md` 检查输入是否满足 `测试场景 -> 测试点` 的层级关系；如果测试点已写成完整用例，先上收为验证目标。
+1. 按 `knowledge/test-analysis-methodology.md` 检查输入是否满足 `测试场景 -> 测试点` 的层级关系；如果测试点已写成完整用例，先上收为验证目标。
 2. 按 `knowledge/testcase-title-outline-standard.md` 确认标题项粒度：标题项应是“用例名称 + 设计条件摘要”，不得包含可执行步骤或完整预期。
 3. 对每条测试点识别主要信号：流程、边界、枚举、字段格式、字段长度、组合、判定、周期、状态、权限、接口、历史缺陷、风险或质量属性。
 4. 按 `knowledge/testcase-design-patterns/README.md` 选择一个主模式，必要时选择一个辅助模式。

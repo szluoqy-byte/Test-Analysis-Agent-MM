@@ -18,18 +18,18 @@ description: 当需要按产品、业务、数据、权限、集成、运维和�
 - 结构化需求模型。
 - 记忆上下文包。
 - 记忆上下文包中命中的 project/personal 风险画像、个人关注点和 oracle 补充。
-- `knowledge/expert-rules.md`。
-- `knowledge/defect-patterns.md`。
 - `knowledge/testpoint-standard.md`。
-- `knowledge/risk-level-rules.md`。
+- `knowledge/testcase-design-patterns/README.md`。
+- `knowledge/testcase-design-patterns/risk-based/risk-based-test-design.md`。
+- `knowledge/testcase-design-patterns/experience-based/error-guessing-checklist.md`。
 
 ## 风险识别方式
 
-- 使用 `knowledge/expert-rules.md` 判断风险覆盖方向。
-- 使用 `knowledge/defect-patterns.md` 匹配通用缺陷模式。
+- 使用 `knowledge/testcase-design-patterns/README.md` 中的专家审视顺序和 Oracle 规则判断风险覆盖方向。
+- 使用 `knowledge/testcase-design-patterns/experience-based/error-guessing-checklist.md` 匹配通用缺陷模式。
 - 使用 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.md` 中的项目历史缺陷和项目风险模式修正关注点。
 - 使用 context pack 中的 project/personal knowledge 补充识别项目级风险画像、个人关注点、覆盖策略和判定依据启发；补充不得写成已确认业务事实。
-- 使用 `knowledge/risk-level-rules.md` 判断建议级别，级别定义仍以 `knowledge/testpoint-standard.md` 为准。
+- 使用 `knowledge/testcase-design-patterns/risk-based/risk-based-test-design.md` 判断建议级别，级别定义仍以 `knowledge/testpoint-standard.md` 为准。
 
 风险识别必须区分三类来源：
 

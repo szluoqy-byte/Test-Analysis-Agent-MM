@@ -8,7 +8,7 @@ Skills = 使用知识完成分析动作的流程
 Memory = 经确认的项目上下文、项目历史经验和个人本地偏好
 ```
 
-配置来源按 `core / project / personal` 三层组织，personal 本地路径使用 `user` 目录：
+配置来源按 `core / project / personal` 三层组织，personal 本地路径使用 `user` 目录。
 
 | 层级 | 路径 | 默认提交 Git | 作用 |
 |---|---|---|---|
@@ -24,14 +24,15 @@ project 和 personal 是当前 run 的一等输入源：必须由 `memory-contex
 |---|---|---|
 | 测试点定义、字段、类型、方法、级别 | `knowledge/testpoint-standard.md` | 稳定标准，所有 skill 共用 |
 | 测试分析、标题级设计边界、分析维度和交付件落点 | `knowledge/test-analysis-methodology.md` | 本项目的上位方法论 |
-| 测试场景、场景测试条件、测试点、标题项和完整测试用例边界 | `knowledge/test-scenario-point-case-boundary.md` | 标题大纲层级边界标准 |
+| 测试场景、场景测试条件、测试点、标题项和完整测试用例边界 | `knowledge/test-analysis-methodology.md` | 标题大纲层级边界标准 |
 | 测试用例标题项字段、命名和粒度标准 | `knowledge/testcase-title-outline-standard.md` | 主交付件标题项标准 |
 | 标题大纲使用的测试类型大类和子类 | `knowledge/basic-test-types.md` | 本项目内置测试类型体系 |
-| 风险优先、异常优先、状态优先等专家原则 | `knowledge/expert-rules.md` | 通用测试专家规则 |
-| 空值、重复提交、越权、幂等等通用缺陷模式 | `knowledge/defect-patterns.md` | 跨项目缺陷启发 |
-| 需求文档、需求依据、方法证据、记忆上下文包等框架术语 | `knowledge/domain-glossary.md` | 稳定分析术语，所有 skill 共用 |
+| 风险优先、异常优先、状态优先等专家原则 | `knowledge/testcase-design-patterns/README.md`、`knowledge/testcase-design-patterns/risk-based/risk-based-test-design.md` | 标题项设计模式的通用审视规则 |
+| 空值、重复提交、越权、幂等等通用缺陷模式 | `knowledge/testcase-design-patterns/experience-based/error-guessing-checklist.md` | 经验型标题项补充模式 |
+| 需求文档、需求依据、方法证据、记忆上下文包等框架术语 | `knowledge/test-analysis-methodology.md` | 稳定分析术语，所有 skill 共用 |
 | 分析维度、需求信号到测试方法的映射 | `knowledge/test-method-routing-matrix.md` | 稳定路由知识 |
-| Level 0 到 Level 4 的判定规则 | `knowledge/risk-level-rules.md` | 级别标准应全局一致 |
+| Level 0 到 Level 4 的定义 | `knowledge/testpoint-standard.md` | 级别定义应全局一致 |
+| Level 0 到 Level 4 的风险判定启发 | `knowledge/testcase-design-patterns/risk-based/risk-based-test-design.md` | 标题项等级和覆盖深度的风险模式规则 |
 | 方法分析证据字段和质量要求 | `knowledge/method-evidence-standard.md` | 证明测试理论被实际应用的统一标准 |
 | 项目风险画像、覆盖策略、术语映射、路由说明和测试 oracle 补充 | `knowledge/projects/<project-key>/**/*.md` | 项目级测试知识补充，确定 `project-key` 后按需扫描 |
 | 个人测试启发、检查清单和本地关注点 | `knowledge/user/**/*.md` | personal 层知识补充，按需扫描 |
@@ -58,7 +59,7 @@ project 和 personal 是当前 run 的一等输入源：必须由 `memory-contex
 - `skills/` 不重复维护测试点类型、方法枚举、级别定义和通用缺陷模式，只引用 `knowledge/`。
 - `skills/` 不把方法证据写成自由发挥的叙述，统一引用 `knowledge/method-evidence-standard.md` 和 `templates/method-analysis-template.md`。
 - `memory/` 不保存通用测试理论、通用缺陷模式、通用级别定义和方法步骤。
-- `memory/` 不重复维护框架术语定义；框架术语归属 `knowledge/domain-glossary.md`，memory 只记录项目专属术语或覆盖。
+- `memory/` 不重复维护框架术语定义；框架术语归属 `knowledge/test-analysis-methodology.md`，memory 只记录项目专属术语或覆盖。
 - `knowledge/` 不保存项目事实、用户临时偏好、单次运行结果和未确认假设。
 - `knowledge/projects/<project-key>/` 只能保存项目级测试知识补充，不保存未确认业务事实、真实缺陷复盘或输出偏好。
 - `knowledge/projects/<project-key>/` 不覆盖根目录 `knowledge/` 的测试点字段、类型、方法、级别、输出契约和质量门禁。

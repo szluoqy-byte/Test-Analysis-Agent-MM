@@ -1,23 +1,27 @@
 # Knowledge 模块说明
 
-Knowledge 保存稳定测试知识、分析标准、测试设计模式、覆盖分类、测试类型、风险规则和专家审查规则。根目录下的 `*.md` 和 `testcase-design-patterns/` 是 core 层事实源，所有项目默认适用。
+Knowledge 保存本 Agent 稳定、可复用的测试分析与标题级测试设计知识。主流程默认只读取 core、project 和 user 三层知识。
 
-## 三层范围
+## 分层结构
 
-| 层级 | 路径 | 是否默认提交 Git | 说明 |
-|---|---|---|---|
-| core | `knowledge/*.md` | 是 | Agent 包内置的稳定测试知识和标准 |
-| project | `knowledge/projects/<project-key>/**/*.md` | 否 | 当前项目的风险画像、覆盖策略、术语映射、路由说明和 oracle 补充 |
-| user | `knowledge/user/**/*.md` | 否 | 当前使用者的个人测试启发、检查清单和本地关注点 |
+| 层级 | 路径 | 默认提交 Git | 主流程默认读取 | 说明 |
+|---|---|---|---|---|
+| core | `knowledge/*.md`、`knowledge/testcase-design-patterns/**/*.md` | 是 | 是 | 标题大纲生成所需的稳定标准、方法论和设计模式 |
+| project | `knowledge/projects/<project-key>/**/*.md` | 否 | 按需 | 项目级风险画像、覆盖策略、术语映射和测试启发 |
+| user | `knowledge/user/**/*.md` | 否 | 按需 | 个人测试启发、检查清单和本地关注点 |
 
-## 文件类型
+## Core 知识归类
 
-- `*.md`：core 测试知识和标准，例如测试类型、测试点标准、测试用例标题大纲标准、方法路由矩阵、缺陷模式和专家规则。
-- `testcase-design-patterns/`：本 Agent 内置的标题项设计模式库，用于把测试点扩展成测试用例标题项，不直接生成完整测试用例。
-- `projects/<project-key>/**/*.md`：project 知识补充，例如项目风险画像、覆盖策略、术语映射、方法路由补充和测试 oracle 补充。
-- `user/**/*.md`：user 知识补充，例如个人测试启发、检查清单和本地关注点。
+| 分类 | 文件或目录 | 用途 |
+|---|---|---|
+| 方法论层 | `test-analysis-methodology.md` | 定义稳定术语、测试分析、测试场景、测试点、标题项和非完整用例输出边界 |
+| 标准层 | `testpoint-standard.md`、`testcase-title-outline-standard.md`、`basic-test-types.md` | 定义测试点字段、标题项字段、级别、类型和非用例化标准 |
+| 路由与证据层 | `test-method-routing-matrix.md`、`method-evidence-standard.md` | 定义方法路由和方法证据要求 |
+| 标题项设计层 | `testcase-design-patterns/` | 把测试点扩展成标题项，承载风险判断、缺陷启发、输入条件与数据依赖、判定关注 |
 
-## 项目化 Knowledge 边界
+覆盖检查、专家评分和追踪检查属于 `quality-gates/`，不再作为 `knowledge/` 根节点知识维护。
+
+## Project / User 边界
 
 项目化 knowledge 可以补充当前项目的测试分析策略，但不得覆盖根目录中的核心标准：
 

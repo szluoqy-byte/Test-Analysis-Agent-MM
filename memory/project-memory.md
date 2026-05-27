@@ -28,7 +28,7 @@
 
 ## 项目专属术语
 
-框架通用术语以 `knowledge/domain-glossary.md`、`knowledge/testpoint-standard.md` 和 `knowledge/method-evidence-standard.md` 为准；本节只记录当前项目的专属术语、业务域含义或经用户确认的术语覆盖。
+框架通用术语以 `knowledge/test-analysis-methodology.md`、`knowledge/testpoint-standard.md` 和 `knowledge/method-evidence-standard.md` 为准；本节只记录当前项目的专属术语、业务域含义或经用户确认的术语覆盖。
 
 当前暂无项目专属术语覆盖。
 
@@ -40,7 +40,7 @@
 - 每个测试场景必须补齐场景入口/触发方式、执行用户/角色、前置条件、测试数据因子和业务设计约束。
 - 主输出中的标题项表使用 `标题项 ID | 测试用例标题 | 覆盖意图 | 级别 | 输入条件与数据依赖 | 判定关注 | 待确认信息`，不输出完整测试用例字段。
 - 测试分析与测试设计边界、分析维度和交付件落点以 `knowledge/test-analysis-methodology.md` 为准。
-- 场景、场景测试条件、测试点和测试用例边界以 `knowledge/test-scenario-point-case-boundary.md` 为准；测试类型以 `knowledge/basic-test-types.md` 为准。
+- 场景、场景测试条件、测试点和测试用例边界以 `knowledge/test-analysis-methodology.md` 为准；测试类型以 `knowledge/basic-test-types.md` 为准。
 - 过程分析报告可以包含测试分析维度与方法路由、方法证据、质量门禁结果、专家评分和建议沉淀的 Memory 更新，但不得替代主输出。
 - 主输出是唯一默认交接物，必须自包含后续完整用例编写所需的需求摘要、设计约束、场景上下文、业务规则、数据因子、接口契约和待确认问题。
 - 默认输出件按 `docs/output-artifact-contract.md` 分类落盘，不再默认生成按需求名变化的测试点明细或过程文件。

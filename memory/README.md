@@ -44,7 +44,7 @@ Memory 是 Agent 在多次需求分析之间保留的、经人工确认的项目
 
 - 写入 memory 的内容必须有证据，来源可以是需求文档、用户反馈、评审结论或真实缺陷复盘。
 - 通用测试理论、通用缺陷模式和通用级别定义不写入 memory，应放在 `knowledge/`。
-- 框架术语不写入 memory，应放在 `knowledge/domain-glossary.md`；memory 只记录项目专属术语或业务域术语覆盖。
+- 框架术语不写入 memory，应放在 `knowledge/test-analysis-methodology.md`；memory 只记录项目专属术语或业务域术语覆盖。
 - 未确认的业务规则不写入 memory，应放在待确认问题。
 - 单次运行的完整中间产物不写入 memory，应保存在 `outputs/`。
 - 业务域分片不需要登记到 `project-memory.md`；新增 `.md` 文件后会被自动扫描，但只有相关片段会进入 context pack。

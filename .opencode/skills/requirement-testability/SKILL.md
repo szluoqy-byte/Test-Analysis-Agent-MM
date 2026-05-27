@@ -12,7 +12,6 @@ description: 当需要分析 Markdown 需求文档的可测试性时使用。负
 - 原始 Markdown 需求文档。
 - 记忆上下文包。
 - 记忆上下文包中命中的 project/personal knowledge 补充。
-- `knowledge/domain-glossary.md`。
 - `knowledge/test-analysis-methodology.md`。
 
 ## 分析步骤

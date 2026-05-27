@@ -13,7 +13,6 @@ description: 在测试用例标题大纲生成后使用，用于执行覆盖审�
 - 如有过程报告，读取其中的测试点映射、方法路由和方法证据。
 - `${PROJECT_ROOT}/outputs/runs/<run-id>/process/task-list.md`。
 - `knowledge/test-analysis-methodology.md`。
-- `knowledge/test-scenario-point-case-boundary.md`。
 - `knowledge/basic-test-types.md`。
 - 测试分析维度与方法路由表。
 - 方法分析证据摘要。
@@ -21,7 +20,7 @@ description: 在测试用例标题大纲生成后使用，用于执行覆盖审�
 - 待确认问题。
 - 记忆上下文包中的 project/personal 补充、绑定结果和命中来源。
 - `quality-gates/*.md`。
-- `knowledge/expert-review-rubric.md`。
+- `quality-gates/expert-review-rubric.md`。
 
 ## 审查步骤
 
@@ -39,7 +38,7 @@ description: 在测试用例标题大纲生成后使用，用于执行覆盖审�
 12. 如果过程分析报告已生成，运行 `bin/lint-testpoint-report.py ${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md` 和 `bin/semantic-testpoint-check.py ${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md` 做过程报告校验。
 13. 如果使用了 project/personal 补充，检查相关风险原因、覆盖策略、判定依据、个人偏好、模板偏好或附加门禁是否已正确处理，且没有覆盖核心类型、字段、级别、输出契约和质量门禁。
 14. 检查 project/personal 使用情况是否在 context pack 和过程报告中可见，包括绑定结果、命中来源、未采用来源、冲突处理和后续补读建议；personal 内容不得被写成项目事实或团队共识。
-15. 使用 `knowledge/expert-review-rubric.md` 进行专家评分。
+15. 使用 `quality-gates/expert-review-rubric.md` 进行专家评分。
 16. 列出通过、警告和失败项。
 17. 对阻断报告发布且无法通过修正测试点或标题项解决的问题，登记 `CP-REVIEW` 待确认候选。
 18. 给出针对性修正建议。
