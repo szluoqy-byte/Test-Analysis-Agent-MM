@@ -60,22 +60,24 @@ project 和 personal 是当前 run 的一等输入源，不是后续阶段随意
 
 project/personal 层只能补充项目风险画像、覆盖策略、术语映射、测试 oracle、模板偏好、个人关注点或附加门禁，不得覆盖 core 层中的核心标准、字段、输出契约和质量门禁。personal 层也不得覆盖需求文档、设计方案文档或 project memory，不得作为项目事实或团队共识。
 
+project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<project-key>/` 下存在自由格式 Markdown，`memory-context-builder` 必须基于文件名、frontmatter、标题、章节和摘要自理解识别文件用途，并在 `context-pack.md` 生成“项目知识阶段绑定”。主流程后续阶段必须遵守该绑定：被绑定到某个阶段的文件，在该阶段开始前必须读取相关章节，并输出应用状态。context-pack 阶段不提前判断具体测试点或测试设计项命中。
+
 ## 执行流程
 
 1. 校验输入至少包含一份 Markdown 需求文档；识别可选设计方案文档。
 2. 将当前 agent 会话工作目录固定为 `PROJECT_ROOT`，生成本次运行 ID，并创建 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/`、`process/` 和 `reports/`。
 3. 使用 `templates/task-list-template.md` 创建 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/task-list.md`，并按阶段维护状态。
-4. 解析可选 `project-key` 和 `personal-key`，使用 `memory-context-builder` 扫描 core、project 和 personal 三层配置，生成 `process/context-pack.md`。
+4. 解析可选 `project-key` 和 `personal-key`，使用 `memory-context-builder` 扫描 core、project 和 personal 三层配置，生成 `process/context-pack.md`，并登记 project knowledge 阶段绑定。
 5. 使用 `requirement-testability` 分析需求文档，生成结构化需求模型，并登记需求待确认候选。
 6. 如果提供设计方案文档，使用 `design-solution-extraction` 提取架构决策、流程、接口、字段、状态机、权限、数据依赖、异常处理、配置开关、非功能指标和设计缺口；如果未提供设计方案，登记 `Q-DESIGN-*` 过程候选。
 7. 使用 `clarification-gate` 执行 `CP-INPUT`，合并 memory、需求与设计方案之间的冲突、缺失和歧义，不向用户提问。
-8. 使用 `testing-method-router` 对需求片段和设计方案片段进行测试技术路由，选择适用测试技术和专项分析 skill。
+8. 使用 `testing-method-router` 对需求片段和设计方案片段进行测试技术路由，选择适用测试技术和专项分析 skill；如果 context pack 绑定了本阶段 project knowledge，必须先读取并记录应用状态。
 9. 使用路由选中的专项分析 skill 产出 `ME-*` 方法证据、测试点候选、技术缺口候选和按源补读记录。
 10. 使用 `clarification-gate` 执行 `CP-ANALYSIS`，收口会导致测试点、方法覆盖或预期结果失真的信息缺口。
-11. 使用 `testpoint-generation` 生成场景化测试点、接口测试点和场景测试条件。
-12. 使用 `test-design-solution-generation` 基于场景、测试点、测试技术库和需求/设计方案上下文生成测试设计方案。
-13. 使用 `test-design-solution-review` 独立评审测试设计方案，重点检查设计项粒度、预期结果依据和非完整用例化。
-14. 使用 `coverage-review` 执行覆盖审查、质量门禁和确定性校验。
+11. 使用 `testpoint-generation` 生成场景化测试点、接口测试点和场景测试条件；如果 context pack 绑定了本阶段 project knowledge，必须先读取并记录应用状态。
+12. 使用 `test-design-solution-generation` 基于场景、测试点、测试技术库和需求/设计方案上下文生成测试设计方案；如果 context pack 绑定了本阶段 project knowledge，必须先读取并记录应用状态。
+13. 使用 `test-design-solution-review` 独立评审测试设计方案，重点检查设计项粒度、预期结果依据和非完整用例化；如果 context pack 绑定了本阶段 checklist 或评审类 project knowledge，必须读取并记录应用状态。
+14. 使用 `coverage-review` 执行覆盖审查、质量门禁和确定性校验；如果 context pack 绑定了本阶段 project knowledge，必须读取并检查前序阶段应用状态。
 15. 将主输出写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.md`，使用 `templates/test-design-solution-template.md`。
 16. 如需保留过程审查信息，将分析报告写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md`。
 17. 最终输出前刷新 `process/task-list.md`：所有必选阶段必须为 `done`，未触发的可选阶段为 `skipped` 并说明原因；如果存在 `blocked`，必须在过程报告中说明。
@@ -85,7 +87,7 @@ project/personal 层只能补充项目风险画像、覆盖策略、术语映射
 | 阶段 | 必须产出 | 交给下一阶段 |
 |---|---|---|
 | `task-list` | `process/task-list.md` | 全流程阶段顺序与状态追踪 |
-| `memory-context-builder` | `process/context-pack.md`、project/personal 来源使用摘要 | 需求与设计方案分析 |
+| `memory-context-builder` | `process/context-pack.md`、project/personal 来源使用摘要、项目知识阶段绑定 | 需求与设计方案分析 |
 | `requirement-testability` | 结构化需求模型、需求待确认候选 | 测试技术路由、测试点生成 |
 | `design-solution-extraction` | 设计方案事实摘要、接口/状态/字段/数据依赖清单、设计缺口候选 | 测试技术路由、设计项输入 |
 | `clarification-gate` | `process/clarification-session.md` | 过程缺口治理、预期结果兜底依据 |
@@ -95,6 +97,15 @@ project/personal 层只能补充项目风险画像、覆盖策略、术语映射
 | `test-design-solution-generation` | 测试设计项、预期结果 | 独立评审和覆盖审查 |
 | `test-design-solution-review` | 独立评审结论、修正建议 | 覆盖审查与输出收口 |
 | `coverage-review` | 门禁结果、专家评分、阻断项和修正建议 | 主交付件和过程报告刷新 |
+
+## Project Knowledge 应用留痕
+
+如果 `process/context-pack.md` 的“项目知识阶段绑定”表中存在绑定到当前阶段的 project knowledge，当前阶段必须输出应用记录：
+
+| 来源文件 | 当前阶段 | 应用状态 | 应用位置 | 说明 |
+|---|---|---|---|---|
+
+应用状态只能使用 `applied`、`not_applicable`、`insufficient_evidence`、`conflict_with_requirement` 或 `deferred_to_review`。覆盖审查必须检查所有已绑定文件是否被对应阶段读取并留痕；未读取或无状态说明时，按质量问题处理。
 
 ## 输出要求
 

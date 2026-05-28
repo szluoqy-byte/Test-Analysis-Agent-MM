@@ -14,6 +14,7 @@ description: 在测试设计方案生成后使用，用于执行覆盖审查、�
 - `${PROJECT_ROOT}/outputs/runs/<run-id>/process/task-list.md`。
 - `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.md`。
 - `${PROJECT_ROOT}/outputs/runs/<run-id>/process/clarification-session.md`。
+- `process/context-pack.md` 中绑定到 `coverage-review` 的 project checklist、覆盖策略、风险画像、Oracle 或附加门禁。
 - `knowledge/test-analysis-methodology.md`。
 - `knowledge/basic-test-types.md`。
 - `knowledge/test-design-solution-standard.md`。
@@ -25,23 +26,26 @@ description: 在测试设计方案生成后使用，用于执行覆盖审查、�
 
 ## 审查步骤
 
-1. 执行 `testpoint-not-testcase-check.md`。
-2. 执行 `coverage-check.md`。
-3. 执行 `traceability-check.md`。
-4. 执行 `method-application-check.md`。
-5. 执行 `output-schema-check.md`。
-6. 执行 `test-design-solution-check.md`，重点检查 `测试场景 -> 测试点 -> 测试设计项` 层级、三列表头、预期结果兜底和非完整用例化约束。
-7. 执行 `semantic-quality-check.md`。
-8. 检查 `process/task-list.md` 是否包含固定阶段、顺序正确、最终必选阶段已完成。
-9. 如果测试设计方案文件已生成，运行 `bin/lint-test-design-solution.py ${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.md` 做确定性结构校验。
-10. 运行 `bin/check-artifact-consistency.py ${PROJECT_ROOT}/outputs/runs/<run-id>`，检查固定运行目录、任务清单、主交付件和过程报告之间的一致性。
-11. 如果过程分析报告已生成，运行 `bin/lint-testpoint-report.py ${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md` 和 `bin/semantic-testpoint-check.py ${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md` 做过程报告校验。
-12. 如果使用了 project/personal 补充，检查相关风险原因、覆盖策略、判定依据、个人偏好、模板偏好或附加门禁是否已正确处理，且没有覆盖核心字段、输出契约和质量门禁。
-13. 检查 project/personal 使用情况是否在 context pack 和过程报告中可见，包括绑定结果、命中来源、未采用来源、冲突处理和后续补读建议；personal 内容不得被写成项目事实或团队共识。
-14. 使用 `quality-gates/expert-review-rubric.md` 进行专家评分。
-15. 列出通过、警告和失败项。
-16. 对阻断报告发布且无法通过修正测试点或测试设计项解决的问题，登记 `CP-REVIEW` 过程候选。
-17. 给出针对性修正建议。
+1. 读取 context pack 的“项目知识阶段绑定”。如果存在绑定到 `coverage-review` 的 project knowledge，先按来源文件、相关章节、关键词或标题读取，不全量复制大文件。
+2. 执行 `testpoint-not-testcase-check.md`。
+3. 执行 `coverage-check.md`。
+4. 执行 `traceability-check.md`。
+5. 执行 `method-application-check.md`。
+6. 执行 `output-schema-check.md`。
+7. 执行 `test-design-solution-check.md`，重点检查 `测试场景 -> 测试点 -> 测试设计项` 层级、三列表头、预期结果兜底和非完整用例化约束。
+8. 执行 `semantic-quality-check.md`。
+9. 执行 `project-knowledge-application-check.md`，检查项目知识阶段绑定、绑定文件读取和应用状态。
+10. 按绑定的 project checklist、覆盖策略、风险画像或 Oracle 检查项目级漏覆盖，并验证前序绑定阶段是否有应用状态记录。
+11. 检查 `process/task-list.md` 是否包含固定阶段、顺序正确、最终必选阶段已完成。
+12. 如果测试设计方案文件已生成，运行 `bin/lint-test-design-solution.py ${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.md` 做确定性结构校验。
+13. 运行 `bin/check-artifact-consistency.py ${PROJECT_ROOT}/outputs/runs/<run-id>`，检查固定运行目录、任务清单、主交付件和过程报告之间的一致性。
+14. 如果过程分析报告已生成，运行 `bin/lint-testpoint-report.py ${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md` 和 `bin/semantic-testpoint-check.py ${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md` 做过程报告校验。
+15. 如果使用了 project/personal 补充，检查相关风险原因、覆盖策略、判定依据、个人偏好、模板偏好或附加门禁是否已正确处理，且没有覆盖核心字段、输出契约和质量门禁。
+16. 检查 project/personal 使用情况是否在 context pack 和过程报告中可见，包括绑定结果、命中来源、未采用来源、冲突处理、项目知识阶段绑定、应用状态和后续补读建议；personal 内容不得被写成项目事实或团队共识。
+17. 使用 `quality-gates/expert-review-rubric.md` 进行专家评分。
+18. 列出通过、警告和失败项。
+19. 对阻断报告发布且无法通过修正测试点或测试设计项解决的问题，登记 `CP-REVIEW` 过程候选。
+20. 给出针对性修正建议。
 
 ## 判定规则
 
@@ -55,6 +59,7 @@ description: 在测试设计方案生成后使用，用于执行覆盖审查、�
 
 - 输出质量失败：例如表结构不合规、测试点或测试设计项完整用例化、重复严重、场景条件缺失、预期结果为空、旧字段泄漏到主输出，或设计方法泄漏到主输出。必须修正输出后重新审查。
 - 需求信息缺失：例如核心规则、终态、权限范围或接口契约无法确认。登记 `CP-REVIEW` 过程候选，并把相关测试设计项的 `预期结果` 写成 `待人工分析确认`。
+- Project knowledge 应用失败：context pack 已绑定到某阶段的 project knowledge 未被对应阶段读取、没有应用状态、或 project checklist 明确指出核心漏覆盖且无合理解释。必须补读、补齐应用记录或修正输出后重新审查。
 
 ## 输出
 
@@ -72,6 +77,7 @@ description: 在测试设计方案生成后使用，用于执行覆盖审查、�
 - 专项分析方法是否只保留在过程报告中，主交付件是否没有边界值清单、等价类清单、判定表、组合矩阵或状态迁移矩阵。
 - 专家评分和未达标维度。
 - 需要回传给 `clarification-gate` 的 `CP-REVIEW` 过程候选。
+- project knowledge 阶段绑定和应用状态，包括每个绑定文件是否已读取、应用、解释不适用或进入缺口兜底。
 
 ## 约束
 
@@ -84,3 +90,4 @@ description: 在测试设计方案生成后使用，用于执行覆盖审查、�
 - 本 skill 不直接向用户提问；覆盖建议默认不进入主交付件。
 - 不把普通覆盖建议升级成阻断项，除非它会影响核心测试结论或报告可交付性。
 - 如果需要核对 project/personal 附加门禁或模板偏好，只能按 context pack 记录的来源或当前需求明确指向的文件补读相关章节，并在审查输出中记录来源；不得全目录搜索或全量复制大文件。
+- 绑定到本阶段的 project knowledge 必须读取并留痕；前序阶段缺少绑定文件应用记录时，不得静默通过。

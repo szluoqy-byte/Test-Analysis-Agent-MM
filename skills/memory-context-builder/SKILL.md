@@ -5,7 +5,7 @@ description: 每次需求分析开始前使用，用于从精简 memory 中选�
 
 # 记忆上下文构建 Skill
 
-本 skill 在每次分析开始时使用，目标是为当前需求挑选最相关的项目语境、项目测试经验、个人偏好和本地检查关注点。project 与 personal 不是可有可无的“附加资料”，而是当前 run 的一等输入源；即使没有命中正文，也必须记录绑定、扫描和未采用原因。
+本 skill 在每次分析开始时使用，目标是为当前需求挑选最相关的项目语境、项目测试经验、个人偏好和本地检查关注点。project 与 personal 不是可有可无的“附加资料”，而是当前 run 的一等输入源；即使没有命中正文，也必须记录绑定、扫描、未采用原因和项目知识阶段绑定。
 
 ## 输入
 
@@ -15,7 +15,7 @@ description: 每次需求分析开始前使用，用于从精简 memory 中选�
 - 自动扫描得到的、与当前需求匹配的 `memory/domains/*.md` 业务域分片。
 - `memory/testing-experience-memory.md`。
 - 自动扫描得到的、与 `project-key` 匹配且与当前需求相关的 `memory/projects/<project-key>/**/*.md` 项目化 memory。
-- 自动扫描得到的、与 `project-key` 匹配且与当前需求相关的 `knowledge/projects/<project-key>/**/*.md` 项目化知识补充。
+- 自动扫描得到的、与 `project-key` 匹配的 `knowledge/projects/<project-key>/**/*.md` 项目化知识补充；先做阶段绑定，再按当前需求相关性摘录片段。
 - 可选 `personal-key`：来自用户显式参数、当前运行者配置或默认个人配置；personal 目录为 `*/user/`，后续可扩展为 `*/user/<personal-key>/`。
 - 自动扫描得到的、与当前需求相关的 `memory/user/**/*.md` 和 `knowledge/user/**/*.md` personal 补充。
 - 自动扫描得到的、与当前需求相关的 `templates/projects/<project-key>/**/*.md`、`templates/user/**/*.md`、`quality-gates/projects/<project-key>/**/*.md` 和 `quality-gates/user/**/*.md` 本地附加配置。
@@ -40,7 +40,7 @@ description: 每次需求分析开始前使用，用于从精简 memory 中选�
 | 层级 | 读取内容 | 使用场景 |
 |---|---|---|
 | L0 来源发现 | 目录名、文件名、README、frontmatter、标题和 Markdown 标题结构 | 判断 `project-key`、候选领域和可能相关文件 |
-| L1 摘要命中 | 标题、适用范围、关键词、章节名和短摘要 | 判断是否需要摘录正文 |
+| L1 摘要命中 | 标题、适用范围、关键词、章节名和短摘要 | 判断是否需要摘录正文；对 project knowledge 文件判断强制应用环节 |
 | L2 片段摘录 | 与当前需求直接相关的段落、表格行或章节摘要 | 写入 `context-pack.md`，供后续 skill 默认使用 |
 | L3 按源补读 | 后续 skill 根据 context pack 中的来源文件或明确需求缺口读取对应文件的相关章节 | 补足专项分析，不刷新 context pack |
 
@@ -54,6 +54,33 @@ context pack 对 project/personal 的记录必须满足四个要求：
 - 来源可见：记录已扫描、命中、未采用和未扫描的 project/personal 来源。
 - 证据可追溯：每个摘录片段必须保留来源文件、命中原因和使用方式。
 - 后续可补读：大文件或未注入内容必须给出可控补读范围，而不是要求后续阶段重新全目录搜索。
+
+## Project Knowledge 阶段绑定
+
+`knowledge/projects/<project-key>/**/*.md` 中的文件不要求固定文件名，也不要求固定 Markdown 结构。推荐使用可读文件名，例如 `test-design-factors.md`、`test-design-patterns.md`、`test-design-checklist.md`、`risk-profile.md`、`oracle-heuristics.md` 或 `routing-notes.md`，但这些不是硬性要求。
+
+本 skill 必须基于文件名、frontmatter、一级/二级标题、章节标题和少量开头摘要自理解识别文件用途，只做“应该强制进入哪些环节”的阶段绑定，不提前判断具体测试点或测试设计项是否命中。
+
+常见自理解规则：
+
+| 文件意图 | 识别信号 | 强制应用环节 | 使用目的 |
+|---|---|---|---|
+| 测试设计因子库/业务测试设计模式库 | 文件名或标题包含 `factor`、`pattern`、`测试设计因子`、`测试设计模式`、`覆盖因子`、`业务模式` | `testing-method-router`、`testpoint-generation`、`test-design-solution-generation` | 增强测试技术路由、补充测试点、生成测试设计项 |
+| 测试设计 Checklist/检查清单 | 文件名或标题包含 `checklist`、`check-list`、`检查清单`、`评审清单`、`验收检查` | `test-design-solution-review`、`coverage-review` | 独立评审和覆盖审查时强制查漏 |
+| 风险画像/历史高风险策略 | 文件名或标题包含 `risk`、`风险`、`缺陷高发`、`风险画像` | `testing-method-router`、`risk-based-test-analysis`、`testpoint-generation`、`coverage-review` | 调整方法选择、风险测试点和覆盖深度 |
+| Oracle/判定启发 | 文件名或标题包含 `oracle`、`判定`、`预期结果`、`结果依据` | `testpoint-generation`、`test-design-solution-generation`、`coverage-review` | 补充可观察结果和预期结果依据 |
+| 路由说明/覆盖策略 | 文件名或标题包含 `routing`、`route`、`coverage`、`路由`、`覆盖策略` | `testing-method-router`、`testpoint-generation`、`coverage-review` | 约束测试技术选择和覆盖审查 |
+| 术语表/领域词表 | 文件名或标题包含 `glossary`、`term`、`术语`、`词表` | `requirement-testability`、`design-solution-extraction`、`testpoint-generation` | 统一业务术语解释，不作为业务事实覆盖需求 |
+
+无法自理解识别用途的 project knowledge 文件必须记录为 `unclassified`，写入后续补读建议；除非用户或文件 frontmatter 明确指定适用环节，否则不强制绑定到生成或审查环节，避免把未知资料硬套进流程。
+
+context pack 必须输出“项目知识阶段绑定”表。后续被绑定的 skill 在开始本阶段活动前必须读取对应文件的相关章节，输出应用状态，并在方法证据、过程报告或覆盖审查中记录来源。应用状态只能是：
+
+- `applied`：已应用到路由、测试点、测试设计项、预期结果依据或检查结论。
+- `not_applicable`：已读取，但本需求/当前测试点不适用，并说明原因。
+- `insufficient_evidence`：文件提供了启发，但需求或设计方案依据不足，只能生成过程缺口或 `待人工分析确认`。
+- `conflict_with_requirement`：与需求或设计方案冲突，以当前需求/设计为准并记录冲突。
+- `deferred_to_review`：生成阶段只登记，留给独立评审或覆盖审查处理。
 
 ## 项目标识发现
 
@@ -91,7 +118,7 @@ personal 层用于表达当前使用者的输出偏好、个人检查清单和�
 - 与相同流程、状态、权限、接口或数据对象相关的历史缺陷或反馈教训。
 - 团队明确表达过的输出偏好。
 - 关于测试点粒度或措辞的反馈教训。
-- 项目化 knowledge 中声明的项目风险画像、覆盖策略、术语映射、路由补充或测试 oracle 补充。
+- 项目化 knowledge 中声明的项目风险画像、覆盖策略、术语映射、路由补充、测试 oracle、测试设计因子、测试设计模式或测试设计 checklist 补充。
 - personal 层中声明的个人输出偏好、本地检查清单或测试启发。
 
 ## 匹配与裁剪规则
@@ -101,7 +128,7 @@ personal 层用于表达当前使用者的输出偏好、个人检查清单和�
 - 大文件只通过文件名、frontmatter、标题结构、关键词或明确的补读需求定位片段；不得把整份大文件复制进 context pack。
 - 同一事实在多个 memory 文件中重复出现时，只保留更具体、更新或适用范围更窄的一条。
 - 项目化 memory 优先于全局 memory；当前需求文档中的明确规则优先于任何 memory。
-- 项目化 knowledge 只能补充项目风险、术语、覆盖策略和测试 oracle，不得覆盖 `knowledge/` 根目录中的核心类型、字段、级别、交付件契约和质量门禁。
+- 项目化 knowledge 只能补充项目风险、术语、覆盖策略、测试 oracle、测试设计因子、测试设计模式和 checklist，不得覆盖 `knowledge/` 根目录中的核心类型、字段、级别、交付件契约和质量门禁。
 - `memory/project-memory.md` 中的全局高优先级规则始终纳入，但不得把整份文件原样复制进 context pack。
 - `memory/domains/*.md` 中的用户扩展内容按片段引用；每个片段必须保留来源文件名和命中原因。
 - `memory/projects/<project-key>/**/*.md`、`knowledge/projects/<project-key>/**/*.md`、`templates/projects/<project-key>/**/*.md` 和 `quality-gates/projects/<project-key>/**/*.md` 中的内容按片段引用；每个片段必须保留项目标识、来源文件和命中原因。
@@ -122,7 +149,7 @@ personal 层用于表达当前使用者的输出偏好、个人检查清单和�
 - project/personal 来源使用摘要，包括命中来源、未采用来源、冲突处理和补读建议。
 - 领域术语片段。
 - 相关业务域分片和命中原因。
-- 相关项目化 knowledge 补充和命中原因。
+- 相关项目化 knowledge 补充、阶段绑定和命中原因。
 - 相关 personal 偏好或本地检查补充和命中原因。
 - 历史缺陷和风险模式。
 - 已确认的项目测试经验。
@@ -141,6 +168,7 @@ personal 层用于表达当前使用者的输出偏好、个人检查清单和�
 | 已扫描来源 | 全局 memory、项目 memory、项目 knowledge、personal 补充的文件清单 |
 | 命中摘要 | 命中的 memory 文件、片段和原因 |
 | Project/Personal 使用摘要 | project/personal 的命中、未采用、冲突处理和补读建议 |
+| 项目知识阶段绑定 | project knowledge 文件的自理解类型、强制应用环节、读取策略和留痕要求 |
 | 项目事实 | 影响测试分析的已确认事实 |
 | 业务术语 | 当前需求会用到的项目特有术语 |
 | 项目知识补充 | 当前项目适用的风险画像、覆盖策略、术语映射或 oracle 补充 |
@@ -156,7 +184,7 @@ personal 层用于表达当前使用者的输出偏好、个人检查清单和�
 
 - 不把所有业务域分片全量注入 context pack；可以扫描文件元信息和标题结构，但只摘取与本次需求相关的片段。
 - 新增 `memory/domains/*.md` 分片无需登记索引；但分片内容必须自带清晰的标题、适用范围、关键词或术语，便于自动匹配。
-- 新增 `*/projects/<project-key>/**/*.md` 和 `*/user/**/*.md` 文件无需登记索引；project 目录名必须是稳定的 `project-key`，文件内容必须自带清晰标题、适用范围、关键词或术语。
+- 新增 `*/projects/<project-key>/**/*.md` 和 `*/user/**/*.md` 文件无需登记索引；project 目录名必须是稳定的 `project-key`。project knowledge 文件名不作硬性要求，但文件名、标题、frontmatter 或开头摘要应能让 Agent 自理解识别用途和适用环节。
 - 超过 50KB 的 project/personal Markdown 不要求提供索引文件，但 context pack 只能记录来源、命中原因、标题结构或少量摘录，不得整文件注入。
 - 未确定 `project-key` 时，不得全量读取所有项目目录正文，避免跨项目污染。
 - 不把 `knowledge/` 中已有的通用测试理论复制进 context pack。

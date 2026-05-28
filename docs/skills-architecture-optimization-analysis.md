@@ -10,12 +10,14 @@
 需求文档 + 可选设计方案 -> 测试场景 -> 测试点 -> 测试设计项
 ```
 
-## 2. 当前 Skills 拓扑
+## 2. 当前 Agent 与 Skills 拓扑
 
 | 层级 | Skill | 当前职责 | 主要输出 |
 |---|---|---|---|
+| Agent 门面 | `agents/test-analysis-agent.md` | 支持 `@test-analysis-agent`，识别用户意图并路由到主流程、上下文归档或框架维护 | 用户入口、路由决策 |
 | 编排入口 | `analyze-requirement-test-design-solution` | 固定项目根目录、创建 run、编排全链路、写出主交付件 | `deliverables/test-design-solution.md` |
-| 上下文层 | `memory-context-builder` | 发现并裁剪 core/project/personal 上下文 | `process/context-pack.md` |
+| 上下文归档 | `context-capture` | 处理“记住/记录/收录/归档”类请求，判断写入 memory 或 knowledge | 长期 personal/project 上下文 |
+| 上下文层 | `memory-context-builder` | 发现并裁剪 core/project/personal 上下文，登记 project knowledge 阶段绑定 | `process/context-pack.md` |
 | 需求分析层 | `requirement-testability` | 提取可验证对象、角色、规则、流程、状态、接口和缺口 | 结构化需求模型、需求待确认候选 |
 | 设计分析层 | `design-solution-extraction` | 提取接口、字段、状态、权限、数据依赖、配置、异常处理、非功能约束和设计缺口 | 设计方案事实摘要、设计缺口候选 |
 | 待确认治理层 | `clarification-gate` | 在 `CP-INPUT`、`CP-ANALYSIS`、`CP-REVIEW` 三个检查点治理候选缺口 | `process/clarification-session.md`、预期结果兜底清单 |
@@ -50,22 +52,33 @@
 - 缺口直接贴近受影响的测试设计项。
 - 不再需要 `## 3. 未明确规则` 或待确认信息清单。
 
-### F3. 独立评审 Agent 以 skill 实现
+### F3. Agent 门面与执行 skill 分离
 
-根据项目规则，不新增插件级 `agents/`。独立评审能力由 `test-design-solution-review` skill、`quality-gates/test-design-solution-check.md` 和 `bin/lint-test-design-solution.py` 共同承担。
+当前架构新增 `test-analysis-agent` 作为用户可 `@` 调用的门面。它负责识别“生成测试设计方案、记录偏好/知识、维护框架、咨询方法”等用户意图；具体执行仍由 skills、knowledge、templates、quality gates 和 bin 脚本完成。
 
 影响：
 
-- 保持 Claude Code/OpenCode 双入口兼容。
-- 评审规则可被运行时校验和 smoke 检查覆盖。
-- 角色化行为不依赖外部 Agent 注册机制。
+- 用户不需要记住主 skill 名称，可以直接 `@test-analysis-agent`。
+- Claude Code 使用根目录 `agents/`，OpenCode 使用生成镜像 `.opencode/agents/`。
+- 独立评审能力仍由 `test-design-solution-review` skill、`quality-gates/test-design-solution-check.md` 和 `bin/lint-test-design-solution.py` 共同承担，不把评审逻辑塞进 Agent 门面。
+
+### F4. Project Knowledge 阶段绑定
+
+project knowledge 文件不要求固定命名或固定结构。`memory-context-builder` 只在 context pack 中识别文件用途和强制应用环节，不提前判断具体测试点或测试设计项命中。
+
+影响：
+
+- 测试设计因子库、业务测试设计模式库可以绑定到测试技术路由、测试点生成和测试设计方案生成。
+- 测试设计 checklist 可以绑定到独立评审和覆盖审查。
+- 后续阶段必须读取绑定文件并输出应用状态，避免“读过但没有用”的假强应用。
 
 ## 4. 推荐目标架构
 
 | 层级 | 建议状态 | 调整方向 |
 |---|---|---|
+| Agent 门面 | 保持轻量 | 只做意图识别、路由和用户体验收口，不沉淀测试理论或复杂流程 |
 | 编排入口 | 保持单入口 | 只负责调度、run 目录、任务清单和最终落盘 |
-| 上下文层 | 保持独立 | 将 project/personal 发现策略继续沉淀在 context pack，不下放给后续 skill 自行搜索 |
+| 上下文层 | 保持独立 | 将 project/personal 发现策略和 project knowledge 阶段绑定沉淀在 context pack，不下放给后续 skill 自行搜索 |
 | 需求与设计层 | 保持双输入契约 | `requirement-testability` 负责需求模型，`design-solution-extraction` 负责设计事实摘要 |
 | 路由层 | 保持独立 | 明确输出只到测试技术路由，不提前选择测试设计项 |
 | 专项分析层 | 统一输出骨架 | 所有专项 skill 使用同一方法证据表、候选测试点表和缺口候选表 |

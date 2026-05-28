@@ -14,6 +14,7 @@ description: 在测试设计方案生成后作为独立评审 Agent 使用，检
 - `process/context-pack.md`。
 - `process/clarification-session.md`。
 - 方法证据和测试点生成结果。
+- `process/context-pack.md` 中绑定到 `test-design-solution-review` 的 project checklist、评审清单或其他评审类 project knowledge。
 - `knowledge/test-design-solution-standard.md`。
 - `quality-gates/test-design-solution-check.md`。
 
@@ -32,15 +33,17 @@ description: 在测试设计方案生成后作为独立评审 Agent 使用，检
 
 ## 评审步骤
 
-1. 检查主交付件路径是否为 `deliverables/test-design-solution.md`。
-2. 检查一级标题是否声明 `测试设计方案`。
-3. 检查是否存在 `## 1. 需求范围` 和 `## 2. 测试场景与测试设计`。
-4. 检查是否存在 `## 3. 未明确规则`、`待确认信息` 或旧版主交付件章节；存在则判为失败。
-5. 对每个 `#### 测试点 TP-*`，检查后续是否有至少一张测试设计项表。
-6. 对每条 `TD-*`，检查 ID 是否连续、设计项是否具体、预期结果是否非空。
-7. 当设计项明显是失败/异常/边界条件，但需求或设计方案未提供错误提示、状态变化或错误码时，要求预期结果写 `待人工分析确认`。
-8. 检查是否有编造的错误码、状态、提示文案、接口字段或阈值；无法溯源时要求改为 `待人工分析确认`。
-9. 输出评审结论和逐项修正建议。
+1. 读取 context pack 的“项目知识阶段绑定”。如果存在绑定到 `test-design-solution-review` 的 project knowledge，先按来源文件、相关章节、关键词或标题读取，不全量复制大文件。
+2. 检查主交付件路径是否为 `deliverables/test-design-solution.md`。
+3. 检查一级标题是否声明 `测试设计方案`。
+4. 检查是否存在 `## 1. 需求范围` 和 `## 2. 测试场景与测试设计`。
+5. 检查是否存在 `## 3. 未明确规则`、`待确认信息` 或旧版主交付件章节；存在则判为失败。
+6. 对每个 `#### 测试点 TP-*`，检查后续是否有至少一张测试设计项表。
+7. 对每条 `TD-*`，检查 ID 是否连续、设计项是否具体、预期结果是否非空。
+8. 当设计项明显是失败/异常/边界条件，但需求或设计方案未提供错误提示、状态变化或错误码时，要求预期结果写 `待人工分析确认`。
+9. 按绑定的 project checklist 或评审清单检查是否存在项目级漏覆盖；无法直接判断的检查项记录为 `insufficient_evidence`，不得编造成已确认缺陷。
+10. 检查是否有编造的错误码、状态、提示文案、接口字段或阈值；无法溯源时要求改为 `待人工分析确认`。
+11. 记录本阶段 project knowledge 应用状态，输出评审结论和逐项修正建议。
 
 ## 输出
 
@@ -56,6 +59,11 @@ description: 在测试设计方案生成后作为独立评审 Agent 使用，检
 | 旧字段清理 | 通过/警告/失败 |  |  |
 | 非用例化 | 通过/警告/失败 |  |  |
 
+如本阶段绑定了 project knowledge，追加应用记录：
+
+| 来源文件 | 当前阶段 | 应用状态 | 应用位置 | 说明 |
+|---|---|---|---|---|
+
 结论必须明确为：
 
 - `通过`：可以进入覆盖审查。
@@ -67,3 +75,4 @@ description: 在测试设计方案生成后作为独立评审 Agent 使用，检
 - 不编造需求或设计方案事实。
 - 不把过程缺口写回主交付件章节。
 - 不用 `待确认`、`TBD`、`见设计方案` 替代 `待人工分析确认`。
+- 绑定到本阶段的 project knowledge 必须读取并留痕；如果未应用，必须使用 `not_applicable`、`insufficient_evidence` 或 `conflict_with_requirement` 解释。

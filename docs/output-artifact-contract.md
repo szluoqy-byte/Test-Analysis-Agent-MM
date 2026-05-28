@@ -24,7 +24,7 @@ outputs/
 |---|---|---|---|
 | 主交付件 | `deliverables/test-design-solution.md` | 是 | 唯一主交付物，按“测试场景 -> 测试点 -> 测试设计项”组织，不生成完整测试用例 |
 | 任务清单 | `process/task-list.md` | 是 | 当前 run 的流程事实源，记录阶段顺序、状态和证据路径 |
-| 上下文包 | `process/context-pack.md` | 是 | 记录 core/project/personal 来源绑定、命中、未采用来源和补读建议 |
+| 上下文包 | `process/context-pack.md` | 是 | 记录 core/project/personal 来源绑定、命中、未采用来源、项目知识阶段绑定和补读建议 |
 | 待确认治理记录 | `process/clarification-session.md` | 有待确认候选时生成 | 记录候选问题、去重降级结果和预期结果兜底清单；不写入主交付件章节 |
 | 过程分析报告 | `reports/test-analysis-report.md` | 可选 | 记录方法证据、覆盖审查、独立评审和质量门禁 |
 
@@ -60,6 +60,7 @@ outputs/
 - 下游测试设计评审、完整用例写作或自动化设计只读取 `outputs/runs/<run-id>/deliverables/test-design-solution.md` 即可理解测试场景、测试点和设计项。
 - 过程报告、context pack 和 clarification session 是审查证据，不是主交付件的必读前置。
 - 如果 context pack 命中了 `*/projects/<project-key>/` 或 `*/user/`，后续理解测试设计方案需要知道的项目风险、覆盖策略、术语映射、个人关注点或判定依据必须上收到主交付件。
+- 如果 context pack 绑定了 project knowledge 到某个流程环节，该环节的过程报告或审查记录必须包含应用状态，覆盖审查需检查绑定文件是否被读取和处理。
 
 ## 校验
 

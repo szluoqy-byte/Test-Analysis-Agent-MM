@@ -145,6 +145,8 @@ def validate_context_pack(path: Path) -> tuple[list[str], list[str]]:
     for marker in ["project-key", "personal-key"]:
         if marker not in text:
             warnings.append(f"context-pack 未显式记录绑定字段: {marker}")
+    if "项目知识阶段绑定" not in text:
+        warnings.append("context-pack 未记录项目知识阶段绑定")
     if "补读" not in text:
         warnings.append("context-pack 未记录后续补读建议或无需补读原因")
 

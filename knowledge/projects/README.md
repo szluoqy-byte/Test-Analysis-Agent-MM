@@ -8,12 +8,17 @@
 
 ```text
 knowledge/projects/<project-key>/
+  test-design-factors.md
+  test-design-patterns.md
+  test-design-checklist.md
   glossary.md
   risk-profile.md
   coverage-profile.md
   routing-notes.md
   oracle-heuristics.md
 ```
+
+文件名不是硬性要求。Agent 会基于文件名、frontmatter、一级/二级标题、章节标题和开头摘要自理解识别用途，并在 `process/context-pack.md` 中登记“项目知识阶段绑定”。推荐命名只是为了降低误判概率。
 
 ## 适合放入的内容
 
@@ -22,6 +27,8 @@ knowledge/projects/<project-key>/
 - 项目覆盖策略、兼容矩阵选择原则和回归优先级补充。
 - 测试技术路由补充，例如某类需求在当前项目中通常需要额外关注接口契约或数据一致性。
 - 项目级测试 oracle 补充，例如账务、库存、权限或审计类结果判定启发。
+- 测试设计因子库或业务测试设计模式库，用于测试分析和测试设计阶段补充业务入口、数据因子、状态、组合和观察点。
+- 测试设计 checklist 或评审清单，用于独立评审和覆盖审查阶段查漏。
 
 ## 不应放入的内容
 
@@ -32,4 +39,12 @@ knowledge/projects/<project-key>/
 
 ## 发现规则
 
-`memory-context-builder` 只有在唯一确定 `project-key` 后才扫描对应项目目录。每个文件应包含清晰标题、适用范围和关键词，便于按当前需求裁剪相关片段。
+`memory-context-builder` 只有在唯一确定 `project-key` 后才扫描对应项目目录。每个文件最好包含清晰标题、适用范围和关键词，便于按当前需求裁剪相关片段。
+
+context pack 阶段只判断文件应强制进入哪些环节，不提前判断具体测试点或测试设计项命中。后续被绑定的阶段必须读取对应文件并输出应用状态：
+
+- `applied`
+- `not_applicable`
+- `insufficient_evidence`
+- `conflict_with_requirement`
+- `deferred_to_review`

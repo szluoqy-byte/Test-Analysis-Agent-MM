@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-本 Agent 面向 Markdown 需求文档和可选设计方案文档，输出 `测试设计方案`。它是独立项目，所有运行入口、知识库、模板、质量门禁和校验脚本都在本仓库内维护，不依赖其他 Agent 项目或外部仓库结构。
+本 Agent 面向 Markdown 需求文档和可选设计方案文档，输出 `测试设计方案`。它是独立项目，所有运行入口、Agent 门面、知识库、模板、质量门禁和校验脚本都在本仓库内维护，不依赖其他 Agent 项目或外部仓库结构。
 
 主输出粒度为：
 
@@ -50,32 +50,45 @@ outputs/runs/<run-id>/deliverables/test-design-solution.md
 
 ```mermaid
 flowchart TD
-  input["需求文档 + 可选设计方案"] --> root["固定 PROJECT_ROOT / 创建 run 目录"]
+  user["@test-analysis-agent"] --> intent{"用户意图"}
+  intent -- "生成测试设计方案" --> input["需求文档 + 可选设计方案"]
+  intent -- "记录偏好/知识/经验" --> capture["context-capture<br/>归档到 memory 或 knowledge"]
+  intent -- "框架维护/方法咨询" --> maintain["读取 docs/knowledge/skills<br/>分析或修改框架"]
+  input --> root["固定 PROJECT_ROOT / 创建 run 目录"]
   root --> task["创建 process/task-list.md"]
   task --> memory["memory-context-builder<br/>构建 context-pack"]
-  memory --> req["requirement-testability<br/>结构化需求与可测性"]
+  memory --> pk["项目知识阶段绑定<br/>自理解文件用途与应用环节"]
+  pk --> req["requirement-testability<br/>结构化需求与可测性"]
   req --> design{"是否提供设计方案"}
   design -- 是 --> extract["design-solution-extraction<br/>提取接口/字段/状态/权限/数据依赖"]
   design -- 否 --> gap["登记设计缺口候选"]
   extract --> cp1["clarification-gate CP-INPUT<br/>过程缺口治理"]
   gap --> cp1
   cp1 --> router["testing-method-router<br/>选择测试技术"]
+  pk -. 强制读取 .-> router
   router --> method["专项分析 skills<br/>边界/状态/决策/接口/权限/组合/风险"]
   method --> cp2["clarification-gate CP-ANALYSIS"]
   cp2 --> tp["testpoint-generation<br/>生成测试场景与测试点"]
+  pk -. 强制读取 .-> tp
   tp --> gen["test-design-solution-generation<br/>生成 TD-* 和预期结果"]
+  pk -. 强制读取 .-> gen
   gen --> review["test-design-solution-review<br/>独立评审 Agent"]
+  pk -. Checklist .-> review
   review --> coverage["coverage-review<br/>覆盖审查与质量门禁"]
+  pk -. Checklist .-> coverage
   coverage --> lint["bin/lint-test-design-solution.py<br/>bin/check-artifact-consistency.py"]
   lint --> output["deliverables/test-design-solution.md"]
+  capture --> ctxout["memory/user、knowledge/user<br/>或 */projects/<project-key>/"]
 ```
 
 ## 4. Skill 分层
 
 | 层级 | Skill | 职责 |
 |---|---|---|
+| Agent 门面 | `agents/test-analysis-agent.md` | 支持 `@test-analysis-agent`，识别用户意图并路由到主流程、上下文归档或框架维护 |
 | 主入口 | `analyze-requirement-test-design-solution` | 固定根目录、创建 run、编排全链路、输出主交付件 |
-| 上下文 | `memory-context-builder` | 收集 core/project/personal 上下文并生成 context pack |
+| 上下文归档 | `context-capture` | 判断用户要求记录的内容应进入 `memory` 还是 `knowledge`，以及 personal/project 层级 |
+| 上下文 | `memory-context-builder` | 收集 core/project/personal 上下文，生成 context pack 和项目知识阶段绑定 |
 | 需求分析 | `requirement-testability` | 结构化需求、识别可测性缺口 |
 | 设计提取 | `design-solution-extraction` | 提取接口、字段、状态、权限、数据依赖和设计缺口 |
 | 缺口治理 | `clarification-gate` | 过程级候选治理，不写主交付件待确认章节 |
@@ -94,8 +107,23 @@ flowchart TD
 | `knowledge/test-design-solution-standard.md` | 定义主交付件结构、字段和兜底规则 |
 | `knowledge/testpoint-standard.md` | 定义测试点粒度与非用例化边界 |
 | `knowledge/test-techniques/` | 提供测试技术，用于分析测试点和设计代表性条件/数据/状态/组合 |
+| `knowledge/projects/<project-key>/**/*.md` | 项目级测试知识补充；文件名不作硬性要求，由 context pack 自理解识别用途并绑定到后续环节 |
 
 `test-techniques` 不直接等同输出格式。它们支持测试分析层识别 what to test，也支持测试设计层选择 how to cover。
+
+长期上下文归档边界：
+
+- `memory/` 保存会变化的事实、偏好、历史经验和复盘结论。
+- `knowledge/` 保存稳定的测试知识、测试设计模式、checklist、Oracle、路由说明和方法论补充。
+- `memory/user/` 与 `knowledge/user/` 只表达 personal 层偏好和本地测试启发，不得写成项目事实。
+- `memory/projects/<project-key>/` 与 `knowledge/projects/<project-key>/` 只在能唯一确定项目时写入。
+
+Project knowledge 阶段绑定规则：
+
+- context pack 只判断文件用途和强制应用环节，不提前判断具体测试点或测试设计项命中。
+- 测试设计因子库、业务测试设计模式库可绑定到 `testing-method-router`、`testpoint-generation` 和 `test-design-solution-generation`。
+- 测试设计 checklist 可绑定到 `test-design-solution-review` 和 `coverage-review`。
+- 被绑定阶段必须读取对应文件并输出应用状态：`applied`、`not_applicable`、`insufficient_evidence`、`conflict_with_requirement` 或 `deferred_to_review`。
 
 ## 6. 质量门禁
 
@@ -108,6 +136,7 @@ flowchart TD
 - 主输出不得出现 `## 3. 未明确规则`。
 - 预期结果不能为空；依据不足时必须写 `待人工分析确认`。
 - 不得输出前置步骤、测试步骤、操作步骤、自动化脚本或接口调用代码。
+- 如果 context pack 存在项目知识阶段绑定，对应阶段必须有应用状态；`project-knowledge-application-check.md` 负责校验。
 
 校验命令：
 

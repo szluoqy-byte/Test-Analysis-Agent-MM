@@ -42,6 +42,12 @@
 | project |  |  |  |  |  |
 | personal |  |  |  |  |  |
 
+## 项目知识阶段绑定
+
+| 来源文件 | 自理解类型 | 判断依据 | 强制应用环节 | 读取策略 | 应用留痕要求 |
+|---|---|---|---|---|---|
+|  | 测试设计因子库/测试设计模式库/测试设计Checklist/风险画像/Oracle/路由说明/术语表/unclassified | 文件名、frontmatter、标题或摘要 | testing-method-router / testpoint-generation / test-design-solution-generation / test-design-solution-review / coverage-review 等 | 阶段开始前按相关章节或关键词读取，不全量复制大文件 | 输出 applied / not_applicable / insufficient_evidence / conflict_with_requirement / deferred_to_review |
+
 ## 相关项目事实
 
 ## 相关领域术语
@@ -72,6 +78,8 @@
 
 - 只注入能改善本次分析的 memory。
 - project/personal 补充只注入与当前需求直接相关的风险画像、覆盖策略、术语映射、路由说明、模板偏好、附加门禁、个人检查偏好或测试 oracle 补充。
+- project knowledge 文件名没有硬性要求；构建 context pack 时必须基于文件名、frontmatter、标题、章节和少量摘要自理解识别用途，并在“项目知识阶段绑定”中登记强制应用环节。
+- context pack 不提前判断测试设计模式或 checklist 的具体命中项，只登记文件类型、适用环节和后续读取策略。
 - 优先匹配模块、角色、对象、状态、接口或项目历史缺陷。
 - 每条内容保持简洁，并标记来源 memory 文件或来源章节。
 - 不注入通用测试理论；通用测试理论从 `knowledge/` 获取，`skills/` 只定义分析动作。
@@ -79,4 +87,5 @@
 - 不把 personal 层内容当作项目事实或团队共识。
 - 事实/契约冲突以当前需求和 project memory 为准；输出偏好冲突以当前用户指令和 personal 偏好优先，但不得违反事实和质量门禁。
 - 大文件只记录来源、命中原因和建议补读范围，不整文件注入；后续 skill 可按来源文件和相关章节受控补读。
+- 被绑定到某个阶段的 project knowledge，后续阶段必须读取、应用或解释不适用，并在方法证据、过程报告或覆盖审查中留痕。
 - 构建 context pack 时不修改长期 memory 源文件。

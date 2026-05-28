@@ -7,7 +7,7 @@ Knowledge 保存本 Agent 稳定、可复用的测试分析与测试设计知识
 | 层级 | 路径 | 默认提交 Git | 主流程默认读取 | 说明 |
 |---|---|---|---|---|
 | core | `knowledge/*.md`、`knowledge/test-techniques/**/*.md` | 是 | 是 | 测试设计方案生成所需的稳定标准、方法论和测试技术 |
-| project | `knowledge/projects/<project-key>/**/*.md` | 否 | 按需 | 项目级风险画像、覆盖策略、术语映射和测试启发 |
+| project | `knowledge/projects/<project-key>/**/*.md` | 否 | 按需 | 项目级风险画像、覆盖策略、术语映射、测试设计因子/模式、checklist 和测试启发 |
 | user | `knowledge/user/**/*.md` | 否 | 按需 | 个人测试启发、检查清单和本地关注点 |
 
 ## Core 知识归类
@@ -33,3 +33,5 @@ Knowledge 保存本 Agent 稳定、可复用的测试分析与测试设计知识
 ## 发现规则
 
 `memory-context-builder` 确定 `project-key` 后，会按需扫描 `knowledge/projects/<project-key>/**/*.md`；同时会扫描 `knowledge/user/**/*.md`。只有与当前需求直接相关的片段会写入 `process/context-pack.md`。未确定 `project-key` 时，不读取所有项目目录正文。
+
+Project knowledge 文件名没有硬性要求。context pack 阶段会自理解识别文件用途并登记“项目知识阶段绑定”；被绑定到 `testing-method-router`、`testpoint-generation`、`test-design-solution-generation`、`test-design-solution-review` 或 `coverage-review` 等环节的文件，必须由对应 skill 读取并记录应用状态。

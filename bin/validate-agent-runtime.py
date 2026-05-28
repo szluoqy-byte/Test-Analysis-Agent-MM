@@ -13,7 +13,9 @@ from pathlib import Path
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 PROJECT_KEY_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
 MAIN_SKILL = "analyze-requirement-test-design-solution"
+MAIN_AGENT = "test-analysis-agent"
 OPENCODE_COMMAND = ".opencode/commands/analyze-requirement-test-design-solution.md"
+OPENCODE_AGENT = f".opencode/agents/{MAIN_AGENT}.md"
 
 
 def fail(message: str, issues: list[str]) -> None:
@@ -49,12 +51,11 @@ def validate_plugin(root: Path, issues: list[str]) -> None:
 
     if manifest.get("skills") != "./skills/":
         fail(".claude-plugin/plugin.json must point skills to ./skills/", issues)
-    if "agents" in manifest:
-        fail(".claude-plugin/plugin.json must not register plugin-level agents", issues)
+    if manifest.get("agents") != "./agents/":
+        fail(".claude-plugin/plugin.json must point agents to ./agents/", issues)
 
-    for relative in ("agents", ".claude-plugin/agents"):
-        if (root / relative).exists():
-            fail(f"{relative} must not exist; role behavior belongs in skills, knowledge, templates, or quality gates", issues)
+    if (root / ".claude-plugin" / "agents").exists():
+        fail(".claude-plugin/agents must not exist; Claude plugin agents are sourced from root agents/", issues)
 
 
 def validate_skills(root: Path, issues: list[str]) -> None:
@@ -87,6 +88,32 @@ def validate_skills(root: Path, issues: list[str]) -> None:
         fail(f"main skill {MAIN_SKILL!r} is missing", issues)
 
 
+def validate_agents(root: Path, issues: list[str]) -> None:
+    agents_dir = root / "agents"
+    if not agents_dir.is_dir():
+        fail("agents/ directory is missing", issues)
+        return
+
+    for agent_file in sorted(path for path in agents_dir.glob("*.md") if path.is_file()):
+        try:
+            meta = parse_frontmatter(agent_file)
+        except ValueError as exc:
+            fail(f"{agent_file.relative_to(root)}: {exc}", issues)
+            continue
+
+        name = meta.get("name", "")
+        description = meta.get("description", "")
+        if name != agent_file.stem:
+            fail(f"{agent_file.relative_to(root)} name must match file stem", issues)
+        if not NAME_RE.fullmatch(name):
+            fail(f"{agent_file.relative_to(root)} has invalid agent name {name!r}", issues)
+        if not (1 <= len(description) <= 1024):
+            fail(f"{agent_file.relative_to(root)} description must be 1-1024 characters", issues)
+
+    if not (agents_dir / f"{MAIN_AGENT}.md").exists():
+        fail(f"main agent {MAIN_AGENT!r} is missing", issues)
+
+
 def validate_opencode(root: Path, issues: list[str]) -> None:
     config_path = root / "opencode.json"
     try:
@@ -110,6 +137,18 @@ def validate_opencode(root: Path, issues: list[str]) -> None:
             fail(f"{OPENCODE_COMMAND} must invoke the main skill", issues)
         if "$ARGUMENTS" not in command_text:
             fail(f"{OPENCODE_COMMAND} must pass $ARGUMENTS", issues)
+
+    opencode_agent_path = root / OPENCODE_AGENT
+    if not opencode_agent_path.exists():
+        fail(f"{OPENCODE_AGENT} is missing", issues)
+    else:
+        agent_text = opencode_agent_path.read_text(encoding="utf-8")
+        if "mode: subagent" not in agent_text:
+            fail(f"{OPENCODE_AGENT} must be an OpenCode subagent", issues)
+        if MAIN_SKILL not in agent_text:
+            fail(f"{OPENCODE_AGENT} must route generation work to the main skill", issues)
+        if "context-capture" not in agent_text:
+            fail(f"{OPENCODE_AGENT} must route memory/knowledge capture work to context-capture", issues)
 
     for rules_file in ("AGENTS.md", "CLAUDE.md"):
         if not (root / rules_file).exists():
@@ -197,6 +236,7 @@ def main() -> int:
     issues: list[str] = []
 
     validate_plugin(root, issues)
+    validate_agents(root, issues)
     validate_skills(root, issues)
     validate_opencode(root, issues)
     validate_sync(root, issues)

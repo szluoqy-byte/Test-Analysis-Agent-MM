@@ -12,16 +12,19 @@
 
 ## 运行入口
 
-- Claude Code 使用 `.claude-plugin/plugin.json` 和根目录 `skills/`。
-- OpenCode 使用 `opencode.json`、`AGENTS.md`、`.opencode/commands/` 和 `.opencode/skills/`。
-- 主流程入口是 `skills/analyze-requirement-test-design-solution/SKILL.md`。
-- 不要重新引入插件级 `agents/`；角色化行为应放在 skills、knowledge 文件、templates 或 quality gates 中。
+- Claude Code 使用 `.claude-plugin/plugin.json`、根目录 `agents/` 和根目录 `skills/`。
+- OpenCode 使用 `opencode.json`、`AGENTS.md`、`.opencode/agents/`、`.opencode/commands/` 和 `.opencode/skills/`。
+- 用户主入口 Agent 是 `@test-analysis-agent`，源文件是 `agents/test-analysis-agent.md`。
+- 主流程 skill 入口仍是 `skills/analyze-requirement-test-design-solution/SKILL.md`。
+- Agent 门面负责用户意图识别和路由；具体流程动作仍放在 skills、knowledge 文件、templates 或 quality gates 中。
 
-## Skill 事实源
+## Agent 与 Skill 事实源
 
+- `agents/` 是唯一手工维护的 Agent 门面源。
 - `skills/` 是唯一手工维护的 skill 源。
+- `.opencode/agents/` 是供 OpenCode 发现 Agent 的生成镜像。
 - `.opencode/skills/` 是供 OpenCode 发现 skill 的生成镜像。
-- 修改任何 `skills/*/SKILL.md` 后，运行 `python bin/sync-opencode-skills.py`。
+- 修改任何 `agents/*.md` 或 `skills/*/SKILL.md` 后，运行 `python bin/sync-opencode-skills.py`。
 - 修改运行时 wiring 后，运行 `python bin/validate-agent-runtime.py`。
 
 ## 路径规则
@@ -37,6 +40,7 @@
 - 支持可选 `project-key`：确定后可扫描 `*/projects/<project-key>/**/*.md`；未唯一确定时不得读取所有项目目录正文。
 - `project` 和 `personal` 是当前 run 的一等输入源：必须在 `process/context-pack.md` 中记录绑定结果、命中来源、未采用来源和补读建议。
 - `knowledge/projects/<project-key>/` 和 `knowledge/user/` 只能作为测试知识补充，不得覆盖根目录 `knowledge/` 的核心标准、字段、类型和质量门禁。
+- `knowledge/projects/<project-key>/` 下的文件名没有硬性要求；`memory-context-builder` 必须自理解识别文件用途并在 `context-pack.md` 记录项目知识阶段绑定。被绑定到某阶段的文件，该阶段必须读取并输出应用状态。
 - personal 层只能补充个人偏好和本地检查关注点，不得作为项目事实或团队共识。
 
 ## 主流程

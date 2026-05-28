@@ -3,6 +3,7 @@
   "description": "面向 Markdown 需求文档和设计方案的独立测试设计方案插件，生成测试场景-测试点-测试设计项粒度的方案，不生成完整测试用例。",
   "version": "0.1.0",
   "skills": "./skills/",
+  "agents": "./agents/",
   "author": {
     "name": "Test Design Solution Agent Team"
   },

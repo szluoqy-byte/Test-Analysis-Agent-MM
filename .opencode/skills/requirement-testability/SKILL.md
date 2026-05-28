@@ -12,19 +12,22 @@ description: 当需要分析 Markdown 需求文档的可测试性时使用。负
 - 原始 Markdown 需求文档。
 - 记忆上下文包。
 - 记忆上下文包中命中的 project/personal knowledge 补充。
+- `process/context-pack.md` 中绑定到 `requirement-testability` 的 project knowledge 文件，例如术语表、领域词表或需求分析相关项目约定。
 - `knowledge/test-analysis-methodology.md`。
 
 ## 分析步骤
 
-1. 识别需求模块和分析边界。
-2. 提取参与角色、操作、业务对象、输入、输出、状态、规则、约束、异常和外部依赖。
-3. 将每个需求片段标记为：可测试、部分可测试、不可测试。
-4. 把模糊、缺失、冲突和不可验证表达转成“待确认问题”。
-5. 保留需求依据，引用标题、表格行或段落摘要。
-6. 按 `knowledge/test-analysis-methodology.md` 标记测试分析维度，例如需求可测性、风险、业务场景、数据域、规则组合、状态、权限、接口、数据一致性、组合兼容、非功能质量属性和经验缺陷模式。
-7. 结合 context pack 中的 project/personal knowledge 补充识别项目特有风险、个人关注点、覆盖策略或术语映射，但不得覆盖需求文档中的明确规则；personal 不得作为项目事实或团队共识。
-8. 提取测试技术触发信号，例如范围、状态、多条件规则、权限、接口、数据变化、兼容配置。
-9. 将会影响测试点正确性的问题登记为待确认候选，交给 `clarification-gate` 排序和收口。
+1. 读取 context pack 的“项目知识阶段绑定”。如果存在绑定到 `requirement-testability` 的 project knowledge，先按来源文件、相关章节、关键词或标题读取，不全量复制大文件。
+2. 识别需求模块和分析边界。
+3. 提取参与角色、操作、业务对象、输入、输出、状态、规则、约束、异常和外部依赖。
+4. 将每个需求片段标记为：可测试、部分可测试、不可测试。
+5. 把模糊、缺失、冲突和不可验证表达转成“待确认问题”。
+6. 保留需求依据，引用标题、表格行或段落摘要。
+7. 按 `knowledge/test-analysis-methodology.md` 标记测试分析维度，例如需求可测性、风险、业务场景、数据域、规则组合、状态、权限、接口、数据一致性、组合兼容、非功能质量属性和经验缺陷模式。
+8. 结合 context pack 中的 project/personal knowledge 和本阶段绑定文件，补充识别项目特有风险、个人关注点、覆盖策略或术语映射，但不得覆盖需求文档中的明确规则；personal 不得作为项目事实或团队共识。
+9. 提取测试技术触发信号，例如范围、状态、多条件规则、权限、接口、数据变化、兼容配置。
+10. 记录本阶段 project knowledge 应用状态。
+11. 将会影响测试点正确性的问题登记为待确认候选，交给 `clarification-gate` 排序和收口。
 
 ## 可测性判断
 
@@ -60,3 +63,4 @@ description: 当需要分析 Markdown 需求文档的可测试性时使用。负
 - 不直接向用户提问。
 - 不把通用测试理论写进需求模型；只记录当前需求的事实、缺口和触发信号。
 - 如果 context pack 中的 project/personal 信息不足，只能按 context pack 记录的来源或当前需求明确指向的文件补读相关章节，并在需求模型或待确认候选中记录来源；不得全目录搜索或全量复制大文件。
+- 绑定到本阶段的 project knowledge 必须读取并留痕；如果未应用，必须使用 `not_applicable`、`insufficient_evidence` 或 `conflict_with_requirement` 解释。

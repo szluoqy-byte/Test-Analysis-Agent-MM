@@ -16,12 +16,13 @@ Memory = 经确认的项目上下文、项目历史经验和个人本地偏好
 | project | `knowledge/projects/<project-key>/**/*.md`、`memory/projects/<project-key>/**/*.md`、`templates/projects/<project-key>/**/*.md`、`quality-gates/projects/<project-key>/**/*.md` | 否 | 当前项目的事实、经验、策略、模板补充和附加门禁 |
 | personal | `knowledge/user/**/*.md`、`memory/user/**/*.md`、`templates/user/**/*.md`、`quality-gates/user/**/*.md` | 否 | 当前使用者的个人偏好、本地检查清单和补充启发 |
 
-project 和 personal 是当前 run 的一等输入源：必须由 `memory-context-builder` 统一发现、裁剪和记录到 `process/context-pack.md`，后续 skill 只能消费 context pack 或按其来源记录受控补读。
+project 和 personal 是当前 run 的一等输入源：必须由 `memory-context-builder` 统一发现、裁剪和记录到 `process/context-pack.md`，后续 skill 只能消费 context pack 或按其来源记录受控补读。project knowledge 文件名没有硬性要求，但 context pack 必须记录其自理解类型和项目知识阶段绑定。
 
 ## 归属规则
 
 | 内容类型 | 放置位置 | 原因 |
 |---|---|---|
+| 用户入口、意图识别、`@test-analysis-agent` 路由 | `agents/test-analysis-agent.md` | Agent 门面，只做入口和路由，不沉淀方法论正文 |
 | 测试点定义、字段、类型、方法 | `knowledge/testpoint-standard.md` | 稳定标准，所有 skill 共用 |
 | 测试分析、测试设计边界、分析维度和交付件落点 | `knowledge/test-analysis-methodology.md` | 本项目的上位方法论 |
 | 测试场景、测试点、测试设计项和完整测试用例边界 | `knowledge/test-analysis-methodology.md` | 主输出层级边界标准 |
@@ -33,8 +34,9 @@ project 和 personal 是当前 run 的一等输入源：必须由 `memory-contex
 | 分析维度、需求信号到测试技术的映射 | `knowledge/test-method-routing-matrix.md` | 稳定路由知识 |
 | 方法分析证据字段和质量要求 | `knowledge/method-evidence-standard.md` | 证明测试理论被实际应用的统一标准 |
 | 设计方案事实摘要字段 | `templates/design-facts-template.md` | 设计事实是运行期结构化产物，模板定义形状，具体事实由 `design-solution-extraction` 提取 |
-| 项目风险画像、覆盖策略、术语映射、路由说明和测试 oracle 补充 | `knowledge/projects/<project-key>/**/*.md` | 项目级测试知识补充，确定 `project-key` 后按需扫描 |
+| 项目风险画像、覆盖策略、术语映射、路由说明、测试 oracle、测试设计因子、测试设计模式和 checklist 补充 | `knowledge/projects/<project-key>/**/*.md` | 项目级测试知识补充，确定 `project-key` 后按需扫描并登记阶段绑定 |
 | 个人测试启发、检查清单和本地关注点 | `knowledge/user/**/*.md` | personal 层知识补充，按需扫描 |
+| 记住、记录、归档类请求的写入分类流程 | `skills/context-capture/SKILL.md` | 判断写入 memory/knowledge 与 personal/project 层级 |
 | 某个测试技术的执行步骤 | `skills/*/SKILL.md` | 过程性动作，不是事实库 |
 | 输入、输出、约束、质量门禁调用顺序 | `skills/*/SKILL.md` | 插件运行流程 |
 | 项目全局事实、全局约束、输出偏好和项目专属术语覆盖 | `memory/project-memory.md` | 项目专属且经确认 |
@@ -51,6 +53,7 @@ project 和 personal 是当前 run 的一等输入源：必须由 `memory-contex
 
 ## 禁止重复
 
+- `agents/` 只维护用户入口和意图路由，不重复维护测试点类型、方法枚举和通用缺陷模式。
 - `skills/` 不重复维护测试点类型、方法枚举和通用缺陷模式，只引用 `knowledge/`。
 - `skills/` 不把方法证据写成自由发挥的叙述，统一引用 `knowledge/method-evidence-standard.md` 和 `templates/method-analysis-template.md`。
 - `memory/` 不保存通用测试理论、通用缺陷模式、通用类型定义和方法步骤。
@@ -58,9 +61,11 @@ project 和 personal 是当前 run 的一等输入源：必须由 `memory-contex
 - `knowledge/` 不保存项目事实、用户临时偏好、单次运行结果和未确认假设。
 - `knowledge/projects/<project-key>/` 只能保存项目级测试知识补充，不保存未确认业务事实、真实缺陷复盘或输出偏好。
 - `knowledge/projects/<project-key>/` 不覆盖根目录 `knowledge/` 的测试点字段、类型、方法、输出契约和质量门禁。
+- `knowledge/projects/<project-key>/` 下的文件名不作硬性要求；如果无法从文件名、标题、frontmatter 或摘要自理解识别用途，context pack 只能记录为 `unclassified` 和后续补读建议，不得强行套用。
 - 未唯一确定 `project-key` 时，不读取所有项目目录正文，避免跨项目知识和 memory 污染。
 - project 和 personal 层默认不提交 Git；仓库只保留对应 README 和发现规则。
 - `context-pack.md` 只摘录与本次需求相关的 memory 和 project/personal 补充，不复制整份长期文件，也不放在 `memory/` 下。
+- `context-pack.md` 的“项目知识阶段绑定”只判断文件应进入哪些环节；具体命中和应用由对应 skill 在阶段内读取后判断，并记录应用状态。
 - `task-list.md` 必须随 run 目录生成，记录固定阶段顺序、状态和证据路径；它不替代运行时 todo 工具，但比运行时 UI 更适合作为可校验事实源。
 - `templates/` 只列出字段、占位和最小示例，不直接维护或长篇引用背景知识；字段含义、类型、方法等标准由调用模板的 `skills/` 和 `quality-gates/` 按需引用 `knowledge/`。
 - `quality-gates/` 可以重复列出允许值用于校验，但必须以 `knowledge/` 的标准为来源，不维护独立定义。
