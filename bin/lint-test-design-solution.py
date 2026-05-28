@@ -24,6 +24,9 @@ BANNED_MAIN_SECTIONS = (
     "## 3. 待确认信息",
 )
 BANNED_TERMS = (
+    "Test Scenario",
+    "Test Point",
+    "Test Design Item",
     "测试用例标题大纲",
     "测试用例标题项",
     "标题项 ID",
@@ -33,7 +36,12 @@ BANNED_TERMS = (
     "输入条件与数据依赖",
     "判定关注",
     "待确认信息",
+    "TD-",
+    "TC-",
     "TCT-",
+    "TI-",
+    "ITP-",
+    "ITDI-",
 )
 BANNED_COLUMNS = {
     "前置步骤",
@@ -147,22 +155,22 @@ def main() -> int:
         (line_number, cells)
         for rows in design_tables
         for line_number, cells in rows
-        if cells and cells[0].startswith("TD-")
+        if cells and cells[0].startswith("TDI-")
     ]
     if not design_rows:
-        errors.append("未找到 TD-* 测试设计项")
+        errors.append("未找到 TDI-* 测试设计项")
 
-    expected_td_id = 1
+    expected_tdi_id = 1
     seen_items: set[tuple[str, str]] = set()
     for line_number, cells in design_rows:
         if len(cells) != 3:
             errors.append(f"第 {line_number} 行：测试设计项期望 3 列，实际 {len(cells)} 列")
             continue
         design_id, item, expected_result = cells
-        expected_id = f"TD-{expected_td_id:03d}"
+        expected_id = f"TDI-{expected_tdi_id:03d}"
         if design_id != expected_id:
             errors.append(f"第 {line_number} 行：期望测试设计项 ID {expected_id}，实际 {design_id}")
-        expected_td_id += 1
+        expected_tdi_id += 1
 
         if item in EMPTY_MARKERS:
             errors.append(f"第 {line_number} 行：测试设计项不能为空或模板占位")

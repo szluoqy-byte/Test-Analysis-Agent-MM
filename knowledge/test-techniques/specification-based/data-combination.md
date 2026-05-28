@@ -1,4 +1,4 @@
-﻿# 数据组合测试技术 DCoT
+# 数据组合测试技术 DCoT
 
 ## 方法定义
 
@@ -91,7 +91,7 @@ DCoT 的目标不是穷举所有可能，而是在成本可控的前提下覆盖
 
 ## 测试设计项示例
 
-以下示例展示多个因子如何用代表性组合覆盖，不穷举全部矩阵。示例中的 `TD-*` 只用于展示编号方式；实际输出必须按主交付件全局连续编号。
+以下示例展示多个因子如何用代表性组合覆盖，不穷举全部矩阵。示例中的 `TDI-*` 只用于展示编号方式；实际输出必须按主交付件全局连续编号。
 
 ### 示例：订单 ID 新规则的渠道与生成器组合
 
@@ -109,11 +109,11 @@ DCoT 的目标不是穷举所有可能，而是在成本可控的前提下覆盖
 
 | 测试设计项 ID | 测试设计项 | 预期结果 |
 |---|---|---|
-| TD-001 | APP 渠道 + MaliOrderId13BitsGenerator + ReasonType 已配置业务前缀 | 生成 13 位订单 ID，前缀使用 ReasonType 配置值，查询和确认链路可识别 |
-| TD-002 | USSD 渠道 + MaliOrderId13BitsGenerator + ReasonType 已配置业务前缀 | 生成 13 位订单 ID，前缀使用 ReasonType 配置值，交易结果可查询 |
-| TD-003 | API 渠道 + MaliOrderId13BitsGenerator + ReasonType 未配置业务前缀 | 生成 13 位订单 ID，前缀使用默认业务前缀 |
-| TD-004 | WEB 渠道 + MaliOrderId13BitsGenerator + ReasonType 未配置业务前缀 | 生成 13 位订单 ID，前缀使用默认业务前缀，后台交易记录可识别 |
-| TD-005 | APP 渠道 + OrderId22BitsGenerator | 生成 22 位订单 ID，老生成器规则保持兼容 |
+| TDI-001 | APP 渠道 + MaliOrderId13BitsGenerator + ReasonType 已配置业务前缀 | 生成 13 位订单 ID，前缀使用 ReasonType 配置值，查询和确认链路可识别 |
+| TDI-002 | USSD 渠道 + MaliOrderId13BitsGenerator + ReasonType 已配置业务前缀 | 生成 13 位订单 ID，前缀使用 ReasonType 配置值，交易结果可查询 |
+| TDI-003 | API 渠道 + MaliOrderId13BitsGenerator + ReasonType 未配置业务前缀 | 生成 13 位订单 ID，前缀使用默认业务前缀 |
+| TDI-004 | WEB 渠道 + MaliOrderId13BitsGenerator + ReasonType 未配置业务前缀 | 生成 13 位订单 ID，前缀使用默认业务前缀，后台交易记录可识别 |
+| TDI-005 | APP 渠道 + OrderId22BitsGenerator | 生成 22 位订单 ID，老生成器规则保持兼容 |
 
 **设计要点**：
 

@@ -111,7 +111,7 @@ def parse_bullet_section(path: Path, heading: str) -> set[str]:
 
 
 def is_testpoint_id(value: str) -> bool:
-    return bool(re.fullmatch(r"(?:TP|ITP)-\d{3}", value))
+    return bool(re.fullmatch(r"TP-\d{3}", value))
 
 
 def collect_testpoint_rows(lines: list[str]) -> list[tuple[int, list[str]]]:
@@ -203,7 +203,7 @@ def main() -> int:
 
     rows = collect_testpoint_rows(lines)
     if not rows:
-        errors.append("测试点表中未找到 TP-* 或 ITP-* 行")
+        errors.append("测试点表中未找到 TP-* 行")
 
     evidence_rows = collect_evidence_rows(lines) if is_full_report else []
     if is_full_report and not evidence_rows:
@@ -227,11 +227,10 @@ def main() -> int:
         ]:
             if not value:
                 errors.append(f"第 {line_number} 行：方法证据必填字段为空: {name}")
-        if not ("TP-" in links or "ITP-" in links or "Q-" in links):
-            warnings.append(f"第 {line_number} 行：方法证据建议关联 TP-*、ITP-* 或 Q-*: {links}")
+        if not ("TP-" in links or "Q-" in links):
+            warnings.append(f"第 {line_number} 行：方法证据建议关联 TP-* 或 Q-*: {links}")
 
     expected_tp_id = 1
-    expected_itp_id = 1
     for line_number, cells in rows:
         if len(cells) != 8:
             errors.append(f"第 {line_number} 行：期望 8 列，实际 {len(cells)} 列")
@@ -239,12 +238,8 @@ def main() -> int:
 
         test_id, module, testpoint, test_type, method, basis, level, risk_note = cells
 
-        if test_id.startswith("ITP-"):
-            expected = f"ITP-{expected_itp_id:03d}"
-            expected_itp_id += 1
-        else:
-            expected = f"TP-{expected_tp_id:03d}"
-            expected_tp_id += 1
+        expected = f"TP-{expected_tp_id:03d}"
+        expected_tp_id += 1
         if test_id != expected:
             errors.append(f"第 {line_number} 行：期望 ID {expected}，实际 {test_id}")
 

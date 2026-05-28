@@ -20,6 +20,8 @@
 outputs/runs/<run-id>/deliverables/test-design-solution.md
 ```
 
+术语与缩写固定为：测试场景 `SC-*`、测试点 `TP-*`、测试设计项 `TDI-*`。主交付件只使用中文术语和缩写，不展开英文全名，不使用其他编号体系。
+
 核心结构：
 
 ```markdown
@@ -35,8 +37,8 @@ outputs/runs/<run-id>/deliverables/test-design-solution.md
 
 | 测试设计项 ID | 测试设计项 | 预期结果 |
 |---|---|---|
-| TD-001 | 下发订单 ID 总长度为 13 位 | 订单下发成功 |
-| TD-002 | 下发订单 ID 总长度为 10 位 | 待人工分析确认 |
+| TDI-001 | 下发订单 ID 总长度为 13 位 | 订单下发成功 |
+| TDI-002 | 下发订单 ID 总长度为 10 位 | 待人工分析确认 |
 ```
 
 预期结果规则：
@@ -70,7 +72,7 @@ flowchart TD
   method --> cp2["clarification-gate CP-ANALYSIS"]
   cp2 --> tp["testpoint-generation<br/>生成测试场景与测试点"]
   pk -. 强制读取 .-> tp
-  tp --> gen["test-design-solution-generation<br/>生成 TD-* 和预期结果"]
+  tp --> gen["test-design-solution-generation<br/>生成 TDI-* 和预期结果"]
   pk -. 强制读取 .-> gen
   gen --> review["test-design-solution-review<br/>独立评审 Agent"]
   pk -. Checklist .-> review
@@ -131,7 +133,7 @@ Project knowledge 阶段绑定规则：
 
 - 主输出必须按 `测试场景 -> 测试点 -> 测试设计项` 组织。
 - 测试设计项表头必须是 `测试设计项 ID | 测试设计项 | 预期结果`。
-- `TD-*` 必须全局连续。
+- `TDI-*` 必须全局连续。
 - 主输出不得出现旧版主交付件字段；字段禁用清单以 `bin/lint-test-design-solution.py` 为准。
 - 主输出不得出现 `## 3. 未明确规则`。
 - 预期结果不能为空；依据不足时必须写 `待人工分析确认`。

@@ -73,7 +73,7 @@ def collect_design_ids(path: Path) -> set[str]:
     design_ids: set[str] = set()
     for rows in collect_all_tables(lines, DESIGN_ITEM_HEADER):
         for _, cells in rows:
-            if cells and re.fullmatch(r"TD-\d{3}", cells[0]):
+            if cells and re.fullmatch(r"TDI-\d{3}", cells[0]):
                 design_ids.add(cells[0])
     return design_ids
 
@@ -195,7 +195,7 @@ def main() -> int:
         if not points:
             errors.append("测试设计方案未找到 TP-* 测试点标题")
         if not design_ids:
-            errors.append("测试设计方案未找到 TD-* 测试设计项")
+            errors.append("测试设计方案未找到 TDI-* 测试设计项")
 
     for warning in warnings:
         print(f"警告: {warning}")

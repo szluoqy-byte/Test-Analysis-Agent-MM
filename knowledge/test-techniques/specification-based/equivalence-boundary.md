@@ -1,4 +1,4 @@
-﻿# 等价类与边界值测试技术
+# 等价类与边界值测试技术
 
 ## 方法定义
 
@@ -92,7 +92,7 @@
 
 ## 测试设计项示例
 
-以下示例展示“测试场景 + 规格摘要 + 测试点 + 测试设计项”的完整设计粒度。示例中的 `TD-*` 只用于展示编号方式；实际输出必须按主交付件全局连续编号。
+以下示例展示“测试场景 + 规格摘要 + 测试点 + 测试设计项”的完整设计粒度。示例中的 `TDI-*` 只用于展示编号方式；实际输出必须按主交付件全局连续编号。
 
 ### 示例 1：订单 ID 总长度边界
 
@@ -109,14 +109,14 @@
 
 | 测试设计项 ID | 测试设计项 | 预期结果 |
 |---|---|---|
-| TD-001 | 下发订单 ID 总长度为 13 位，且满足 3 位业务前缀 + 10 位订单流水号 | 订单 ID 解析成功，业务前缀和原订单流水号均按分段规则识别 |
-| TD-002 | 下发订单 ID 总长度小于 13 位 | 订单 ID 解析失败，返回 `INVALID_ORDER_ID_LENGTH`，不生成交易记录 |
-| TD-003 | 下发订单 ID 总长度大于 13 位 | 订单 ID 解析失败，返回 `INVALID_ORDER_ID_LENGTH`，不生成交易记录 |
+| TDI-001 | 下发订单 ID 总长度为 13 位，且满足 3 位业务前缀 + 10 位订单流水号 | 订单 ID 解析成功，业务前缀和原订单流水号均按分段规则识别 |
+| TDI-002 | 下发订单 ID 总长度小于 13 位 | 订单 ID 解析失败，返回 `INVALID_ORDER_ID_LENGTH`，不生成交易记录 |
+| TDI-003 | 下发订单 ID 总长度大于 13 位 | 订单 ID 解析失败，返回 `INVALID_ORDER_ID_LENGTH`，不生成交易记录 |
 
 **设计要点**：
 
 - 这是输入字段长度规则，不是对系统生成结果强行构造“小于 13 位”的输出。
-- `TD-002` 和 `TD-003` 只改变长度这一项，前缀字符集和流水号格式保持可解释，避免失败原因混杂。
+- `TDI-002` 和 `TDI-003` 只改变长度这一项，前缀字符集和流水号格式保持可解释，避免失败原因混杂。
 - 如果规格未给出错误码或副作用处理，预期结果写 `待人工分析确认`。
 
 ### 示例 2：业务前缀格式等价类与边界
@@ -134,15 +134,15 @@
 
 | 测试设计项 ID | 测试设计项 | 预期结果 |
 |---|---|---|
-| TD-004 | Order ID Business Prefix 为空 | 保存失败，返回 `PREFIX_FORMAT_INVALID` |
-| TD-005 | Order ID Business Prefix 为 3 位数字 | 保存成功，配置值按输入保存 |
-| TD-006 | Order ID Business Prefix 为 2 位数字 + 1 位大写字母 | 保存成功，配置值按输入保存 |
-| TD-007 | Order ID Business Prefix 为 1 位数字 + 2 位大写字母 | 保存成功，配置值按输入保存 |
-| TD-008 | Order ID Business Prefix 为 3 位大写字母 | 保存成功，配置值按输入保存 |
-| TD-009 | Order ID Business Prefix 长度小于 3 位 | 保存失败，返回 `PREFIX_FORMAT_INVALID` |
-| TD-010 | Order ID Business Prefix 长度大于 3 位 | 保存失败，返回 `PREFIX_FORMAT_INVALID` |
-| TD-011 | Order ID Business Prefix 包含小写字母 | 保存失败，返回 `PREFIX_FORMAT_INVALID` |
-| TD-012 | Order ID Business Prefix 包含特殊字符 | 保存失败，返回 `PREFIX_FORMAT_INVALID` |
+| TDI-004 | Order ID Business Prefix 为空 | 保存失败，返回 `PREFIX_FORMAT_INVALID` |
+| TDI-005 | Order ID Business Prefix 为 3 位数字 | 保存成功，配置值按输入保存 |
+| TDI-006 | Order ID Business Prefix 为 2 位数字 + 1 位大写字母 | 保存成功，配置值按输入保存 |
+| TDI-007 | Order ID Business Prefix 为 1 位数字 + 2 位大写字母 | 保存成功，配置值按输入保存 |
+| TDI-008 | Order ID Business Prefix 为 3 位大写字母 | 保存成功，配置值按输入保存 |
+| TDI-009 | Order ID Business Prefix 长度小于 3 位 | 保存失败，返回 `PREFIX_FORMAT_INVALID` |
+| TDI-010 | Order ID Business Prefix 长度大于 3 位 | 保存失败，返回 `PREFIX_FORMAT_INVALID` |
+| TDI-011 | Order ID Business Prefix 包含小写字母 | 保存失败，返回 `PREFIX_FORMAT_INVALID` |
+| TDI-012 | Order ID Business Prefix 包含特殊字符 | 保存失败，返回 `PREFIX_FORMAT_INVALID` |
 
 **设计要点**：
 
@@ -165,12 +165,12 @@
 
 | 测试设计项 ID | 测试设计项 | 预期结果 |
 |---|---|---|
-| TD-013 | 转账金额等于最小值 1.00 | 金额校验通过，转账请求进入后续处理 |
-| TD-014 | 转账金额小于最小值 1.00 | 金额校验失败，返回 `AMOUNT_BELOW_MIN` |
-| TD-015 | 转账金额等于最大值 5000.00 | 金额校验通过，转账请求进入后续处理 |
-| TD-016 | 转账金额大于最大值 5000.00 | 金额校验失败，返回 `AMOUNT_EXCEED_LIMIT` |
-| TD-017 | 转账金额为合法范围内且保留 2 位小数 | 金额校验通过，金额按 2 位小数处理 |
-| TD-018 | 转账金额为合法范围内但超过 2 位小数 | 金额校验失败，返回 `AMOUNT_PRECISION_INVALID` |
+| TDI-013 | 转账金额等于最小值 1.00 | 金额校验通过，转账请求进入后续处理 |
+| TDI-014 | 转账金额小于最小值 1.00 | 金额校验失败，返回 `AMOUNT_BELOW_MIN` |
+| TDI-015 | 转账金额等于最大值 5000.00 | 金额校验通过，转账请求进入后续处理 |
+| TDI-016 | 转账金额大于最大值 5000.00 | 金额校验失败，返回 `AMOUNT_EXCEED_LIMIT` |
+| TDI-017 | 转账金额为合法范围内且保留 2 位小数 | 金额校验通过，金额按 2 位小数处理 |
+| TDI-018 | 转账金额为合法范围内但超过 2 位小数 | 金额校验失败，返回 `AMOUNT_PRECISION_INVALID` |
 
 **设计要点**：
 

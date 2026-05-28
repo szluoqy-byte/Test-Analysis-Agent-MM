@@ -35,7 +35,7 @@
 
 | 测试设计项 ID | 测试设计项 | 预期结果 |
 |---|---|---|
-| TD-001 | <代表性条件、数据、状态或组合> | <明确预期结果或待人工分析确认> |
+| TDI-001 | <代表性条件、数据、状态或组合> | <明确预期结果或待人工分析确认> |
 ```
 
 ## 生成规则
@@ -43,7 +43,8 @@
 - 主输出路径固定为：`${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.md`。
 - 如保留过程分析报告，路径固定为 `${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md`。
 - 运行任务清单、上下文和澄清记录分别写入 `process/task-list.md`、`process/context-pack.md` 和 `process/clarification-session.md`。
-- 测试设计项 ID 使用 `TD-001` 起全局连续编号。
+- 主交付件固定使用中文术语和缩写：测试场景 `SC-*`、测试点 `TP-*`、测试设计项 `TDI-*`，不展开英文全名。
+- 测试设计项 ID 使用 `TDI-001` 起全局连续编号。
 - 测试点 ID 使用 `TP-001` 连续递增；接口、消息、定时任务或批处理测试点也统一使用 `TP-*`。
 - 主输出必须按 `测试场景 -> 测试点 -> 测试设计项` 组织。
 - 测试设计项表头固定为 `测试设计项 ID | 测试设计项 | 预期结果`。
