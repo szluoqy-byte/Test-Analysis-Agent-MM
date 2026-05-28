@@ -6,7 +6,7 @@
 
 ```text
 templates/projects/<project-key>/
-  testcase-title-outline-notes.md
+  test-design-solution-notes.md
   report-notes.md
 ```
 

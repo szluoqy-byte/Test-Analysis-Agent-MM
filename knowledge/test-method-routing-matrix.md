@@ -1,6 +1,6 @@
 # 测试分析维度与测试技术路由矩阵
 
-本矩阵用于为每个需求片段选择测试分析维度、测试技术和专项分析 skill。分析维度以 `knowledge/test-analysis-methodology.md` 为准；测试技术定义以 `knowledge/test-techniques/README.md` 为准。本矩阵只服务测试分析层的测试技术路由，不提前决定标题项数量或标题项展开结果。
+本矩阵用于为每个需求片段选择测试分析维度、测试技术和专项分析 skill。分析维度以 `knowledge/test-analysis-methodology.md` 为准；测试技术定义以 `knowledge/test-techniques/README.md` 为准。本矩阵只服务测试分析层的测试技术路由，不提前决定测试设计项数量或测试设计项展开结果。
 
 | 分析维度 | 需求信号 | 测试技术 | Skill | 为什么重要 | 不适用条件 | 置信度建议 |
 |---|---|---|---|---|---|---|

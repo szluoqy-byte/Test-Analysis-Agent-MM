@@ -12,8 +12,8 @@ from pathlib import Path
 
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 PROJECT_KEY_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
-MAIN_SKILL = "analyze-requirement-testcase-outline"
-OPENCODE_COMMAND = ".opencode/commands/analyze-requirement-testcase-outline.md"
+MAIN_SKILL = "analyze-requirement-test-design-solution"
+OPENCODE_COMMAND = ".opencode/commands/analyze-requirement-test-design-solution.md"
 
 
 def fail(message: str, issues: list[str]) -> None:
@@ -51,6 +51,10 @@ def validate_plugin(root: Path, issues: list[str]) -> None:
         fail(".claude-plugin/plugin.json must point skills to ./skills/", issues)
     if "agents" in manifest:
         fail(".claude-plugin/plugin.json must not register plugin-level agents", issues)
+
+    for relative in ("agents", ".claude-plugin/agents"):
+        if (root / relative).exists():
+            fail(f"{relative} must not exist; role behavior belongs in skills, knowledge, templates, or quality gates", issues)
 
 
 def validate_skills(root: Path, issues: list[str]) -> None:

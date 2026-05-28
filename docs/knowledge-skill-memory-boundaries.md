@@ -22,17 +22,15 @@ project 和 personal 是当前 run 的一等输入源：必须由 `memory-contex
 
 | 内容类型 | 放置位置 | 原因 |
 |---|---|---|
-| 测试点定义、字段、类型、方法、级别 | `knowledge/testpoint-standard.md` | 稳定标准，所有 skill 共用 |
-| 测试分析、标题级设计边界、分析维度和交付件落点 | `knowledge/test-analysis-methodology.md` | 本项目的上位方法论 |
-| 测试场景、场景测试条件、测试点、标题项和完整测试用例边界 | `knowledge/test-analysis-methodology.md` | 标题大纲层级边界标准 |
-| 测试用例标题项字段、命名和粒度标准 | `knowledge/testcase-title-outline-standard.md` | 主交付件标题项标准 |
-| 标题大纲使用的测试类型大类和子类 | `knowledge/basic-test-types.md` | 本项目内置测试类型体系 |
-| 风险优先、异常优先、状态优先等专家原则 | `knowledge/test-techniques/README.md`、`knowledge/test-techniques/risk-based/risk-based-testing.md` | 测试技术的通用审视规则，分析层用于识别风险，设计层用于控制标题项深度 |
-| 空值、重复提交、越权、幂等等通用缺陷模式 | `knowledge/test-techniques/experience-based/error-guessing-checklist.md` | 经验型测试技术补充，分析层识别缺陷风险，设计层补充高价值标题项 |
+| 测试点定义、字段、类型、方法 | `knowledge/testpoint-standard.md` | 稳定标准，所有 skill 共用 |
+| 测试分析、测试设计边界、分析维度和交付件落点 | `knowledge/test-analysis-methodology.md` | 本项目的上位方法论 |
+| 测试场景、测试点、测试设计项和完整测试用例边界 | `knowledge/test-analysis-methodology.md` | 主输出层级边界标准 |
+| 测试设计项字段、粒度和预期结果兜底规则 | `knowledge/test-design-solution-standard.md` | 主交付件标准 |
+| 测试类型大类和子类 | `knowledge/basic-test-types.md` | 本项目内置测试类型体系 |
+| 风险优先、异常优先、状态优先等专家原则 | `knowledge/test-techniques/README.md`、`knowledge/test-techniques/risk-based/risk-based-testing.md` | 测试技术的通用审视规则，分析层识别风险，设计层控制设计项深度 |
+| 空值、重复提交、越权、幂等等通用缺陷模式 | `knowledge/test-techniques/experience-based/error-guessing-checklist.md` | 经验型测试技术补充，分析层识别缺陷风险，设计层补充高价值设计项 |
 | 需求文档、需求依据、方法证据、记忆上下文包等框架术语 | `knowledge/test-analysis-methodology.md` | 稳定分析术语，所有 skill 共用 |
 | 分析维度、需求信号到测试技术的映射 | `knowledge/test-method-routing-matrix.md` | 稳定路由知识 |
-| Level 0 到 Level 4 的定义 | `knowledge/testpoint-standard.md` | 级别定义应全局一致 |
-| Level 0 到 Level 4 的风险判定启发 | `knowledge/test-techniques/risk-based/risk-based-testing.md` | 标题项等级和覆盖深度的风险策略规则 |
 | 方法分析证据字段和质量要求 | `knowledge/method-evidence-standard.md` | 证明测试理论被实际应用的统一标准 |
 | 设计方案事实摘要字段 | `templates/design-facts-template.md` | 设计事实是运行期结构化产物，模板定义形状，具体事实由 `design-solution-extraction` 提取 |
 | 项目风险画像、覆盖策略、术语映射、路由说明和测试 oracle 补充 | `knowledge/projects/<project-key>/**/*.md` | 项目级测试知识补充，确定 `project-key` 后按需扫描 |
@@ -40,15 +38,11 @@ project 和 personal 是当前 run 的一等输入源：必须由 `memory-contex
 | 某个测试技术的执行步骤 | `skills/*/SKILL.md` | 过程性动作，不是事实库 |
 | 输入、输出、约束、质量门禁调用顺序 | `skills/*/SKILL.md` | 插件运行流程 |
 | 项目全局事实、全局约束、输出偏好和项目专属术语覆盖 | `memory/project-memory.md` | 项目专属且经确认 |
-| 不同业务域的业务术语、角色权限、接口约定、数据约定和设计约束 | `memory/domains/*.md` | 用户自定义扩展区，自动扫描并按需匹配 |
 | 项目真实历史缺陷、复盘教训、团队测试习惯 | `memory/testing-experience-memory.md` | 项目专属经验 |
 | 指定项目的事实、业务域分片、历史经验和输出偏好 | `memory/projects/<project-key>/**/*.md` | 项目级长期 memory，确定 `project-key` 后自动扫描 |
 | 个人输出偏好、检查习惯和本地记忆 | `memory/user/**/*.md` | personal 层 memory，按需扫描 |
-| 项目模板补充 | `templates/projects/<project-key>/**/*.md` | 只能补充说明和呈现偏好，不改变 core 模板契约 |
-| 个人模板偏好 | `templates/user/**/*.md` | personal 层展示偏好，不改变 core 模板契约 |
-| 项目附加质量门禁 | `quality-gates/projects/<project-key>/**/*.md` | 只能更严格，不得放宽 core 门禁 |
-| 个人附加检查偏好 | `quality-gates/user/**/*.md` | 只能作为附加检查或提醒，不得放宽 core/project 门禁 |
 | 本次运行筛选出的少量上下文 | `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.md` | 运行产物，不是长期事实源 |
+| 本次运行缺口治理结果 | `${PROJECT_ROOT}/outputs/runs/<run-id>/process/clarification-session.md` | 运行产物，用于解释 `待人工分析确认` 的来源 |
 | 本次运行阶段顺序、状态和证据路径 | `${PROJECT_ROOT}/outputs/runs/<run-id>/process/task-list.md` | 运行产物，是流程事实源，不是长期配置 |
 | 运行产物分类、固定文件名和下游消费约定 | `docs/output-artifact-contract.md` | 输出契约，防止 skill、模板和脚本各自发散 |
 | 报告、中间产物和运行产物的 Markdown 结构 | `templates/*.md` | 模板层只定义形状和占位，不维护另一套标准 |
@@ -57,23 +51,18 @@ project 和 personal 是当前 run 的一等输入源：必须由 `memory-contex
 
 ## 禁止重复
 
-- `skills/` 不重复维护测试点类型、方法枚举、级别定义和通用缺陷模式，只引用 `knowledge/`。
+- `skills/` 不重复维护测试点类型、方法枚举和通用缺陷模式，只引用 `knowledge/`。
 - `skills/` 不把方法证据写成自由发挥的叙述，统一引用 `knowledge/method-evidence-standard.md` 和 `templates/method-analysis-template.md`。
-- `memory/` 不保存通用测试理论、通用缺陷模式、通用级别定义和方法步骤。
+- `memory/` 不保存通用测试理论、通用缺陷模式、通用类型定义和方法步骤。
 - `memory/` 不重复维护框架术语定义；框架术语归属 `knowledge/test-analysis-methodology.md`，memory 只记录项目专属术语或覆盖。
 - `knowledge/` 不保存项目事实、用户临时偏好、单次运行结果和未确认假设。
 - `knowledge/projects/<project-key>/` 只能保存项目级测试知识补充，不保存未确认业务事实、真实缺陷复盘或输出偏好。
-- `knowledge/projects/<project-key>/` 不覆盖根目录 `knowledge/` 的测试点字段、类型、方法、级别、输出契约和质量门禁。
-- `memory/domains/*.md` 不需要登记索引；新增分片应自带清晰标题、适用范围、关键词或术语，便于自动匹配。
-- `memory/projects/<project-key>/**/*.md` 不需要登记索引；新增项目文件应自带清晰标题、适用范围、关键词或术语，便于自动匹配。
-- `*/user/**/*.md` 不需要登记索引；新增 personal 文件应自带清晰标题、适用范围和关键词，且只能表达个人偏好或本地补充。
+- `knowledge/projects/<project-key>/` 不覆盖根目录 `knowledge/` 的测试点字段、类型、方法、输出契约和质量门禁。
 - 未唯一确定 `project-key` 时，不读取所有项目目录正文，避免跨项目知识和 memory 污染。
 - project 和 personal 层默认不提交 Git；仓库只保留对应 README 和发现规则。
 - `context-pack.md` 只摘录与本次需求相关的 memory 和 project/personal 补充，不复制整份长期文件，也不放在 `memory/` 下。
-- `context-pack.md` 必须记录 project/personal 的绑定结果、已扫描来源、命中来源、未采用来源、冲突处理和后续补读建议；即使没有命中正文，也要说明未命中或未采用原因。
 - `task-list.md` 必须随 run 目录生成，记录固定阶段顺序、状态和证据路径；它不替代运行时 todo 工具，但比运行时 UI 更适合作为可校验事实源。
-- 大文件不强制维护 `index.md`；先用文件名、frontmatter、README 和标题结构做渐进式披露，后续 skill 不足时可以按 context pack 记录的来源受控补读对应章节。
-- `templates/` 只列出字段、占位和最小示例，不直接维护或长篇引用背景知识；字段含义、类型、方法、级别等标准由调用模板的 `skills/` 和 `quality-gates/` 按需引用 `knowledge/`。
+- `templates/` 只列出字段、占位和最小示例，不直接维护或长篇引用背景知识；字段含义、类型、方法等标准由调用模板的 `skills/` 和 `quality-gates/` 按需引用 `knowledge/`。
 - `quality-gates/` 可以重复列出允许值用于校验，但必须以 `knowledge/` 的标准为来源，不维护独立定义。
 - `bin/` 中的枚举和章节列表必须服务于机械校验；如果标准变化，应同步来自 `knowledge/`、`templates/` 或 `quality-gates/` 的权威来源。
 
@@ -90,11 +79,4 @@ project 和 personal 是当前 run 的一等输入源：必须由 `memory-contex
 7. `knowledge/` 中的通用测试知识。
 8. skill 的流程性默认动作。
 
-如果 memory 或 knowledge 与需求文档冲突，不直接覆盖需求；输出待确认问题。
-
-按信息类型处理冲突时，还应遵循：
-
-- 事实/契约：当前需求 > project memory > project knowledge > core；personal 不产生项目事实。
-- 测试策略：project knowledge > personal knowledge > core 通用启发，但不得改变 core 标准。
-- 输出偏好：当前用户明确指令 > personal > project > core，但不得违反事实、输出契约和质量门禁。
-- 质量门禁：core 是底线，project 只能加严，personal 只能补充检查或提醒。
+如果 memory 或 knowledge 与需求文档冲突，不直接覆盖需求；相关预期结果缺少依据时写 `待人工分析确认`，并在过程记录中说明。

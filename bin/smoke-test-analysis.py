@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run deterministic smoke checks for example testcase title outlines."""
+"""Run deterministic smoke checks for example test design solutions."""
 
 from __future__ import annotations
 
@@ -18,31 +18,33 @@ REQUIRED_FILES = [
     "CLAUDE.md",
     "opencode.json",
     ".claude-plugin/plugin.json",
-    ".opencode/commands/analyze-requirement-testcase-outline.md",
+    ".opencode/commands/analyze-requirement-test-design-solution.md",
     ".opencode/skills/README.md",
-    "docs/testcase-title-outline-agent-design.md",
+    "docs/test-design-solution-agent-design.md",
     "docs/skills-architecture-optimization-analysis.md",
     "docs/output-artifact-contract.md",
     "docs/knowledge-skill-memory-boundaries.md",
     "knowledge/README.md",
     "knowledge/basic-test-types.md",
     "knowledge/test-analysis-methodology.md",
-    "knowledge/testcase-title-outline-standard.md",
+    "knowledge/test-design-solution-standard.md",
     "knowledge/test-techniques/README.md",
-    "templates/testcase-title-outline-template.md",
+    "templates/test-design-solution-template.md",
     "templates/task-list-template.md",
     "templates/context-pack-template.md",
     "templates/clarification-template.md",
     "templates/design-facts-template.md",
     "skills/design-solution-extraction/SKILL.md",
-    "quality-gates/testcase-title-outline-check.md",
+    "skills/test-design-solution-generation/SKILL.md",
+    "skills/test-design-solution-review/SKILL.md",
+    "quality-gates/test-design-solution-check.md",
     "quality-gates/coverage-check.md",
     "quality-gates/expert-review-rubric.md",
     "quality-gates/traceability-check.md",
     "outputs/runs/.gitkeep",
     "memory/README.md",
     "examples/evaluation-matrix.md",
-    "bin/lint-testcase-title-outline.py",
+    "bin/lint-test-design-solution.py",
     "bin/sync-opencode-skills.py",
     "bin/validate-agent-runtime.py",
 ]
@@ -83,21 +85,23 @@ def check_required_files(repo_root: Path) -> list[str]:
 def check_one_requirement(repo_root: Path, requirement: Path) -> bool:
     stem = requirement.stem
     run_dir = example_run_dir(repo_root, stem)
-    outline = run_dir / "deliverables" / "testcase-title-outline.md"
+    solution = run_dir / "deliverables" / "test-design-solution.md"
 
     print(f"\n== {requirement} ==")
     if not run_dir.is_dir():
         print(f"失败: 未找到固定示例运行目录 {run_dir}")
         return False
-    if not outline.exists():
-        print(f"失败: 未找到示例标题大纲 {outline}")
+    if not solution.exists():
+        print(f"失败: 未找到示例测试设计方案 {solution}")
         return False
 
-    return run_command([sys.executable, "bin/lint-testcase-title-outline.py", str(outline)], repo_root)
+    ok = run_command([sys.executable, "bin/lint-test-design-solution.py", str(solution)], repo_root)
+    ok &= run_command([sys.executable, "bin/check-artifact-consistency.py", str(run_dir)], repo_root)
+    return ok
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="运行 Testcase Title Outline Agent 的示例 smoke 检查")
+    parser = argparse.ArgumentParser(description="运行 Test Design Solution Agent 的示例 smoke 检查")
     parser.add_argument("requirements", nargs="*", type=Path, help="需求 Markdown 路径，默认检查 examples/requirements/*.md")
     args = parser.parse_args()
 
