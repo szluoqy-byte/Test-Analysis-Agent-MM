@@ -77,7 +77,8 @@ Rules 是高优先级约束源：优先级低于当前用户明确指令，高�
 - `rules/projects/<project-key>/` 和 `rules/user/` 默认不提交 Git；仓库只保留对应 README 和发现规则。
 - `context-pack.md` 只摘录与本次需求相关的 memory 和 project/personal 补充，不复制整份长期文件，也不放在 `memory/` 下。
 - `context-pack.md` 的“项目知识阶段绑定”只判断文件应进入哪些环节；具体命中和应用由对应 skill 在阶段内读取后判断，并记录应用状态。
-- `task-list.md` 必须随 run 目录生成，记录固定阶段顺序、状态和证据路径；它不替代运行时 todo 工具，但比运行时 UI 更适合作为可校验事实源。
+- `task-list.md`、`context-pack.md` 和 `clarification-session.md` 必须随 run 目录生成，分别记录固定阶段顺序、上下文绑定和待确认治理结果；即使无 project/personal 命中或无待确认候选，也必须生成并说明原因。
+- `task-list.md` 不替代运行时 todo 工具，但比运行时 UI 更适合作为可校验事实源。
 - `templates/` 只列出字段、占位和最小示例，不直接维护或长篇引用背景知识；字段含义、类型、方法等标准由调用模板的 `skills/` 和 `quality-gates/` 按需引用 `knowledge/`。
 - `quality-gates/` 可以重复列出允许值用于校验，但必须以 `knowledge/` 的标准为来源，不维护独立定义。
 - `bin/` 中的枚举和章节列表必须服务于机械校验；如果标准变化，应同步来自 `knowledge/`、`templates/` 或 `quality-gates/` 的权威来源。

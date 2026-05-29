@@ -69,13 +69,14 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 4. 创建或刷新 `process/task-list.md`，记录当前进入测试设计阶段。
 5. 读取并校验 `deliverables/test-analysis-solution.md`；若文件存在，运行 `bin/lint-test-analysis-solution.py`。
 6. 读取或生成 `process/context-pack.md`，确认适用 rules、Rules 与输入冲突记录、project/personal 来源和项目知识阶段绑定。
-7. 受控补读原始需求文档、设计方案文档、`design-facts` 或过程报告中与当前分析方案相关的依据；不得要求后续读者回看这些文件才能理解主交付件。
-8. 使用 `test-design-solution-generation` 在普通 `TP-*-*` 或失败类型 `TP-*-*-*` 下生成 1-N 个 `TDI-*`，并记录项目知识应用状态。
-9. 使用 `test-design-solution-review` 独立评审测试设计方案，重点检查分析方案承接、失败类型明细继承、设计项粒度、预期结果依据、旧字段泄漏和非完整用例化。
-10. 使用 `coverage-review` 或设计级覆盖审查记录检查需求覆盖、分析方案承接关系、项目知识应用状态和确定性校验。
-11. 将主输出写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.md`，使用 `templates/test-design-solution-template.md`。
-12. 如需保留过程审查信息，使用 `templates/test-design-report-template.md` 将设计报告写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-design-report.md`。
-13. 最终输出前刷新 `process/task-list.md`：设计阶段必选项必须为 `done`，未触发的可选项为 `skipped` 并说明原因。
+7. 创建或刷新 `process/clarification-session.md`；如果设计阶段没有新增待确认候选，声明 `无待确认候选`。
+8. 受控补读原始需求文档、设计方案文档、`design-facts` 或过程报告中与当前分析方案相关的依据；不得要求后续读者回看这些文件才能理解主交付件。
+9. 使用 `test-design-solution-generation` 在普通 `TP-*-*` 或失败类型 `TP-*-*-*` 下生成 1-N 个 `TDI-*`，并记录项目知识应用状态。
+10. 使用 `test-design-solution-review` 独立评审测试设计方案，重点检查分析方案承接、失败类型明细继承、设计项粒度、预期结果依据、旧字段泄漏和非完整用例化。
+11. 使用 `coverage-review` 或设计级覆盖审查记录检查需求覆盖、分析方案承接关系、项目知识应用状态和确定性校验。
+12. 将主输出写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.md`，使用 `templates/test-design-solution-template.md`。
+13. 如需保留过程审查信息，使用 `templates/test-design-report-template.md` 将设计报告写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-design-report.md`。
+14. 最终输出前刷新 `process/task-list.md`：设计阶段必选项必须为 `done`，未触发的可选项为 `skipped` 并说明原因；`process/task-list.md`、`process/context-pack.md` 和 `process/clarification-session.md` 必须同时存在。
 
 ## 阶段产物契约
 
@@ -83,6 +84,7 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 |---|---|---|
 | `analysis-solution-check` | 已校验测试分析方案、承接关系检查 | 测试设计项生成 |
 | `memory-context-builder` | `process/context-pack.md` 或复用记录、适用强制规则、Rules 与输入冲突记录、项目知识阶段绑定 | 测试设计项生成和评审 |
+| `clarification-session` | `process/clarification-session.md`，无候选时声明 `无待确认候选` | 测试设计项生成和评审 |
 | `test-design-solution-generation` | `TDI-*` 测试设计项、设计级预期结果、项目知识应用状态 | 独立评审 |
 | `test-design-solution-review` | 独立评审结论、修正建议 | 覆盖审查与输出收口 |
 | `coverage-review` | 门禁结果、阻断项和修正建议 | 主交付件和过程报告刷新 |
@@ -99,6 +101,7 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 - `预期结果` 只能来自当前用户明确指令、适用 rules、需求、设计方案、测试分析方案、context pack 中明确事实或可直接推出的业务不变量。
 - 如果需求和设计方案没有明确错误提示、状态变化、错误码、返回内容、数据记录变化或其他判定依据，`预期结果` 写 `待人工分析确认`。
 - 主输出不得包含 `覆盖意图`、`级别`、`待确认信息`、`判定关注`、`输入条件与数据依赖` 等旧字段。
+- 主输出不得使用 Markdown 加粗语法，例如 `**文本**` 或 `__文本__`。
 - 主输出不得包含操作步骤、前置步骤、有序测试步骤、自动化脚本、接口调用代码或执行数据表。
 
 ## 硬性约束

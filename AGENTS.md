@@ -46,7 +46,9 @@
 - 新建完整 run 时，`run-id` 固定使用 `python bin/generate-run-id.py` 生成，格式为 `<YYYYMMDD-HHMMSS>`。
 - 测试分析主交付件固定为 `outputs/runs/<run-id>/deliverables/test-analysis-solution.md`。
 - 测试设计主交付件固定为 `outputs/runs/<run-id>/deliverables/test-design-solution.md`，优先复用上游测试分析方案所在 run。
-- 创建 run 目录后必须维护 `process/task-list.md`；它是阶段顺序和状态的流程事实源。
+- 创建 run 目录后必须维护三个固定 process 产物：`process/task-list.md`、`process/context-pack.md` 和 `process/clarification-session.md`。
+- `process/task-list.md` 是阶段顺序和状态的流程事实源；`process/context-pack.md` 是本次上下文绑定事实源；`process/clarification-session.md` 是待确认治理事实源。
+- 即使没有 project/personal 命中或没有待确认候选，也必须生成对应 process 产物，并在文件内写明无命中或 `无待确认候选`。
 
 ## Project/Personal 上下文
 
@@ -71,6 +73,7 @@
 - 每个测试场景下必须包含一个 `E2E场景测试` 测试点，用于覆盖该场景端到端业务主流程是否按预期完整闭环。
 - 是否新增第四层由 `TP-*-*` 测试点明细决定：只有非成功测试点明细新增 `TP-*-*-*` 失败类型明细，`TP-*` 本身仍表示测试点主题。
 - 主交付件不设置独立的 `未明确规则` 章节，也不输出待确认信息清单；澄清和缺口治理保留在过程产物中。
+- 主交付件不得使用 Markdown 加粗语法，例如 `**文本**` 或 `__文本__`。
 - 在认为单次报告完成前，只运行当前 run 相关的确定性检查，例如对应交付件 lint 和 `bin/check-artifact-consistency.py`；不要在 review 阶段运行示例 smoke。
 
 ## 校验命令

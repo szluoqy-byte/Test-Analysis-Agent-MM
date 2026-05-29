@@ -87,7 +87,8 @@ description: 在多个测试分析检查点使用。用于收集、去重、分�
 3. 按 `priority`、`blockingLevel`、影响范围和需求依据清晰度排序。
 4. 将仍未解决且会影响预期结果的问题标记 `expectedResultFallback = 是`。
 5. 将只影响过程说明或后续人工补充的问题保留在 `process/clarification-session.md`，不得写入主交付件章节。
-6. 全流程不调用用户交互能力，不暂停主流程，不向用户发起中途确认。
+6. 如果当前检查点没有候选问题，也必须创建或刷新 `process/clarification-session.md`，并在运行状态中声明 `无待确认候选`。
+7. 全流程不调用用户交互能力，不暂停主流程，不向用户发起中途确认。
 
 ## 预期结果兜底规则
 
@@ -105,9 +106,10 @@ description: 在多个测试分析检查点使用。用于收集、去重、分�
 
 ## 过程记录
 
-如存在候选问题，创建或更新 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/clarification-session.md`，记录：
+创建或更新 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/clarification-session.md`。该文件是固定 process 产物，即使无候选也必须生成。记录：
 
 - 当前检查点。
+- 治理结论，取值为 `无待确认候选` 或 `存在待确认候选`。
 - 候选问题队列。
 - 去重和排序结果。
 - 未进入主交付件的原因。
@@ -124,7 +126,7 @@ description: 在多个测试分析检查点使用。用于收集、去重、分�
 - 需要过程保留的问题列表。
 - 需要让测试点明细预期结果写 `待人工分析确认` 的问题列表。
 - 被移除的问题和移除原因。
-- 是否需要刷新 `process/clarification-session.md`。
+- 已刷新 `process/clarification-session.md` 的证据路径。
 
 ## 约束
 

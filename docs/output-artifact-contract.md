@@ -29,8 +29,18 @@ outputs/
 | 测试设计主交付件 | `deliverables/test-design-solution.md` | 设计阶段是 | 按“测试场景 -> 测试点 -> 测试点明细 -> 测试设计项”组织；继承失败类型明细时在第四层下生成测试设计项，不生成完整测试用例 |
 | 任务清单 | `process/task-list.md` | 是 | 当前 run 的流程事实源，记录阶段顺序、状态和证据路径 |
 | 上下文包 | `process/context-pack.md` | 是 | 记录适用 rules、Rules 与输入冲突、core/project/personal 来源绑定、命中、未采用来源、项目知识阶段绑定和补读建议 |
-| 待确认治理记录 | `process/clarification-session.md` | 有待确认候选时生成 | 记录候选问题、去重降级结果和预期结果兜底清单；不写入主交付件章节 |
+| 待确认治理记录 | `process/clarification-session.md` | 是 | 记录候选问题、去重降级结果和预期结果兜底清单；无候选时也必须生成并声明 `无待确认候选`；不写入主交付件章节 |
 | 过程分析报告 | `reports/test-analysis-report.md` | 可选 | 记录方法证据、覆盖审查、独立评审和质量门禁 |
+
+## Process 目录边界
+
+`process/` 下只有三个固定必需产物：
+
+- `task-list.md`：阶段顺序、状态和证据路径。
+- `context-pack.md`：适用 rules、project/personal 绑定、项目知识阶段绑定和补读建议。
+- `clarification-session.md`：待确认候选治理、去重降级结果和预期结果兜底清单。
+
+其他过程性材料不是固定必需产物。若某个 skill 需要保存中间证据，优先写入 `reports/` 或在上述三个 process 文件中登记摘要和证据路径，避免 `process/` 目录随流程漂移。
 
 ## 测试分析主交付件结构
 
@@ -124,6 +134,7 @@ outputs/
 - 如果需求和设计方案没有说明错误提示、状态变化、错误码、接口返回内容、消息发送结果或数据记录变化，写 `待人工分析确认`。
 - 不得为缺口新增 `## 3. 未明确规则`。
 - 不得在主交付件输出独立待确认信息清单。
+- 不得在主交付件使用 Markdown 加粗语法，例如 `**文本**` 或 `__文本__`。
 
 ## 下游消费
 

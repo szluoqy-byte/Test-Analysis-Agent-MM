@@ -21,10 +21,10 @@
 | 2 | 构建上下文包 | memory-context-builder | process/context-pack.md、项目知识阶段绑定 | pending |  |
 | 3 | 需求可测性分析 | requirement-testability | 结构化需求模型、需求待确认候选 | pending |  |
 | 4 | 设计方案提取 | design-solution-extraction | 设计方案事实摘要、接口/状态/字段/数据依赖清单 | pending |  |
-| 5 | 待确认治理 | clarification-gate | CP-INPUT、CP-ANALYSIS、CP-REVIEW、process/clarification-session.md | pending |  |
+| 5 | 待确认治理 | clarification-gate | CP-INPUT、CP-ANALYSIS、CP-REVIEW、process/clarification-session.md | pending | process/clarification-session.md |
 | 6 | 测试技术路由 | testing-method-router | 分析维度覆盖表、测试技术路由表、project knowledge 应用记录 | pending |  |
 | 7 | 专项分析 | selected method skills | ME-* 方法证据、测试点候选、技术缺口候选 | pending |  |
-| 8 | 按源补读 | selected method skills | 按需补读记录、来源说明 | skipped |  |
+| 8 | 按源补读 | selected method skills | 按需补读记录、来源说明 | pending |  |
 | 9 | 场景化测试点生成 | testpoint-generation | 场景、测试点、project knowledge 应用记录 | pending |  |
 | 10 | 测试分析方案生成 | test-analysis-solution-generation | deliverables/test-analysis-solution.md、project knowledge 应用记录 | pending |  |
 | 11 | 独立评审 | test-analysis-solution-review | 测试点明细粒度、预期结果依据、project checklist 审查和非用例化审查 | pending |  |
@@ -44,7 +44,9 @@
 ## 维护规则
 
 - 创建 run 目录后立即创建 `process/task-list.md`。
+- `process/context-pack.md` 和 `process/clarification-session.md` 是固定 process 产物；无 project 命中或无待确认候选时也必须生成并写明原因。
 - 每个阶段开始前，将对应阶段置为 `in_progress`；阶段完成后置为 `done` 或 `skipped`。
+- 状态为 `done`、`blocked` 或 `skipped` 的阶段必须填写证据路径或跳过原因，不能留空。
 - 任意时刻最多一个阶段处于 `in_progress`。
 - 不依赖 Claude Code 或 OpenCode 的内置 todo 工具；如果运行时支持任务列表，可以同步维护，但 `process/task-list.md` 是流程事实源。
 - 最终输出前，所有必选阶段必须是 `done`；可选阶段可以是 `skipped`，但必须说明原因。

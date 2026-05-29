@@ -20,7 +20,8 @@
 - 配置按 `core / project / personal` 三层处理；personal 本地目录是 `*/user/`，project 和 personal 层默认本地化，不提交 Git。
 - project 和 personal 是当前 run 的一等输入源，命中、未采用和补读建议必须记录到 `process/context-pack.md`。
 - `knowledge/projects/<project-key>/` 下的文件名没有硬性要求；context pack 必须记录项目知识阶段绑定，被绑定阶段必须读取并留痕。
-- 每次 run 必须维护 `process/task-list.md`，用于约束阶段顺序和状态。
+- 每次 run 必须维护 `process/task-list.md`、`process/context-pack.md` 和 `process/clarification-session.md` 三个固定 process 产物。
+- `process/task-list.md` 用于约束阶段顺序和状态；`process/context-pack.md` 记录本次上下文绑定；`process/clarification-session.md` 记录待确认治理结果，无候选时也必须声明 `无待确认候选`。
 - 测试分析主交付件固定为 `outputs/runs/<run-id>/deliverables/test-analysis-solution.md`，输出粒度是“测试场景 -> 测试点 -> 测试点明细”；非成功测试点明细继续到失败类型明细。
 - 测试设计主交付件固定为 `outputs/runs/<run-id>/deliverables/test-design-solution.md`，输出粒度是“测试场景 -> 测试点 -> 测试点明细 -> 测试设计项”；非成功测试点明细继承失败类型明细后再生成测试设计项。
 - 主交付件术语与缩写固定为测试场景 `SC-*`、测试点 `TP-*`、测试点明细 `TP-*-*`、失败类型明细 `TP-*-*-*`、测试设计项 `TDI-*`，不展开英文全名。
@@ -30,5 +31,6 @@
 - 测试设计方案只输出 `TDI-*` 代表性条件、数据、状态或组合，不输出完整测试用例。
 - 如果错误提示、状态变化、错误码或其他判定依据未被需求/设计方案明确说明，`预期结果` 写 `待人工分析确认`。
 - 主交付件不设置 `未明确规则` 章节，不输出独立待确认信息清单。
+- 主交付件不得使用 Markdown 加粗语法，例如 `**文本**` 或 `__文本__`。
 - 不生成完整测试用例、前置步骤、测试步骤、自动化脚本或执行数据清单。
 - Agent 门面只负责用户意图识别和路由；具体流程动作仍放在 skills、knowledge 文件、templates 或 quality gates 中。

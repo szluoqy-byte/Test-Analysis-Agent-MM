@@ -23,6 +23,8 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 
 - `$ARGUMENTS`：至少包含一份 `.md` 需求文档路径。
 - `$ARGUMENTS` 可额外包含一份或多份 `.md` 设计方案文档路径，或使用 `--design <path>`、`design=<path>`、`设计方案：<path>` 指定。
+- 可选项目绑定参数：`--project <project-key>`、`project=<project-key>` 或 `项目：<project-key>`。如果出现该参数，必须原样传递给 `memory-context-builder`，并要求 `process/context-pack.md` 记录 project-key、已扫描 project 来源、未采用 project 来源和项目知识阶段绑定。
+- 可选个人绑定参数：`--personal <personal-key>`、`personal=<personal-key>` 或 `个人：<personal-key>`。如果出现该参数，必须原样传递给 `memory-context-builder`，并要求 `process/context-pack.md` 记录 personal-key、使用路径和 personal 来源使用摘要。
 
 如果只有需求文档，继续生成测试分析方案；不得编造设计方案中没有的接口、状态、字段、错误提示、错误码或处理规则。缺少判定依据时，在相关测试点明细的 `预期结果` 写 `待人工分析确认`。
 
@@ -78,14 +80,14 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 7. 使用 `clarification-gate` 执行 `CP-INPUT`，合并 memory、需求与设计方案之间的冲突、缺失和歧义，不向用户提问。
 8. 使用 `testing-method-router` 对需求片段和设计方案片段进行测试技术路由，选择适用测试技术和专项分析 skill；如果 context pack 绑定了本阶段 project knowledge，必须先读取并记录应用状态。
 9. 使用路由选中的专项分析 skill 产出 `ME-*` 方法证据、测试点候选、技术缺口候选和按源补读记录。
-10. 使用 `clarification-gate` 执行 `CP-ANALYSIS`，收口会导致测试点、方法覆盖或预期结果失真的信息缺口。
-11. 使用 `testpoint-generation` 生成场景化测试点、接口测试点和场景测试条件；如果 context pack 绑定了本阶段 project knowledge，必须先读取并记录应用状态。
+10. 使用 `clarification-gate` 执行 `CP-ANALYSIS`，收口会导致测试点、方法覆盖或预期结果失真的信息缺口；如果没有任何候选，也必须刷新 `process/clarification-session.md` 并声明 `无待确认候选`。
+11. 使用 `testpoint-generation` 生成场景化测试点、接口契约候选和场景测试条件；如果 context pack 绑定了本阶段 project knowledge，必须先读取并记录应用状态。
 12. 使用 `test-analysis-solution-generation` 基于场景、测试点、测试技术库和需求/设计方案上下文生成测试分析方案；如果 context pack 绑定了本阶段 project knowledge，必须先读取并记录应用状态。
 13. 使用 `test-analysis-solution-review` 独立评审测试分析方案，重点检查 E2E 场景测试、失败类型明细、测试点明细粒度、预期结果依据、`TDI-*` 泄漏和非完整用例化；如果 context pack 绑定了本阶段 checklist 或评审类 project knowledge，必须读取并记录应用状态。
 14. 使用 `coverage-review` 执行覆盖审查、质量门禁和确定性校验；如果 context pack 绑定了本阶段 project knowledge，必须读取并检查前序阶段应用状态。
 15. 将主输出写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.md`，使用 `templates/test-analysis-solution-template.md`。
 16. 如需保留过程审查信息，将分析报告写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md`。
-17. 最终输出前刷新 `process/task-list.md`：所有必选阶段必须为 `done`，未触发的可选阶段为 `skipped` 并说明原因；如果存在 `blocked`，必须在过程报告中说明。
+17. 最终输出前刷新 `process/task-list.md`：所有必选阶段必须为 `done`，未触发的可选阶段为 `skipped` 并说明原因；`process/task-list.md`、`process/context-pack.md` 和 `process/clarification-session.md` 必须同时存在；如果存在 `blocked`，必须在过程报告中说明。
 
 ## 阶段产物契约
 
@@ -95,10 +97,10 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 | `memory-context-builder` | `process/context-pack.md`、适用强制规则、Rules 与输入冲突记录、project/personal 来源使用摘要、项目知识阶段绑定 | 需求与设计方案分析 |
 | `requirement-testability` | 结构化需求模型、需求待确认候选 | 测试技术路由、测试点生成 |
 | `design-solution-extraction` | 设计方案事实摘要、接口/状态/字段/数据依赖清单、设计缺口候选 | 测试技术路由、测试点生成 |
-| `clarification-gate` | `process/clarification-session.md` | 过程缺口治理、预期结果兜底依据 |
+| `clarification-gate` | `process/clarification-session.md` | 固定 process 产物；记录过程缺口治理、预期结果兜底依据；无候选时声明 `无待确认候选` |
 | `testing-method-router` | 分析维度覆盖表、测试技术路由表 | 专项分析 skill、测试点生成 |
 | 专项分析 skill | `ME-*` 方法证据、测试点候选、技术缺口候选 | 测试点生成、测试分析方案生成 |
-| `testpoint-generation` | 场景化测试点、接口测试点、场景测试条件 | 测试分析方案生成 |
+| `testpoint-generation` | 场景化测试点、接口契约候选、场景测试条件 | 测试分析方案生成 |
 | `test-analysis-solution-generation` | 测试点明细、预期结果 | 独立评审和覆盖审查 |
 | `test-analysis-solution-review` | 独立评审结论、修正建议 | 覆盖审查与输出收口 |
 | `coverage-review` | 门禁结果、专家评分、阻断项和修正建议 | 主交付件和过程报告刷新 |
@@ -117,7 +119,7 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 - 主输出使用 `templates/test-analysis-solution-template.md`。
 - 主输出只包含测试分析方案所需内容，不设置 `未明确规则` 章节，不设置独立待确认信息清单。
 - 主输出必须包含 `## 1. 需求范围` 和 `## 2. 测试场景与测试点`。
-- 主输出必须按 `测试场景 -> 测试点 -> 测试点明细` 组织；非成功测试点明细按 `测试场景 -> 测试点 -> 测试点明细 -> 失败类型明细` 组织；接口对象可作为测试场景或测试点呈现，不另建接口专用大纲。
+- 主输出必须按 `测试场景 -> 测试点 -> 测试点明细` 组织；非成功测试点明细按 `测试场景 -> 测试点 -> 测试点明细 -> 失败类型明细` 组织；接口契约不另建接口专用大纲，也不使用接口专用编号体系。
 - 主输出只使用中文术语和固定缩写 `SC`、`TP`、`TP-*-*`、`TP-*-*-*`，不得使用 `TDI-*`、`TD-*`、`TC-*`、`TCT-*`、`TI-*`、`ITP-*` 或 `ITDI-*`。
 - 每个测试场景下必须包含一个 `E2E场景测试` 测试点。
 - 每个测试点下至少有 1 个测试点明细。
@@ -128,6 +130,7 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 - `预期结果` 只能来自当前用户明确指令、适用 rules、需求、设计方案、context pack 中明确事实或可直接推出的业务不变量。
 - 如果需求和设计方案没有明确错误提示、状态变化、错误码、返回内容、数据记录变化或其他判定依据，`预期结果` 写 `待人工分析确认`。
 - 主输出不得包含 `覆盖意图`、`级别`、`待确认信息`、`判定关注`、`输入条件与数据依赖` 等旧字段。
+- 主输出不得使用 Markdown 加粗语法，例如 `**文本**` 或 `__文本__`。
 - 主输出不得包含操作步骤、前置步骤、有序测试步骤、自动化脚本、接口调用代码或执行数据表。
 - 如果保留过程分析报告，报告可以包含测试技术路由、方法证据、覆盖审查、质量门禁、独立评审和 memory 更新建议；这些过程字段不得进入主交付件。
 

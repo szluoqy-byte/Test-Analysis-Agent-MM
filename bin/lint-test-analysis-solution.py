@@ -132,6 +132,14 @@ def parse_id_sequence(lines: list[str], pattern: str) -> list[tuple[int, str]]:
     return ids
 
 
+def has_markdown_bold_marker(line: str) -> str | None:
+    if "**" in line:
+        return "**"
+    if re.search(r"__[^_\s][^_\n]*?__", line):
+        return "__"
+    return None
+
+
 def is_non_success_detail(title: str, block_lines: list[str] | None = None) -> bool:
     return any(term in title for term in NON_SUCCESS_DETAIL_TERMS)
 
@@ -275,6 +283,9 @@ def main() -> int:
         for term in BANNED_TERMS:
             if term in line:
                 errors.append(f"第 {line_number} 行：出现禁止字段或术语: {term}")
+        bold_marker = has_markdown_bold_marker(line)
+        if bold_marker:
+            errors.append(f"第 {line_number} 行：主交付件不得使用 Markdown 加粗标记: {bold_marker}")
         if line.startswith("|"):
             cells = set(split_row(line))
             for column in BANNED_COLUMNS:
