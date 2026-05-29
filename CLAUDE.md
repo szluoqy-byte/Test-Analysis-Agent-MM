@@ -21,10 +21,11 @@
 - project 和 personal 是当前 run 的一等输入源，命中、未采用和补读建议必须记录到 `process/context-pack.md`。
 - `knowledge/projects/<project-key>/` 下的文件名没有硬性要求；context pack 必须记录项目知识阶段绑定，被绑定阶段必须读取并留痕。
 - 每次 run 必须维护 `process/task-list.md`，用于约束阶段顺序和状态。
-- 测试分析主交付件固定为 `outputs/runs/<run-id>/deliverables/test-analysis-solution.md`，输出粒度是“测试场景 -> 测试点 -> 测试点明细”。
-- 测试设计主交付件固定为 `outputs/runs/<run-id>/deliverables/test-design-solution.md`，输出粒度是“测试场景 -> 测试点 -> 测试点明细 -> 测试设计项”。
-- 主交付件术语与缩写固定为测试场景 `SC-*`、测试点 `TP-*`、测试点明细 `TP-*-*`、测试设计项 `TDI-*`，不展开英文全名。
+- 测试分析主交付件固定为 `outputs/runs/<run-id>/deliverables/test-analysis-solution.md`，输出粒度是“测试场景 -> 测试点 -> 测试点明细”；非成功测试点明细继续到失败类型明细。
+- 测试设计主交付件固定为 `outputs/runs/<run-id>/deliverables/test-design-solution.md`，输出粒度是“测试场景 -> 测试点 -> 测试点明细 -> 测试设计项”；非成功测试点明细继承失败类型明细后再生成测试设计项。
+- 主交付件术语与缩写固定为测试场景 `SC-*`、测试点 `TP-*`、测试点明细 `TP-*-*`、失败类型明细 `TP-*-*-*`、测试设计项 `TDI-*`，不展开英文全名。
 - 测试点明细只表达分析层规则分支、路径分支、状态分支、权限分支、接口契约分支或风险分支，以及基于需求/设计方案可确认的预期结果。
+- 每个测试场景必须包含 `E2E场景测试` 测试点；是否新增第四层由 `TP-*-*` 测试点明细决定，只有非成功测试点明细新增 `TP-*-*-*` 失败类型明细。
 - 测试分析方案不输出 `TDI-*` 或测试设计项；它们由 `@test-design-agent` 承接。
 - 测试设计方案只输出 `TDI-*` 代表性条件、数据、状态或组合，不输出完整测试用例。
 - 如果错误提示、状态变化、错误码或其他判定依据未被需求/设计方案明确说明，`预期结果` 写 `待人工分析确认`。

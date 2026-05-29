@@ -8,9 +8,10 @@
 
 ```text
 测试场景 -> 测试点 -> 测试点明细
+非成功测试点明细 -> 失败类型明细
 ```
 
-`测试点明细` 是测试分析层的规则分支、路径分支、状态分支、权限分支、接口契约分支或风险分支。它不是 `TDI-*` 测试设计项，不表达具体代表性条件、数据、状态或组合。`@test-design-agent` 可在人工评审后的测试分析方案上继续补充 TDI。
+`测试点明细` 是测试分析层的规则分支、路径分支、状态分支、权限分支、接口契约分支或风险分支。若 `TP-*-*` 是非成功测试点明细，则新增 `TP-*-*-*` 失败类型明细继续拆分失败来源。它不是 `TDI-*` 测试设计项，不表达具体代表性条件、数据、状态或组合。`@test-design-agent` 可在人工评审后的测试分析方案上继续补充 TDI。
 
 ## 双 Agent 边界
 
@@ -18,8 +19,8 @@
 
 | Agent | 主问题 | 主输入 | 主输出 |
 |---|---|---|---|
-| `@test-analysis-agent` | what to test | 需求文档、可选设计方案 | `test-analysis-solution.md`，输出 `SC-* / TP-* / TP-*-*` |
-| `@test-design-agent` | how to test | 已评审测试分析方案、可选需求/设计依据 | `test-design-solution.md`，在 `TP-*-*` 下补充 `TDI-*` |
+| `@test-analysis-agent` | what to test | 需求文档、可选设计方案 | `test-analysis-solution.md`，输出 `SC-* / TP-* / TP-*-*`，非成功明细可到 `TP-*-*-*` |
+| `@test-design-agent` | how to test | 已评审测试分析方案、可选需求/设计依据 | `test-design-solution.md`，在普通 `TP-*-*` 或失败类型 `TP-*-*-*` 下补充 `TDI-*` |
 
 分析 Agent 不输出 `TDI-*`；设计 Agent 不擅自新增分析层级。若设计阶段发现分析方案缺口，应记录过程问题，必要时回到分析 Agent 修正。
 
@@ -40,6 +41,7 @@ outputs/runs/<run-id>/deliverables/test-analysis-solution.md
 | 测试场景 | `SC-*` |
 | 测试点 | `TP-*` |
 | 测试点明细 | `TP-*-*` |
+| 失败类型明细 | `TP-*-*-*` |
 
 主交付件不展开英文全名，不使用 `TDI-*`、`TD-*`、`TC-*`、`TCT-*`、`TI-*`、`ITP-*` 或 `ITDI-*`。
 
@@ -54,17 +56,33 @@ outputs/runs/<run-id>/deliverables/test-analysis-solution.md
 
 ### SC-001 订单下发
 
-#### TP-001 验证下发订单 ID 长度规则
+#### TP-001 E2E场景测试
 
-##### TP-001-001 下发订单 ID 满足长度要求
+##### TP-001-001 订单下发主流程成功闭环
+
+- 测试点详情：验证订单下发场景的端到端主流程能够从请求接收到订单处理结果完成闭环。
+
+- 预期结果：订单下发成功。
+
+#### TP-002 验证下发订单 ID 长度规则
+
+##### TP-002-001 下发订单 ID 满足长度要求
 
 - 测试点详情：验证下发订单 ID 符合需求定义的长度规则时，系统能够正常识别并处理订单下发请求。
 
 - 预期结果：下发成功。
 
-##### TP-001-002 下发订单 ID 不满足长度要求
+##### TP-002-002 下发订单 ID 不满足长度要求
 
-- 测试点详情：验证下发订单 ID 不符合需求定义的长度规则时，系统能够拦截或拒绝订单下发请求。
+###### TP-002-002-001 下发订单 ID 长度小于规则要求
+
+- 测试点详情：验证下发订单 ID 长度短于需求定义的长度规则时，系统能够识别为无效订单 ID 并拒绝处理订单下发请求。
+
+- 预期结果：下发失败；具体错误处理待人工分析确认。
+
+###### TP-002-002-002 下发订单 ID 长度大于规则要求
+
+- 测试点详情：验证下发订单 ID 长度长于需求定义的长度规则时，系统能够识别为无效订单 ID 并拒绝处理订单下发请求。
 
 - 预期结果：下发失败；具体错误处理待人工分析确认。
 ```
@@ -104,8 +122,8 @@ flowchart TD
   route --> methods[专项分析 skills<br/>产出 ME-* 方法证据与测试点候选]
   methods --> cpAnalysis[clarification-gate CP-ANALYSIS<br/>收口会影响覆盖和预期结果的缺口]
   cpAnalysis --> tp[testpoint-generation<br/>生成 SC-* 与 TP-*]
-  tp --> analysis[test-analysis-solution-generation<br/>生成 TP-*-* 与预期结果]
-  analysis --> review[test-analysis-solution-review<br/>检查粒度、预期结果依据和 TDI 泄漏]
+  tp --> analysis[test-analysis-solution-generation<br/>生成 TP-*-*<br/>非成功明细拆分 TP-*-*-*]
+  analysis --> review[test-analysis-solution-review<br/>检查 E2E、失败类型、预期结果依据和 TDI 泄漏]
   review --> coverage[coverage-review<br/>覆盖审查与项目知识应用检查]
   coverage --> lint[bin/lint-test-analysis-solution.py<br/>bin/check-artifact-consistency.py]
   lint --> output[deliverables/test-analysis-solution.md]
@@ -125,8 +143,8 @@ flowchart TD
 | 方法路由 | `testing-method-router` | 选择适用测试技术和专项分析 skill |
 | 专项分析 | 各专项 `*-analysis` skill | 生成方法证据、测试点候选和技术缺口 |
 | 测试点生成 | `testpoint-generation` | 生成 `SC-*` 和 `TP-*` |
-| 测试分析方案生成 | `test-analysis-solution-generation` | 生成 `TP-*-*` 测试点明细和预期结果 |
-| 独立评审 | `test-analysis-solution-review` | 检查测试点明细粒度、预期结果依据、旧字段和 TDI 泄漏 |
+| 测试分析方案生成 | `test-analysis-solution-generation` | 生成 `TP-*-*` 测试点明细和预期结果；非成功测试点明细继续拆分 `TP-*-*-*` |
+| 独立评审 | `test-analysis-solution-review` | 检查 E2E 测试点、失败类型明细、测试点明细粒度、预期结果依据、旧字段和 TDI 泄漏 |
 | 覆盖审查 | `coverage-review` | 检查需求覆盖、方法覆盖、项目知识应用和质量门禁 |
 
 ## Knowledge 分工
@@ -165,8 +183,10 @@ flowchart TD
 ## 质量门禁
 
 - 主输出必须按 `测试场景 -> 测试点 -> 测试点明细` 组织。
+- 每个测试场景必须包含 `E2E场景测试` 测试点。
 - 每个测试点至少有一个测试点明细。
-- 每个测试点明细必须包含 `测试点详情` 和 `预期结果`。
+- 非成功测试点明细必须新增 `TP-*-*-*` 失败类型明细；是否新增第四层由 `TP-*-*` 决定，不由 `TP-*` 决定。
+- 每个普通测试点明细必须包含 `测试点详情` 和 `预期结果`；非成功测试点明细由第四层失败类型明细承载 `测试点详情` 和 `预期结果`。
 - 主输出不得出现 `TDI-*`、`测试设计项` 或测试设计项表格。
 - 主输出不得出现旧版主交付件字段；字段禁用清单以 `bin/lint-test-analysis-solution.py` 为准。
 - 主输出不得包含完整测试用例字段、操作步骤、脚本或执行数据。

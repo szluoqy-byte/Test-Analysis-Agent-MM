@@ -17,6 +17,30 @@ INFO_HEADER = "| 字段 | 内容 |"
 DESIGN_ITEM_HEADER = "| 测试设计项 ID | 条件/数据/状态/组合 | 预期结果 |"
 EXPECTED_FALLBACK = "待人工分析确认"
 DETAIL_PREFIX = "- 测试点详情："
+E2E_POINT_TITLE = "E2E场景测试"
+NON_SUCCESS_DETAIL_TERMS = (
+    "失败",
+    "拒绝",
+    "不允许",
+    "不能",
+    "不可用",
+    "不满足",
+    "非法",
+    "无效",
+    "异常",
+    "错误",
+    "超时",
+    "越权",
+    "权限限制",
+    "鉴权失败",
+    "鉴权拒绝",
+    "拦截",
+    "为零",
+    "依赖失败",
+    "状态不允许",
+    "重复提交失败",
+    "重复请求失败",
+)
 
 BANNED_MAIN_SECTIONS = (
     "## 3. 未明确规则",
@@ -105,6 +129,33 @@ def parse_id_sequence(lines: list[str], pattern: str) -> list[tuple[int, str]]:
     return ids
 
 
+def is_non_success_detail(title: str, block_lines: list[str] | None = None) -> bool:
+    return any(term in title for term in NON_SUCCESS_DETAIL_TERMS)
+
+
+def collect_scenario_points(lines: list[str]) -> tuple[dict[str, list[tuple[int, str, str]]], dict[str, tuple[int, str]]]:
+    scenario_points: dict[str, list[tuple[int, str, str]]] = {}
+    point_titles: dict[str, tuple[int, str]] = {}
+    current_scenario: str | None = None
+
+    for line_number, line in enumerate(lines, start=1):
+        scenario_match = re.match(r"^### (SC-\d{3})\s+(.+)", line)
+        if scenario_match:
+            current_scenario = scenario_match.group(1)
+            scenario_points.setdefault(current_scenario, [])
+            continue
+
+        point_match = re.match(r"^#### (TP-\d{3})\s+(.+)", line)
+        if point_match:
+            point_id = point_match.group(1)
+            point_title = point_match.group(2).strip()
+            point_titles[point_id] = (line_number, point_title)
+            if current_scenario is not None:
+                scenario_points.setdefault(current_scenario, []).append((line_number, point_id, point_title))
+
+    return scenario_points, point_titles
+
+
 def check_global_sequence(ids: list[tuple[int, str]], prefix: str, errors: list[str]) -> None:
     for expected_index, (line_number, actual_id) in enumerate(ids, start=1):
         expected_id = f"{prefix}-{expected_index:03d}"
@@ -120,7 +171,27 @@ def collect_detail_blocks(lines: list[str]) -> list[tuple[int, str, list[str]]]:
             continue
         block_lines: list[str] = []
         for next_line in lines[index + 1 :]:
-            if next_line.startswith("##### ") or next_line.startswith("#### ") or next_line.startswith("### "):
+            if (
+                next_line.startswith("###### ")
+                or next_line.startswith("##### ")
+                or next_line.startswith("#### ")
+                or next_line.startswith("### ")
+            ):
+                break
+            block_lines.append(next_line)
+        blocks.append((index + 1, match.group(1), block_lines))
+    return blocks
+
+
+def collect_failure_type_blocks(lines: list[str]) -> list[tuple[int, str, list[str]]]:
+    blocks: list[tuple[int, str, list[str]]] = []
+    for index, line in enumerate(lines):
+        match = re.match(r"^###### (TP-\d{3}-\d{3}-\d{3})\s+(.+)", line)
+        if not match:
+            continue
+        block_lines: list[str] = []
+        for next_line in lines[index + 1 :]:
+            if next_line.startswith("#"):
                 break
             block_lines.append(next_line)
         blocks.append((index + 1, match.group(1), block_lines))
@@ -140,6 +211,33 @@ def collect_design_rows(block_lines: list[str]) -> list[tuple[int, list[str]]]:
             if cells and cells[0].startswith("TDI-"):
                 rows.append((row_index + 1, cells))
     return rows
+
+
+def check_leaf_block(
+    line_number: int,
+    block_id: str,
+    block_lines: list[str],
+    lines: list[str],
+    errors: list[str],
+    label: str,
+) -> list[tuple[int, list[str]]]:
+    title_line = lines[line_number - 1]
+    title = re.sub(r"^#{5,6} TP-\d{3}-\d{3}(?:-\d{3})?\s+", "", title_line).strip()
+    if title in EMPTY_MARKERS:
+        errors.append(f"第 {line_number} 行：{label}标题不能为空或模板占位")
+    if any(word in title for word in BANNED_STEP_WORDS):
+        errors.append(f"第 {line_number} 行：{label}标题包含步骤化或脚本化表达: {title}")
+
+    detail_line = next((line for line in block_lines if line.startswith(DETAIL_PREFIX)), "")
+    if not detail_line:
+        errors.append(f"第 {line_number} 行：{label}缺少 `{DETAIL_PREFIX}`")
+    elif detail_line.removeprefix(DETAIL_PREFIX).strip() in EMPTY_MARKERS:
+        errors.append(f"第 {line_number} 行：测试点详情不能为空或模板占位")
+
+    design_rows = collect_design_rows(block_lines)
+    if not design_rows:
+        errors.append(f"第 {line_number} 行：{label}下缺少 TDI-* 测试设计项表")
+    return [(line_number + offset, cells) for offset, cells in design_rows]
 
 
 def main() -> int:
@@ -193,33 +291,64 @@ def main() -> int:
     else:
         check_global_sequence(point_ids, "TP", errors)
 
+    scenario_points, point_titles = collect_scenario_points(lines)
+    for line_number, scenario_id in scenario_ids:
+        points = scenario_points.get(scenario_id, [])
+        if not any(E2E_POINT_TITLE in point_title for _point_line, _point_id, point_title in points):
+            errors.append(f"第 {line_number} 行：测试场景 {scenario_id} 下缺少 `{E2E_POINT_TITLE}` 测试点")
+
     detail_blocks = collect_detail_blocks(lines)
+    failure_type_blocks = collect_failure_type_blocks(lines)
     if not detail_blocks:
         errors.append("未找到 `##### TP-*-* <测试点明细>` 测试点明细标题")
 
     details_by_point: dict[str, list[tuple[int, str]]] = {}
-    all_design_rows: list[tuple[int, list[str]]] = []
+    detail_ids: set[str] = set()
+    detail_titles: dict[str, tuple[int, str, list[str]]] = {}
+    failure_types_by_detail: dict[str, list[tuple[int, str]]] = {}
     for line_number, detail_id, block_lines in detail_blocks:
         parent_id = "-".join(detail_id.split("-")[:2])
         details_by_point.setdefault(parent_id, []).append((line_number, detail_id))
+        detail_ids.add(detail_id)
 
         title_line = lines[line_number - 1]
         detail_title = re.sub(r"^##### TP-\d{3}-\d{3}\s+", "", title_line).strip()
+        detail_titles[detail_id] = (line_number, detail_title, block_lines)
         if detail_title in EMPTY_MARKERS:
             errors.append(f"第 {line_number} 行：测试点明细标题不能为空或模板占位")
         if any(word in detail_title for word in BANNED_STEP_WORDS):
             errors.append(f"第 {line_number} 行：测试点明细标题包含步骤化或脚本化表达: {detail_title}")
 
-        detail_line = next((line for line in block_lines if line.startswith(DETAIL_PREFIX)), "")
-        if not detail_line:
-            errors.append(f"第 {line_number} 行：测试点明细缺少 `{DETAIL_PREFIX}`")
-        elif detail_line.removeprefix(DETAIL_PREFIX).strip() in EMPTY_MARKERS:
-            errors.append(f"第 {line_number} 行：测试点详情不能为空或模板占位")
+    for line_number, failure_type_id, block_lines in failure_type_blocks:
+        parent_detail_id = "-".join(failure_type_id.split("-")[:3])
+        if parent_detail_id not in detail_ids:
+            errors.append(f"第 {line_number} 行：失败类型明细 {failure_type_id} 缺少父级测试点明细 {parent_detail_id}")
+        failure_types_by_detail.setdefault(parent_detail_id, []).append((line_number, failure_type_id))
 
-        design_rows = collect_design_rows(block_lines)
-        if not design_rows:
-            errors.append(f"第 {line_number} 行：测试点明细下缺少 TDI-* 测试设计项表")
-        all_design_rows.extend((line_number + offset, cells) for offset, cells in design_rows)
+    leaf_blocks: list[tuple[int, str, list[str], str]] = []
+    for line_number, detail_id, block_lines in detail_blocks:
+        detail_line_number, detail_title, detail_block_lines = detail_titles[detail_id]
+        has_failure_types = detail_id in failure_types_by_detail
+        is_non_success = is_non_success_detail(detail_title, detail_block_lines)
+        if is_non_success and not has_failure_types:
+            errors.append(
+                f"第 {detail_line_number} 行：非成功测试点明细 `{detail_title}` 必须新增 `TP-*-*-*` 第四层，"
+                "用于拆分失败类型"
+            )
+        if has_failure_types and not is_non_success:
+            errors.append(
+                f"第 {detail_line_number} 行：只有非成功测试点明细才应新增 `TP-*-*-*` 第四层，"
+                f"当前明细 `{detail_title}` 未体现失败、拒绝、异常或非法分支"
+            )
+        if not has_failure_types:
+            leaf_blocks.append((line_number, detail_id, block_lines, "测试点明细"))
+
+    for line_number, failure_type_id, block_lines in failure_type_blocks:
+        leaf_blocks.append((line_number, failure_type_id, block_lines, "失败类型明细"))
+
+    all_design_rows: list[tuple[int, list[str]]] = []
+    for line_number, block_id, block_lines, label in sorted(leaf_blocks, key=lambda item: item[0]):
+        all_design_rows.extend(check_leaf_block(line_number, block_id, block_lines, lines, errors, label))
 
     for _, point_id in point_ids:
         if point_id not in details_by_point:
@@ -230,6 +359,12 @@ def main() -> int:
             expected_id = f"{parent_id}-{expected_index:03d}"
             if actual_id != expected_id:
                 errors.append(f"第 {line_number} 行：期望测试点明细 ID {expected_id}，实际 {actual_id}")
+
+    for parent_detail_id, failure_types in failure_types_by_detail.items():
+        for expected_index, (line_number, actual_id) in enumerate(failure_types, start=1):
+            expected_id = f"{parent_detail_id}-{expected_index:03d}"
+            if actual_id != expected_id:
+                errors.append(f"第 {line_number} 行：期望失败类型明细 ID {expected_id}，实际 {actual_id}")
 
     if not all_design_rows:
         errors.append("未找到 TDI-* 测试设计项")
