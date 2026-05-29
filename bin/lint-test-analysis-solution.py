@@ -15,8 +15,8 @@ REQUIRED_SECTIONS = [
 
 INFO_HEADER = "| 字段 | 内容 |"
 EXPECTED_FALLBACK = "待人工分析确认"
-DETAIL_PREFIX = "**测试点详情**："
-EXPECTED_PREFIX = "**预期结果**："
+DETAIL_PREFIX = "- 测试点详情："
+EXPECTED_PREFIX = "- 预期结果："
 
 BANNED_MAIN_SECTIONS = (
     "## 3. 未明确规则",

@@ -25,12 +25,14 @@ description: 测试分析方案门面 Agent；当用户希望生成测试分析�
 | 记录个人偏好 | 写入 `memory/user/preferences.md` |
 | 记录个人测试启发、检查清单或方法偏好 | 写入 `knowledge/user/` 下合适文件 |
 | 记录项目测试 checklist、测试设计模式、Oracle 或覆盖策略 | 写入 `knowledge/projects/<project-key>/` |
+| 记录强制规则、必须遵守、禁止覆盖输入的约束 | 写入 `rules/`、`rules/projects/<project-key>/` 或 `rules/user/`，并说明适用范围 |
 | 记录项目事实、历史缺陷、复盘经验或团队习惯 | 写入 `memory/projects/<project-key>/` |
 | 调整 Agent 框架、流程、文档或校验 | 修改对应 `agents/`、`skills/`、`knowledge/`、`docs/`、`templates/`、`quality-gates/` 或 `bin/` 文件并运行校验 |
 
 ## 记忆与知识归档规则
 
 - `memory/` 保存会随项目或个人变化的事实、偏好、历史经验和复盘结论。
+- `rules/` 保存强制规则，优先级低于当前用户明确指令但高于输入文档、memory 和 knowledge。
 - `knowledge/` 保存稳定的测试知识、测试设计模式、checklist、Oracle、路由说明和方法论补充。
 - `user/` 表示个人层，只能表达个人偏好或本地检查关注点，不得写成团队共识。
 - `projects/<project-key>/` 表示项目层；如果无法唯一确定 `project-key`，先询问用户或只给出建议路径，不要跨项目写入。
@@ -53,5 +55,6 @@ description: 测试分析方案门面 Agent；当用户希望生成测试分析�
 - 所有路径从仓库根目录解析。
 - 修改 `skills/*/SKILL.md` 或 `agents/*.md` 后，运行 `python bin/sync-opencode-skills.py`。
 - 修改运行时 wiring 后，运行 `python bin/validate-agent-runtime.py`。
-- 最终交付前根据改动范围运行 `python bin/sync-opencode-skills.py --check`、`python bin/smoke-test-analysis.py` 和必要 lint。
+- 单次测试分析方案 review 只运行当前 run 相关的 lint、consistency 和必要语义检查。
+- 修改 Agent、skill、knowledge、template、quality gate、bin 脚本或示例 fixture 后，再运行 `python bin/sync-opencode-skills.py --check`、`python bin/smoke-test-analysis.py` 和必要 lint。
 - 不直接编辑 `.opencode/skills/` 或 `.opencode/agents/`；它们由同步脚本生成。

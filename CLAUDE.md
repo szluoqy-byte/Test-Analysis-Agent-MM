@@ -14,6 +14,8 @@
 - 修改 agents 或 skills 后，运行 `python bin/sync-opencode-skills.py`。
 - 修改运行时 wiring 后，运行 `python bin/validate-agent-runtime.py`。
 - 从仓库根目录解析路径，不要从 `.claude-plugin/`、`.opencode/`、skill 目录或输入文件目录解析。
+- 新建完整 run 时，`run-id` 固定使用 `python bin/generate-run-id.py` 生成，格式为 `<YYYYMMDD-HHMMSS>`。
+- `rules/` 是强制规则源，按 `core / project / personal` 三层加载，优先级低于当前用户明确指令但高于输入文档、memory 和 knowledge。
 - 已确定 `project-key` 时可扫描 `*/projects/<project-key>/**/*.md`；未唯一确定时不要读取所有项目目录正文。
 - 配置按 `core / project / personal` 三层处理；personal 本地目录是 `*/user/`，project 和 personal 层默认本地化，不提交 Git。
 - project 和 personal 是当前 run 的一等输入源，命中、未采用和补读建议必须记录到 `process/context-pack.md`。

@@ -6,7 +6,7 @@
 
 1. 每次分析开始前，先读取本文件中的全局项目事实、全局约束和输出偏好。
 2. 只把与本次需求直接相关的全局内容摘要注入 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.md`。
-3. 如果 memory 与当前需求文档冲突，不直接覆盖需求，以过程缺口记录；相关预期结果缺少依据时写 `待人工分析确认`。
+3. 如果 memory 与当前输入文档冲突，不直接覆盖输入，以过程缺口记录；相关预期结果缺少依据时写 `待人工分析确认`。
 4. 未经用户或评审明确确认的业务规则，不写入长期 memory。
 
 ## 全局项目事实
@@ -18,15 +18,15 @@
 
 ## Memory 使用规则
 
-- 当前需求文档中的明确规则优先于历史 memory。
+- 当前用户明确指令和适用 rules 优先于历史 memory；无 rules 约束时，当前输入文档中的明确规则优先于历史 memory。
 - memory 只能提供项目语境、已确认事实和风险启发，不能替代需求依据。
-- 如果 memory 与当前需求冲突，不直接改写需求规则，应交给主流程形成澄清候选或过程缺口。
+- 如果 memory 与当前输入文档冲突，不直接改写输入规则，应交给主流程形成澄清候选或过程缺口。
 - Memory 只保存经确认的项目事实、项目经验和项目专属输出偏好，不保存未确认假设。
 
 ## 全局输出偏好
 
 - 输出使用 Markdown。
-- 测试分析主输出文件固定为 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.md`，run 目录名承载需求文件名、时间和短哈希。
+- 测试分析主输出文件固定为 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.md`，新建 run 的目录名由 `python bin/generate-run-id.py` 生成，格式为 `<YYYYMMDD-HHMMSS>`。
 - 测试设计主输出文件固定为 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.md`，优先复用上游分析方案所在 run。
 - 测试分析主输出按 `测试场景 -> 测试点 -> 测试点明细` 组织。
 - 测试设计主输出按 `测试场景 -> 测试点 -> 测试点明细 -> 测试设计项` 组织。

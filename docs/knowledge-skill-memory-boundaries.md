@@ -6,17 +6,20 @@
 Knowledge = 稳定测试知识和标准
 Skills = 使用知识完成分析动作的流程
 Memory = 经确认的项目上下文、项目历史经验和个人本地偏好
+Rules = 优先于输入文档的强制规则
 ```
 
 配置来源按 `core / project / personal` 三层组织，personal 本地路径使用 `user` 目录。
 
 | 层级 | 路径 | 默认提交 Git | 作用 |
 |---|---|---|---|
-| core | `knowledge/*.md`、`memory/*.md`、`templates/*.md`、`quality-gates/*.md` | 是 | Agent 包随附的稳定标准、模板和基础规则 |
-| project | `knowledge/projects/<project-key>/**/*.md`、`memory/projects/<project-key>/**/*.md`、`templates/projects/<project-key>/**/*.md`、`quality-gates/projects/<project-key>/**/*.md` | 否 | 当前项目的事实、经验、策略、模板补充和附加门禁 |
-| personal | `knowledge/user/**/*.md`、`memory/user/**/*.md`、`templates/user/**/*.md`、`quality-gates/user/**/*.md` | 否 | 当前使用者的个人偏好、本地检查清单和补充启发 |
+| core | `rules/*.md`、`knowledge/*.md`、`memory/*.md`、`templates/*.md`、`quality-gates/*.md` | 是 | Agent 包随附的强制规则、稳定标准、模板和基础规则 |
+| project | `rules/projects/<project-key>/**/*.md`、`knowledge/projects/<project-key>/**/*.md`、`memory/projects/<project-key>/**/*.md`、`templates/projects/<project-key>/**/*.md`、`quality-gates/projects/<project-key>/**/*.md` | 否 | 当前项目的强制规则、事实、经验、策略、模板补充和附加门禁 |
+| personal | `rules/user/**/*.md`、`knowledge/user/**/*.md`、`memory/user/**/*.md`、`templates/user/**/*.md`、`quality-gates/user/**/*.md` | 否 | 当前使用者的个人强制规则、偏好、本地检查清单和补充启发 |
 
 project 和 personal 是当前 run 的一等输入源：必须由 `memory-context-builder` 统一发现、裁剪和记录到 `process/context-pack.md`，后续 skill 只能消费 context pack 或按其来源记录受控补读。project knowledge 文件名没有硬性要求，但 context pack 必须记录其自理解类型和项目知识阶段绑定。
+
+Rules 是高优先级约束源：优先级低于当前用户明确指令，高于当前输入文档、memory 和 knowledge。rules 与输入文档冲突时，默认遵守 rules，并在过程产物记录覆盖原因。rules 内部按 `core > project > personal` 处理，低层只能细化高层规则，不能放宽或违反高层强制约束。
 
 ## 归属规则
 
@@ -24,6 +27,9 @@ project 和 personal 是当前 run 的一等输入源：必须由 `memory-contex
 |---|---|---|
 | 用户入口、意图识别、`@test-analysis-agent` 路由 | `agents/test-analysis-agent.md` | 测试分析 Agent 门面，只做入口和路由，不沉淀方法论正文 |
 | 用户入口、意图识别、`@test-design-agent` 路由 | `agents/test-design-agent.md` | 测试设计 Agent 门面，只做入口和路由，不沉淀方法论正文 |
+| 全局强制规则 | `rules/*.md` | 优先级高于输入文档的全局约束 |
+| 项目强制规则 | `rules/projects/<project-key>/**/*.md` | 项目级必须遵守的约束，确定 `project-key` 后扫描 |
+| 个人强制规则 | `rules/user/**/*.md` | 使用者本地强制约束，不得覆盖 core/project rules |
 | 测试点定义、字段、类型、方法 | `knowledge/testpoint-standard.md` | 稳定标准，所有 skill 共用 |
 | 测试分析、测试设计边界、分析维度和交付件落点 | `knowledge/test-analysis-methodology.md` | 本项目的上位方法论 |
 | 测试场景、测试点、测试点明细、测试设计项和完整测试用例边界 | `knowledge/test-analysis-methodology.md` | 主输出层级边界标准 |
@@ -60,6 +66,7 @@ project 和 personal 是当前 run 的一等输入源：必须由 `memory-contex
 - `skills/` 不重复维护测试点类型、方法枚举和通用缺陷模式，只引用 `knowledge/`。
 - `skills/` 不把方法证据写成自由发挥的叙述，统一引用 `knowledge/method-evidence-standard.md` 和 `templates/method-analysis-template.md`。
 - `memory/` 不保存通用测试理论、通用缺陷模式、通用类型定义和方法步骤。
+- `rules/` 不保存普通知识、历史经验或临时偏好；只有明确“必须/禁止/优先于输入”的约束才进入 rules。
 - `memory/` 不重复维护框架术语定义；框架术语归属 `knowledge/test-analysis-methodology.md`，memory 只记录项目专属术语或覆盖。
 - `knowledge/` 不保存项目事实、用户临时偏好、单次运行结果和未确认假设。
 - `knowledge/projects/<project-key>/` 只能保存项目级测试知识补充，不保存未确认业务事实、真实缺陷复盘或输出偏好。
@@ -67,6 +74,7 @@ project 和 personal 是当前 run 的一等输入源：必须由 `memory-contex
 - `knowledge/projects/<project-key>/` 下的文件名不作硬性要求；如果无法从文件名、标题、frontmatter 或摘要自理解识别用途，context pack 只能记录为 `unclassified` 和后续补读建议，不得强行套用。
 - 未唯一确定 `project-key` 时，不读取所有项目目录正文，避免跨项目知识和 memory 污染。
 - project 和 personal 层默认不提交 Git；仓库只保留对应 README 和发现规则。
+- `rules/projects/<project-key>/` 和 `rules/user/` 默认不提交 Git；仓库只保留对应 README 和发现规则。
 - `context-pack.md` 只摘录与本次需求相关的 memory 和 project/personal 补充，不复制整份长期文件，也不放在 `memory/` 下。
 - `context-pack.md` 的“项目知识阶段绑定”只判断文件应进入哪些环节；具体命中和应用由对应 skill 在阶段内读取后判断，并记录应用状态。
 - `task-list.md` 必须随 run 目录生成，记录固定阶段顺序、状态和证据路径；它不替代运行时 todo 工具，但比运行时 UI 更适合作为可校验事实源。
@@ -79,12 +87,13 @@ project 和 personal 是当前 run 的一等输入源：必须由 `memory-contex
 当信息冲突时，按以下顺序处理：
 
 1. 当前用户明确指令。
-2. 当前需求文档中的明确规则。
-3. 经确认的项目 memory。
-4. `memory/user/` 中的 personal 偏好和本地记忆，但不得覆盖项目事实。
-5. `knowledge/projects/<project-key>/` 中的项目化测试知识补充。
-6. `knowledge/user/` 中的 personal 测试启发，但不得覆盖项目化知识和 core 标准。
-7. `knowledge/` 中的通用测试知识。
-8. skill 的流程性默认动作。
+2. `rules/` 中适用于当前 run 的强制规则。
+3. 当前输入文档中的明确规则，包括需求、设计方案和已评审测试分析方案。
+4. 经确认的项目 memory。
+5. `memory/user/` 中的 personal 偏好和本地记忆，但不得覆盖项目事实。
+6. `knowledge/projects/<project-key>/` 中的项目化测试知识补充。
+7. `knowledge/user/` 中的 personal 测试启发，但不得覆盖项目化知识和 core 标准。
+8. `knowledge/` 中的通用测试知识。
+9. skill 的流程性默认动作。
 
-如果 memory 或 knowledge 与需求文档冲突，不直接覆盖需求；相关预期结果缺少依据时写 `待人工分析确认`，并在过程记录中说明。
+如果 rules 与输入文档冲突，默认遵守 rules，并记录“规则覆盖输入”。如果 memory 或 knowledge 与输入文档冲突，不直接覆盖输入；相关预期结果缺少依据时写 `待人工分析确认`，并在过程记录中说明。

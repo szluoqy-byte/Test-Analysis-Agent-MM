@@ -31,6 +31,8 @@
 outputs/runs/<run-id>/deliverables/test-analysis-solution.md
 ```
 
+新建完整分析 run 时，`run-id` 固定使用 `python bin/generate-run-id.py` 生成，格式为 `<YYYYMMDD-HHMMSS>`。
+
 固定术语与缩写：
 
 | 中文术语 | 缩写/ID |
@@ -56,15 +58,15 @@ outputs/runs/<run-id>/deliverables/test-analysis-solution.md
 
 ##### TP-001-001 下发订单 ID 满足长度要求
 
-**测试点详情**：验证下发订单 ID 符合需求定义的长度规则时，系统能够正常识别并处理订单下发请求。
+- 测试点详情：验证下发订单 ID 符合需求定义的长度规则时，系统能够正常识别并处理订单下发请求。
 
-**预期结果**：下发成功。
+- 预期结果：下发成功。
 
 ##### TP-001-002 下发订单 ID 不满足长度要求
 
-**测试点详情**：验证下发订单 ID 不符合需求定义的长度规则时，系统能够拦截或拒绝订单下发请求。
+- 测试点详情：验证下发订单 ID 不符合需求定义的长度规则时，系统能够拦截或拒绝订单下发请求。
 
-**预期结果**：下发失败；具体错误处理待人工分析确认。
+- 预期结果：下发失败；具体错误处理待人工分析确认。
 ```
 
 ## Agent 协作流程
@@ -91,7 +93,7 @@ flowchart TD
   start([用户请求])
   start --> agent[test-analysis-agent<br/>识别意图与入口]
   agent --> main[analyze-requirement-test-analysis-solution<br/>创建 run 与任务清单]
-  main --> ctx[memory-context-builder<br/>生成 context-pack 与项目知识阶段绑定]
+  main --> ctx[memory-context-builder<br/>加载适用 rules<br/>生成 context-pack 与项目知识阶段绑定]
   ctx --> req[requirement-testability<br/>结构化需求与可测性分析]
   req --> hasDesign{是否提供设计方案}
   hasDesign -- 是 --> design[design-solution-extraction<br/>提取接口/字段/状态/权限/数据依赖]
@@ -116,7 +118,7 @@ flowchart TD
 |---|---|---|
 | Agent 门面 | `test-analysis-agent` | 识别用户意图，路由生成、记录、咨询和框架维护任务 |
 | 主入口 | `analyze-requirement-test-analysis-solution` | 固定根目录、创建 run、编排全链路、输出主交付件 |
-| 上下文 | `memory-context-builder` | 发现 core/project/personal 上下文和项目知识阶段绑定 |
+| 上下文 | `memory-context-builder` | 发现适用 rules、core/project/personal 上下文和项目知识阶段绑定 |
 | 需求分析 | `requirement-testability` | 结构化需求模型、识别可测性缺口 |
 | 设计提取 | `design-solution-extraction` | 提取接口、字段、状态、权限、数据依赖和设计缺口 |
 | 缺口治理 | `clarification-gate` | 合并过程缺口，不向主交付件写独立待确认章节 |
@@ -139,6 +141,18 @@ flowchart TD
 | `knowledge/basic-test-types.md` | 基础测试类型参考 |
 | `knowledge/method-evidence-standard.md` | 方法证据 `ME-*` 记录标准 |
 
+## Rules 分工
+
+`rules/` 保存强制规则，优先级低于当前用户明确指令，但高于需求文档、设计方案、已评审测试分析方案、memory 和 knowledge。
+
+| 路径 | 作用 |
+|---|---|
+| `rules/*.md` | 全局强制规则 |
+| `rules/projects/<project-key>/**/*.md` | 项目级强制规则，确定 `project-key` 后读取 |
+| `rules/user/**/*.md` | 个人本地强制规则，不得覆盖 core/project rules |
+
+适用 rules 必须进入 `process/context-pack.md` 的“适用强制规则”表；与输入冲突时默认遵守 rules，并在“Rules 与输入冲突记录”中留痕。
+
 ## Project Knowledge 应用
 
 `knowledge/projects/<project-key>/` 下的文件名没有硬性要求。context pack 阶段只判断文件用途和强制应用环节，不提前判断具体测试点或测试点明细命中。
@@ -157,6 +171,7 @@ flowchart TD
 - 主输出不得出现旧版主交付件字段；字段禁用清单以 `bin/lint-test-analysis-solution.py` 为准。
 - 主输出不得包含完整测试用例字段、操作步骤、脚本或执行数据。
 - 依据不足的预期结果必须写 `待人工分析确认`。
+- 适用 rules 必须被执行、解释不适用，或记录被当前用户明确指令覆盖。
 
 ## 校验命令
 
@@ -165,5 +180,6 @@ python bin/sync-opencode-skills.py --check
 python bin/validate-agent-runtime.py
 python bin/lint-test-analysis-solution.py outputs/runs/<run-id>/deliverables/test-analysis-solution.md
 python bin/check-artifact-consistency.py outputs/runs/<run-id>
-python bin/smoke-test-analysis.py
 ```
+
+`python bin/smoke-test-analysis.py` 只用于框架回归或示例 fixture 变更后的 smoke 检查，不属于单次测试分析方案 review 阶段。

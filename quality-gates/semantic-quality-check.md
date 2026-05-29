@@ -14,6 +14,7 @@
 - 过程报告与测试分析方案是否不冲突。
 - 测试分析方案是否自包含，是否把后续测试设计必须知道的业务规则、状态集合、角色权限、接口契约和预期结果依据写入主交付件。
 - 测试设计方案是否自包含，是否把完整用例细化必须知道的代表性条件、数据、状态、组合和预期结果写入主交付件。
+- 适用 rules 是否被遵守；rules 与输入文档冲突时是否记录 rules 覆盖输入原因。
 - `预期结果` 是否有需求/设计依据，依据不足时是否写 `待人工分析确认`。
 - 主交付件是否没有 `未明确规则` 章节。
 - 需求依据是否过于宽泛。
@@ -28,8 +29,9 @@ bin/lint-test-analysis-solution.py ${PROJECT_ROOT}/outputs/runs/<run-id>/deliver
 bin/lint-test-design-solution.py ${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.md
 bin/check-artifact-consistency.py ${PROJECT_ROOT}/outputs/runs/<run-id>
 bin/semantic-testpoint-check.py ${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md
-bin/smoke-test-analysis.py
 ```
+
+`bin/smoke-test-analysis.py` 是框架回归和示例 fixture smoke 检查，不属于单次测试分析/测试设计方案的 review 阶段；只有修改 Agent、skill、knowledge、template、quality gate、bin 脚本或示例 fixture 时才需要运行。
 
 ## 失败条件
 
@@ -41,6 +43,7 @@ bin/smoke-test-analysis.py
 - 测试分析方案依赖“见原始需求”“见设计方案”“按需求实现”“同上”等泛化占位。
 - 过程报告和测试分析方案中的测试点表达冲突。
 - 质量门禁结果存在 `失败`。
+- 适用 rules 未被执行，且没有当前用户明确指令覆盖说明。
 - 专家评分低于通过线或存在 0 分维度。
 - 需求没有说明错误提示、状态变化或错误码，但预期结果编造了具体值。
 

@@ -22,3 +22,7 @@ quality-gates/projects/*
 !quality-gates/projects/README.md
 quality-gates/user/*
 !quality-gates/user/README.md
+rules/projects/*
+!rules/projects/README.md
+rules/user/*
+!rules/user/README.md

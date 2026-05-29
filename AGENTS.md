@@ -38,9 +38,10 @@
 
 ## 路径规则
 
-- 所有 `skills/...`、`knowledge/...`、`templates/...`、`quality-gates/...`、`memory/...`、`bin/...` 和 `outputs/...` 路径都从仓库根目录解析。
+- 所有 `skills/...`、`rules/...`、`knowledge/...`、`templates/...`、`quality-gates/...`、`memory/...`、`bin/...` 和 `outputs/...` 路径都从仓库根目录解析。
 - 不要基于 skill 目录、`.claude-plugin/`、`.opencode/` 或输入文件目录解析路径。
 - 运行产物写入 `outputs/runs/<run-id>/`。
+- 新建完整 run 时，`run-id` 固定使用 `python bin/generate-run-id.py` 生成，格式为 `<YYYYMMDD-HHMMSS>`。
 - 测试分析主交付件固定为 `outputs/runs/<run-id>/deliverables/test-analysis-solution.md`。
 - 测试设计主交付件固定为 `outputs/runs/<run-id>/deliverables/test-design-solution.md`，优先复用上游测试分析方案所在 run。
 - 创建 run 目录后必须维护 `process/task-list.md`；它是阶段顺序和状态的流程事实源。
@@ -49,6 +50,9 @@
 
 - 支持可选 `project-key`：确定后可扫描 `*/projects/<project-key>/**/*.md`；未唯一确定时不得读取所有项目目录正文。
 - `project` 和 `personal` 是当前 run 的一等输入源：必须在 `process/context-pack.md` 中记录绑定结果、命中来源、未采用来源和补读建议。
+- `rules/` 是强制规则源，按 `core / project / personal` 三层加载：`rules/*.md`、`rules/projects/<project-key>/**/*.md`、`rules/user/**/*.md`。
+- rules 优先级低于当前用户明确指令，但高于当前输入文档、memory 和 knowledge；与输入冲突时默认遵守 rules，并在过程产物中记录覆盖原因。
+- rules 内部按 `core > project > personal` 处理，低层只能细化高层规则，不能放宽或违反高层强制约束。
 - `knowledge/projects/<project-key>/` 和 `knowledge/user/` 只能作为测试知识补充，不得覆盖根目录 `knowledge/` 的核心标准、字段、类型和质量门禁。
 - `knowledge/projects/<project-key>/` 下的文件名没有硬性要求；`memory-context-builder` 必须自理解识别文件用途并在 `context-pack.md` 记录项目知识阶段绑定。被绑定到某阶段的文件，该阶段必须读取并输出应用状态。
 - personal 层只能补充个人偏好和本地检查关注点，不得作为项目事实或团队共识。
@@ -63,7 +67,7 @@
 - 不编造业务事实、状态、角色、接口契约、阈值、错误码、错误提示、状态变化或测试数据。
 - 如果需求和设计方案没有说明错误提示、状态变化、错误码或其他判定依据，相关测试点明细或测试设计项的 `预期结果` 写 `待人工分析确认`。
 - 主交付件不设置独立的 `未明确规则` 章节，也不输出待确认信息清单；澄清和缺口治理保留在过程产物中。
-- 在认为报告完成前，运行 `bin/` 下的确定性检查。
+- 在认为单次报告完成前，只运行当前 run 相关的确定性检查，例如对应交付件 lint 和 `bin/check-artifact-consistency.py`；不要在 review 阶段运行示例 smoke。
 
 ## 校验命令
 
@@ -71,4 +75,5 @@
 - OpenCode skill 镜像：`python bin/sync-opencode-skills.py --check`
 - 测试分析方案结构：`python bin/lint-test-analysis-solution.py <solution.md>`
 - 测试设计方案结构：`python bin/lint-test-design-solution.py <solution.md>`
-- 示例输出 smoke 检查：`python bin/smoke-test-analysis.py`
+- 单次 run 一致性：`python bin/check-artifact-consistency.py outputs/runs/<run-id>`
+- 框架回归/示例 fixture smoke：`python bin/smoke-test-analysis.py`，仅在修改 Agent、skill、knowledge、template、quality gate、bin 脚本或示例 fixture 时运行，不属于单次方案 review 阶段。

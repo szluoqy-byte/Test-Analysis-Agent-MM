@@ -28,7 +28,8 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 ## 职责边界
 
 - 本 skill 只负责编排完整分析链路和写出本次运行产物。
-- 业务术语、项目事实和历史经验来自 `memory-context-builder` 生成的上下文包，不在本 skill 内重复维护。
+- 强制规则、业务术语、项目事实和历史经验来自 `memory-context-builder` 生成的上下文包，不在本 skill 内重复维护。
+- 适用 rules 的优先级低于当前用户明确指令，但高于需求文档、设计方案、memory 和 knowledge；与输入冲突时遵守 rules 并记录覆盖原因。
 - 通用测试分析理论、测试类型、测试点标准、测试分析方案标准和测试技术来自 `knowledge/`。
 - 需求与设计方案的结构化结果用于支撑测试场景、测试点和测试点明细，不直接作为主交付件输出。
 - `requirement-testability` 负责需求模型和可测性判断。
@@ -51,11 +52,13 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 
 所有运行产物必须写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/` 下的固定类别目录，具体契约见 `docs/output-artifact-contract.md`。报告中可以展示相对路径 `outputs/runs/<run-id>/...`，但实际写文件时必须使用基于 `PROJECT_ROOT` 的绝对路径。
 
-`run-id` 只在一次新的完整分析开始时生成一次。格式为 `<YYYYMMDD-HHMMSS>-<需求文件名安全短名>-<短哈希>`。同一轮分析内的后续修正、质量门禁重跑和报告刷新，必须复用已经创建的运行目录。
+`run-id` 只在一次新的完整分析开始时生成一次，固定使用 `python bin/generate-run-id.py` 生成。格式为 `<YYYYMMDD-HHMMSS>`。同一轮分析内的后续修正、质量门禁重跑和报告刷新，必须复用已经创建的运行目录。
 
 ## Project/Personal 上下文发现
 
 本流程按 `core / project / personal` 三层读取配置。core 层是随 Agent 包发布的根目录文件；project 层是 `*/projects/<project-key>/**/*.md`；personal 层是 `*/user/**/*.md`，后续可扩展为 `*/user/<personal-key>/**/*.md`。
+
+`rules/` 是强制规则源：core rules 为 `rules/*.md`，project rules 为 `rules/projects/<project-key>/**/*.md`，personal rules 为 `rules/user/**/*.md`。rules 进入 `process/context-pack.md` 的“适用强制规则”表，并在后续阶段强制应用或解释不适用。
 
 project 和 personal 是当前 run 的一等输入源，不是后续阶段随意搜索的资料目录。主入口必须让 `memory-context-builder` 统一发现、裁剪并写入 `process/context-pack.md`；后续 skill 只能消费 context pack，或按 context pack 的来源记录进行受控补读。
 
@@ -66,9 +69,9 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 ## 执行流程
 
 1. 校验输入至少包含一份 Markdown 需求文档；识别可选设计方案文档。
-2. 将当前 agent 会话工作目录固定为 `PROJECT_ROOT`，生成本次运行 ID，并创建 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/`、`process/` 和 `reports/`。
+2. 将当前 agent 会话工作目录固定为 `PROJECT_ROOT`，运行 `python bin/generate-run-id.py` 生成本次运行 ID，并创建 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/`、`process/` 和 `reports/`。
 3. 使用 `templates/task-list-template.md` 创建 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/task-list.md`，并按阶段维护状态。
-4. 解析可选 `project-key` 和 `personal-key`，使用 `memory-context-builder` 扫描 core、project 和 personal 三层配置，生成 `process/context-pack.md`，并登记 project knowledge 阶段绑定。
+4. 解析可选 `project-key` 和 `personal-key`，使用 `memory-context-builder` 扫描 core、project 和 personal 三层配置，生成 `process/context-pack.md`，登记适用 rules、Rules 与输入冲突记录和 project knowledge 阶段绑定。
 5. 使用 `requirement-testability` 分析需求文档，生成结构化需求模型，并登记需求待确认候选。
 6. 如果提供设计方案文档，使用 `design-solution-extraction` 提取架构决策、流程、接口、字段、状态机、权限、数据依赖、异常处理、配置开关、非功能指标和设计缺口；如果未提供设计方案，登记 `Q-DESIGN-*` 过程候选。
 7. 使用 `clarification-gate` 执行 `CP-INPUT`，合并 memory、需求与设计方案之间的冲突、缺失和歧义，不向用户提问。
@@ -88,7 +91,7 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 | 阶段 | 必须产出 | 交给下一阶段 |
 |---|---|---|
 | `task-list` | `process/task-list.md` | 全流程阶段顺序与状态追踪 |
-| `memory-context-builder` | `process/context-pack.md`、project/personal 来源使用摘要、项目知识阶段绑定 | 需求与设计方案分析 |
+| `memory-context-builder` | `process/context-pack.md`、适用强制规则、Rules 与输入冲突记录、project/personal 来源使用摘要、项目知识阶段绑定 | 需求与设计方案分析 |
 | `requirement-testability` | 结构化需求模型、需求待确认候选 | 测试技术路由、测试点生成 |
 | `design-solution-extraction` | 设计方案事实摘要、接口/状态/字段/数据依赖清单、设计缺口候选 | 测试技术路由、测试点生成 |
 | `clarification-gate` | `process/clarification-session.md` | 过程缺口治理、预期结果兜底依据 |
@@ -116,10 +119,10 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 - 主输出必须按 `测试场景 -> 测试点 -> 测试点明细` 组织；接口对象可作为测试场景或测试点呈现，不另建接口专用大纲。
 - 主输出只使用中文术语和固定缩写 `SC`、`TP`、`TP-*-*`，不得使用 `TDI-*`、`TD-*`、`TC-*`、`TCT-*`、`TI-*`、`ITP-*` 或 `ITDI-*`。
 - 每个测试点下至少有 1 个测试点明细。
-- 每个测试点明细必须包含 `**测试点详情**：` 和 `**预期结果**：`。
+- 每个测试点明细必须包含 `- 测试点详情：` 和 `- 预期结果：`。
 - `测试点明细` 只写规则分支、路径分支、状态分支、权限分支、接口契约分支或风险分支，例如“下发订单 ID 满足长度要求”“下发订单 ID 不满足长度要求”。
 - 主输出不得把测试点明细拆成具体代表性条件、数据、状态或组合，例如不要输出“订单 ID 长度等于 13 位”“订单 ID 长度小于 13 位”；这些留给 `test-design-agent`。
-- `预期结果` 只能来自需求、设计方案、context pack 中明确事实或可直接推出的业务不变量。
+- `预期结果` 只能来自当前用户明确指令、适用 rules、需求、设计方案、context pack 中明确事实或可直接推出的业务不变量。
 - 如果需求和设计方案没有明确错误提示、状态变化、错误码、返回内容、数据记录变化或其他判定依据，`预期结果` 写 `待人工分析确认`。
 - 主输出不得包含 `覆盖意图`、`级别`、`待确认信息`、`判定关注`、`输入条件与数据依赖` 等旧字段。
 - 主输出不得包含操作步骤、前置步骤、有序测试步骤、自动化脚本、接口调用代码或执行数据表。
@@ -131,7 +134,7 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 - 不生成操作步骤。
 - 不生成自动化脚本。
 - 不生成 `TDI-*` 或测试设计项。
-- 不编造需求或设计方案中没有的业务规则、接口、字段、状态、角色、阈值、错误提示、错误码或测试数据。
+- 不编造当前用户明确指令、适用 rules、需求或设计方案中没有的业务规则、接口、字段、状态、角色、阈值、错误提示、错误码或测试数据。
 - 不把“回读原始需求、设计方案、过程报告或 memory”作为后续理解测试分析方案的前提。
 - 不直接覆盖历史运行产物；所有本次运行产物必须写入同一个 `${PROJECT_ROOT}/outputs/runs/<run-id>/` 目录，并使用固定文件名。
 - 不允许在 `skills/`、`.claude-plugin/`、`.opencode/`、插件缓存目录或 skill 工作目录下创建 `outputs/runs/`。

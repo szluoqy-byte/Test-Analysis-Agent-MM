@@ -14,6 +14,7 @@ description: 在测试分析方案或测试设计方案生成后使用，用于�
 - `${PROJECT_ROOT}/outputs/runs/<run-id>/process/task-list.md`。
 - `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.md`。
 - `${PROJECT_ROOT}/outputs/runs/<run-id>/process/clarification-session.md`。
+- `process/context-pack.md` 中的适用强制规则和 Rules 与输入冲突记录。
 - `process/context-pack.md` 中绑定到 `coverage-review` 的 project checklist、覆盖策略、风险画像、Oracle 或附加门禁。
 - `knowledge/test-analysis-methodology.md`。
 - `knowledge/basic-test-types.md`。
@@ -36,19 +37,20 @@ description: 在测试分析方案或测试设计方案生成后使用，用于�
 7. 如果审查测试分析方案，执行 `test-analysis-solution-check.md`，重点检查 `测试场景 -> 测试点 -> 测试点明细` 层级、预期结果兜底、TDI 泄漏和非完整用例化约束。
 8. 如果审查测试设计方案，执行 `test-design-solution-check.md`，重点检查 `测试场景 -> 测试点 -> 测试点明细 -> 测试设计项` 层级、TDI 表头、预期结果兜底和非完整用例化约束。
 9. 执行 `semantic-quality-check.md`。
-10. 执行 `project-knowledge-application-check.md`，检查项目知识阶段绑定、绑定文件读取和应用状态。
-11. 按绑定的 project checklist、覆盖策略、风险画像或 Oracle 检查项目级漏覆盖，并验证前序绑定阶段是否有应用状态记录。
-12. 检查 `process/task-list.md` 是否包含固定阶段、顺序正确、最终必选阶段已完成。
-13. 如果测试分析方案文件已生成，运行 `bin/lint-test-analysis-solution.py ${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.md` 做确定性结构校验。
-14. 如果测试设计方案文件已生成，运行 `bin/lint-test-design-solution.py ${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.md` 做确定性结构校验。
-15. 运行 `bin/check-artifact-consistency.py ${PROJECT_ROOT}/outputs/runs/<run-id>`，检查固定运行目录、任务清单、主交付件和过程报告之间的一致性。
-16. 如果过程分析报告已生成，运行 `bin/lint-testpoint-report.py ${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md` 和 `bin/semantic-testpoint-check.py ${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md` 做过程报告校验。
-17. 如果使用了 project/personal 补充，检查相关风险原因、覆盖策略、判定依据、个人偏好、模板偏好或附加门禁是否已正确处理，且没有覆盖核心字段、输出契约和质量门禁。
-18. 检查 project/personal 使用情况是否在 context pack 和过程报告中可见，包括绑定结果、命中来源、未采用来源、冲突处理、项目知识阶段绑定、应用状态和后续补读建议；personal 内容不得被写成项目事实或团队共识。
-19. 使用 `quality-gates/expert-review-rubric.md` 进行专家评分。
-20. 列出通过、警告和失败项。
-21. 对阻断报告发布且无法通过修正测试点、测试点明细或测试设计项解决的问题，登记 `CP-REVIEW` 过程候选。
-22. 给出针对性修正建议。
+10. 执行 `rules-application-check.md`，检查适用 rules 是否被应用、解释或由当前用户明确指令覆盖。
+11. 执行 `project-knowledge-application-check.md`，检查项目知识阶段绑定、绑定文件读取和应用状态。
+12. 按绑定的 project checklist、覆盖策略、风险画像或 Oracle 检查项目级漏覆盖，并验证前序绑定阶段是否有应用状态记录。
+13. 检查 `process/task-list.md` 是否包含固定阶段、顺序正确、最终必选阶段已完成。
+14. 如果测试分析方案文件已生成，运行 `bin/lint-test-analysis-solution.py ${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.md` 做确定性结构校验。
+15. 如果测试设计方案文件已生成，运行 `bin/lint-test-design-solution.py ${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.md` 做确定性结构校验。
+16. 运行 `bin/check-artifact-consistency.py ${PROJECT_ROOT}/outputs/runs/<run-id>`，检查固定运行目录、任务清单、主交付件和过程报告之间的一致性。
+17. 如果过程分析报告已生成，运行 `bin/lint-testpoint-report.py ${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md` 和 `bin/semantic-testpoint-check.py ${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md` 做过程报告校验。
+18. 如果使用了 rules 或 project/personal 补充，检查相关强制规则、风险原因、覆盖策略、判定依据、个人偏好、模板偏好或附加门禁是否已正确处理，且没有违反 rules、核心字段、输出契约和质量门禁。
+19. 检查 rules/project/personal 使用情况是否在 context pack 和过程报告中可见，包括绑定结果、命中来源、未采用来源、冲突处理、适用强制规则、项目知识阶段绑定、应用状态和后续补读建议；personal 内容不得被写成项目事实或团队共识。
+20. 使用 `quality-gates/expert-review-rubric.md` 进行专家评分。
+21. 列出通过、警告和失败项。
+22. 对阻断报告发布且无法通过修正测试点、测试点明细或测试设计项解决的问题，登记 `CP-REVIEW` 过程候选。
+23. 给出针对性修正建议。
 
 ## 判定规则
 
@@ -63,6 +65,7 @@ description: 在测试分析方案或测试设计方案生成后使用，用于�
 - 输出质量失败：例如结构不合规、测试点/测试点明细/测试设计项完整用例化、重复严重、场景条件缺失、预期结果为空、旧字段泄漏、TDI 泄漏到分析方案，或设计方法泄漏到分析方案。必须修正输出后重新审查。
 - 需求信息缺失：例如核心规则、终态、权限范围或接口契约无法确认。登记 `CP-REVIEW` 过程候选，并把相关测试点明细的 `预期结果` 写成 `待人工分析确认`。
 - Project knowledge 应用失败：context pack 已绑定到某阶段的 project knowledge 未被对应阶段读取、没有应用状态、或 project checklist 明确指出核心漏覆盖且无合理解释。必须补读、补齐应用记录或修正输出后重新审查。
+- Rules 应用失败：context pack 已登记适用 rules，但输出未遵守、没有应用状态、或与输入冲突时未记录 rules 覆盖输入原因。必须修正输出、补齐应用记录或说明当前用户明确指令覆盖 rules 后重新审查。
 
 ## 输出
 
@@ -81,6 +84,7 @@ description: 在测试分析方案或测试设计方案生成后使用，用于�
 - 专项分析方法是否只保留在过程报告中，主交付件是否没有边界值清单、等价类清单、判定表、组合矩阵或状态迁移矩阵。
 - 专家评分和未达标维度。
 - 需要回传给 `clarification-gate` 的 `CP-REVIEW` 过程候选。
+- rules 应用状态，包括适用 rules 是否已遵守、解释不适用、被当前用户明确指令覆盖，或与输入冲突并完成覆盖留痕。
 - project knowledge 阶段绑定和应用状态，包括每个绑定文件是否已读取、应用、解释不适用或进入缺口兜底。
 
 ## 约束

@@ -198,8 +198,21 @@ def validate_markdown_files(root: Path, files: list[Path], issues: list[str]) ->
             fail(f"{markdown_file.relative_to(root)} must not be empty", issues)
 
 
+def validate_rules_module(root: Path, issues: list[str]) -> None:
+    for relative in ("rules/README.md", "rules/projects/README.md", "rules/user/README.md"):
+        path = root / relative
+        if not path.exists():
+            fail(f"{relative} is missing", issues)
+            continue
+        if not path.is_file():
+            fail(f"{relative} must be a Markdown file", issues)
+            continue
+        validate_markdown_files(root, [path], issues)
+
+
 def validate_project_extension_dirs(root: Path, issues: list[str]) -> None:
     for relative in (
+        "rules/projects",
         "memory/projects",
         "knowledge/projects",
         "templates/projects",
@@ -234,7 +247,7 @@ def validate_project_extension_dirs(root: Path, issues: list[str]) -> None:
 
 
 def validate_user_extension_dirs(root: Path, issues: list[str]) -> None:
-    for relative in ("memory/user", "knowledge/user", "templates/user", "quality-gates/user"):
+    for relative in ("rules/user", "memory/user", "knowledge/user", "templates/user", "quality-gates/user"):
         user_dir = root / relative
         if not user_dir.exists():
             continue
@@ -259,6 +272,7 @@ def main() -> int:
     validate_skills(root, issues)
     validate_opencode(root, issues)
     validate_sync(root, issues)
+    validate_rules_module(root, issues)
     validate_project_extension_dirs(root, issues)
     validate_user_extension_dirs(root, issues)
 

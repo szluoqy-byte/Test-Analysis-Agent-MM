@@ -16,7 +16,7 @@ REQUIRED_SECTIONS = [
 INFO_HEADER = "| 字段 | 内容 |"
 DESIGN_ITEM_HEADER = "| 测试设计项 ID | 条件/数据/状态/组合 | 预期结果 |"
 EXPECTED_FALLBACK = "待人工分析确认"
-DETAIL_PREFIX = "**测试点详情**："
+DETAIL_PREFIX = "- 测试点详情："
 
 BANNED_MAIN_SECTIONS = (
     "## 3. 未明确规则",

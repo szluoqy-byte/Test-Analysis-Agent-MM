@@ -14,6 +14,8 @@
 outputs/runs/<run-id>/deliverables/test-design-solution.md
 ```
 
+测试设计阶段优先复用上游测试分析方案所在 run；需要新建 run 时，`run-id` 固定使用 `python bin/generate-run-id.py` 生成，格式为 `<YYYYMMDD-HHMMSS>`。
+
 固定术语与缩写：
 
 | 中文术语 | 缩写/ID |
@@ -40,7 +42,7 @@ outputs/runs/<run-id>/deliverables/test-design-solution.md
 
 ##### TP-001-001 下发订单 ID 满足长度要求
 
-**测试点详情**：验证下发订单 ID 符合需求定义的长度规则时，系统能够正常识别并处理订单下发请求。
+- 测试点详情：验证下发订单 ID 符合需求定义的长度规则时，系统能够正常识别并处理订单下发请求。
 
 | 测试设计项 ID | 条件/数据/状态/组合 | 预期结果 |
 |---|---|---|
@@ -48,7 +50,7 @@ outputs/runs/<run-id>/deliverables/test-design-solution.md
 
 ##### TP-001-002 下发订单 ID 不满足长度要求
 
-**测试点详情**：验证下发订单 ID 不符合需求定义的长度规则时，系统能够拦截或拒绝订单下发请求。
+- 测试点详情：验证下发订单 ID 不符合需求定义的长度规则时，系统能够拦截或拒绝订单下发请求。
 
 | 测试设计项 ID | 条件/数据/状态/组合 | 预期结果 |
 |---|---|---|
@@ -67,7 +69,7 @@ flowchart TD
   hasAnalysis -- 否 --> analysis[analyze-requirement-test-analysis-solution<br/>先生成测试分析方案]
   analysis --> analysisCheck[bin/lint-test-analysis-solution.py]
   hasAnalysis -- 是 --> analysisCheck
-  analysisCheck --> ctx[memory-context-builder<br/>读取或生成 context-pack]
+  analysisCheck --> ctx[memory-context-builder<br/>读取或生成 context-pack<br/>确认适用 rules]
   ctx --> basis[补读需求与设计依据<br/>只补充判定依据]
   basis --> generation[test-design-solution-generation<br/>生成 TDI-*]
   generation --> review[test-design-solution-review<br/>检查粒度和预期结果依据]
@@ -85,7 +87,7 @@ flowchart TD
 | 主入口 | `generate-test-design-solution` | 固定根目录、复用或创建 run、编排设计链路、输出主交付件 |
 | 设计生成 | `test-design-solution-generation` | 在 `TP-*-*` 下生成 `TDI-*` 和预期结果 |
 | 独立评审 | `test-design-solution-review` | 检查承接关系、设计项粒度、预期结果依据、旧字段和非完整用例化 |
-| 覆盖审查 | `coverage-review` | 检查需求覆盖、分析方案承接、项目知识应用和质量门禁 |
+| 覆盖审查 | `coverage-review` | 检查需求覆盖、分析方案承接、rules 应用、项目知识应用和质量门禁 |
 
 ## Knowledge 分工
 
@@ -96,6 +98,18 @@ flowchart TD
 | `knowledge/test-design-solution-standard.md` | 定义设计方案结构、字段、粒度和兜底规则 |
 | `knowledge/test-techniques/` | 测试技术库，支持把测试点明细扩展为代表性条件、数据、状态或组合 |
 
+## Rules 分工
+
+`rules/` 保存强制规则，优先级低于当前用户明确指令，但高于测试分析方案、需求文档、设计方案、memory 和 knowledge。
+
+| 路径 | 作用 |
+|---|---|
+| `rules/*.md` | 全局强制规则 |
+| `rules/projects/<project-key>/**/*.md` | 项目级强制规则，确定 `project-key` 后读取 |
+| `rules/user/**/*.md` | 个人本地强制规则，不得覆盖 core/project rules |
+
+设计阶段必须复用或生成 `process/context-pack.md`，确认适用 rules 和 Rules 与输入冲突记录；被登记的 rules 必须在 TDI 生成、评审或覆盖审查中应用或解释。
+
 ## 质量门禁
 
 - 主输出必须按 `测试场景 -> 测试点 -> 测试点明细 -> 测试设计项` 组织。
@@ -103,6 +117,7 @@ flowchart TD
 - 测试设计项表头固定为 `测试设计项 ID | 条件/数据/状态/组合 | 预期结果`。
 - 主输出不得出现完整测试用例字段、操作步骤、脚本或执行数据。
 - 依据不足的预期结果必须写 `待人工分析确认`。
+- 适用 rules 必须被执行、解释不适用，或记录被当前用户明确指令覆盖。
 
 ## 校验命令
 
@@ -110,5 +125,6 @@ flowchart TD
 python bin/sync-opencode-skills.py --check
 python bin/validate-agent-runtime.py
 python bin/lint-test-design-solution.py outputs/runs/<run-id>/deliverables/test-design-solution.md
-python bin/smoke-test-analysis.py
 ```
+
+`python bin/smoke-test-analysis.py` 只用于框架回归或示例 fixture 变更后的 smoke 检查，不属于单次测试设计方案 review 阶段。
