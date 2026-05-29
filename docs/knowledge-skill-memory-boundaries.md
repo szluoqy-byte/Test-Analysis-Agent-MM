@@ -22,13 +22,15 @@ project 和 personal 是当前 run 的一等输入源：必须由 `memory-contex
 
 | 内容类型 | 放置位置 | 原因 |
 |---|---|---|
-| 用户入口、意图识别、`@test-analysis-agent` 路由 | `agents/test-analysis-agent.md` | Agent 门面，只做入口和路由，不沉淀方法论正文 |
+| 用户入口、意图识别、`@test-analysis-agent` 路由 | `agents/test-analysis-agent.md` | 测试分析 Agent 门面，只做入口和路由，不沉淀方法论正文 |
+| 用户入口、意图识别、`@test-design-agent` 路由 | `agents/test-design-agent.md` | 测试设计 Agent 门面，只做入口和路由，不沉淀方法论正文 |
 | 测试点定义、字段、类型、方法 | `knowledge/testpoint-standard.md` | 稳定标准，所有 skill 共用 |
 | 测试分析、测试设计边界、分析维度和交付件落点 | `knowledge/test-analysis-methodology.md` | 本项目的上位方法论 |
-| 测试场景、测试点、测试设计项和完整测试用例边界 | `knowledge/test-analysis-methodology.md` | 主输出层级边界标准 |
-| 测试设计项字段、粒度和预期结果兜底规则 | `knowledge/test-design-solution-standard.md` | 主交付件标准 |
+| 测试场景、测试点、测试点明细、测试设计项和完整测试用例边界 | `knowledge/test-analysis-methodology.md` | 主输出层级边界标准 |
+| 测试点明细字段、粒度和预期结果兜底规则 | `knowledge/test-analysis-solution-standard.md` | 主交付件标准 |
+| 测试设计项字段、粒度和预期结果兜底规则 | `knowledge/test-design-solution-standard.md` | 测试设计主交付件标准 |
 | 测试类型大类和子类 | `knowledge/basic-test-types.md` | 本项目内置测试类型体系 |
-| 风险优先、异常优先、状态优先等专家原则 | `knowledge/test-techniques/README.md`、`knowledge/test-techniques/risk-based/risk-based-testing.md` | 测试技术的通用审视规则，分析层识别风险，设计层控制设计项深度 |
+| 风险优先、异常优先、状态优先等专家原则 | `knowledge/test-techniques/README.md`、`knowledge/test-techniques/risk-based/risk-based-testing.md` | 测试技术的通用审视规则，分析层识别风险和测试点明细，设计层控制设计项深度 |
 | 空值、重复提交、越权、幂等等通用缺陷模式 | `knowledge/test-techniques/experience-based/error-guessing-checklist.md` | 经验型测试技术补充，分析层识别缺陷风险，设计层补充高价值设计项 |
 | 需求文档、需求依据、方法证据、记忆上下文包等框架术语 | `knowledge/test-analysis-methodology.md` | 稳定分析术语，所有 skill 共用 |
 | 分析维度、需求信号到测试技术的映射 | `knowledge/test-method-routing-matrix.md` | 稳定路由知识 |
@@ -47,6 +49,7 @@ project 和 personal 是当前 run 的一等输入源：必须由 `memory-contex
 | 本次运行缺口治理结果 | `${PROJECT_ROOT}/outputs/runs/<run-id>/process/clarification-session.md` | 运行产物，用于解释 `待人工分析确认` 的来源 |
 | 本次运行阶段顺序、状态和证据路径 | `${PROJECT_ROOT}/outputs/runs/<run-id>/process/task-list.md` | 运行产物，是流程事实源，不是长期配置 |
 | 运行产物分类、固定文件名和下游消费约定 | `docs/output-artifact-contract.md` | 输出契约，防止 skill、模板和脚本各自发散 |
+| 测试设计 Agent 架构、流程和边界 | `docs/test-design-agent-design.md` | 设计层架构文档，说明如何承接测试分析方案 |
 | 报告、中间产物和运行产物的 Markdown 结构 | `templates/*.md` | 模板层只定义形状和占位，不维护另一套标准 |
 | 输出是否通过的检查项、失败条件和字段校验 | `quality-gates/*.md` | 质量门禁层负责判定，不产生新知识 |
 | 可机械执行的结构、语义和回归检查 | `bin/*.py` | 脚本层只做确定性校验 |

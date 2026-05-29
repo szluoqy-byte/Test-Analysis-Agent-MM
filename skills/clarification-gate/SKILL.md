@@ -1,18 +1,18 @@
 ---
 name: clarification-gate
-description: 在多个测试分析检查点使用。用于收集、去重、分级和排序待确认候选问题；不在分析过程中打断用户，也不向测试设计方案主交付件写待确认章节。
+description: 在多个测试分析检查点使用。用于收集、去重、分级和排序待确认候选问题；不在分析过程中打断用户，也不向测试分析方案主交付件写待确认章节。
 ---
 
 # 待确认问题治理 Skill
 
 本 skill 用于治理分析过程中的信息缺口。各阶段可以产出待确认候选问题，主流程统一去重、分级、排序和降级后，不触发中途交互。
 
-在本 Agent 中，缺口治理的原则是：过程缺口进入 `process/clarification-session.md`；主交付件 `deliverables/test-design-solution.md` 不设置待确认信息章节。如果缺口影响单条测试设计项的判定结果，生成阶段在该设计项的 `预期结果` 写 `待人工分析确认`。
+在本 Agent 中，缺口治理的原则是：过程缺口进入 `process/clarification-session.md`；主交付件 `deliverables/test-analysis-solution.md` 不设置待确认信息章节。如果缺口影响单条测试点明细的判定结果，生成阶段在该测试点明细的 `预期结果` 写 `待人工分析确认`。
 
 ## 输入
 
 - 当前检查点名称。
-- 当前阶段产物，例如记忆上下文包、结构化需求模型、测试技术路由表、方法证据、测试设计方案草稿或覆盖审查结果。
+- 当前阶段产物，例如记忆上下文包、结构化需求模型、测试技术路由表、方法证据、测试分析方案草稿或覆盖审查结果。
 - 已累计的待确认候选问题。
 - `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.md`。
 - `templates/clarification-template.md`。
@@ -24,8 +24,8 @@ description: 在多个测试分析检查点使用。用于收集、去重、分�
 | 检查点 | 位置 | 典型候选问题 | 默认处理 |
 |---|---|---|---|
 | `CP-INPUT` | `memory-context-builder`、`requirement-testability` 和 `design-solution-extraction` 后 | 业务域命中冲突、memory 与需求冲突、需求与设计冲突、业务规则/状态/权限/边界/接口契约/字段/数据依赖缺失 | 进入过程候选队列；影响预期结果时标记为预期兜底依据 |
-| `CP-ANALYSIS` | `testing-method-router` 和专项技术分析后 | 技术必要性范围、性能/安全/兼容是否展开、决策表条件、状态终态、幂等补偿、权限矩阵缺口 | 进入过程候选队列；影响测试点或测试设计项时写明影响范围 |
-| `CP-REVIEW` | `test-design-solution-review` 和 `coverage-review` 后 | 核心需求缺失、覆盖无法关闭、主交付件可用性风险 | 作为过程审查问题收口；不得新增主交付件待确认章节 |
+| `CP-ANALYSIS` | `testing-method-router` 和专项技术分析后 | 技术必要性范围、性能/安全/兼容是否展开、决策表条件、状态终态、幂等补偿、权限矩阵缺口 | 进入过程候选队列；影响测试点或测试点明细时写明影响范围 |
+| `CP-REVIEW` | `test-analysis-solution-review` 和 `coverage-review` 后 | 核心需求缺失、覆盖无法关闭、主交付件可用性风险 | 作为过程审查问题收口；不得新增主交付件待确认章节 |
 
 ## 候选问题来源
 
@@ -39,7 +39,7 @@ description: 在多个测试分析检查点使用。用于收集、去重、分�
 | `testing-method-router` | 影响方法必要性的范围问题 | 不为了可选方法制造待确认项 |
 | 专项分析 skill | 影响决策表、状态图、权限矩阵、接口契约的关键缺口 | 不追问可作为过程风险处理的细枝末节 |
 | `testpoint-generation` | 影响测试点粒度或是否保留风险确认点的问题 | 不打断生成流程 |
-| `test-design-solution-generation` | 影响测试设计项或预期结果的问题 | 不打断生成流程；缺口落到 `预期结果 = 待人工分析确认` |
+| `test-analysis-solution-generation` | 影响测试点明细或预期结果的问题 | 不打断生成流程；缺口落到 `预期结果 = 待人工分析确认` |
 | `coverage-review` | 阻断质量门禁关闭的需求缺失 | 不因普通覆盖建议制造阻断项 |
 
 ## 候选问题字段
@@ -61,7 +61,7 @@ description: 在多个测试分析检查点使用。用于收集、去重、分�
 | askPolicy | 统一写为 `DoNotAsk` |
 | mustAsk | 统一写为 `否` |
 | relatedRequirement | 关联需求依据 |
-| expectedResultFallback | 是否需要把相关测试设计项预期结果写成 `待人工分析确认` |
+| expectedResultFallback | 是否需要把相关测试点明细预期结果写成 `待人工分析确认` |
 | memoryConflict | 如有冲突，说明冲突的 memory 来源 |
 
 统一候选表头如下，所有阶段必须按此 schema 输出 `CQ-*` 候选：
@@ -91,7 +91,7 @@ description: 在多个测试分析检查点使用。用于收集、去重、分�
 
 ## 预期结果兜底规则
 
-当以下信息在需求和设计方案中没有明确依据时，相关测试设计项的 `预期结果` 必须写 `待人工分析确认`：
+当以下信息在需求和设计方案中没有明确依据时，相关测试点明细的 `预期结果` 必须写 `待人工分析确认`：
 
 - 错误提示。
 - 错误码。
@@ -111,10 +111,10 @@ description: 在多个测试分析检查点使用。用于收集、去重、分�
 - 候选问题队列。
 - 去重和排序结果。
 - 未进入主交付件的原因。
-- 需要触发 `预期结果 = 待人工分析确认` 的设计项范围。
+- 需要触发 `预期结果 = 待人工分析确认` 的测试点明细范围。
 - 是否建议沉淀到长期 memory。
 
-该文件是运行产物，不是长期 memory，也不是后续测试设计方案评审、细化或落地的必读文件。
+该文件是运行产物，不是长期 memory，也不是后续测试分析方案评审、细化或落地的必读文件。
 
 ## 输出
 
@@ -122,17 +122,17 @@ description: 在多个测试分析检查点使用。用于收集、去重、分�
 
 - 候选问题去重结果。
 - 需要过程保留的问题列表。
-- 需要让测试设计项预期结果写 `待人工分析确认` 的问题列表。
+- 需要让测试点明细预期结果写 `待人工分析确认` 的问题列表。
 - 被移除的问题和移除原因。
 - 是否需要刷新 `process/clarification-session.md`。
 
 ## 约束
 
 - 不生成测试点。
-- 不生成测试设计项。
+- 不生成测试设计项或 TDI。
 - 不生成测试用例或操作步骤。
 - 不调用用户交互能力。
 - 不在分析过程中向用户提问或暂停主流程。
 - 不把任何候选问题伪装成用户已确认事实。
-- 不向 `deliverables/test-design-solution.md` 写待确认信息章节。
+- 不向 `deliverables/test-analysis-solution.md` 写待确认信息章节。
 - 不把用户本次后续反馈自动写入 `memory/project-memory.md`、`memory/domains/*.md` 或 `memory/testing-experience-memory.md`。

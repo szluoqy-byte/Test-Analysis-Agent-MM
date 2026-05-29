@@ -21,7 +21,7 @@ CTFL v4.0.1 将测试技术分为三类：
 | White-box / Structure-based | 基于内部结构和代码路径设计测试 | 语句测试、分支测试 |
 | Experience-based | 基于测试人员经验和历史知识设计测试 | 错误推测、探索式测试、检查清单测试 |
 
-本 Agent 面向需求和设计方案生成测试设计方案，不读取代码结构。因此当前测试技术库以黑盒/规格技术和经验技术为主，不覆盖 white-box 技术是合理的。
+本 Agent 面向需求和设计方案生成测试分析方案，不读取代码结构。因此当前测试技术库以黑盒/规格技术和经验技术为主，不覆盖 white-box 技术是合理的。
 
 ## 3. 当前技术对齐结果
 
@@ -59,8 +59,8 @@ CTFL v4.0.1 将测试技术分为三类：
 | `equivalence-boundary.md` | ISTQB 直接核心技术，且测试设计项派生粒度稳定 |
 | `state-transition.md` | ISTQB 直接核心技术，生命周期测试高频且独立 |
 | `interface-contract.md` | 虽非 ISTQB CTFL 核心技术，但本 Agent 明确需要基于设计方案补接口、字段、错误码和幂等 |
-| `data-combination.md` | 虽是工程扩展，但配置、渠道、版本、角色组合在测试设计方案中高频出现 |
-| `risk-based-testing.md` | 不是单一测试设计技术，但负责深度和风险补充，是测试设计方案不可缺的策略层 |
+| `data-combination.md` | 虽是工程扩展，但配置、渠道、版本、角色组合在测试分析方案中高频出现 |
+| `risk-based-testing.md` | 不是单一测试设计技术，但负责深度和风险补充，是测试分析方案不可缺的策略层 |
 | `error-guessing-checklist.md` | ISTQB 经验类技术直接匹配，且已承载通用缺陷模式 |
 
 ## 6. 当前结论
@@ -71,5 +71,5 @@ CTFL v4.0.1 将测试技术分为三类：
 
 - 保持当前技术文件数量不变。
 - 已直接匹配 ISTQB 的技术继续作为核心技术。
-- 工程扩展技术继续保留，但在 README 中明确它们是测试设计方案扩展，不是 ISTQB CTFL 核心技术。
+- 工程扩展技术继续保留，但在 README 中明确它们是测试分析方案扩展，不是 ISTQB CTFL 核心技术。
 - 下一轮如要减文件，优先合并 `decision-point / decision-table / cause-effect`，其次再考虑 `state-transition / processing-cycle`。

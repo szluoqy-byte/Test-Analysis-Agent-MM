@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check fixed run artifact layout and basic test design solution consistency."""
+"""Check fixed run artifact layout and basic solution consistency."""
 
 from __future__ import annotations
 
@@ -8,10 +8,9 @@ import sys
 from pathlib import Path
 
 
-DESIGN_ITEM_HEADER = "| 测试设计项 ID | 测试设计项 | 预期结果 |"
 TASK_LIST_HEADER = "| 序号 | 阶段 | 负责 skill | 必须产物/检查点 | 状态 | 证据/路径 |"
 TASK_STATUS_VALUES = {"pending", "in_progress", "done", "blocked", "skipped"}
-REQUIRED_TASK_STAGES = [
+ANALYSIS_REQUIRED_TASK_STAGES = [
     "固定 PROJECT_ROOT 与运行目录",
     "构建上下文包",
     "需求可测性分析",
@@ -21,13 +20,24 @@ REQUIRED_TASK_STAGES = [
     "专项分析",
     "按源补读",
     "场景化测试点生成",
+    "测试分析方案生成",
+    "独立评审",
+    "覆盖审查",
+    "确定性校验",
+    "输出收口",
+]
+DESIGN_REQUIRED_TASK_STAGES = [
+    "固定 PROJECT_ROOT 与运行目录",
+    "测试分析方案校验",
+    "构建上下文包",
+    "设计依据补读",
     "测试设计方案生成",
     "独立评审",
     "覆盖审查",
     "确定性校验",
     "输出收口",
 ]
-OPTIONAL_TASK_STAGES = {"按源补读", "设计方案提取"}
+OPTIONAL_TASK_STAGES = {"按源补读", "设计方案提取", "设计依据补读"}
 TASK_STAGE_ALIASES = {
     "方法路由": "测试技术路由",
     "专项方法分析": "专项分析",
@@ -62,20 +72,32 @@ def collect_solution_points(path: Path) -> set[str]:
     lines = path.read_text(encoding="utf-8").splitlines()
     points: set[str] = set()
     for line in lines:
-        match = re.match(r"^#### 测试点 (TP-\d{3})：", line)
+        match = re.match(r"^#### (TP-\d{3})\s+", line)
         if match:
             points.add(match.group(1))
     return points
 
 
-def collect_design_ids(path: Path) -> set[str]:
+def collect_solution_details(path: Path) -> set[str]:
     lines = path.read_text(encoding="utf-8").splitlines()
-    design_ids: set[str] = set()
-    for rows in collect_all_tables(lines, DESIGN_ITEM_HEADER):
-        for _, cells in rows:
-            if cells and re.fullmatch(r"TDI-\d{3}", cells[0]):
-                design_ids.add(cells[0])
-    return design_ids
+    details: set[str] = set()
+    for line in lines:
+        match = re.match(r"^##### (TP-\d{3}-\d{3})\s+", line)
+        if match:
+            details.add(match.group(1))
+    return details
+
+
+def collect_design_items(path: Path) -> set[str]:
+    lines = path.read_text(encoding="utf-8").splitlines()
+    items: set[str] = set()
+    for line in lines:
+        if not line.startswith("|"):
+            continue
+        cells = split_row(line)
+        if cells and re.fullmatch(r"TDI-\d{3}", cells[0]):
+            items.add(cells[0])
+    return items
 
 
 def collect_task_rows(path: Path) -> list[tuple[int, list[str]]]:
@@ -115,15 +137,32 @@ def validate_task_list(path: Path) -> tuple[list[str], list[str]]:
     if len(in_progress) > 1:
         errors.append("任务清单同时存在多个 in_progress 阶段: " + "、".join(in_progress))
 
-    missing = [stage for stage in REQUIRED_TASK_STAGES if stage not in statuses]
-    if missing:
-        errors.append("任务清单缺少固定阶段: " + "、".join(missing))
+    candidate_flows = [
+        ("测试分析", ANALYSIS_REQUIRED_TASK_STAGES),
+        ("测试设计", DESIGN_REQUIRED_TASK_STAGES),
+    ]
+    matched_flow = next(
+        ((flow_name, required_stages) for flow_name, required_stages in candidate_flows if all(stage in statuses for stage in required_stages)),
+        None,
+    )
+    if matched_flow is None:
+        analysis_missing = [stage for stage in ANALYSIS_REQUIRED_TASK_STAGES if stage not in statuses]
+        design_missing = [stage for stage in DESIGN_REQUIRED_TASK_STAGES if stage not in statuses]
+        errors.append(
+            "任务清单未匹配测试分析或测试设计固定阶段；"
+            "分析缺少: "
+            + "、".join(analysis_missing)
+            + "；设计缺少: "
+            + "、".join(design_missing)
+        )
+        return errors, warnings
 
-    positions = [stages.index(stage) for stage in REQUIRED_TASK_STAGES if stage in stages]
+    flow_name, required_stages = matched_flow
+    positions = [stages.index(stage) for stage in required_stages if stage in stages]
     if positions != sorted(positions):
-        errors.append("任务清单固定阶段顺序不正确")
+        errors.append(f"任务清单{flow_name}固定阶段顺序不正确")
 
-    for stage in REQUIRED_TASK_STAGES:
+    for stage in required_stages:
         status = statuses.get(stage)
         if stage in OPTIONAL_TASK_STAGES:
             if status not in {"done", "skipped"}:
@@ -167,7 +206,6 @@ def main() -> int:
         return 1
 
     required_paths = [
-        run_dir / "deliverables" / "test-design-solution.md",
         run_dir / "process" / "task-list.md",
         run_dir / "process" / "context-pack.md",
     ]
@@ -175,9 +213,13 @@ def main() -> int:
         if not required.exists():
             errors.append(f"缺少固定运行产物: {required.relative_to(run_dir)}")
 
-    solution_path = run_dir / "deliverables" / "test-design-solution.md"
+    solution_path = run_dir / "deliverables" / "test-analysis-solution.md"
+    design_solution_path = run_dir / "deliverables" / "test-design-solution.md"
     task_list_path = run_dir / "process" / "task-list.md"
     context_pack_path = run_dir / "process" / "context-pack.md"
+
+    if not solution_path.exists() and not design_solution_path.exists():
+        errors.append("缺少主交付件: deliverables/test-analysis-solution.md 或 deliverables/test-design-solution.md")
 
     if task_list_path.exists():
         task_errors, task_warnings = validate_task_list(task_list_path)
@@ -191,10 +233,21 @@ def main() -> int:
 
     if solution_path.exists():
         points = collect_solution_points(solution_path)
-        design_ids = collect_design_ids(solution_path)
+        details = collect_solution_details(solution_path)
+        if not points:
+            errors.append("测试分析方案未找到 TP-* 测试点标题")
+        if not details:
+            errors.append("测试分析方案未找到 TP-*-* 测试点明细")
+
+    if design_solution_path.exists():
+        points = collect_solution_points(design_solution_path)
+        details = collect_solution_details(design_solution_path)
+        design_items = collect_design_items(design_solution_path)
         if not points:
             errors.append("测试设计方案未找到 TP-* 测试点标题")
-        if not design_ids:
+        if not details:
+            errors.append("测试设计方案未找到 TP-*-* 测试点明细")
+        if not design_items:
             errors.append("测试设计方案未找到 TDI-* 测试设计项")
 
     for warning in warnings:

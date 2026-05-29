@@ -4,18 +4,21 @@
 
 本文分析 `skills/` 的职责分层、调用链、输入输出契约、质量门禁闭环和后续优化方向。分析基于当前仓库文件，不依赖历史项目假设。
 
-核心目标是判断当前 skill 架构是否能稳定支撑：
+核心目标是判断当前 skill 架构是否能稳定支撑两个子 Agent：
 
 ```text
-需求文档 + 可选设计方案 -> 测试场景 -> 测试点 -> 测试设计项
+需求文档 + 可选设计方案 -> 测试场景 -> 测试点 -> 测试点明细
+已评审测试分析方案 -> 测试设计项
 ```
 
 ## 2. 当前 Agent 与 Skills 拓扑
 
 | 层级 | Skill | 当前职责 | 主要输出 |
 |---|---|---|---|
-| Agent 门面 | `agents/test-analysis-agent.md` | 支持 `@test-analysis-agent`，识别用户意图并路由到主流程、上下文归档或框架维护 | 用户入口、路由决策 |
-| 编排入口 | `analyze-requirement-test-design-solution` | 固定项目根目录、创建 run、编排全链路、写出主交付件 | `deliverables/test-design-solution.md` |
+| Agent 门面 | `agents/test-analysis-agent.md` | 支持 `@test-analysis-agent`，识别测试分析、上下文归档或框架维护意图 | 用户入口、路由决策 |
+| Agent 门面 | `agents/test-design-agent.md` | 支持 `@test-design-agent`，识别测试设计、设计评审或框架维护意图 | 用户入口、路由决策 |
+| 分析编排入口 | `analyze-requirement-test-analysis-solution` | 固定项目根目录、创建 run、编排分析链路、写出测试分析方案 | `deliverables/test-analysis-solution.md` |
+| 设计编排入口 | `generate-test-design-solution` | 复用或创建 run，承接已评审测试分析方案，写出测试设计方案 | `deliverables/test-design-solution.md` |
 | 上下文归档 | `context-capture` | 处理“记住/记录/收录/归档”类请求，判断写入 memory 或 knowledge | 长期 personal/project 上下文 |
 | 上下文层 | `memory-context-builder` | 发现并裁剪 core/project/personal 上下文，登记 project knowledge 阶段绑定 | `process/context-pack.md` |
 | 需求分析层 | `requirement-testability` | 提取可验证对象、角色、规则、流程、状态、接口和缺口 | 结构化需求模型、需求待确认候选 |
@@ -24,51 +27,53 @@
 | 路由层 | `testing-method-router` | 根据分析维度和触发信号选择测试技术和专项分析 skill | 测试技术路由表、技术范围缺口候选 |
 | 专项分析层 | 专项 skill | 产出 `ME-*` 方法证据和测试点候选 | 方法证据、测试点候选、技术缺口候选 |
 | 测试点聚合层 | `testpoint-generation` | 把方法证据和候选归并为场景和测试点 | `SC-*`、`TP-*` |
-| 测试设计层 | `test-design-solution-generation` | 把测试点展开为测试设计项和预期结果 | `TDI-*` 测试设计项 |
-| 独立评审层 | `test-design-solution-review` | 评审设计项粒度、预期结果依据和旧字段泄漏 | 独立评审结论 |
+| 测试分析方案生成层 | `test-analysis-solution-generation` | 把测试点展开为测试点明细和预期结果 | `TP-*-*` 测试点明细 |
+| 独立评审层 | `test-analysis-solution-review` | 评审测试点明细粒度、预期结果依据、TDI 泄漏和旧字段泄漏 | 独立评审结论 |
+| 测试设计方案生成层 | `test-design-solution-generation` | 把测试点明细扩展为代表性条件、数据、状态或组合 | `TDI-*` 测试设计项 |
+| 测试设计评审层 | `test-design-solution-review` | 评审设计项粒度、预期结果依据、分析方案承接和非用例化 | 独立评审结论 |
 | 审查层 | `coverage-review` | 执行质量门禁、专家评分和确定性脚本校验 | 覆盖审查结果、修正建议、阻断项 |
 
 当前架构是清晰的流水线：入口编排，context/requirement/router/specialist/generator/reviewer 各层职责基本成立。
 
 ## 3. 主要优化点
 
-### F1. 产物契约已迁移为测试设计方案
+### F1. 产物契约已迁移为测试分析方案
 
-主输出现在只包含 `测试设计项 ID | 测试设计项 | 预期结果` 三列。旧字段 `覆盖意图`、`级别`、`输入条件与数据依赖`、`判定关注` 和 `待确认信息` 不再进入主交付件。
+主输出现在使用三级标题结构承载：
+
+```text
+SC-* 测试场景
+  -> TP-* 测试点
+      -> TP-*-* 测试点明细
+```
 
 影响：
 
-- 输出更接近用户当前目标：测试点 + 对应输入测试数据场景/状态/组合 + 预期结果。
-- 完整用例写作仍留给下游，不提前生成步骤和执行数据。
-- 预期结果从“禁止字段”变成“必填字段”，但必须受需求/设计方案依据约束。
+- 当前 Agent 专注 what to test，不再输出 `TDI-*` 测试设计项。
+- 给 `test-design-agent` 留出清晰空间，由它基于评审后的测试分析方案补充代表性条件、数据、状态或组合。
+- 预期结果保留在测试点明细层，但必须受需求/设计方案依据约束。
 
 ### F2. 缺口治理从主交付件章节转为预期结果兜底
 
-`clarification-gate` 仍负责过程级待确认治理，但不再向主交付件写独立待确认章节。需求或设计方案未说明错误提示、状态变化、错误码、接口返回或数据记录变化时，生成阶段将相关设计项的 `预期结果` 写成 `待人工分析确认`。
+`clarification-gate` 仍负责过程级待确认治理，但不再向主交付件写独立待确认章节。需求或设计方案未说明错误提示、状态变化、错误码、接口返回或数据记录变化时，生成阶段将相关测试点明细的 `预期结果` 写成 `待人工分析确认`。
 
 影响：
 
 - 主交付件更精简。
-- 缺口直接贴近受影响的测试设计项。
+- 缺口直接贴近受影响的测试点明细。
 - 不再需要 `## 3. 未明确规则` 或待确认信息清单。
 
 ### F3. Agent 门面与执行 skill 分离
 
-当前架构新增 `test-analysis-agent` 作为用户可 `@` 调用的门面。它负责识别“生成测试设计方案、记录偏好/知识、维护框架、咨询方法”等用户意图；具体执行仍由 skills、knowledge、templates、quality gates 和 bin 脚本完成。
-
-影响：
-
-- 用户不需要记住主 skill 名称，可以直接 `@test-analysis-agent`。
-- Claude Code 使用根目录 `agents/`，OpenCode 使用生成镜像 `.opencode/agents/`。
-- 独立评审能力仍由 `test-design-solution-review` skill、`quality-gates/test-design-solution-check.md` 和 `bin/lint-test-design-solution.py` 共同承担，不把评审逻辑塞进 Agent 门面。
+当前架构使用 `test-analysis-agent` 作为用户可 `@` 调用的门面。它负责识别“生成测试分析方案、记录偏好/知识、维护框架、咨询方法”等用户意图；具体执行仍由 skills、knowledge、templates、quality gates 和 bin 脚本完成。
 
 ### F4. Project Knowledge 阶段绑定
 
-project knowledge 文件不要求固定命名或固定结构。`memory-context-builder` 只在 context pack 中识别文件用途和强制应用环节，不提前判断具体测试点或测试设计项命中。
+project knowledge 文件不要求固定命名或固定结构。`memory-context-builder` 只在 context pack 中识别文件用途和强制应用环节，不提前判断具体测试点或测试点明细命中。
 
 影响：
 
-- 测试设计因子库、业务测试设计模式库可以绑定到测试技术路由、测试点生成和测试设计方案生成。
+- 测试设计因子库、业务测试设计模式库可以绑定到测试技术路由、测试点生成和测试分析方案生成。
 - 测试设计 checklist 可以绑定到独立评审和覆盖审查。
 - 后续阶段必须读取绑定文件并输出应用状态，避免“读过但没有用”的假强应用。
 
@@ -80,22 +85,22 @@ project knowledge 文件不要求固定命名或固定结构。`memory-context-b
 | 编排入口 | 保持单入口 | 只负责调度、run 目录、任务清单和最终落盘 |
 | 上下文层 | 保持独立 | 将 project/personal 发现策略和 project knowledge 阶段绑定沉淀在 context pack，不下放给后续 skill 自行搜索 |
 | 需求与设计层 | 保持双输入契约 | `requirement-testability` 负责需求模型，`design-solution-extraction` 负责设计事实摘要 |
-| 路由层 | 保持独立 | 明确输出只到测试技术路由，不提前选择测试设计项 |
+| 路由层 | 保持独立 | 明确输出只到测试技术路由，不提前选择测试点明细 |
 | 专项分析层 | 统一输出骨架 | 所有专项 skill 使用同一方法证据表、候选测试点表和缺口候选表 |
 | 测试点生成层 | 强化 handoff | `testpoint-generation` 输出稳定的场景/测试点中间契约 |
-| 测试设计层 | 保持独立 | 专注 `TDI-*`、代表性条件/数据/状态/组合和预期结果 |
-| 独立评审层 | 保持独立 | 先审设计项粒度和预期结果依据，再进入覆盖审查 |
+| 测试分析方案生成层 | 保持独立 | 专注 `TP-*-*` 测试点明细和预期结果 |
+| 独立评审层 | 保持独立 | 先审测试点明细粒度和预期结果依据，再进入覆盖审查 |
 | 覆盖审查层 | 拆分判断类型 | 机械脚本、质量门禁、专家评分和过程缺口治理分别列明结果 |
 
 ## 5. 后续优化路线
 
 1. 统一专项 skill 输出骨架：所有专项分析都引用 `knowledge/method-evidence-standard.md` 和 `templates/method-analysis-template.md`。
-2. 强化设计事实使用：让 `design-solution-extraction` 的结构化结果稳定进入测试技术路由、测试点生成和测试设计项生成。
-3. 深化 test-techniques：补充更多测试设计项展开示例，并补齐预期结果兜底样例。
+2. 强化设计事实使用：让 `design-solution-extraction` 的结构化结果稳定进入测试技术路由、测试点生成和测试点明细生成。
+3. 梳理 test-techniques：明确哪些内容服务 `test-analysis-agent`，哪些示例服务 `test-design-agent`。
 4. 扩展评审样例：增加包含错误码缺失、状态变化缺失和提示文案缺失的样例，验证 `待人工分析确认` 规则。
 
 ## 6. 当前结论
 
 当前 skills 架构已经具备独立 Agent 的基本闭环：入口清楚、专项测试技术齐全、生成链路完整、独立评审和质量门禁可运行。
 
-最关键的架构原则是：测试分析层输出测试点，测试设计层输出测试设计项，测试技术库同时支持两层，但不直接决定主交付件字段。
+最关键的架构原则是：`test-analysis-agent` 输出测试场景、测试点和测试点明细；`test-design-agent` 再输出 `TDI-*` 测试设计项；测试技术库同时支持两层，但不直接决定分析主交付件字段。

@@ -12,10 +12,25 @@ from pathlib import Path
 
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 PROJECT_KEY_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
-MAIN_SKILL = "analyze-requirement-test-design-solution"
-MAIN_AGENT = "test-analysis-agent"
-OPENCODE_COMMAND = ".opencode/commands/analyze-requirement-test-design-solution.md"
-OPENCODE_AGENT = f".opencode/agents/{MAIN_AGENT}.md"
+MAIN_SKILLS = {
+    "analysis": "analyze-requirement-test-analysis-solution",
+    "design": "generate-test-design-solution",
+}
+REQUIRED_SKILLS = {
+    *MAIN_SKILLS.values(),
+    "test-analysis-solution-generation",
+    "test-analysis-solution-review",
+    "test-design-solution-generation",
+    "test-design-solution-review",
+}
+REQUIRED_AGENTS = {
+    "test-analysis-agent": ("analyze-requirement-test-analysis-solution", "context-capture"),
+    "test-design-agent": ("generate-test-design-solution", "test-design-solution-generation", "context-capture"),
+}
+OPENCODE_COMMANDS = {
+    ".opencode/commands/analyze-requirement-test-analysis-solution.md": "analyze-requirement-test-analysis-solution",
+    ".opencode/commands/generate-test-design-solution.md": "generate-test-design-solution",
+}
 
 
 def fail(message: str, issues: list[str]) -> None:
@@ -84,8 +99,9 @@ def validate_skills(root: Path, issues: list[str]) -> None:
         if not (1 <= len(description) <= 1024):
             fail(f"{skill_file.relative_to(root)} description must be 1-1024 characters", issues)
 
-    if not (skills_dir / MAIN_SKILL / "SKILL.md").exists():
-        fail(f"main skill {MAIN_SKILL!r} is missing", issues)
+    for skill_name in sorted(REQUIRED_SKILLS):
+        if not (skills_dir / skill_name / "SKILL.md").exists():
+            fail(f"required skill {skill_name!r} is missing", issues)
 
 
 def validate_agents(root: Path, issues: list[str]) -> None:
@@ -110,8 +126,9 @@ def validate_agents(root: Path, issues: list[str]) -> None:
         if not (1 <= len(description) <= 1024):
             fail(f"{agent_file.relative_to(root)} description must be 1-1024 characters", issues)
 
-    if not (agents_dir / f"{MAIN_AGENT}.md").exists():
-        fail(f"main agent {MAIN_AGENT!r} is missing", issues)
+    for agent_name in sorted(REQUIRED_AGENTS):
+        if not (agents_dir / f"{agent_name}.md").exists():
+            fail(f"required agent {agent_name!r} is missing", issues)
 
 
 def validate_opencode(root: Path, issues: list[str]) -> None:
@@ -128,27 +145,29 @@ def validate_opencode(root: Path, issues: list[str]) -> None:
     if skill_permission.get("*") != "allow":
         fail('opencode.json should allow project skills with permission.skill."*"', issues)
 
-    command_path = root / OPENCODE_COMMAND
-    if not command_path.exists():
-        fail(f"{OPENCODE_COMMAND} is missing", issues)
-    else:
+    for command, skill_name in OPENCODE_COMMANDS.items():
+        command_path = root / command
+        if not command_path.exists():
+            fail(f"{command} is missing", issues)
+            continue
         command_text = command_path.read_text(encoding="utf-8")
-        if MAIN_SKILL not in command_text:
-            fail(f"{OPENCODE_COMMAND} must invoke the main skill", issues)
+        if skill_name not in command_text:
+            fail(f"{command} must invoke {skill_name}", issues)
         if "$ARGUMENTS" not in command_text:
-            fail(f"{OPENCODE_COMMAND} must pass $ARGUMENTS", issues)
+            fail(f"{command} must pass $ARGUMENTS", issues)
 
-    opencode_agent_path = root / OPENCODE_AGENT
-    if not opencode_agent_path.exists():
-        fail(f"{OPENCODE_AGENT} is missing", issues)
-    else:
+    for agent_name, required_terms in REQUIRED_AGENTS.items():
+        opencode_agent = f".opencode/agents/{agent_name}.md"
+        opencode_agent_path = root / opencode_agent
+        if not opencode_agent_path.exists():
+            fail(f"{opencode_agent} is missing", issues)
+            continue
         agent_text = opencode_agent_path.read_text(encoding="utf-8")
         if "mode: subagent" not in agent_text:
-            fail(f"{OPENCODE_AGENT} must be an OpenCode subagent", issues)
-        if MAIN_SKILL not in agent_text:
-            fail(f"{OPENCODE_AGENT} must route generation work to the main skill", issues)
-        if "context-capture" not in agent_text:
-            fail(f"{OPENCODE_AGENT} must route memory/knowledge capture work to context-capture", issues)
+            fail(f"{opencode_agent} must be an OpenCode subagent", issues)
+        for term in required_terms:
+            if term not in agent_text:
+                fail(f"{opencode_agent} must mention {term}", issues)
 
     for rules_file in ("AGENTS.md", "CLAUDE.md"):
         if not (root / rules_file).exists():

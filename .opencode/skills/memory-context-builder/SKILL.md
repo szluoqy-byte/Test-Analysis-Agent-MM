@@ -59,16 +59,16 @@ context pack 对 project/personal 的记录必须满足四个要求：
 
 `knowledge/projects/<project-key>/**/*.md` 中的文件不要求固定文件名，也不要求固定 Markdown 结构。推荐使用可读文件名，例如 `test-design-factors.md`、`test-design-patterns.md`、`test-design-checklist.md`、`risk-profile.md`、`oracle-heuristics.md` 或 `routing-notes.md`，但这些不是硬性要求。
 
-本 skill 必须基于文件名、frontmatter、一级/二级标题、章节标题和少量开头摘要自理解识别文件用途，只做“应该强制进入哪些环节”的阶段绑定，不提前判断具体测试点或测试设计项是否命中。
+本 skill 必须基于文件名、frontmatter、一级/二级标题、章节标题和少量开头摘要自理解识别文件用途，只做“应该强制进入哪些环节”的阶段绑定，不提前判断具体测试点或测试点明细是否命中。
 
 常见自理解规则：
 
 | 文件意图 | 识别信号 | 强制应用环节 | 使用目的 |
 |---|---|---|---|
-| 测试设计因子库/业务测试设计模式库 | 文件名或标题包含 `factor`、`pattern`、`测试设计因子`、`测试设计模式`、`覆盖因子`、`业务模式` | `testing-method-router`、`testpoint-generation`、`test-design-solution-generation` | 增强测试技术路由、补充测试点、生成测试设计项 |
-| 测试设计 Checklist/检查清单 | 文件名或标题包含 `checklist`、`check-list`、`检查清单`、`评审清单`、`验收检查` | `test-design-solution-review`、`coverage-review` | 独立评审和覆盖审查时强制查漏 |
+| 测试设计因子库/业务测试设计模式库 | 文件名或标题包含 `factor`、`pattern`、`测试设计因子`、`测试设计模式`、`覆盖因子`、`业务模式` | `testing-method-router`、`testpoint-generation`、`test-analysis-solution-generation`、`test-design-solution-generation` | 增强测试技术路由、补充测试点明细，并在设计阶段生成代表性条件、数据、状态或组合 |
+| 测试设计 Checklist/检查清单 | 文件名或标题包含 `checklist`、`check-list`、`检查清单`、`评审清单`、`验收检查` | `test-analysis-solution-review`、`test-design-solution-review`、`coverage-review` | 独立评审和覆盖审查时强制查漏 |
 | 风险画像/历史高风险策略 | 文件名或标题包含 `risk`、`风险`、`缺陷高发`、`风险画像` | `testing-method-router`、`risk-based-test-analysis`、`testpoint-generation`、`coverage-review` | 调整方法选择、风险测试点和覆盖深度 |
-| Oracle/判定启发 | 文件名或标题包含 `oracle`、`判定`、`预期结果`、`结果依据` | `testpoint-generation`、`test-design-solution-generation`、`coverage-review` | 补充可观察结果和预期结果依据 |
+| Oracle/判定启发 | 文件名或标题包含 `oracle`、`判定`、`预期结果`、`结果依据` | `testpoint-generation`、`test-analysis-solution-generation`、`coverage-review` | 补充可观察结果和预期结果依据 |
 | 路由说明/覆盖策略 | 文件名或标题包含 `routing`、`route`、`coverage`、`路由`、`覆盖策略` | `testing-method-router`、`testpoint-generation`、`coverage-review` | 约束测试技术选择和覆盖审查 |
 | 术语表/领域词表 | 文件名或标题包含 `glossary`、`term`、`术语`、`词表` | `requirement-testability`、`design-solution-extraction`、`testpoint-generation` | 统一业务术语解释，不作为业务事实覆盖需求 |
 
@@ -76,7 +76,7 @@ context pack 对 project/personal 的记录必须满足四个要求：
 
 context pack 必须输出“项目知识阶段绑定”表。后续被绑定的 skill 在开始本阶段活动前必须读取对应文件的相关章节，输出应用状态，并在方法证据、过程报告或覆盖审查中记录来源。应用状态只能是：
 
-- `applied`：已应用到路由、测试点、测试设计项、预期结果依据或检查结论。
+- `applied`：已应用到路由、测试点、测试点明细、预期结果依据或检查结论。
 - `not_applicable`：已读取，但本需求/当前测试点不适用，并说明原因。
 - `insufficient_evidence`：文件提供了启发，但需求或设计方案依据不足，只能生成过程缺口或 `待人工分析确认`。
 - `conflict_with_requirement`：与需求或设计方案冲突，以当前需求/设计为准并记录冲突。

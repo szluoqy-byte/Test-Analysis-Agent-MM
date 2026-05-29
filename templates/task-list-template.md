@@ -3,7 +3,7 @@
 构建当前运行目录下的 `process/task-list.md` 时使用以下结构。任务清单是本次运行的流程控制产物，用于约束阶段顺序和记录每个阶段的证据路径。
 
 ```markdown
-# 测试设计方案任务清单
+# 测试分析方案任务清单
 
 ## 运行标识
 
@@ -17,7 +17,7 @@
 
 | 序号 | 阶段 | 负责 skill | 必须产物/检查点 | 状态 | 证据/路径 |
 |---|---|---|---|---|---|
-| 1 | 固定 PROJECT_ROOT 与运行目录 | analyze-requirement-test-design-solution | outputs/runs/<run-id>/ | pending |  |
+| 1 | 固定 PROJECT_ROOT 与运行目录 | analyze-requirement-test-analysis-solution | outputs/runs/<run-id>/ | pending |  |
 | 2 | 构建上下文包 | memory-context-builder | process/context-pack.md、项目知识阶段绑定 | pending |  |
 | 3 | 需求可测性分析 | requirement-testability | 结构化需求模型、需求待确认候选 | pending |  |
 | 4 | 设计方案提取 | design-solution-extraction | 设计方案事实摘要、接口/状态/字段/数据依赖清单 | pending |  |
@@ -26,11 +26,11 @@
 | 7 | 专项分析 | selected method skills | ME-* 方法证据、测试点候选、技术缺口候选 | pending |  |
 | 8 | 按源补读 | selected method skills | 按需补读记录、来源说明 | skipped |  |
 | 9 | 场景化测试点生成 | testpoint-generation | 场景、测试点、project knowledge 应用记录 | pending |  |
-| 10 | 测试设计方案生成 | test-design-solution-generation | deliverables/test-design-solution.md、project knowledge 应用记录 | pending |  |
-| 11 | 独立评审 | test-design-solution-review | 设计项粒度、预期结果依据、project checklist 审查和非用例化审查 | pending |  |
+| 10 | 测试分析方案生成 | test-analysis-solution-generation | deliverables/test-analysis-solution.md、project knowledge 应用记录 | pending |  |
+| 11 | 独立评审 | test-analysis-solution-review | 测试点明细粒度、预期结果依据、project checklist 审查和非用例化审查 | pending |  |
 | 12 | 覆盖审查 | coverage-review | 门禁结果、project knowledge 应用检查、专家评分、阻断项 | pending |  |
 | 13 | 确定性校验 | coverage-review / bin | lint、consistency、semantic 检查结果 | pending |  |
-| 14 | 输出收口 | analyze-requirement-test-design-solution | 主交付件路径、过程报告路径、检查结果 | pending |  |
+| 14 | 输出收口 | analyze-requirement-test-analysis-solution | 主交付件路径、过程报告路径、检查结果 | pending |  |
 
 ## 状态说明
 

@@ -1,6 +1,6 @@
 # 示例回归矩阵
 
-本文件用于规划 Test Design Solution Agent 的回归样例。每个样例都应包含输入需求，以及 `examples/outputs/runs/<stem>-run/` 下固定命名的测试设计方案，并通过 `bin/smoke-test-analysis.py`。
+本文件用于规划 Test Analysis Agent 的回归样例。每个样例都应包含输入需求，以及 `examples/outputs/runs/<stem>-run/` 下固定命名的测试分析方案，并通过 `bin/smoke-test-analysis.py`。
 
 ## 当前样例
 
@@ -11,8 +11,8 @@
 
 ## 验收
 
-- 测试设计方案通过 `bin/lint-test-design-solution.py`。
-- 主输出按 `测试场景 -> 测试点 -> 测试设计项` 组织。
-- 每个测试设计项包含预期结果。
+- 测试分析方案通过 `bin/lint-test-analysis-solution.py`。
+- 主输出按 `测试场景 -> 测试点 -> 测试点明细` 组织。
+- 每个测试点明细包含预期结果。
 - 需求或设计未说明错误提示、状态变化或错误码时，预期结果写 `待人工分析确认`。
 - 不输出完整测试用例、测试步骤、执行数据清单或自动化脚本。

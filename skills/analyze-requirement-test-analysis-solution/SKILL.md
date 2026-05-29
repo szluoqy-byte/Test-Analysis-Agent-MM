@@ -1,43 +1,43 @@
 ---
-name: analyze-requirement-test-design-solution
-description: 当用户提供需求文档和可选设计方案文档，并要求生成“测试场景 -> 测试点 -> 测试设计项”的测试设计方案时使用。该 skill 是主入口，负责串联上下文、需求与设计方案分析、测试技术路由、测试点生成、测试设计方案生成、独立评审和 Markdown 产物输出；入参来自 $ARGUMENTS。
+name: analyze-requirement-test-analysis-solution
+description: 当用户提供需求文档和可选设计方案文档，并要求生成“测试场景 -> 测试点 -> 测试点明细”的测试分析方案时使用。该 skill 是主入口，负责编排上下文、需求与设计方案分析、测试技术路由、测试点生成、测试分析方案生成、独立评审和 Markdown 产物输出；入参来自 $ARGUMENTS。
 ---
 
-# 需求到测试设计方案主入口
+# 需求到测试分析方案主入口
 
-本 skill 是本独立 Agent 的完整链路入口。目标是从 `$ARGUMENTS` 指定的需求文档和可选设计方案文档中，生成 `测试设计方案`。
+本 skill 是 `test-analysis-agent` 的完整链路入口。目标是从 `$ARGUMENTS` 指定的需求文档和可选设计方案文档中，生成 `测试分析方案`。
 
-`测试设计方案` 是介于测试点和完整测试用例之间的设计产物：它回答“这个测试点应该用哪些代表性条件、数据、状态或组合去覆盖”。主交付件不写完整测试用例，不写前置步骤、测试步骤、自动化脚本或执行数据清单。
+`测试分析方案` 回答 what to test：输出测试场景、测试点和测试点明细，并给出需求或设计方案可支撑的简短预期结果。它不输出 `TDI-*` 测试设计项，不选择具体代表性条件/数据/状态/组合，不写完整测试用例、前置步骤、测试步骤、自动化脚本或执行数据清单。
 
 推荐术语：
 
-- 主交付件名称：`测试设计方案`。
-- 单条明细名称：`测试设计项`。
-- 固定缩写：测试场景 `SC-*`、测试点 `TP-*`、测试设计项 `TDI-*`；主交付件不展开英文全名。
-- 设计项 ID：`TDI-001` 起全局连续编号。
-- 设计项内容：代表性条件、数据、状态或组合。
+- 主交付件名称：`测试分析方案`。
+- 单条明细名称：`测试点明细`。
+- 固定缩写：测试场景 `SC-*`、测试点 `TP-*`、测试点明细 `TP-*-*`；主交付件不展开英文全名。
+- 测试点明细 ID：继承测试点 ID，例如 `TP-001-001`。
 - 预期结果：只能写需求或设计方案明确支持的结果；依据不足时写 `待人工分析确认`。
+- `TDI-*` 和 `测试设计项` 留给 `test-design-agent`，当前主交付件禁止输出。
 
 ## 必需输入
 
 - `$ARGUMENTS`：至少包含一份 `.md` 需求文档路径。
 - `$ARGUMENTS` 可额外包含一份或多份 `.md` 设计方案文档路径，或使用 `--design <path>`、`design=<path>`、`设计方案：<path>` 指定。
 
-如果只有需求文档，继续生成测试设计方案；不得编造设计方案中没有的接口、状态、字段、错误提示、错误码或处理规则。缺少判定依据时，在相关测试设计项的 `预期结果` 写 `待人工分析确认`。
+如果只有需求文档，继续生成测试分析方案；不得编造设计方案中没有的接口、状态、字段、错误提示、错误码或处理规则。缺少判定依据时，在相关测试点明细的 `预期结果` 写 `待人工分析确认`。
 
 ## 职责边界
 
 - 本 skill 只负责编排完整分析链路和写出本次运行产物。
 - 业务术语、项目事实和历史经验来自 `memory-context-builder` 生成的上下文包，不在本 skill 内重复维护。
-- 通用测试分析理论、测试类型、测试点标准、测试设计方案标准和测试技术来自 `knowledge/`。
-- 需求与设计方案的结构化结果用于支撑测试点和测试设计项，不直接作为主交付件输出。
+- 通用测试分析理论、测试类型、测试点标准、测试分析方案标准和测试技术来自 `knowledge/`。
+- 需求与设计方案的结构化结果用于支撑测试场景、测试点和测试点明细，不直接作为主交付件输出。
 - `requirement-testability` 负责需求模型和可测性判断。
 - `design-solution-extraction` 负责设计方案事实摘要和设计缺口候选。
 - `clarification-gate` 负责过程级缺口治理；它不向主交付件写待确认章节。
 - `testpoint-generation` 负责生成场景化测试点。
-- `test-design-solution-generation` 负责把测试点扩展为测试设计项和预期结果。
-- `test-design-solution-review` 负责作为独立评审 Agent 检查主交付件质量。
-- 主交付件是 `outputs/runs/<run-id>/deliverables/test-design-solution.md`。
+- `test-analysis-solution-generation` 负责把测试点扩展为测试点明细和预期结果。
+- `test-analysis-solution-review` 负责作为独立评审 Agent 检查主交付件质量。
+- 主交付件是 `outputs/runs/<run-id>/deliverables/test-analysis-solution.md`。
 
 ## 项目根目录与输出路径
 
@@ -61,7 +61,7 @@ project 和 personal 是当前 run 的一等输入源，不是后续阶段随意
 
 project/personal 层只能补充项目风险画像、覆盖策略、术语映射、测试 oracle、模板偏好、个人关注点或附加门禁，不得覆盖 core 层中的核心标准、字段、输出契约和质量门禁。personal 层也不得覆盖需求文档、设计方案文档或 project memory，不得作为项目事实或团队共识。
 
-project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<project-key>/` 下存在自由格式 Markdown，`memory-context-builder` 必须基于文件名、frontmatter、标题、章节和摘要自理解识别文件用途，并在 `context-pack.md` 生成“项目知识阶段绑定”。主流程后续阶段必须遵守该绑定：被绑定到某个阶段的文件，在该阶段开始前必须读取相关章节，并输出应用状态。context-pack 阶段不提前判断具体测试点或测试设计项命中。
+project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<project-key>/` 下存在自由格式 Markdown，`memory-context-builder` 必须基于文件名、frontmatter、标题、章节和摘要自理解识别文件用途，并在 `context-pack.md` 生成“项目知识阶段绑定”。主流程后续阶段必须遵守该绑定：被绑定到某个阶段的文件，在该阶段开始前必须读取相关章节，并输出应用状态。context-pack 阶段不提前判断具体测试点或测试点明细命中。
 
 ## 执行流程
 
@@ -76,10 +76,10 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 9. 使用路由选中的专项分析 skill 产出 `ME-*` 方法证据、测试点候选、技术缺口候选和按源补读记录。
 10. 使用 `clarification-gate` 执行 `CP-ANALYSIS`，收口会导致测试点、方法覆盖或预期结果失真的信息缺口。
 11. 使用 `testpoint-generation` 生成场景化测试点、接口测试点和场景测试条件；如果 context pack 绑定了本阶段 project knowledge，必须先读取并记录应用状态。
-12. 使用 `test-design-solution-generation` 基于场景、测试点、测试技术库和需求/设计方案上下文生成测试设计方案；如果 context pack 绑定了本阶段 project knowledge，必须先读取并记录应用状态。
-13. 使用 `test-design-solution-review` 独立评审测试设计方案，重点检查设计项粒度、预期结果依据和非完整用例化；如果 context pack 绑定了本阶段 checklist 或评审类 project knowledge，必须读取并记录应用状态。
+12. 使用 `test-analysis-solution-generation` 基于场景、测试点、测试技术库和需求/设计方案上下文生成测试分析方案；如果 context pack 绑定了本阶段 project knowledge，必须先读取并记录应用状态。
+13. 使用 `test-analysis-solution-review` 独立评审测试分析方案，重点检查测试点明细粒度、预期结果依据、`TDI-*` 泄漏和非完整用例化；如果 context pack 绑定了本阶段 checklist 或评审类 project knowledge，必须读取并记录应用状态。
 14. 使用 `coverage-review` 执行覆盖审查、质量门禁和确定性校验；如果 context pack 绑定了本阶段 project knowledge，必须读取并检查前序阶段应用状态。
-15. 将主输出写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.md`，使用 `templates/test-design-solution-template.md`。
+15. 将主输出写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.md`，使用 `templates/test-analysis-solution-template.md`。
 16. 如需保留过程审查信息，将分析报告写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md`。
 17. 最终输出前刷新 `process/task-list.md`：所有必选阶段必须为 `done`，未触发的可选阶段为 `skipped` 并说明原因；如果存在 `blocked`，必须在过程报告中说明。
 
@@ -90,13 +90,13 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 | `task-list` | `process/task-list.md` | 全流程阶段顺序与状态追踪 |
 | `memory-context-builder` | `process/context-pack.md`、project/personal 来源使用摘要、项目知识阶段绑定 | 需求与设计方案分析 |
 | `requirement-testability` | 结构化需求模型、需求待确认候选 | 测试技术路由、测试点生成 |
-| `design-solution-extraction` | 设计方案事实摘要、接口/状态/字段/数据依赖清单、设计缺口候选 | 测试技术路由、设计项输入 |
+| `design-solution-extraction` | 设计方案事实摘要、接口/状态/字段/数据依赖清单、设计缺口候选 | 测试技术路由、测试点生成 |
 | `clarification-gate` | `process/clarification-session.md` | 过程缺口治理、预期结果兜底依据 |
 | `testing-method-router` | 分析维度覆盖表、测试技术路由表 | 专项分析 skill、测试点生成 |
-| 专项分析 skill | `ME-*` 方法证据、测试点候选、技术缺口候选 | 测试点生成、测试设计项生成 |
-| `testpoint-generation` | 场景化测试点、接口测试点、场景测试条件 | 测试设计方案生成 |
-| `test-design-solution-generation` | 测试设计项、预期结果 | 独立评审和覆盖审查 |
-| `test-design-solution-review` | 独立评审结论、修正建议 | 覆盖审查与输出收口 |
+| 专项分析 skill | `ME-*` 方法证据、测试点候选、技术缺口候选 | 测试点生成、测试分析方案生成 |
+| `testpoint-generation` | 场景化测试点、接口测试点、场景测试条件 | 测试分析方案生成 |
+| `test-analysis-solution-generation` | 测试点明细、预期结果 | 独立评审和覆盖审查 |
+| `test-analysis-solution-review` | 独立评审结论、修正建议 | 覆盖审查与输出收口 |
 | `coverage-review` | 门禁结果、专家评分、阻断项和修正建议 | 主交付件和过程报告刷新 |
 
 ## Project Knowledge 应用留痕
@@ -110,13 +110,15 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 
 ## 输出要求
 
-- 主输出使用 `templates/test-design-solution-template.md`。
-- 主输出只包含测试设计方案所需内容，不设置 `未明确规则` 章节，不设置独立待确认信息清单。
-- 主输出必须包含 `## 1. 需求范围` 和 `## 2. 测试场景与测试设计`。
-- 主输出必须按 `测试场景 -> 测试点 -> 测试设计项` 组织；接口对象可作为测试场景或测试点呈现，不另建接口专用大纲。
-- 主输出只使用中文术语和固定缩写 `SC`、`TP`、`TDI`，不得使用 `TD-*`、`TC-*`、`TCT-*`、`TI-*`、`ITP-*` 或 `ITDI-*`。
-- 每个测试点下至少有 1 个测试设计项；设计项表必须使用 `测试设计项 ID | 测试设计项 | 预期结果`。
-- `测试设计项` 只写代表性条件、数据、状态或组合，例如“下发订单 ID 总长度为 13 位”“订单已支付状态下重复提交取消请求”。
+- 主输出使用 `templates/test-analysis-solution-template.md`。
+- 主输出只包含测试分析方案所需内容，不设置 `未明确规则` 章节，不设置独立待确认信息清单。
+- 主输出必须包含 `## 1. 需求范围` 和 `## 2. 测试场景与测试点`。
+- 主输出必须按 `测试场景 -> 测试点 -> 测试点明细` 组织；接口对象可作为测试场景或测试点呈现，不另建接口专用大纲。
+- 主输出只使用中文术语和固定缩写 `SC`、`TP`、`TP-*-*`，不得使用 `TDI-*`、`TD-*`、`TC-*`、`TCT-*`、`TI-*`、`ITP-*` 或 `ITDI-*`。
+- 每个测试点下至少有 1 个测试点明细。
+- 每个测试点明细必须包含 `**测试点详情**：` 和 `**预期结果**：`。
+- `测试点明细` 只写规则分支、路径分支、状态分支、权限分支、接口契约分支或风险分支，例如“下发订单 ID 满足长度要求”“下发订单 ID 不满足长度要求”。
+- 主输出不得把测试点明细拆成具体代表性条件、数据、状态或组合，例如不要输出“订单 ID 长度等于 13 位”“订单 ID 长度小于 13 位”；这些留给 `test-design-agent`。
 - `预期结果` 只能来自需求、设计方案、context pack 中明确事实或可直接推出的业务不变量。
 - 如果需求和设计方案没有明确错误提示、状态变化、错误码、返回内容、数据记录变化或其他判定依据，`预期结果` 写 `待人工分析确认`。
 - 主输出不得包含 `覆盖意图`、`级别`、`待确认信息`、`判定关注`、`输入条件与数据依赖` 等旧字段。
@@ -128,8 +130,9 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 - 不生成完整测试用例。
 - 不生成操作步骤。
 - 不生成自动化脚本。
+- 不生成 `TDI-*` 或测试设计项。
 - 不编造需求或设计方案中没有的业务规则、接口、字段、状态、角色、阈值、错误提示、错误码或测试数据。
-- 不把“回读原始需求、设计方案、过程报告或 memory”作为后续理解测试设计方案的前提。
+- 不把“回读原始需求、设计方案、过程报告或 memory”作为后续理解测试分析方案的前提。
 - 不直接覆盖历史运行产物；所有本次运行产物必须写入同一个 `${PROJECT_ROOT}/outputs/runs/<run-id>/` 目录，并使用固定文件名。
 - 不允许在 `skills/`、`.claude-plugin/`、`.opencode/`、插件缓存目录或 skill 工作目录下创建 `outputs/runs/`。
 - 全流程不调用用户交互能力；多个环节只登记过程候选，不直接向用户提问，不暂停主流程。

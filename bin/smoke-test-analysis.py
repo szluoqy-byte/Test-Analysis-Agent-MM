@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run deterministic smoke checks for example test design solutions."""
+"""Run deterministic smoke checks for example test analysis solutions."""
 
 from __future__ import annotations
 
@@ -19,27 +19,38 @@ REQUIRED_FILES = [
     "opencode.json",
     ".claude-plugin/plugin.json",
     "agents/test-analysis-agent.md",
+    "agents/test-design-agent.md",
     ".opencode/agents/test-analysis-agent.md",
-    ".opencode/commands/analyze-requirement-test-design-solution.md",
+    ".opencode/agents/test-design-agent.md",
+    ".opencode/commands/analyze-requirement-test-analysis-solution.md",
+    ".opencode/commands/generate-test-design-solution.md",
     ".opencode/skills/README.md",
-    "docs/test-design-solution-agent-design.md",
+    "docs/test-analysis-agent-design.md",
+    "docs/test-design-agent-design.md",
     "docs/skills-architecture-optimization-analysis.md",
     "docs/output-artifact-contract.md",
     "docs/knowledge-skill-memory-boundaries.md",
     "knowledge/README.md",
     "knowledge/basic-test-types.md",
     "knowledge/test-analysis-methodology.md",
+    "knowledge/test-analysis-solution-standard.md",
     "knowledge/test-design-solution-standard.md",
     "knowledge/test-techniques/README.md",
+    "templates/test-analysis-solution-template.md",
     "templates/test-design-solution-template.md",
+    "templates/test-design-report-template.md",
     "templates/task-list-template.md",
     "templates/context-pack-template.md",
     "templates/clarification-template.md",
     "templates/design-facts-template.md",
     "skills/design-solution-extraction/SKILL.md",
     "skills/context-capture/SKILL.md",
+    "skills/generate-test-design-solution/SKILL.md",
+    "skills/test-analysis-solution-generation/SKILL.md",
+    "skills/test-analysis-solution-review/SKILL.md",
     "skills/test-design-solution-generation/SKILL.md",
     "skills/test-design-solution-review/SKILL.md",
+    "quality-gates/test-analysis-solution-check.md",
     "quality-gates/test-design-solution-check.md",
     "quality-gates/project-knowledge-application-check.md",
     "quality-gates/coverage-check.md",
@@ -48,6 +59,7 @@ REQUIRED_FILES = [
     "outputs/runs/.gitkeep",
     "memory/README.md",
     "examples/evaluation-matrix.md",
+    "bin/lint-test-analysis-solution.py",
     "bin/lint-test-design-solution.py",
     "bin/sync-opencode-skills.py",
     "bin/validate-agent-runtime.py",
@@ -89,23 +101,23 @@ def check_required_files(repo_root: Path) -> list[str]:
 def check_one_requirement(repo_root: Path, requirement: Path) -> bool:
     stem = requirement.stem
     run_dir = example_run_dir(repo_root, stem)
-    solution = run_dir / "deliverables" / "test-design-solution.md"
+    solution = run_dir / "deliverables" / "test-analysis-solution.md"
 
     print(f"\n== {requirement} ==")
     if not run_dir.is_dir():
         print(f"失败: 未找到固定示例运行目录 {run_dir}")
         return False
     if not solution.exists():
-        print(f"失败: 未找到示例测试设计方案 {solution}")
+        print(f"失败: 未找到示例测试分析方案 {solution}")
         return False
 
-    ok = run_command([sys.executable, "bin/lint-test-design-solution.py", str(solution)], repo_root)
+    ok = run_command([sys.executable, "bin/lint-test-analysis-solution.py", str(solution)], repo_root)
     ok &= run_command([sys.executable, "bin/check-artifact-consistency.py", str(run_dir)], repo_root)
     return ok
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="运行 Test Design Solution Agent 的示例 smoke 检查")
+    parser = argparse.ArgumentParser(description="运行 Test Analysis Agent 的示例 smoke 检查")
     parser.add_argument("requirements", nargs="*", type=Path, help="需求 Markdown 路径，默认检查 examples/requirements/*.md")
     args = parser.parse_args()
 

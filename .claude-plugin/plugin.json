@@ -1,17 +1,19 @@
 {
-  "name": "test-design-solution-agent",
-  "description": "面向 Markdown 需求文档和设计方案的独立测试设计方案插件，生成测试场景-测试点-测试设计项粒度的方案，不生成完整测试用例。",
+  "name": "test-analysis-agent",
+  "description": "面向 Markdown 需求文档、设计方案和已评审测试分析方案的独立测试分析/测试设计插件，生成测试分析方案或测试设计方案，不生成完整测试用例。",
   "version": "0.1.0",
   "skills": "./skills/",
   "agents": "./agents/",
   "author": {
-    "name": "Test Design Solution Agent Team"
+    "name": "Test Analysis Agent Team"
   },
   "license": "UNLICENSED",
   "keywords": [
     "testing",
     "requirements",
+    "analysis",
     "design",
+    "test-analysis-solution",
     "test-design-solution",
     "quality-analysis",
     "memory",
