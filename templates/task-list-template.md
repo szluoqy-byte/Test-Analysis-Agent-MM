@@ -27,10 +27,10 @@
 | 8 | 按源补读 | selected method skills | 按需补读记录、来源说明 | pending |  |
 | 9 | 场景化测试点生成 | testpoint-generation | 场景、测试点、project knowledge 应用记录 | pending |  |
 | 10 | 测试分析方案生成 | test-analysis-solution-generation | deliverables/test-analysis-solution.md、project knowledge 应用记录 | pending |  |
-| 11 | 独立评审 | test-analysis-solution-review | 测试点明细粒度、预期结果依据、project checklist 审查和非用例化审查 | pending |  |
-| 12 | 覆盖审查 | coverage-review | 门禁结果、project knowledge 应用检查、专家评分、阻断项 | pending |  |
-| 13 | 确定性校验 | coverage-review / bin | lint、consistency、semantic 检查结果 | pending |  |
-| 14 | 输出收口 | analyze-requirement-test-analysis-solution | 主交付件路径、过程报告路径、检查结果 | pending |  |
+| 11 | 确定性校验 | bin | lint-test-analysis-solution.py 结构校验结果；失败不进入评审 | pending |  |
+| 12 | 独立评审 | test-analysis-solution-review | 语义覆盖、测试点明细粒度、预期结果依据、事实溯源和非用例化语义 | pending |  |
+| 13 | 覆盖审查 | coverage-review | 需求/方法/rules/project knowledge 应用检查、阻断项；专家评分仅深度评估时执行 | pending |  |
+| 14 | 输出收口 | analyze-requirement-test-analysis-solution | 主交付件路径、过程报告路径、check-artifact-consistency.py 结果 | pending |  |
 
 ## 状态说明
 

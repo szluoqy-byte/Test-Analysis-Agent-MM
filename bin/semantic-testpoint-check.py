@@ -148,7 +148,7 @@ def main() -> int:
     if has_gate_section and not gate_rows:
         errors.append("存在质量门禁结果章节，但未找到质量门禁表")
     if has_score_section and not score_rows:
-        errors.append("存在专家评审评分章节，但未找到专家评分表")
+        warnings.append("存在专家评审评分章节但未找到评分表；默认视为未执行可选深度评估")
 
     covered_methods: set[str] = set()
     evidenced_methods: set[str] = set()

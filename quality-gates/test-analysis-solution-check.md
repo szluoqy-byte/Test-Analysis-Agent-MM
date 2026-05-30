@@ -2,6 +2,8 @@
 
 用于检查 `deliverables/test-analysis-solution.md` 是否停留在测试分析方案粒度，并且能支撑 `test-design-agent` 继续细化。
 
+本门禁中的结构、编号、字段、禁用术语和 Markdown 语法规则由 `bin/lint-test-analysis-solution.py` 确定性执行。模型型独立评审和覆盖审查只消费 lint 结果，不再逐条重复检查这些可机械判断的规则。
+
 ## 必须满足
 
 - 主输出按 `测试场景 -> 测试点 -> 测试点明细` 组织；非成功测试点明细按 `测试场景 -> 测试点 -> 测试点明细 -> 失败类型明细` 组织。

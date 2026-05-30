@@ -31,7 +31,7 @@
 
 ## 与现有 Review 的区别
 
-现有 `test-analysis-solution-review` 和 `test-design-solution-review` 是生成链路内部的独立评审步骤，重点保证产物结构、粒度和基本约束不跑偏。
+现有 `test-analysis-solution-review` 和 `test-design-solution-review` 是生成链路内部的独立语义评审步骤，重点保证粒度、事实依据、承接关系和非用例化语义不跑偏。产物结构、编号、字段和 Markdown 语法由确定性 lint 脚本前置检查，不再交给模型评审重复判断。
 
 `test-eval-agent` 是生成链路外部的质量诊断入口，重点发现疑似遗漏、弱覆盖、冲突、错位和系统性改进机会。它不声称自己产出的分析结论比生成 Agent 更正确，只输出基于证据索引和检查清单的风险提示。
 

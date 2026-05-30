@@ -4,6 +4,8 @@
 
 确保输出停留在本 Agent 的测试分析方案粒度，而不是测试设计方案或完整测试用例文档。
 
+明显的字段、禁用术语、Markdown 语法和表格结构问题由 lint 脚本确定性拦截；本门禁在模型评审中只用于判断隐性的用例化语义，例如流程式描述、断言步骤或方法产物清单被当作主交付件内容。
+
 层级边界以 `knowledge/test-analysis-methodology.md` 和 `knowledge/test-analysis-solution-standard.md` 为准。
 
 ## 失败条件

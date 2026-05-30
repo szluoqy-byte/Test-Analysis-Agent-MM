@@ -14,7 +14,7 @@
 
 - context pack 绑定了 project knowledge 到某个阶段，但过程报告或对应阶段输出没有应用记录。
 - 应用状态不是 `applied`、`not_applicable`、`insufficient_evidence`、`conflict_with_requirement` 或 `deferred_to_review`。
-- 绑定到 `test-analysis-solution-review`、`test-design-solution-review` 或 `coverage-review` 的 checklist 未被读取。
+- 绑定到 `coverage-review` 的 checklist 未被读取；如果 context pack 明确把 checklist 额外绑定到 `test-analysis-solution-review` 或 `test-design-solution-review`，对应独立评审也必须读取并留痕。
 - checklist 明确指出核心漏覆盖，但输出既未补充测试点/测试点明细/测试设计项，也未给出不适用或依据不足说明。
 - project knowledge 被用于覆盖 core 输出契约、字段、类型、质量门禁或需求/设计方案中的明确事实。
 
@@ -29,4 +29,4 @@
 - 每个绑定文件在对应阶段都有应用记录。
 - 每条应用记录都有来源文件、当前阶段、应用状态、应用位置和说明。
 - 未应用的文件都有明确的 `not_applicable`、`insufficient_evidence` 或 `conflict_with_requirement` 原因。
-- checklist 类文件在独立评审或覆盖审查中有明确检查结论。
+- checklist 类文件默认在覆盖审查中有明确检查结论；被额外绑定到独立评审时，独立评审也有明确应用记录。

@@ -21,9 +21,9 @@ ANALYSIS_REQUIRED_TASK_STAGES = [
     "按源补读",
     "场景化测试点生成",
     "测试分析方案生成",
+    "确定性校验",
     "独立评审",
     "覆盖审查",
-    "确定性校验",
     "输出收口",
 ]
 DESIGN_REQUIRED_TASK_STAGES = [
@@ -32,9 +32,9 @@ DESIGN_REQUIRED_TASK_STAGES = [
     "构建上下文包",
     "设计依据补读",
     "测试设计方案生成",
+    "确定性校验",
     "独立评审",
     "覆盖审查",
-    "确定性校验",
     "输出收口",
 ]
 OPTIONAL_TASK_STAGES = {"按源补读", "设计方案提取", "设计依据补读"}

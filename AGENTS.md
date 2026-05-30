@@ -64,16 +64,17 @@
 ## 主流程
 
 - 当用户要求基于需求和设计方案生成测试场景、测试点、测试点明细粒度的方案时，使用 `analyze-requirement-test-analysis-solution`。
-- 阶段性动作依次使用 `memory-context-builder`、`requirement-testability`、`design-solution-extraction`、`clarification-gate`、`testing-method-router`、路由选中的专项分析 skills、`testpoint-generation`、`test-analysis-solution-generation`、`test-analysis-solution-review` 和 `coverage-review`。
+- 阶段性动作依次使用 `memory-context-builder`、`requirement-testability`、`design-solution-extraction`、`clarification-gate`、`testing-method-router`、路由选中的专项分析 skills、`testpoint-generation`、`test-analysis-solution-generation`、确定性 lint、`test-analysis-solution-review` 和 `coverage-review`。
 - 设计方案输入用于补充接口、字段、状态、权限、数据依赖、配置开关、异常处理和非功能指标；没有设计方案时继续生成，并把缺口沉淀到过程澄清记录或单条预期结果的 `待人工分析确认`。
 - 当用户要求基于已评审测试分析方案生成测试设计项时，使用 `generate-test-design-solution`。
-- 测试设计阶段使用 `test-design-solution-generation` 和 `test-design-solution-review`，在每个 `TP-*-*` 下生成 `TDI-*`；如果用户只提供需求/设计方案且要求测试设计，必须先生成或取得测试分析方案，再进入测试设计。
+- 测试设计阶段使用 `test-design-solution-generation`、确定性 lint 和 `test-design-solution-review`，在每个 `TP-*-*` 下生成 `TDI-*`；如果用户只提供需求/设计方案且要求测试设计，必须先生成或取得测试分析方案，再进入测试设计。
 - 不编造业务事实、状态、角色、接口契约、阈值、错误码、错误提示、状态变化或测试数据。
 - 如果需求和设计方案没有说明错误提示、状态变化、错误码或其他判定依据，相关测试点明细或测试设计项的 `预期结果` 写 `待人工分析确认`。
 - 每个测试场景下必须包含一个 `E2E场景测试` 测试点，用于覆盖该场景端到端业务主流程是否按预期完整闭环。
 - 是否新增第四层由 `TP-*-*` 测试点明细决定：只有非成功测试点明细新增 `TP-*-*-*` 失败类型明细，`TP-*` 本身仍表示测试点主题。
 - 主交付件不设置独立的 `未明确规则` 章节，也不输出待确认信息清单；澄清和缺口治理保留在过程产物中。
 - 主交付件不得使用 Markdown 加粗语法，例如 `**文本**` 或 `__文本__`。
+- 确定性结构、编号、字段、Markdown 语法和固定产物一致性问题以 Python 脚本为事实源；`test-analysis-solution-review` 和 `coverage-review` 不重复执行脚本已覆盖的检查，只处理语义质量、覆盖、追踪、方法应用、rules/project knowledge 应用和过程门禁。
 - 在认为单次报告完成前，只运行当前 run 相关的确定性检查，例如对应交付件 lint 和 `bin/check-artifact-consistency.py`；不要在 review 阶段运行示例 smoke。
 
 ## 校验命令

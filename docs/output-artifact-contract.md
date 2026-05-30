@@ -147,7 +147,8 @@ outputs/
 
 ## 校验
 
-- `bin/lint-test-analysis-solution.py` 校验主交付件结构和标题。
-- `bin/lint-test-design-solution.py` 校验测试设计主交付件结构和标题。
+- `bin/lint-test-analysis-solution.py` 校验测试分析主交付件结构、编号、字段、禁用术语和 Markdown 语法。
+- `bin/lint-test-design-solution.py` 校验测试设计主交付件结构、编号、字段、禁用术语和 Markdown 语法。
 - `bin/check-artifact-consistency.py` 校验 run 目录、任务清单和主交付件基础一致性。
+- 模型型独立评审和覆盖审查只消费上述确定性结果，不重复逐条检查可机械判断项。
 - `bin/smoke-test-analysis.py` 读取固定 run fixtures 下的 `deliverables/test-analysis-solution.md`，用于框架回归和示例 fixture 检查，不属于单次方案 review 阶段。

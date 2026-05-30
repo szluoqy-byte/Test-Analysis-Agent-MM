@@ -59,7 +59,7 @@
 
 | 来源文件 | 自理解类型 | 判断依据 | 强制应用环节 | 读取策略 | 应用留痕要求 |
 |---|---|---|---|---|---|
-|  | 测试设计因子库/测试设计模式库/测试设计Checklist/风险画像/Oracle/路由说明/术语表/unclassified | 文件名、frontmatter、标题或摘要 | testing-method-router / testpoint-generation / test-analysis-solution-generation / test-analysis-solution-review / test-design-solution-generation / test-design-solution-review / coverage-review 等 | 阶段开始前按相关章节或关键词读取，不全量复制大文件 | 输出 applied / not_applicable / insufficient_evidence / conflict_with_requirement / deferred_to_review |
+|  | 测试设计因子库/测试设计模式库/测试设计Checklist/风险画像/Oracle/路由说明/术语表/unclassified | 文件名、frontmatter、标题或摘要 | testing-method-router / testpoint-generation / test-analysis-solution-generation / test-design-solution-generation / coverage-review 等；checklist 默认绑定 coverage-review，明确评审用途时才绑定独立评审 | 阶段开始前按相关章节或关键词读取，不全量复制大文件 | 输出 applied / not_applicable / insufficient_evidence / conflict_with_requirement / deferred_to_review |
 
 ## 相关项目事实
 

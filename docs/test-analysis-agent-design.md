@@ -122,11 +122,15 @@ flowchart TD
   route --> methods[专项分析 skills<br/>产出 ME-* 方法证据与测试点候选]
   methods --> cpAnalysis[clarification-gate CP-ANALYSIS<br/>收口会影响覆盖和预期结果的缺口]
   cpAnalysis --> tp[testpoint-generation<br/>生成 SC-* 与 TP-*]
-  tp --> analysis[test-analysis-solution-generation<br/>生成 TP-*-*<br/>非成功明细拆分 TP-*-*-*]
-  analysis --> review[test-analysis-solution-review<br/>检查 E2E、失败类型、预期结果依据和 TDI 泄漏]
-  review --> coverage[coverage-review<br/>覆盖审查与项目知识应用检查]
-  coverage --> lint[bin/lint-test-analysis-solution.py<br/>bin/check-artifact-consistency.py]
-  lint --> output[deliverables/test-analysis-solution.md]
+  tp --> analysis[test-analysis-solution-generation<br/>写入 test-analysis-solution.md<br/>非成功明细拆分 TP-*-*-*]
+  analysis --> lint[bin/lint-test-analysis-solution.py<br/>确定性结构校验]
+  lint --> lintDecision{lint 是否通过}
+  lintDecision -- 否 --> fix[修正主交付件<br/>不进入模型评审]
+  fix --> lint
+  lintDecision -- 是 --> review[test-analysis-solution-review<br/>语义评审<br/>粒度/依据/事实/非用例化]
+  review --> coverage[coverage-review<br/>覆盖/追踪/方法/rules/project knowledge]
+  coverage --> consistency[bin/check-artifact-consistency.py<br/>最终一致性校验]
+  consistency --> output[deliverables/test-analysis-solution.md]
   output --> finish([完成])
 ```
 
@@ -143,9 +147,10 @@ flowchart TD
 | 方法路由 | `testing-method-router` | 选择适用测试技术和专项分析 skill |
 | 专项分析 | 各专项 `*-analysis` skill | 生成方法证据、测试点候选和技术缺口 |
 | 测试点生成 | `testpoint-generation` | 生成 `SC-*` 和 `TP-*` |
-| 测试分析方案生成 | `test-analysis-solution-generation` | 生成 `TP-*-*` 测试点明细和预期结果；非成功测试点明细继续拆分 `TP-*-*-*` |
-| 独立评审 | `test-analysis-solution-review` | 检查 E2E 测试点、失败类型明细、测试点明细粒度、预期结果依据、旧字段和 TDI 泄漏 |
-| 覆盖审查 | `coverage-review` | 检查需求覆盖、方法覆盖、项目知识应用和质量门禁 |
+| 测试分析方案生成 | `test-analysis-solution-generation` | 生成并写入 `TP-*-*` 测试点明细和预期结果；非成功测试点明细继续拆分 `TP-*-*-*` |
+| 确定性校验 | `bin/lint-test-analysis-solution.py` | 检查结构、编号、字段、Markdown 语法、禁用术语、E2E 存在性和第四层格式；失败时不进入模型评审 |
+| 独立评审 | `test-analysis-solution-review` | 只检查语义质量：测试点明细粒度、失败类型拆分充分性、预期结果依据、事实溯源和非用例化倾向 |
+| 覆盖审查 | `coverage-review` | 检查需求覆盖、方法覆盖、追踪关系、rules 应用、项目知识应用和过程门禁；不重复 lint 已覆盖的结构规则 |
 
 ## Knowledge 分工
 
@@ -176,11 +181,13 @@ flowchart TD
 `knowledge/projects/<project-key>/` 下的文件名没有硬性要求。context pack 阶段只判断文件用途和强制应用环节，不提前判断具体测试点或测试点明细命中。
 
 - 测试设计因子库、业务测试设计模式库可绑定到 `testing-method-router`、`testpoint-generation`、`test-analysis-solution-generation` 和 `test-design-solution-generation`。
-- 测试设计 checklist 可绑定到 `test-analysis-solution-review`、`test-design-solution-review` 和 `coverage-review`。
+- 测试设计 checklist 默认绑定到 `coverage-review` 统一查漏；只有文件或用户指令明确要求产物语义评审时，才额外绑定到 `test-analysis-solution-review` 或 `test-design-solution-review`。
 - 被绑定到某阶段的 project knowledge，该阶段必须读取相关章节并输出应用状态。
 - 应用状态只能使用 `applied`、`not_applicable`、`insufficient_evidence`、`conflict_with_requirement` 或 `deferred_to_review`。
 
 ## 质量门禁
+
+确定性结构、编号、字段、Markdown 语法和固定章节问题以 `bin/lint-test-analysis-solution.py` 为事实源；模型型 review 不重复逐项检查，只消费脚本结果并继续做语义和覆盖判断。
 
 - 主输出必须按 `测试场景 -> 测试点 -> 测试点明细` 组织。
 - 每个测试场景必须包含 `E2E场景测试` 测试点。

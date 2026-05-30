@@ -89,7 +89,7 @@ context pack 对 project/personal 的记录必须满足四个要求：
 | 文件意图 | 识别信号 | 强制应用环节 | 使用目的 |
 |---|---|---|---|
 | 测试设计因子库/业务测试设计模式库 | 文件名或标题包含 `factor`、`pattern`、`测试设计因子`、`测试设计模式`、`覆盖因子`、`业务模式` | `testing-method-router`、`testpoint-generation`、`test-analysis-solution-generation`、`test-design-solution-generation` | 增强测试技术路由、补充测试点明细，并在设计阶段生成代表性条件、数据、状态或组合 |
-| 测试设计 Checklist/检查清单 | 文件名或标题包含 `checklist`、`check-list`、`检查清单`、`评审清单`、`验收检查` | `test-analysis-solution-review`、`test-design-solution-review`、`coverage-review` | 独立评审和覆盖审查时强制查漏 |
+| 测试设计 Checklist/检查清单 | 文件名或标题包含 `checklist`、`check-list`、`检查清单`、`评审清单`、`验收检查` | 默认 `coverage-review`；仅当文件或用户指令明确要求产物语义评审时，额外绑定 `test-analysis-solution-review` 或 `test-design-solution-review` | 覆盖审查阶段统一查漏，避免独立评审和覆盖审查重复读取同一 checklist |
 | 风险画像/历史高风险策略 | 文件名或标题包含 `risk`、`风险`、`缺陷高发`、`风险画像` | `testing-method-router`、`risk-based-test-analysis`、`testpoint-generation`、`coverage-review` | 调整方法选择、风险测试点和覆盖深度 |
 | Oracle/判定启发 | 文件名或标题包含 `oracle`、`判定`、`预期结果`、`结果依据` | `testpoint-generation`、`test-analysis-solution-generation`、`coverage-review` | 补充可观察结果和预期结果依据 |
 | 路由说明/覆盖策略 | 文件名或标题包含 `routing`、`route`、`coverage`、`路由`、`覆盖策略` | `testing-method-router`、`testpoint-generation`、`coverage-review` | 约束测试技术选择和覆盖审查 |

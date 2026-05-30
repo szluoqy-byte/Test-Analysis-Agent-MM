@@ -92,10 +92,10 @@ flowchart TD
   analysisCheck --> ctx[memory-context-builder<br/>读取或生成 context-pack<br/>确认适用 rules]
   ctx --> basis[补读需求与设计依据<br/>只补充判定依据]
   basis --> generation[test-design-solution-generation<br/>在叶子分析节点生成 TDI-*]
-  generation --> review[test-design-solution-review<br/>检查承接层级、粒度和预期结果依据]
+  generation --> lint[bin/lint-test-design-solution.py<br/>确定性结构校验]
+  lint --> review[test-design-solution-review<br/>语义评审<br/>承接/粒度/预期结果依据]
   review --> coverage[coverage-review<br/>覆盖与项目知识应用检查]
-  coverage --> lint[bin/lint-test-design-solution.py]
-  lint --> output[deliverables/test-design-solution.md]
+  coverage --> output[deliverables/test-design-solution.md]
   output --> finish([完成])
 ```
 
@@ -106,8 +106,9 @@ flowchart TD
 | Agent 门面 | `test-design-agent` | 识别用户意图，路由设计生成、评审、记录和框架维护任务 |
 | 主入口 | `generate-test-design-solution` | 固定根目录、复用或创建 run、编排设计链路、输出主交付件 |
 | 设计生成 | `test-design-solution-generation` | 在普通 `TP-*-*` 或失败类型 `TP-*-*-*` 下生成 `TDI-*` 和预期结果 |
-| 独立评审 | `test-design-solution-review` | 检查承接关系、设计项粒度、预期结果依据、旧字段和非完整用例化 |
-| 覆盖审查 | `coverage-review` | 检查需求覆盖、分析方案承接、rules 应用、项目知识应用和质量门禁 |
+| 确定性校验 | `bin/lint-test-design-solution.py` | 检查结构、编号、字段、Markdown 语法和禁用术语；失败时不进入模型评审 |
+| 独立评审 | `test-design-solution-review` | 检查承接关系、设计项粒度、预期结果依据和非完整用例化语义 |
+| 覆盖审查 | `coverage-review` | 检查需求覆盖、分析方案承接、rules 应用、项目知识应用和质量门禁；不重复 lint 已覆盖的结构规则 |
 
 ## Knowledge 分工
 
