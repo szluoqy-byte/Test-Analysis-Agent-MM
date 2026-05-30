@@ -7,6 +7,8 @@ import re
 import sys
 from pathlib import Path
 
+from deliverable_markdown import normalize_angle_brackets
+
 
 REQUIRED_SECTIONS = [
     "## 1. 需求范围",
@@ -18,6 +20,33 @@ EXPECTED_FALLBACK = "待人工分析确认"
 DETAIL_PREFIX = "- 测试点详情："
 EXPECTED_PREFIX = "- 预期结果："
 E2E_POINT_TITLE = "E2E场景测试"
+INTERFACE_SCENARIO_TERMS = (
+    "接口",
+    "API",
+    "集成",
+    "外部系统",
+    "第三方",
+)
+INTERFACE_SCOPE_MARKERS = (
+    "接口：",
+    "接口:",
+    "端点：",
+    "端点:",
+    "集成点：",
+    "集成点:",
+    "回调：",
+    "回调:",
+    "消息：",
+    "消息:",
+    "通用接口",
+    "跨接口",
+    "所有接口",
+    "全接口",
+)
+ENDPOINT_SIGNATURE_RE = re.compile(
+    r"\b(?:GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+/[^\s`|，。；;）)]+"
+    r"|/[A-Za-z0-9_{}?=&%./:-]+"
+)
 NON_SUCCESS_DETAIL_TERMS = (
     "失败",
     "拒绝",
@@ -30,16 +59,24 @@ NON_SUCCESS_DETAIL_TERMS = (
     "异常",
     "错误",
     "超时",
+    "技术问题",
+    "技术错误",
     "越权",
     "权限限制",
     "鉴权失败",
     "鉴权拒绝",
     "拦截",
+    "未注册",
+    "未找到",
     "为零",
+    "列表为空",
+    "空列表",
     "依赖失败",
     "状态不允许",
     "重复提交失败",
     "重复请求失败",
+    "回滚",
+    "补偿",
 )
 
 BANNED_MAIN_SECTIONS = (
@@ -142,6 +179,33 @@ def has_markdown_bold_marker(line: str) -> str | None:
 
 def is_non_success_detail(title: str, block_lines: list[str] | None = None) -> bool:
     return any(term in title for term in NON_SUCCESS_DETAIL_TERMS)
+
+
+def is_interface_oriented_scenario(title: str, block_text: str) -> bool:
+    return any(term in title for term in INTERFACE_SCENARIO_TERMS) or any(
+        marker in block_text for marker in ("接口测试", "API测试", "API 测试")
+    )
+
+
+def is_interface_scoped_point(title: str) -> bool:
+    return any(marker in title for marker in INTERFACE_SCOPE_MARKERS) or bool(
+        ENDPOINT_SIGNATURE_RE.search(title)
+    )
+
+
+def collect_scenario_blocks(lines: list[str]) -> list[tuple[int, str, str, str]]:
+    blocks: list[tuple[int, str, str, str]] = []
+    for index, line in enumerate(lines):
+        match = re.match(r"^### (SC-\d{3})\s+(.+)", line)
+        if not match:
+            continue
+        end_index = len(lines)
+        for next_index in range(index + 1, len(lines)):
+            if lines[next_index].startswith("### ") or re.match(r"^##\s+", lines[next_index]):
+                end_index = next_index
+                break
+        blocks.append((index + 1, match.group(1), match.group(2).strip(), "\n".join(lines[index + 1 : end_index])))
+    return blocks
 
 
 def collect_scenario_points(lines: list[str]) -> tuple[dict[str, list[tuple[int, str, str]]], dict[str, tuple[int, str]]]:
@@ -261,6 +325,7 @@ def main() -> int:
         return 2
 
     solution_path = Path(sys.argv[1])
+    normalize_angle_brackets(solution_path)
     text = solution_path.read_text(encoding="utf-8-sig")
     lines = text.splitlines()
     errors: list[str] = []
@@ -315,6 +380,28 @@ def main() -> int:
         if not any(E2E_POINT_TITLE in point_title for _point_line, _point_id, point_title in points):
             errors.append(f"第 {line_number} 行：测试场景 {scenario_id} 下缺少 `{E2E_POINT_TITLE}` 测试点")
 
+    for line_number, scenario_id, scenario_title, block_text in collect_scenario_blocks(lines):
+        if not is_interface_oriented_scenario(scenario_title, block_text):
+            continue
+        points = scenario_points.get(scenario_id, [])
+        non_e2e_points = [
+            (point_line, point_id, point_title)
+            for point_line, point_id, point_title in points
+            if E2E_POINT_TITLE not in point_title
+        ]
+        endpoint_signatures = set(ENDPOINT_SIGNATURE_RE.findall(block_text))
+        if endpoint_signatures and not non_e2e_points:
+            errors.append(
+                f"第 {line_number} 行：接口测试场景 {scenario_id} 应先按接口、端点或集成点拆分同级 `TP-*`，"
+                "不能只放在 `E2E场景测试` 下"
+            )
+        for point_line, _point_id, point_title in non_e2e_points:
+            if not is_interface_scoped_point(point_title):
+                errors.append(
+                    f"第 {point_line} 行：接口测试场景中的测试点 `{point_title}` 必须先标明目标接口、端点、集成点或通用接口范围，"
+                    "例如 `接口：GET /customers/...` 或 `通用接口鉴权规则（适用于所有接口）`"
+                )
+
     detail_blocks = collect_detail_blocks(lines)
     failure_type_blocks = collect_failure_type_blocks(lines)
     if not detail_blocks:
@@ -345,6 +432,23 @@ def main() -> int:
         if parent_detail_id not in detail_ids:
             errors.append(f"第 {line_number} 行：失败类型明细 {failure_type_id} 缺少父级测试点明细 {parent_detail_id}")
         failure_types_by_detail.setdefault(parent_detail_id, []).append((line_number, failure_type_id))
+
+    for point_id, (point_line_number, point_title) in point_titles.items():
+        if E2E_POINT_TITLE not in point_title:
+            continue
+        point_details = details_by_point.get(point_id, [])
+        if len(point_details) != 1:
+            errors.append(
+                f"第 {point_line_number} 行：`{E2E_POINT_TITLE}` 是独立测试点，"
+                "只能包含 1 个端到端主流程成功闭环测试点明细；其他规则、异常、接口、权限或补偿分支必须拆成同级 `TP-*`"
+            )
+        for detail_line_number, detail_id in point_details:
+            _line_number, detail_title, detail_block_lines = detail_titles[detail_id]
+            if detail_id in failure_types_by_detail or is_non_success_detail(detail_title, detail_block_lines):
+                errors.append(
+                    f"第 {detail_line_number} 行：`{E2E_POINT_TITLE}` 下不得承载非成功、异常、校验或补偿分支 `{detail_title}`，"
+                    "请拆为场景下独立的同级 `TP-*`"
+                )
 
     leaf_blocks: list[tuple[int, str, list[str], str]] = []
     for line_number, detail_id, block_lines in detail_blocks:

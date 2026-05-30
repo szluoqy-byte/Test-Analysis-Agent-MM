@@ -7,6 +7,8 @@ import re
 import sys
 from pathlib import Path
 
+from deliverable_markdown import normalize_deliverable_markdown_files
+
 
 TASK_LIST_HEADER = "| 序号 | 阶段 | 负责 skill | 必须产物/检查点 | 状态 | 证据/路径 |"
 TASK_STATUS_VALUES = {"pending", "in_progress", "done", "blocked", "skipped"}
@@ -239,6 +241,7 @@ def main() -> int:
 
     solution_path = run_dir / "deliverables" / "test-analysis-solution.md"
     design_solution_path = run_dir / "deliverables" / "test-design-solution.md"
+    normalize_deliverable_markdown_files(run_dir / "deliverables")
     task_list_path = run_dir / "process" / "task-list.md"
     context_pack_path = run_dir / "process" / "context-pack.md"
     clarification_session_path = run_dir / "process" / "clarification-session.md"
