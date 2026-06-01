@@ -23,11 +23,12 @@ description: 当用户提供已评审测试分析方案，或要求从需求先�
 优先输入：
 
 - `$ARGUMENTS`：一份 `test-analysis-solution.md` 或其他已评审测试分析方案 Markdown 路径。
-- 可选：原始需求文档路径、设计方案文档路径、`--requirement <path>`、`--design <path>`、`requirement=<path>`、`design=<path>`、`project=<project-key>` 或 `personal=<personal-key>`。
+- 可选：原始需求文档路径、设计方案文档路径、`--requirement <path>`、`--design <path>`、`requirement=<path>`、`design=<path>`、`project=<project-key>` 或 `personal=<personal-key>`。原始需求、设计依据或外部分析方案可以是 `.md`、`.docx` 或 `.xlsx`；Office 输入必须先归一化为 Markdown。
 
 兼容输入：
 
 - 如果用户只提供需求文档和可选设计方案文档，并明确要求生成测试设计方案，本 skill 必须先使用 `analyze-requirement-test-analysis-solution` 生成 `deliverables/test-analysis-solution.md`，再以该分析方案作为设计输入继续执行。
+- 如果输入包含 `.docx` 或 `.xlsx`，必须先使用 `normalize-input-documents` 转换并缓存为 Markdown，再把归一化后的 Markdown 路径交给分析方案校验、需求/设计依据补读或上游分析流程。
 - 如果用户提供的分析方案未通过 `bin/lint-test-analysis-solution.py`，不得静默设计；先记录为输入质量问题，按需回到分析流程修正。
 
 ## 职责边界
@@ -64,7 +65,7 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 
 ## 执行流程
 
-1. 校验输入：识别测试分析方案、需求文档和可选设计方案文档。
+1. 校验输入：识别测试分析方案、需求文档和可选设计方案文档。若输入包含 `.docx` 或 `.xlsx`，先调用 `normalize-input-documents`，使用 `python bin/normalize-office-input.py` 将 Office 输入转换到 `outputs/input-cache/<sha256-12>/`，后续步骤只使用归一化 Markdown 路径。
 2. 如果没有测试分析方案，先调用 `analyze-requirement-test-analysis-solution` 生成分析方案，并以其输出作为后续输入。
 3. 固定 `PROJECT_ROOT` 和 `<run-id>`；需要新建 run 时先运行 `python bin/generate-run-id.py`，再创建或复用 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/`、`process/` 和 `reports/`。
 4. 创建或刷新 `process/task-list.md`，记录当前进入测试设计阶段。
@@ -83,6 +84,7 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 
 | 阶段 | 必须产出 | 交给下一阶段 |
 |---|---|---|
+| `normalize-input-documents` | Office 输入归一化 Markdown、conversion metadata；无 Office 输入时记录 skipped | 分析方案校验和设计依据补读 |
 | `analysis-solution-check` | 已校验测试分析方案、承接关系检查 | 测试设计项生成 |
 | `memory-context-builder` | `process/context-pack.md` 或复用记录、适用强制规则、Rules 与输入冲突记录、项目知识阶段绑定 | 测试设计项生成和评审 |
 | `clarification-session` | `process/clarification-session.md`，无候选时声明 `无待确认候选` | 测试设计项生成和评审 |

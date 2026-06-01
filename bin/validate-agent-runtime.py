@@ -18,14 +18,15 @@ MAIN_SKILLS = {
 }
 REQUIRED_SKILLS = {
     *MAIN_SKILLS.values(),
+    "normalize-input-documents",
     "test-analysis-solution-generation",
     "test-analysis-solution-review",
     "test-design-solution-generation",
     "test-design-solution-review",
 }
 REQUIRED_AGENTS = {
-    "test-analysis-agent": ("analyze-requirement-test-analysis-solution", "context-capture"),
-    "test-design-agent": ("generate-test-design-solution", "test-design-solution-generation", "context-capture"),
+    "test-analysis-agent": ("analyze-requirement-test-analysis-solution", "normalize-input-documents", "context-capture"),
+    "test-design-agent": ("generate-test-design-solution", "normalize-input-documents", "test-design-solution-generation", "context-capture"),
 }
 OPENCODE_COMMANDS = {
     ".opencode/commands/analyze-requirement-test-analysis-solution.md": "analyze-requirement-test-analysis-solution",

@@ -30,6 +30,7 @@ permission:
 | 用户意图 | 处理方式 |
 |---|---|
 | 基于已评审测试分析方案生成测试设计方案 | 使用 `generate-test-design-solution` 主流程 |
+| 输入需求、设计依据或外部分析方案是 `.docx` / `.xlsx` | 先使用 `normalize-input-documents` 转换并缓存为 Markdown，再进入设计主流程 |
 | 只有需求/设计方案但要求直接生成测试设计方案 | 先通过 `analyze-requirement-test-analysis-solution` 生成分析方案，再由 `generate-test-design-solution` 扩展设计项 |
 | 评审测试设计项粒度、预期结果或非用例化问题 | 使用 `test-design-solution-review` 和 `quality-gates/test-design-solution-check.md` |
 | 只咨询测试设计方法、测试技术或设计项粒度 | 读取相关 `knowledge/`、`docs/` 或 skill，先给分析建议；除非用户要求，不改文件 |

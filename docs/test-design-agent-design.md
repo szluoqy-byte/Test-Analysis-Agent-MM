@@ -2,7 +2,7 @@
 
 ## 目标
 
-`test-design-agent` 承接已评审 `测试分析方案`，输出 `测试设计方案`。它回答 how to test：每个普通测试点明细或失败类型明细应该使用哪些代表性条件、数据、状态或组合覆盖，并给出需求或设计方案可确认的预期结果。
+`test-design-agent` 承接已评审 `测试分析方案`，输出 `测试设计方案`。它回答 how to test：每个普通测试点明细或失败类型明细应该使用哪些代表性条件、数据、状态或组合覆盖，并给出需求或设计方案可确认的预期结果。若输入的需求、设计依据或外部分析方案是 `.docx` / `.xlsx`，先归一化为 Markdown，再进入设计链路。
 
 主交付件不生成完整测试用例，不输出前置步骤、测试步骤、自动化脚本或执行数据清单。
 
@@ -80,7 +80,8 @@ outputs/runs/<run-id>/deliverables/test-design-solution.md
 flowchart TD
   start(["用户请求"])
   start --> agent["test-design-agent<br/>识别设计意图与入口"]
-  agent --> main["generate-test-design-solution<br/>创建或复用 run"]
+  agent --> normalize["normalize-input-documents<br/>Office 输入转 Markdown<br/>复用 input-cache"]
+  normalize --> main["generate-test-design-solution<br/>创建或复用 run"]
   main --> hasAnalysis{"是否已有已评审分析方案"}
   hasAnalysis -- 否 --> analysis["analyze-requirement-test-analysis-solution<br/>先生成测试分析方案"]
   analysis --> analysisCheck["bin/lint-test-analysis-solution.py"]
@@ -101,6 +102,7 @@ flowchart TD
 | 层级 | Skill | 职责 |
 |---|---|---|
 | Agent 门面 | `test-design-agent` | 识别用户意图，路由设计生成、评审、记录和框架维护任务 |
+| 输入归一化 | `normalize-input-documents` | 将 `.docx` / `.xlsx` 需求、设计依据或外部分析方案转换并缓存为 Markdown，后续流程只读取 Markdown |
 | 主入口 | `generate-test-design-solution` | 固定根目录、复用或创建 run、编排设计链路、输出主交付件 |
 | 设计生成 | `test-design-solution-generation` | 在普通 `TP-*-*` 或失败类型 `TP-*-*-*` 下生成 `TDI-*` 和预期结果 |
 | 确定性校验 | `bin/lint-test-design-solution.py` | 检查结构、编号、字段、Markdown 语法和禁用术语；失败时不进入模型评审 |

@@ -65,8 +65,13 @@ REQUIRED_FILES = [
     "examples/evaluation-matrix.md",
     "bin/lint-test-analysis-solution.py",
     "bin/lint-test-design-solution.py",
+    "bin/normalize-office-input.py",
     "bin/sync-opencode-skills.py",
     "bin/validate-agent-runtime.py",
+    "skills/normalize-input-documents/SKILL.md",
+    "skills/normalize-input-documents/references/docx-image-and-diagram-workflow.md",
+    "skills/normalize-input-documents/references/xlsx-to-markdown.md",
+    "skills/normalize-input-documents/references/xlsx-to-ai-knowledge-base.md",
 ]
 
 

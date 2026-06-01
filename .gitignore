@@ -3,6 +3,8 @@ __pycache__/
 *.py[cod]
 outputs/runs/*
 !outputs/runs/.gitkeep
+outputs/input-cache/*
+!outputs/input-cache/.gitkeep
 outputs/temp/
 memory/domains/*
 !memory/domains/README.md

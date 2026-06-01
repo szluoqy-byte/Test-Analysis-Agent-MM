@@ -45,6 +45,7 @@ Rules 是高优先级约束源：优先级低于当前用户明确指令，高�
 | 项目风险画像、覆盖策略、术语映射、路由说明、测试 oracle、测试设计因子、测试设计模式和 checklist 补充 | `knowledge/projects/<project-key>/**/*.md` | 项目级测试知识补充，确定 `project-key` 后按需扫描并登记阶段绑定 |
 | 个人测试启发、检查清单和本地关注点 | `knowledge/user/**/*.md` | personal 层知识补充，按需扫描 |
 | 记住、记录、归档类请求的写入分类流程 | `skills/context-capture/SKILL.md` | 判断写入 memory/knowledge 与 personal/project 层级 |
+| `.docx` / `.xlsx` 输入转 Markdown 与缓存复用流程 | `skills/normalize-input-documents/SKILL.md` | 输入归一化流程；转换结果写入 `outputs/input-cache/`，不沉淀为 knowledge 或 memory |
 | 某个测试技术的执行步骤 | `skills/*/SKILL.md` | 过程性动作，不是事实库 |
 | 输入、输出、约束、质量门禁调用顺序 | `skills/*/SKILL.md` | 插件运行流程 |
 | 项目全局事实、全局约束、输出偏好和项目专属术语覆盖 | `memory/project-memory.md` | 项目专属且经确认 |

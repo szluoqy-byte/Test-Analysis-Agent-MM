@@ -6,6 +6,10 @@
 
 ```text
 outputs/
+  input-cache/
+    <sha256-12>/
+      <source-stem>.md
+      <source-stem>.conversion.json
   runs/
     <run-id>/
       deliverables/
@@ -21,6 +25,8 @@ outputs/
 
 新建完整 run 时，`run-id` 固定使用 `python bin/generate-run-id.py` 生成，格式为 `<YYYYMMDD-HHMMSS>`。同一轮分析、修正、质量门禁重跑和报告刷新必须复用已创建的 run 目录；测试设计阶段优先复用上游测试分析方案所在 run。
 
+当需求文档、系统设计方案或外部分析方案输入为 `.docx` 或 `.xlsx` 时，必须先通过 `normalize-input-documents` 归一化为 Markdown。归一化结果按源文件内容哈希写入 `outputs/input-cache/<sha256-12>/`，源文件内容不变时复用缓存，避免重复解析。后续测试分析和测试设计流程只读取归一化 Markdown 路径。
+
 ## 固定产物
 
 | 类型 | 路径 | 必须生成 | 说明 |
@@ -31,6 +37,8 @@ outputs/
 | 上下文包 | `process/context-pack.md` | 是 | 记录适用 rules、Rules 与输入冲突、core/project/personal 来源绑定、命中、未采用来源、项目知识阶段绑定和补读建议 |
 | 待确认治理记录 | `process/clarification-session.md` | 是 | 记录候选问题、去重降级结果和预期结果兜底清单；无候选时也必须生成并声明 `无待确认候选`；不写入主交付件章节 |
 | 过程分析报告 | `reports/test-analysis-report.md` | 可选 | 记录方法证据、覆盖审查、独立评审和质量门禁 |
+| 归一化输入缓存 | `outputs/input-cache/<sha256-12>/<source-stem>.md` | Office 输入时是 | `.docx` / `.xlsx` 转换后的 Markdown 输入事实源，不属于单次 run 目录，可跨 run 复用 |
+| 归一化输入 metadata | `outputs/input-cache/<sha256-12>/<source-stem>.conversion.json` | Office 输入时是 | 记录源路径、源大小、mtime、SHA-256、转换时间、输出路径和转换警告 |
 
 ## Process 目录边界
 

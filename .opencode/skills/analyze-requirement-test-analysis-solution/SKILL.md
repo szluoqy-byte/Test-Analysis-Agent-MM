@@ -21,8 +21,9 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 
 ## 必需输入
 
-- `$ARGUMENTS`：至少包含一份 `.md` 需求文档路径。
-- `$ARGUMENTS` 可额外包含一份或多份 `.md` 设计方案文档路径，或使用 `--design <path>`、`design=<path>`、`设计方案：<path>` 指定。
+- `$ARGUMENTS`：至少包含一份 `.md`、`.docx` 或 `.xlsx` 需求文档路径。
+- `$ARGUMENTS` 可额外包含一份或多份 `.md`、`.docx` 或 `.xlsx` 设计方案文档路径，或使用 `--design <path>`、`design=<path>`、`设计方案：<path>` 指定。
+- 如果输入包含 `.docx` 或 `.xlsx`，必须先使用 `normalize-input-documents` 转换并缓存为 Markdown，再把归一化后的 Markdown 路径交给后续需求分析和设计提取阶段。
 - 可选项目绑定参数：`--project <project-key>`、`project=<project-key>` 或 `项目：<project-key>`。如果出现该参数，必须原样传递给 `memory-context-builder`，并要求 `process/context-pack.md` 记录 project-key、已扫描 project 来源、未采用 project 来源和项目知识阶段绑定。
 - 可选个人绑定参数：`--personal <personal-key>`、`personal=<personal-key>` 或 `个人：<personal-key>`。如果出现该参数，必须原样传递给 `memory-context-builder`，并要求 `process/context-pack.md` 记录 personal-key、使用路径和 personal 来源使用摘要。
 
@@ -72,7 +73,7 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 
 ## 执行流程
 
-1. 校验输入至少包含一份 Markdown 需求文档；识别可选设计方案文档。
+1. 校验输入至少包含一份需求文档；识别可选设计方案文档。若输入包含 `.docx` 或 `.xlsx`，先调用 `normalize-input-documents`，使用 `python bin/normalize-office-input.py` 将 Office 输入转换到 `outputs/input-cache/<sha256-12>/`，后续步骤只使用归一化 Markdown 路径。
 2. 将当前 agent 会话工作目录固定为 `PROJECT_ROOT`，运行 `python bin/generate-run-id.py` 生成本次运行 ID，并创建 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/`、`process/` 和 `reports/`。
 3. 使用 `templates/task-list-template.md` 创建 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/task-list.md`，并按阶段维护状态。
 4. 解析可选 `project-key` 和 `personal-key`，使用 `memory-context-builder` 扫描 core、project 和 personal 三层配置，生成 `process/context-pack.md`，登记适用 rules、Rules 与输入冲突记录和 project knowledge 阶段绑定。
@@ -94,6 +95,7 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 
 | 阶段 | 必须产出 | 交给下一阶段 |
 |---|---|---|
+| `normalize-input-documents` | Office 输入归一化 Markdown、conversion metadata；无 Office 输入时记录 skipped | 需求与设计方案分析 |
 | `task-list` | `process/task-list.md` | 全流程阶段顺序与状态追踪 |
 | `memory-context-builder` | `process/context-pack.md`、适用强制规则、Rules 与输入冲突记录、project/personal 来源使用摘要、项目知识阶段绑定 | 需求与设计方案分析 |
 | `requirement-testability` | 结构化需求模型、需求待确认候选 | 测试技术路由、测试点生成 |

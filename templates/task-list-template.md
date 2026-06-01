@@ -17,6 +17,7 @@
 
 | 序号 | 阶段 | 负责 skill | 必须产物/检查点 | 状态 | 证据/路径 |
 |---|---|---|---|---|---|
+| 0 | 输入文档归一化 | normalize-input-documents | outputs/input-cache/<sha256-12>/<source-stem>.md；无 Office 输入时 skipped | pending |  |
 | 1 | 固定 PROJECT_ROOT 与运行目录 | analyze-requirement-test-analysis-solution | outputs/runs/<run-id>/ | pending |  |
 | 2 | 构建上下文包 | memory-context-builder | process/context-pack.md、项目知识阶段绑定 | pending |  |
 | 3 | 需求可测性分析 | requirement-testability | 结构化需求模型、需求待确认候选 | pending |  |
@@ -59,6 +60,7 @@
 
 | 序号 | 阶段 | 负责 skill | 必须产物/检查点 | 状态 | 证据/路径 |
 |---|---|---|---|---|---|
+| 0 | 输入文档归一化 | normalize-input-documents | outputs/input-cache/<sha256-12>/<source-stem>.md；无 Office 输入时 skipped | pending |  |
 | 1 | 固定 PROJECT_ROOT 与运行目录 | generate-test-design-solution | outputs/runs/<run-id>/ | pending |  |
 | 2 | 测试分析方案校验 | generate-test-design-solution | lint-test-analysis-solution.py 结果；失败不进入设计生成 | pending |  |
 | 3 | 构建上下文包 | memory-context-builder | process/context-pack.md、适用 rules、项目知识阶段绑定 | pending |  |
