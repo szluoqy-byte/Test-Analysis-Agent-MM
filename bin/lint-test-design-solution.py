@@ -47,7 +47,7 @@ ENDPOINT_SIGNATURE_RE = re.compile(
     r"\b(?:GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+/[^\s`|，。；;）)]+"
     r"|/[A-Za-z0-9_{}?=&%./:-]+"
 )
-NON_SUCCESS_DETAIL_TERMS = (
+STRONG_NON_SUCCESS_DETAIL_TERMS = (
     "失败",
     "拒绝",
     "不允许",
@@ -66,18 +66,21 @@ NON_SUCCESS_DETAIL_TERMS = (
     "鉴权失败",
     "鉴权拒绝",
     "拦截",
+    "依赖失败",
+    "状态不允许",
+    "重复提交失败",
+    "重复请求失败",
+)
+WEAK_NON_SUCCESS_DETAIL_TERMS = (
     "未注册",
     "未找到",
     "为零",
     "列表为空",
     "空列表",
-    "依赖失败",
-    "状态不允许",
-    "重复提交失败",
-    "重复请求失败",
     "回滚",
     "补偿",
 )
+NON_SUCCESS_DETAIL_TERMS = STRONG_NON_SUCCESS_DETAIL_TERMS + WEAK_NON_SUCCESS_DETAIL_TERMS
 
 BANNED_MAIN_SECTIONS = (
     "## 3. 未明确规则",
@@ -175,6 +178,10 @@ def has_markdown_bold_marker(line: str) -> str | None:
 
 
 def is_non_success_detail(title: str, block_lines: list[str] | None = None) -> bool:
+    return any(term in title for term in STRONG_NON_SUCCESS_DETAIL_TERMS)
+
+
+def is_potential_non_success_detail(title: str, block_lines: list[str] | None = None) -> bool:
     return any(term in title for term in NON_SUCCESS_DETAIL_TERMS)
 
 
@@ -434,7 +441,7 @@ def main() -> int:
             )
         for detail_line_number, detail_id in point_details:
             _line_number, detail_title, detail_block_lines = detail_titles[detail_id]
-            if detail_id in failure_types_by_detail or is_non_success_detail(detail_title, detail_block_lines):
+            if detail_id in failure_types_by_detail or is_potential_non_success_detail(detail_title, detail_block_lines):
                 errors.append(
                     f"第 {detail_line_number} 行：`{E2E_POINT_TITLE}` 下不得承载非成功、异常、校验或补偿分支 `{detail_title}`，"
                     "请拆为场景下独立的同级 `TP-*`"
@@ -444,13 +451,14 @@ def main() -> int:
     for line_number, detail_id, block_lines in detail_blocks:
         detail_line_number, detail_title, detail_block_lines = detail_titles[detail_id]
         has_failure_types = detail_id in failure_types_by_detail
-        is_non_success = is_non_success_detail(detail_title, detail_block_lines)
-        if is_non_success and not has_failure_types:
+        is_mandatory_failure_group = is_non_success_detail(detail_title, detail_block_lines)
+        is_failure_group_compatible = is_potential_non_success_detail(detail_title, detail_block_lines)
+        if is_mandatory_failure_group and not has_failure_types:
             errors.append(
                 f"第 {detail_line_number} 行：非成功测试点明细 `{detail_title}` 必须新增 `TP-*-*-*` 第四层，"
                 "用于拆分失败类型"
             )
-        if has_failure_types and not is_non_success:
+        if has_failure_types and not is_failure_group_compatible:
             errors.append(
                 f"第 {detail_line_number} 行：只有非成功测试点明细才应新增 `TP-*-*-*` 第四层，"
                 f"当前明细 `{detail_title}` 未体现失败、拒绝、异常或非法分支"

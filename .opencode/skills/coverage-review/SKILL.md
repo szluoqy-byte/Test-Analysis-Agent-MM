@@ -61,7 +61,7 @@ description: 在测试分析方案或测试设计方案生成后使用，作为�
 - 主标题、必需章节、禁止章节和固定路径。
 - `SC-*`、`TP-*`、`TP-*-*`、`TP-*-*-*`、`TDI-*` 的格式和连续编号。
 - 禁用编号、旧字段、Markdown 加粗、完整用例字段和表格承载规则。
-- 每个场景是否存在 `E2E场景测试`、每个测试点是否有明细、非成功明细是否有第四层。
+- 每个场景是否存在 `E2E场景测试`、每个测试点是否有明细、明确非成功聚合明细是否有第四层。
 
 `quality-gates/output-schema-check.md`、`quality-gates/test-analysis-solution-check.md` 和 `quality-gates/test-design-solution-check.md` 作为输出契约说明保留；默认审查以 lint 脚本结果为事实源，不再由模型重复执行。
 
