@@ -82,21 +82,22 @@ outputs/runs/<run-id>/deliverables/test-design-solution.md
 
 ```mermaid
 flowchart TD
-  start([用户请求])
-  start --> agent[test-design-agent<br/>识别设计意图与入口]
-  agent --> main[generate-test-design-solution<br/>创建或复用 run]
-  main --> hasAnalysis{是否已有已评审分析方案}
-  hasAnalysis -- 否 --> analysis[analyze-requirement-test-analysis-solution<br/>先生成测试分析方案]
-  analysis --> analysisCheck[bin/lint-test-analysis-solution.py]
+  start(["用户请求"])
+  start --> agent["test-design-agent<br/>识别设计意图与入口"]
+  agent --> main["generate-test-design-solution<br/>创建或复用 run"]
+  main --> hasAnalysis{"是否已有已评审分析方案"}
+  hasAnalysis -- 否 --> analysis["analyze-requirement-test-analysis-solution<br/>先生成测试分析方案"]
+  analysis --> analysisCheck["bin/lint-test-analysis-solution.py"]
   hasAnalysis -- 是 --> analysisCheck
-  analysisCheck --> ctx[memory-context-builder<br/>读取或生成 context-pack<br/>确认适用 rules]
-  ctx --> basis[补读需求与设计依据<br/>只补充判定依据]
-  basis --> generation[test-design-solution-generation<br/>在叶子分析节点生成 TDI-*]
-  generation --> lint[bin/lint-test-design-solution.py<br/>确定性结构校验]
-  lint --> review[test-design-solution-review<br/>语义评审<br/>承接/粒度/预期结果依据]
-  review --> coverage[coverage-review<br/>覆盖与项目知识应用检查]
-  coverage --> output[deliverables/test-design-solution.md]
-  output --> finish([完成])
+  analysisCheck --> ctx["memory-context-builder<br/>读取或生成 context-pack<br/>确认适用 rules"]
+  ctx --> basis["补读需求与设计依据<br/>只补充判定依据"]
+  basis --> generation["test-design-solution-generation<br/>在叶子分析节点生成 TDI-*"]
+  generation --> lint["bin/lint-test-design-solution.py<br/>确定性结构校验"]
+  lint --> review["test-design-solution-review<br/>语义评审<br/>承接/粒度/预期结果依据"]
+  review --> coverage["coverage-review<br/>覆盖与项目知识应用检查"]
+  coverage --> consistency["bin/check-artifact-consistency.py<br/>最终一致性校验"]
+  consistency --> output["deliverables/test-design-solution.md"]
+  output --> finish(["完成"])
 ```
 
 ## Skill 分工
@@ -109,6 +110,16 @@ flowchart TD
 | 确定性校验 | `bin/lint-test-design-solution.py` | 检查结构、编号、字段、Markdown 语法和禁用术语；失败时不进入模型评审 |
 | 独立评审 | `test-design-solution-review` | 检查承接关系、设计项粒度、预期结果依据和非完整用例化语义 |
 | 覆盖审查 | `coverage-review` | 检查需求覆盖、分析方案承接、rules 应用、项目知识应用和质量门禁；不重复 lint 已覆盖的结构规则 |
+| 输出收口 | `bin/check-artifact-consistency.py` | 检查 run 目录、三个固定 process 产物、任务清单状态和主交付件基础一致性 |
+
+## 分析输入质量处理
+
+测试设计阶段以已评审测试分析方案为主账本，不重新生成或静默改写分析层级。
+
+- 如果输入分析方案未通过 `bin/lint-test-analysis-solution.py`，不进入测试设计生成。
+- 如果设计阶段发现分析方案缺少接口归属、E2E 误挂分支、第四层拆分不合理或测试点明细已经下钻成具体数据值，记录为输入质量问题。
+- 能在设计层纠偏的内容只限于把已存在叶子分析节点扩展为 `TDI-*`；需要新增、删除、合并或改写 `SC-*`、`TP-*`、`TP-*-*`、`TP-*-*-*` 时，应回到 `@test-analysis-agent` 修正。
+- 单一弱结果分支如果在分析方案中停留在 `TP-*-*`，设计阶段直接在该明细下生成 `TDI-*`，不机械要求新增第四层。
 
 ## Knowledge 分工
 
@@ -131,6 +142,15 @@ flowchart TD
 
 设计阶段必须复用或生成 `process/context-pack.md`，确认适用 rules 和 Rules 与输入冲突记录；被登记的 rules 必须在 TDI 生成、评审或覆盖审查中应用或解释。
 
+## Project Knowledge 应用
+
+`knowledge/projects/<project-key>/` 下的文件名没有硬性要求。context pack 阶段只判断文件用途和强制应用环节，不提前判断具体测试设计项命中。
+
+- 测试设计因子库、业务测试设计模式库和测试 Oracle 可绑定到 `test-design-solution-generation`，用于生成代表性条件、数据、状态、组合和预期结果依据。
+- 测试设计 checklist 默认绑定到 `coverage-review` 统一查漏；只有文件或用户指令明确要求产物语义评审时，才额外绑定到 `test-design-solution-review`。
+- 被绑定到某阶段的 project knowledge，该阶段必须读取相关章节并输出应用状态。
+- 应用状态只能使用 `applied`、`not_applicable`、`insufficient_evidence`、`conflict_with_requirement` 或 `deferred_to_review`。
+
 ## 质量门禁
 
 - 主输出普通分支必须按 `测试场景 -> 测试点 -> 测试点明细 -> 测试设计项` 组织；非成功分支必须按 `测试场景 -> 测试点 -> 测试点明细 -> 失败类型明细 -> 测试设计项` 组织。
@@ -138,6 +158,8 @@ flowchart TD
 - `E2E场景测试` 是独立同级测试点，只维护端到端主流程成功闭环设计项；其他规则、异常、接口、权限、状态、回滚或补偿设计项必须保留在同级 `TP-*` 下。
 - 如果分析方案包含接口测试或集成覆盖场景，设计方案必须继承“先接口/端点/集成点，再契约维度，再 TDI”的结构，不把多个接口的设计项混到泛化测试点下。
 - 分析方案已有 `TP-*-*-*` 时，设计方案必须完整继承，不得合并回 `TP-*-*`。
+- 分析方案中的单一弱结果分支停留在 `TP-*-*` 时，设计方案直接在该明细下生成 `TDI-*`，不机械新增第四层。
+- 设计方案不得新增、删除、合并或改写分析层级；发现分析层级缺口时记录输入质量问题，必要时回到测试分析阶段修正。
 - 测试设计项表头固定为 `测试设计项 ID | 条件/数据/状态/组合 | 预期结果`。
 - 主输出不得出现完整测试用例字段、操作步骤、脚本或执行数据。
 - 主输出不得使用 Markdown 加粗语法，例如 `**文本**` 或 `__文本__`。
@@ -150,6 +172,7 @@ flowchart TD
 python bin/sync-opencode-skills.py --check
 python bin/validate-agent-runtime.py
 python bin/lint-test-design-solution.py outputs/runs/<run-id>/deliverables/test-design-solution.md
+python bin/check-artifact-consistency.py outputs/runs/<run-id>
 ```
 
 `python bin/smoke-test-analysis.py` 只用于框架回归或示例 fixture 变更后的 smoke 检查，不属于单次测试设计方案 review 阶段。

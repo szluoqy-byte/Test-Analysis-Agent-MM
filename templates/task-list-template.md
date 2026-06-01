@@ -41,6 +41,43 @@
 - `skipped`：当前需求不适用或未触发，必须说明原因。
 ```
 
+测试设计阶段复用上游测试分析方案所在 run 或新建 run 时，使用以下结构：
+
+```markdown
+# 测试设计方案任务清单
+
+## 运行标识
+
+- 测试分析方案：
+- 需求文档：
+- 设计方案文档：
+- run-id：
+- PROJECT_ROOT：
+- 生成时间：
+
+## 任务列表
+
+| 序号 | 阶段 | 负责 skill | 必须产物/检查点 | 状态 | 证据/路径 |
+|---|---|---|---|---|---|
+| 1 | 固定 PROJECT_ROOT 与运行目录 | generate-test-design-solution | outputs/runs/<run-id>/ | pending |  |
+| 2 | 测试分析方案校验 | generate-test-design-solution | lint-test-analysis-solution.py 结果；失败不进入设计生成 | pending |  |
+| 3 | 构建上下文包 | memory-context-builder | process/context-pack.md、适用 rules、项目知识阶段绑定 | pending |  |
+| 4 | 设计依据补读 | generate-test-design-solution | 需求/设计/过程依据补读记录；不适用时 skipped | pending |  |
+| 5 | 测试设计方案生成 | test-design-solution-generation | deliverables/test-design-solution.md、project knowledge 应用记录 | pending |  |
+| 6 | 确定性校验 | bin | lint-test-design-solution.py 结构校验结果；失败不进入评审 | pending |  |
+| 7 | 独立评审 | test-design-solution-review | 分析方案承接、设计项粒度、预期结果依据、非用例化语义 | pending |  |
+| 8 | 覆盖审查 | coverage-review | 需求/分析方案/rules/project knowledge 应用检查、阻断项 | pending |  |
+| 9 | 输出收口 | generate-test-design-solution | 主交付件路径、过程报告路径、check-artifact-consistency.py 结果 | pending |  |
+
+## 状态说明
+
+- `pending`：尚未开始。
+- `in_progress`：当前正在执行。
+- `done`：已完成且有证据路径或阶段输出。
+- `blocked`：因输出质量或需求缺口阻断，必须在过程报告中说明。
+- `skipped`：当前需求不适用或未触发，必须说明原因。
+```
+
 ## 维护规则
 
 - 创建 run 目录后立即创建 `process/task-list.md`。

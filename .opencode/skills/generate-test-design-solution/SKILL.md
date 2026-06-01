@@ -39,6 +39,7 @@ description: 当用户提供已评审测试分析方案，或要求从需求先�
 - 通用测试分析/设计边界、测试设计方案标准和测试技术来自 `knowledge/`。
 - `test-design-solution-generation` 负责把普通测试点明细或失败类型明细扩展为测试设计项和预期结果。
 - `test-design-solution-review` 负责在确定性 lint 通过后独立评审设计项粒度、预期结果依据和非完整用例化语义，不重复结构、编号、字段和 Markdown 语法检查。
+- 设计阶段只承接分析层级，不重新判定或修复 `SC-*`、`TP-*`、`TP-*-*` 或 `TP-*-*-*` 的归属；分析层缺口记录为输入质量问题，必要时回到分析流程修正。
 - 主交付件是 `outputs/runs/<run-id>/deliverables/test-design-solution.md`。
 
 ## 项目根目录与输出路径
@@ -76,7 +77,7 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 11. 使用 `test-design-solution-review` 独立评审测试设计方案，重点检查分析方案承接、失败类型明细继承、设计项粒度、预期结果依据和非完整用例化语义。
 12. 使用 `coverage-review` 或设计级覆盖审查记录检查需求覆盖、分析方案承接关系、项目知识应用状态和过程门禁，不重复 lint 已覆盖的结构规则。
 13. 如需保留过程审查信息，使用 `templates/test-design-report-template.md` 将设计报告写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-design-report.md`。
-14. 最终输出前刷新 `process/task-list.md`：设计阶段必选项必须为 `done`，未触发的可选项为 `skipped` 并说明原因；`process/task-list.md`、`process/context-pack.md` 和 `process/clarification-session.md` 必须同时存在。
+14. 最终输出前刷新 `process/task-list.md`：设计阶段必选项必须为 `done`，未触发的可选项为 `skipped` 并说明原因；`process/task-list.md`、`process/context-pack.md` 和 `process/clarification-session.md` 必须同时存在；运行 `bin/check-artifact-consistency.py ${PROJECT_ROOT}/outputs/runs/<run-id>` 做最终一致性检查；如果存在 `blocked`，必须在过程报告中说明。
 
 ## 阶段产物契约
 
@@ -90,12 +91,24 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 | `test-design-solution-review` | 独立评审结论、修正建议 | 覆盖审查与输出收口 |
 | `coverage-review` | 门禁结果、阻断项和修正建议 | 主交付件和过程报告刷新 |
 
+## Project Knowledge 应用留痕
+
+如果 `process/context-pack.md` 的“项目知识阶段绑定”表中存在绑定到当前阶段的 project knowledge，当前阶段必须输出应用记录：
+
+| 来源文件 | 当前阶段 | 应用状态 | 应用位置 | 说明 |
+|---|---|---|---|---|
+
+应用状态只能使用 `applied`、`not_applicable`、`insufficient_evidence`、`conflict_with_requirement` 或 `deferred_to_review`。覆盖审查必须检查所有已绑定文件是否被对应阶段读取并留痕；未读取或无状态说明时，按质量问题处理。
+
 ## 输出要求
 
 - 主输出使用 `templates/test-design-solution-template.md`。
 - 主输出只包含测试设计方案所需内容，不设置 `未明确规则` 章节，不设置独立待确认信息清单。
 - 主输出必须包含 `## 1. 设计输入` 和 `## 2. 测试场景与测试设计`。
 - 主输出必须保留普通分支 `测试场景 -> 测试点 -> 测试点明细 -> 测试设计项` 层级；非成功分支必须保留 `测试场景 -> 测试点 -> 测试点明细 -> 失败类型明细 -> 测试设计项` 层级。
+- 主输出必须继承分析方案中的 `E2E场景测试` 独立同级结构；E2E 只生成端到端主流程成功闭环设计项，其他规则、异常、接口、权限、状态、回滚或补偿设计项保留在同级 `TP-*` 下。
+- 如果分析方案包含接口测试或集成覆盖场景，主输出必须继承按接口、端点、消息、回调、集成点或通用接口范围组织的 `TP-*`；不得把多个接口的 `TDI-*` 混到无法定位目标接口的泛化测试点下。
+- 如果分析方案已有 `TP-*-*-*` 失败类型明细，`TDI-*` 必须挂在第四层下；如果分析方案中的单一弱结果分支停留在 `TP-*-*`，`TDI-*` 直接挂在该明细下，不为了设计阶段机械新增第四层。
 - 主输出只使用中文术语和固定缩写 `SC`、`TP`、`TP-*-*`、`TP-*-*-*`、`TDI`，不得使用 `TD-*`、`TC-*`、`TCT-*`、`TI-*`、`ITP-*` 或 `ITDI-*`。
 - 每个普通测试点明细或失败类型明细下至少有 1 个测试设计项；设计项表必须使用 `测试设计项 ID | 条件/数据/状态/组合 | 预期结果`。
 - `条件/数据/状态/组合` 只写代表性条件、数据、状态或组合，例如“订单 ID 总长度等于 13 位”“订单已支付状态下重复提交取消请求”。
