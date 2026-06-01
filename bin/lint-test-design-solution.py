@@ -19,6 +19,7 @@ INFO_HEADER = "| 字段 | 内容 |"
 DESIGN_ITEM_HEADER = "| 测试设计项 ID | 条件/数据/状态/组合 | 预期结果 |"
 EXPECTED_FALLBACK = "待人工分析确认"
 DETAIL_PREFIX = "- 测试点详情："
+EXPECTED_PREFIX = "预期结果："
 E2E_POINT_TITLE = "E2E场景测试"
 INTERFACE_SCENARIO_TERMS = (
     "接口",
@@ -96,6 +97,7 @@ BANNED_TERMS = (
     "测试用例标题项",
     "标题项 ID",
     "测试用例标题",
+    "测试设计项 ID",
     "覆盖意图",
     "级别",
     "输入条件与数据依赖",
@@ -109,6 +111,8 @@ BANNED_TERMS = (
     "ITDI-",
 )
 BANNED_COLUMNS = {
+    "测试设计项 ID",
+    "条件/数据/状态/组合",
     "前置步骤",
     "测试步骤",
     "操作步骤",
@@ -147,6 +151,11 @@ EMPTY_MARKERS = {
     "<测试点>",
     "<测试点明细>",
     "<测试场景名称>",
+    "{代表性条件、数据、状态或组合}",
+    "{明确预期结果或待人工分析确认}",
+    "{测试点}",
+    "{测试点明细}",
+    "{测试场景名称}",
 }
 
 
@@ -277,19 +286,26 @@ def collect_failure_type_blocks(lines: list[str]) -> list[tuple[int, str, list[s
     return blocks
 
 
-def collect_design_rows(block_lines: list[str]) -> list[tuple[int, list[str]]]:
-    rows: list[tuple[int, list[str]]] = []
+def collect_design_items(block_lines: list[str]) -> list[tuple[int, list[str]]]:
+    items: list[tuple[int, list[str]]] = []
     for index, line in enumerate(block_lines):
-        if line != DESIGN_ITEM_HEADER:
+        match = re.match(r"^\s*-\s+(TDI-\d{3})\s+(.+)", line)
+        if not match:
             continue
-        for row_index in range(index + 2, len(block_lines)):
+
+        design_id = match.group(1)
+        item = match.group(2).strip()
+        expected_result = ""
+        for row_index in range(index + 1, len(block_lines)):
             row = block_lines[row_index]
-            if not row.startswith("|"):
+            if re.match(r"^\s*-\s+TDI-\d{3}\s+", row) or row.startswith("#"):
                 break
-            cells = split_row(row)
-            if cells and cells[0].startswith("TDI-"):
-                rows.append((row_index + 1, cells))
-    return rows
+            stripped = row.strip()
+            if stripped.startswith(f"- {EXPECTED_PREFIX}"):
+                expected_result = stripped.removeprefix(f"- {EXPECTED_PREFIX}").strip()
+                break
+        items.append((index + 1, [design_id, item, expected_result]))
+    return items
 
 
 def check_leaf_block(
@@ -313,10 +329,10 @@ def check_leaf_block(
     elif detail_line.removeprefix(DETAIL_PREFIX).strip() in EMPTY_MARKERS:
         errors.append(f"第 {line_number} 行：测试点详情不能为空或模板占位")
 
-    design_rows = collect_design_rows(block_lines)
-    if not design_rows:
-        errors.append(f"第 {line_number} 行：{label}下缺少 TDI-* 测试设计项表")
-    return [(line_number + offset, cells) for offset, cells in design_rows]
+    design_items = collect_design_items(block_lines)
+    if not design_items:
+        errors.append(f"第 {line_number} 行：{label}下缺少 TDI-* 测试设计项")
+    return [(line_number + offset, cells) for offset, cells in design_items]
 
 
 def main() -> int:
@@ -351,6 +367,8 @@ def main() -> int:
         bold_marker = has_markdown_bold_marker(line)
         if bold_marker:
             errors.append(f"第 {line_number} 行：主交付件不得使用 Markdown 加粗标记: {bold_marker}")
+        if line == DESIGN_ITEM_HEADER:
+            errors.append(f"第 {line_number} 行：测试设计项不得使用表格，请改为 `- TDI-001 条件/数据/状态/组合` 层级节点")
         if line.startswith("|"):
             cells = set(split_row(line))
             for column in BANNED_COLUMNS:
@@ -359,8 +377,6 @@ def main() -> int:
 
     if INFO_HEADER not in text:
         errors.append(f"缺少输入/场景信息表头: {INFO_HEADER}")
-    if DESIGN_ITEM_HEADER not in text:
-        errors.append(f"缺少测试设计项表头: {DESIGN_ITEM_HEADER}")
 
     scenario_ids = parse_id_sequence(lines, r"^### (SC-\d{3})\s+.+")
     if not scenario_ids:

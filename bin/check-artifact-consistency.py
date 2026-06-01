@@ -94,11 +94,14 @@ def collect_design_items(path: Path) -> set[str]:
     lines = path.read_text(encoding="utf-8").splitlines()
     items: set[str] = set()
     for line in lines:
-        if not line.startswith("|"):
+        list_match = re.match(r"^\s*-\s+(TDI-\d{3})\s+", line)
+        if list_match:
+            items.add(list_match.group(1))
             continue
-        cells = split_row(line)
-        if cells and re.fullmatch(r"TDI-\d{3}", cells[0]):
-            items.add(cells[0])
+        if line.startswith("|"):
+            cells = split_row(line)
+            if cells and re.fullmatch(r"TDI-\d{3}", cells[0]):
+                items.add(cells[0])
     return items
 
 

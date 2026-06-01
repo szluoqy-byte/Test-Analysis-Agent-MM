@@ -5,7 +5,7 @@ description: 在测试设计方案通过确定性 lint 后使用，作为产物�
 
 # 测试设计方案语义评审
 
-本 skill 是 `test-design-agent` 的产物级语义评审环节。结构、编号、表头、固定章节、Markdown 加粗、禁用字段和 `TDI-*` 连续性等确定性问题，以 `bin/lint-test-design-solution.py` 和 `bin/check-artifact-consistency.py` 的结果为准。
+本 skill 是 `test-design-agent` 的产物级语义评审环节。结构、编号、固定章节、Markdown 加粗、禁用字段、测试设计项表格禁用和 `TDI-*` 连续性等确定性问题，以 `bin/lint-test-design-solution.py` 和 `bin/check-artifact-consistency.py` 的结果为准。
 
 如果确定性 lint 未通过，本 skill 不进入语义评审，只引用脚本失败项给出修正方向。
 
@@ -26,7 +26,7 @@ description: 在测试设计方案通过确定性 lint 后使用，作为产物�
 
 - 主标题、必需章节、禁止章节和固定路径。
 - `SC-*`、`TP-*`、`TP-*-*`、`TP-*-*-*`、`TDI-*` 的格式、挂载位置和连续编号。
-- 测试设计项表头是否固定。
+- 测试设计项是否使用列表节点而非表格。
 - 每个叶子分析节点是否至少有一个 `TDI-*`。
 - 禁用字段、Markdown 加粗、完整测试用例字段和旧编号泄漏。
 
