@@ -27,6 +27,7 @@
 - 用户主入口 Agent 包括 `@test-analysis-agent` 和 `@test-design-agent`，源文件分别是 `agents/test-analysis-agent.md` 和 `agents/test-design-agent.md`。
 - 测试分析主流程 skill 入口是 `skills/analyze-requirement-test-analysis-solution/SKILL.md`。
 - 测试设计主流程 skill 入口是 `skills/generate-test-design-solution/SKILL.md`。
+- OpenCode 独立文档归一化命令入口是 `.opencode/commands/normalize-input-documents.md`，用于在切换到多模态模型后单独执行 `.docx` / `.xlsx` 转 Markdown 与可选图片/图形补充，不进入测试分析或测试设计主流程。
 - Agent 门面负责用户意图识别和路由；具体流程动作仍放在 skills、knowledge 文件、templates 或 quality gates 中。
 
 ## Agent 与 Skill 事实源

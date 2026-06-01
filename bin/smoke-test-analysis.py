@@ -24,6 +24,7 @@ REQUIRED_FILES = [
     ".opencode/agents/test-design-agent.md",
     ".opencode/commands/analyze-requirement-test-analysis-solution.md",
     ".opencode/commands/generate-test-design-solution.md",
+    ".opencode/commands/normalize-input-documents.md",
     ".opencode/skills/README.md",
     "docs/test-analysis-agent-design.md",
     "docs/test-design-agent-design.md",

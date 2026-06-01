@@ -31,6 +31,7 @@ REQUIRED_AGENTS = {
 OPENCODE_COMMANDS = {
     ".opencode/commands/analyze-requirement-test-analysis-solution.md": "analyze-requirement-test-analysis-solution",
     ".opencode/commands/generate-test-design-solution.md": "generate-test-design-solution",
+    ".opencode/commands/normalize-input-documents.md": "normalize-input-documents",
 }
 
 
