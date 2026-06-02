@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import re
+import shutil
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -27,6 +28,10 @@ def file_sha256(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def utc_now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
 def safe_stem(path: Path) -> str:
@@ -190,11 +195,18 @@ def normalize_one(source: Path, cache_dir: Path, force: bool) -> dict[str, Any]:
         raise ValueError(f"Unsupported input type {suffix}: {source}")
 
     if suffix in {".md", ".markdown"}:
+        sha = file_sha256(source)
+        stat = source.stat()
         return {
             "source": str(source),
             "markdown": str(source),
+            "metadata": "",
             "cached": False,
             "kind": "markdown",
+            "source_name": source.name,
+            "source_size": stat.st_size,
+            "source_mtime": datetime.fromtimestamp(stat.st_mtime, timezone.utc).isoformat(),
+            "sha256": sha,
             "warnings": [],
         }
 
@@ -221,7 +233,7 @@ def normalize_one(source: Path, cache_dir: Path, force: bool) -> dict[str, Any]:
             "source_mtime": datetime.fromtimestamp(stat.st_mtime, timezone.utc).isoformat(),
             "sha256": sha,
             "markdown": str(markdown_path.resolve()),
-            "converted_at": datetime.now(timezone.utc).isoformat(),
+            "converted_at": utc_now_iso(),
             **conversion_extra,
         }
         metadata_path.write_text(
@@ -245,6 +257,90 @@ def normalize_one(source: Path, cache_dir: Path, force: bool) -> dict[str, Any]:
     }
 
 
+def run_input_basename(result: dict[str, Any]) -> str:
+    source = Path(result["source"])
+    sha = result.get("sha256") or file_sha256(source)
+    return f"{sha[:12]}-{safe_stem(source)}"
+
+
+def load_or_create_metadata(result: dict[str, Any]) -> dict[str, Any]:
+    metadata_path = result.get("metadata")
+    if metadata_path:
+        path = Path(metadata_path)
+        if path.exists():
+            return json.loads(path.read_text(encoding="utf-8"))
+
+    source = Path(result["source"])
+    stat = source.stat()
+    return {
+        "source": str(source),
+        "source_name": source.name,
+        "source_size": stat.st_size,
+        "source_mtime": datetime.fromtimestamp(stat.st_mtime, timezone.utc).isoformat(),
+        "sha256": result.get("sha256") or file_sha256(source),
+        "markdown": str(Path(result["markdown"]).resolve()),
+        "converted_at": None,
+        "kind": result.get("kind", source.suffix.lower().lstrip(".")),
+        "warnings": result.get("warnings", []),
+    }
+
+
+def bind_results_to_run_inputs(results: list[dict[str, Any]], run_input_dir: Path) -> Path:
+    run_input_dir.mkdir(parents=True, exist_ok=True)
+    manifest_entries: list[dict[str, Any]] = []
+
+    for result in results:
+        basename = run_input_basename(result)
+        run_markdown = (run_input_dir / f"{basename}.md").resolve()
+        run_metadata = (run_input_dir / f"{basename}.conversion.json").resolve()
+        markdown_path = Path(result["markdown"]).resolve()
+        if markdown_path != run_markdown:
+            shutil.copy2(markdown_path, run_markdown)
+
+        metadata = load_or_create_metadata(result)
+        metadata.update(
+            {
+                "run_markdown": str(run_markdown),
+                "run_metadata": str(run_metadata),
+                "global_cache_markdown": str(Path(result["markdown"]).resolve()),
+                "global_cache_metadata": result.get("metadata", ""),
+                "bound_at": utc_now_iso(),
+            }
+        )
+        run_metadata.write_text(
+            json.dumps(metadata, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
+        result["run_markdown"] = str(run_markdown)
+        result["run_metadata"] = str(run_metadata)
+        manifest_entries.append(
+            {
+                "source": result["source"],
+                "kind": result.get("kind", ""),
+                "sha256": result.get("sha256", ""),
+                "cached": result.get("cached", False),
+                "global_cache_markdown": str(Path(result["markdown"]).resolve()),
+                "global_cache_metadata": result.get("metadata", ""),
+                "run_markdown": str(run_markdown),
+                "run_metadata": str(run_metadata),
+                "warnings": result.get("warnings", []),
+            }
+        )
+
+    manifest = {
+        "generated_at": utc_now_iso(),
+        "run_input_dir": str(run_input_dir.resolve()),
+        "inputs": manifest_entries,
+    }
+    manifest_path = run_input_dir / "input-normalization-manifest.json"
+    manifest_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    return manifest_path.resolve()
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Normalize .docx/.xlsx inputs to cached Markdown")
     parser.add_argument("inputs", nargs="+", type=Path, help="Input .md, .docx or .xlsx files")
@@ -256,32 +352,63 @@ def main() -> int:
     )
     parser.add_argument("--force", action="store_true", help="Regenerate cached Markdown")
     parser.add_argument("--json", action="store_true", help="Print machine-readable JSON")
+    parser.add_argument(
+        "--run-dir",
+        type=Path,
+        help="Optional run directory; normalized inputs are copied to <run-dir>/inputs",
+    )
+    parser.add_argument(
+        "--run-input-dir",
+        type=Path,
+        help="Optional run-local input directory; overrides --run-dir/inputs",
+    )
     args = parser.parse_args()
+    if args.run_dir and args.run_input_dir:
+        print("失败: --run-dir and --run-input-dir cannot be used together", file=sys.stderr)
+        return 2
 
     cache_dir = args.cache_dir
     if not cache_dir.is_absolute():
         cache_dir = repo_root() / cache_dir
     cache_dir.mkdir(parents=True, exist_ok=True)
 
+    run_input_dir: Path | None = None
+    if args.run_input_dir:
+        run_input_dir = args.run_input_dir
+    elif args.run_dir:
+        run_input_dir = args.run_dir / "inputs"
+    if run_input_dir is not None and not run_input_dir.is_absolute():
+        run_input_dir = repo_root() / run_input_dir
+
     results = []
     try:
         for source in args.inputs:
             results.append(normalize_one(source, cache_dir, args.force))
+        manifest_path = bind_results_to_run_inputs(results, run_input_dir) if run_input_dir else None
     except Exception as exc:
         print(f"失败: {exc}", file=sys.stderr)
         return 1
 
     if args.json:
-        print(json.dumps(results, ensure_ascii=False, indent=2))
+        if manifest_path:
+            payload: dict[str, Any] = {"results": results}
+            payload["run_input_manifest"] = str(manifest_path)
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
+        else:
+            print(json.dumps(results, ensure_ascii=False, indent=2))
     else:
         for result in results:
             if result["kind"] == "markdown":
                 print(f"无需转换: {result['source']}")
-                continue
-            state = "复用缓存" if result["cached"] else "已转换"
-            print(f"{state}: {result['source']} -> {result['markdown']}")
+            else:
+                state = "复用缓存" if result["cached"] else "已转换"
+                print(f"{state}: {result['source']} -> {result['markdown']}")
+            if result.get("run_markdown"):
+                print(f"绑定到 run inputs: {result['run_markdown']}")
             for warning in result.get("warnings", []):
                 print(f"警告: {warning}")
+        if manifest_path:
+            print(f"run input manifest: {manifest_path}")
     return 0
 
 

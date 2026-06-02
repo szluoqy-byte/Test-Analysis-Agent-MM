@@ -18,7 +18,7 @@
 |---|---|---|---|
 | Agent 门面 | `agents/test-analysis-agent.md` | 支持 `@test-analysis-agent`，识别测试分析、上下文归档或框架维护意图 | 用户入口、路由决策 |
 | Agent 门面 | `agents/test-design-agent.md` | 支持 `@test-design-agent`，识别测试设计、设计评审或框架维护意图 | 用户入口、路由决策 |
-| 输入归一化层 | `normalize-input-documents` | 将 `.docx` / `.xlsx` 需求、设计依据或外部分析方案转换并缓存为 Markdown | `outputs/input-cache/<sha256-12>/` |
+| 输入归一化层 | `normalize-input-documents` | 将 `.docx` / `.xlsx` 需求、设计依据或外部分析方案转换到全局 cache，并绑定为 run-local Markdown | `outputs/input-cache/<sha256-12>/`、`outputs/runs/<run-id>/inputs/` |
 | 分析编排入口 | `analyze-requirement-test-analysis-solution` | 固定项目根目录、创建 run、编排分析链路、写出测试分析方案 | `deliverables/test-analysis-solution.md` |
 | 设计编排入口 | `generate-test-design-solution` | 复用或创建 run，承接已评审测试分析方案，写出测试设计方案 | `deliverables/test-design-solution.md` |
 | 上下文归档 | `context-capture` | 处理“记住/记录/收录/归档”类请求，判断写入 memory 或 knowledge | 长期 personal/project 上下文 |

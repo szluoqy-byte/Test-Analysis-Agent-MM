@@ -27,7 +27,7 @@ Run from the repository root:
 python bin/normalize-office-input.py <arguments>
 ```
 
-Use `outputs/input-cache/<sha256-12>/` as the fixed cache location. Report the normalized Markdown path, conversion metadata path, cache reuse status, and conversion warnings.
+Use `outputs/input-cache/<sha256-12>/` as the fixed cache location. Report the normalized Markdown path, conversion metadata path, cache reuse status, and conversion warnings. Full analysis/design runs will later call the same script with `--run-dir outputs/runs/<run-id>` to bind the cached Markdown into `outputs/runs/<run-id>/inputs/`; this standalone command must not do that binding.
 
 If conversion metadata reports images or warnings, read `skills/normalize-input-documents/references/docx-image-and-diagram-workflow.md` and, when the active model supports multimodal image understanding, supplement image, diagram, flowchart, architecture, screenshot, EMF, or Visio facts before downstream analysis or design uses the normalized input. Keep supplemental facts in the same cache directory or report that image understanding was not performed because the active model is not multimodal.
 

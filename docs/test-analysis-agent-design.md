@@ -2,7 +2,7 @@
 
 ## 目标
 
-本 Agent 面向 Markdown 需求文档和可选设计方案文档，输出 `测试分析方案`；如果输入是 `.docx` 或 `.xlsx`，先归一化为 Markdown 再进入分析链路。它是独立项目，所有运行入口、Agent 门面、知识库、模板、质量门禁和校验脚本都在本仓库内维护，不依赖其他 Agent 项目或外部仓库结构。
+本 Agent 面向 Markdown 需求文档和可选设计方案文档，输出 `测试分析方案`；如果输入是 `.docx` 或 `.xlsx`，先创建 run，再归一化为 Markdown 并绑定到该 run 的 `inputs/` 目录后进入分析链路。它是独立项目，所有运行入口、Agent 门面、知识库、模板、质量门禁和校验脚本都在本仓库内维护，不依赖其他 Agent 项目或外部仓库结构。
 
 主交付件回答 what to test，输出粒度为：
 
@@ -19,7 +19,7 @@
 
 | Agent | 主问题 | 主输入 | 主输出 |
 |---|---|---|---|
-| `@test-analysis-agent` | what to test | 需求文档、可选设计方案；Office 输入先归一化为 Markdown | `test-analysis-solution.md`，输出 `SC-* / TP-* / TP-*-*`，非成功明细可到 `TP-*-*-*` |
+| `@test-analysis-agent` | what to test | 需求文档、可选设计方案；Office 输入先绑定为 run-local Markdown | `test-analysis-solution.md`，输出 `SC-* / TP-* / TP-*-*`，非成功明细可到 `TP-*-*-*` |
 | `@test-design-agent` | how to test | 已评审测试分析方案、可选需求/设计依据 | `test-design-solution.md`，在普通 `TP-*-*` 或失败类型 `TP-*-*-*` 下补充 `TDI-*` |
 
 分析 Agent 不输出 `TDI-*`；设计 Agent 不擅自新增分析层级。若设计阶段发现分析方案缺口，应记录过程问题，必要时回到分析 Agent 修正。
@@ -110,9 +110,9 @@ flowchart TD
 flowchart TD
   start([用户请求])
   start --> agent[test-analysis-agent<br/>识别意图与入口]
-  agent --> normalize["normalize-input-documents<br/>Office 输入转 Markdown<br/>复用 input-cache"]
-  normalize --> main[analyze-requirement-test-analysis-solution<br/>创建 run 与任务清单]
-  main --> ctx[memory-context-builder<br/>加载适用 rules<br/>生成 context-pack 与项目知识阶段绑定]
+  agent --> main["analyze-requirement-test-analysis-solution<br/>创建 run、inputs 与任务清单"]
+  main --> normalize["normalize-input-documents<br/>Office 输入转 Markdown<br/>复用 input-cache 并绑定 run inputs"]
+  normalize --> ctx["memory-context-builder<br/>加载适用 rules<br/>生成 context-pack 与项目知识阶段绑定"]
   ctx --> req[requirement-testability<br/>结构化需求与可测性分析]
   req --> hasDesign{是否提供设计方案}
   hasDesign -- 是 --> design[design-solution-extraction<br/>提取接口/字段/状态/权限/数据依赖]
@@ -140,7 +140,7 @@ flowchart TD
 | 层级 | Skill | 职责 |
 |---|---|---|
 | Agent 门面 | `test-analysis-agent` | 识别用户意图，路由生成、记录、咨询和框架维护任务 |
-| 输入归一化 | `normalize-input-documents` | 将 `.docx` / `.xlsx` 需求或设计方案转换并缓存为 Markdown，后续流程只读取 Markdown |
+| 输入归一化 | `normalize-input-documents` | 将 `.docx` / `.xlsx` 需求或设计方案转换到全局 cache，并绑定为 run-local Markdown，后续流程只读取 `outputs/runs/<run-id>/inputs/` |
 | 主入口 | `analyze-requirement-test-analysis-solution` | 固定根目录、创建 run、编排全链路、输出主交付件 |
 | 上下文 | `memory-context-builder` | 发现适用 rules、core/project/personal 上下文和项目知识阶段绑定 |
 | 需求分析 | `requirement-testability` | 结构化需求模型、识别可测性缺口 |

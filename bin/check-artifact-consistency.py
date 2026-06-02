@@ -256,6 +256,15 @@ def main() -> int:
         task_errors, task_warnings = validate_task_list(task_list_path)
         errors.extend(task_errors)
         warnings.extend(task_warnings)
+        rows = collect_task_rows(task_list_path)
+        normalize_done = any(
+            len(cells) == 6 and cells[1] == "输入文档归一化" and cells[4] == "done"
+            for _line_number, cells in rows
+        )
+        if normalize_done:
+            manifest_path = run_dir / "inputs" / "input-normalization-manifest.json"
+            if not manifest_path.exists():
+                errors.append("输入文档归一化已完成，但缺少 inputs/input-normalization-manifest.json")
 
     if context_pack_path.exists():
         context_errors, context_warnings = validate_context_pack(context_pack_path)

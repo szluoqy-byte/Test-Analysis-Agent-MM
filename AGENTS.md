@@ -44,7 +44,7 @@
 - 所有 `skills/...`、`rules/...`、`knowledge/...`、`templates/...`、`quality-gates/...`、`memory/...`、`bin/...` 和 `outputs/...` 路径都从仓库根目录解析。
 - 不要基于 skill 目录、`.claude-plugin/`、`.opencode/` 或输入文件目录解析路径。
 - 运行产物写入 `outputs/runs/<run-id>/`。
-- Office 输入归一化缓存写入 `outputs/input-cache/<sha256-12>/`，用于保存 `.docx` 或 `.xlsx` 转换后的 Markdown 和 metadata。
+- Office 输入归一化采用两层路径：全局复用缓存写入 `outputs/input-cache/<sha256-12>/`；完整 run 的本次输入绑定写入 `outputs/runs/<run-id>/inputs/`。
 - 新建完整 run 时，`run-id` 固定使用 `python bin/generate-run-id.py` 生成，格式为 `<YYYYMMDD-HHMMSS>`。
 - 测试分析主交付件固定为 `outputs/runs/<run-id>/deliverables/test-analysis-solution.md`。
 - 测试设计主交付件固定为 `outputs/runs/<run-id>/deliverables/test-design-solution.md`，优先复用上游测试分析方案所在 run。
@@ -66,7 +66,7 @@
 ## 主流程
 
 - 当用户要求基于需求和设计方案生成测试场景、测试点、测试点明细粒度的方案时，使用 `analyze-requirement-test-analysis-solution`。
-- 如果需求文档、系统设计方案或外部分析方案输入是 `.docx` 或 `.xlsx`，先使用 `normalize-input-documents` 调用 `python bin/normalize-office-input.py` 转换并缓存为 Markdown；后续流程只读取归一化后的 Markdown 路径。
+- 如果需求文档、系统设计方案或外部分析方案输入是 `.docx` 或 `.xlsx`，先固定 `<run-id>` 并创建 run 目录，再使用 `normalize-input-documents` 调用 `python bin/normalize-office-input.py --run-dir outputs/runs/<run-id> ...` 转换到全局 cache 并绑定为 run-local Markdown；后续流程只读取 `outputs/runs/<run-id>/inputs/` 下的归一化 Markdown 路径。
 - 阶段性动作依次使用 `normalize-input-documents`（仅 Office 输入时触发）、`memory-context-builder`、`requirement-testability`、`design-solution-extraction`、`clarification-gate`、`testing-method-router`、路由选中的专项分析 skills、`testpoint-generation`、`test-analysis-solution-generation`、确定性 lint、`test-analysis-solution-review` 和 `coverage-review`。
 - 设计方案输入用于补充接口、字段、状态、权限、数据依赖、配置开关、异常处理和非功能指标；没有设计方案时继续生成，并把缺口沉淀到过程澄清记录或单条预期结果的 `待人工分析确认`。
 - 当用户要求基于已评审测试分析方案生成测试设计项时，使用 `generate-test-design-solution`。
