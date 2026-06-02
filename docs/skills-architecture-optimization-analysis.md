@@ -32,8 +32,8 @@
 | 测试分析方案生成层 | `test-analysis-solution-generation` | 把测试点展开为测试点明细和预期结果；非成功测试点明细继续拆分失败类型明细 | `TP-*-*` 测试点明细、`TP-*-*-*` 失败类型明细 |
 | 确定性校验层 | `bin/lint-test-analysis-solution.py` / `bin/lint-test-design-solution.py` | 检查结构、编号、字段、禁用术语、Markdown 语法和固定交付件格式 | lint 结果 |
 | 独立评审层 | `test-analysis-solution-review` | 在 lint 通过后评审测试点明细粒度、失败类型拆分充分性、预期结果依据、事实溯源和非用例化语义 | 独立语义评审结论 |
-| 测试设计方案生成层 | `test-design-solution-generation` | 把普通测试点明细或失败类型明细扩展为代表性条件、数据、状态或组合 | `TDI-*` 测试设计项 |
-| 测试设计评审层 | `test-design-solution-review` | 在 lint 通过后评审设计项粒度、预期结果依据、分析方案承接和非用例化语义 | 独立语义评审结论 |
+| 测试设计方案生成层 | `test-design-solution-generation` | 把普通测试点明细或失败类型明细扩展为代表性条件、具体数据值、数据槽位、状态、接口返回或组合 | `TDI-*` 测试设计项 |
+| 测试设计评审层 | `test-design-solution-review` | 在 lint 通过后评审设计项数据化粒度、叶子节点预期结果依据、分析方案承接和非用例化语义 | 独立语义评审结论 |
 | 审查层 | `coverage-review` | 执行覆盖、追踪、方法应用、rules/project knowledge 应用和过程门禁；专家评分仅深度评估时执行 | 覆盖审查结果、修正建议、阻断项 |
 
 当前架构是清晰的流水线：入口编排，context/requirement/router/specialist/generator/reviewer 各层职责基本成立。
@@ -54,7 +54,7 @@ SC-* 测试场景
 影响：
 
 - 当前 Agent 专注 what to test，不再输出 `TDI-*` 测试设计项。
-- 给 `test-design-agent` 留出清晰空间，由它基于评审后的测试分析方案补充代表性条件、数据、状态或组合。
+- 给 `test-design-agent` 留出清晰空间，由它基于评审后的测试分析方案补充代表性条件、具体数据值、数据槽位、状态、接口返回或组合。
 - 预期结果保留在测试点明细层，但必须受需求/设计方案依据约束。
 - 每个测试场景新增 `E2E场景测试` 测试点，用于确保端到端主流程闭环不被局部规则覆盖稀释。
 - 非成功路径的第四层由 `TP-*-*` 测试点明细触发，不由 `TP-*` 测试点主题触发。

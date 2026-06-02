@@ -1,4 +1,4 @@
-# 等价类与边界值测试技术
+﻿# 等价类与边界值测试技术
 
 ## 方法定义
 
@@ -107,11 +107,11 @@
 
 **测试点**：验证下发订单 ID 总长度边界和分段结构。
 
-| 测试设计项 ID | 条件/数据/状态/组合 | 预期结果 |
-|---|---|---|
-| TDI-001 | 下发订单 ID 总长度为 13 位，且满足 3 位业务前缀 + 10 位订单流水号 | 订单 ID 解析成功，业务前缀和原订单流水号均按分段规则识别 |
-| TDI-002 | 下发订单 ID 总长度小于 13 位 | 订单 ID 解析失败，返回 `INVALID_ORDER_ID_LENGTH`，不生成交易记录 |
-| TDI-003 | 下发订单 ID 总长度大于 13 位 | 订单 ID 解析失败，返回 `INVALID_ORDER_ID_LENGTH`，不生成交易记录 |
+| 测试设计项 ID | 条件/数据/状态/组合 |
+|---|---|
+| TDI-001 | orderId=ABC1234567890；总长度=13位；业务前缀=ABC；订单流水号=1234567890 |
+| TDI-002 | orderId=AB1234567890；总长度=12位；其余字符集保持合法 |
+| TDI-003 | orderId=ABCD1234567890；总长度=14位；其余字符集保持合法 |
 
 **设计要点**：
 
@@ -132,17 +132,17 @@
 
 **测试点**：验证 Order ID Business Prefix 的必填、长度和字符集校验。
 
-| 测试设计项 ID | 条件/数据/状态/组合 | 预期结果 |
-|---|---|---|
-| TDI-004 | Order ID Business Prefix 为空 | 保存失败，返回 `PREFIX_FORMAT_INVALID` |
-| TDI-005 | Order ID Business Prefix 为 3 位数字 | 保存成功，配置值按输入保存 |
-| TDI-006 | Order ID Business Prefix 为 2 位数字 + 1 位大写字母 | 保存成功，配置值按输入保存 |
-| TDI-007 | Order ID Business Prefix 为 1 位数字 + 2 位大写字母 | 保存成功，配置值按输入保存 |
-| TDI-008 | Order ID Business Prefix 为 3 位大写字母 | 保存成功，配置值按输入保存 |
-| TDI-009 | Order ID Business Prefix 长度小于 3 位 | 保存失败，返回 `PREFIX_FORMAT_INVALID` |
-| TDI-010 | Order ID Business Prefix 长度大于 3 位 | 保存失败，返回 `PREFIX_FORMAT_INVALID` |
-| TDI-011 | Order ID Business Prefix 包含小写字母 | 保存失败，返回 `PREFIX_FORMAT_INVALID` |
-| TDI-012 | Order ID Business Prefix 包含特殊字符 | 保存失败，返回 `PREFIX_FORMAT_INVALID` |
+| 测试设计项 ID | 条件/数据/状态/组合 |
+|---|---|
+| TDI-004 | businessPrefix为空字符串 |
+| TDI-005 | businessPrefix=123；长度=3位；字符集=数字 |
+| TDI-006 | businessPrefix=12A；长度=3位；字符集=数字+大写字母 |
+| TDI-007 | businessPrefix=1AB；长度=3位；字符集=数字+大写字母 |
+| TDI-008 | businessPrefix=ABC；长度=3位；字符集=大写字母 |
+| TDI-009 | businessPrefix=AB；长度=2位 |
+| TDI-010 | businessPrefix=ABCD；长度=4位 |
+| TDI-011 | businessPrefix=Ab1；包含小写字母 |
+| TDI-012 | businessPrefix=A#1；包含特殊字符 |
 
 **设计要点**：
 
@@ -163,14 +163,14 @@
 
 **测试点**：验证转账金额范围和精度边界。
 
-| 测试设计项 ID | 条件/数据/状态/组合 | 预期结果 |
-|---|---|---|
-| TDI-013 | 转账金额等于最小值 1.00 | 金额校验通过，转账请求进入后续处理 |
-| TDI-014 | 转账金额小于最小值 1.00 | 金额校验失败，返回 `AMOUNT_BELOW_MIN` |
-| TDI-015 | 转账金额等于最大值 5000.00 | 金额校验通过，转账请求进入后续处理 |
-| TDI-016 | 转账金额大于最大值 5000.00 | 金额校验失败，返回 `AMOUNT_EXCEED_LIMIT` |
-| TDI-017 | 转账金额为合法范围内且保留 2 位小数 | 金额校验通过，金额按 2 位小数处理 |
-| TDI-018 | 转账金额为合法范围内但超过 2 位小数 | 金额校验失败，返回 `AMOUNT_PRECISION_INVALID` |
+| 测试设计项 ID | 条件/数据/状态/组合 |
+|---|---|
+| TDI-013 | amount=1.00；边界=最小值 |
+| TDI-014 | amount=0.99；边界=小于最小值 |
+| TDI-015 | amount=5000.00；边界=最大值 |
+| TDI-016 | amount=5000.01；边界=大于最大值 |
+| TDI-017 | amount=1000.00；范围=合法范围内；精度=2位小数 |
+| TDI-018 | amount=1000.001；范围=合法范围内；精度=3位小数 |
 
 **设计要点**：
 

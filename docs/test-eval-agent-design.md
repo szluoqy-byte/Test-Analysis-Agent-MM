@@ -205,7 +205,7 @@ outputs/runs/<run-id>/reports/test-evaluation-report.md
 - `TDI-*` 是否避免写成完整操作步骤或执行数据表。
 - 是否覆盖边界、等价类、状态、权限、组合、接口契约、幂等和副作用中的适用维度。
 - 是否完整继承分析方案的 `SC-* / TP-* / TP-*-* / TP-*-*-*` 层级。
-- 设计项预期结果是否有需求、设计、rules、context pack 或分析方案依据。
+- 叶子节点预期结果是否有需求、设计、rules、context pack 或分析方案依据。
 
 ### 5. 补充建议
 

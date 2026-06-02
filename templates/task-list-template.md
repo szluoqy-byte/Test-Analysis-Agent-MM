@@ -67,7 +67,7 @@
 | 4 | 设计依据补读 | generate-test-design-solution | 需求/设计/过程依据补读记录；不适用时 skipped | pending |  |
 | 5 | 测试设计方案生成 | test-design-solution-generation | deliverables/test-design-solution.md、project knowledge 应用记录 | pending |  |
 | 6 | 确定性校验 | bin | lint-test-design-solution.py 结构校验结果；失败不进入评审 | pending |  |
-| 7 | 独立评审 | test-design-solution-review | 分析方案承接、设计项粒度、预期结果依据、非用例化语义 | pending |  |
+| 7 | 独立评审 | test-design-solution-review | 分析方案承接、设计项数据化粒度、叶子节点预期结果依据、非用例化语义 | pending |  |
 | 8 | 覆盖审查 | coverage-review | 需求/分析方案/rules/project knowledge 应用检查、阻断项 | pending |  |
 | 9 | 输出收口 | generate-test-design-solution | 主交付件路径、过程报告路径、check-artifact-consistency.py 结果 | pending |  |
 

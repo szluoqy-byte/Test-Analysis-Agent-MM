@@ -1,4 +1,4 @@
-# 基于风险的测试技术
+﻿# 基于风险的测试技术
 
 ## 方法定义
 
@@ -155,13 +155,13 @@
 
 **测试点**：验证资金转账的资损防护、幂等、权限拦截和审计记录。
 
-| 测试设计项 ID | 条件/数据/状态/组合 | 预期结果 |
-|---|---|---|
-| TDI-001 | 有权限用户使用足额余额发起合法转账 | 付款方余额扣减、收款方余额增加，并记录转账审计日志 |
-| TDI-002 | 同一 `requestId` 的转账请求重复提交 | 只完成一次资金变动，不重复扣款，并保留幂等处理记录 |
-| TDI-003 | 付款方余额不足时发起转账 | 转账被拒绝，付款方和收款方余额均保持不变 |
-| TDI-004 | 无权限用户代他人发起转账 | 转账被拒绝，不产生资金变动，并记录失败审计日志 |
-| TDI-005 | 转账成功前下游记账依赖失败 | 不产生部分资损；若补偿或回滚策略未明确，预期结果写 `待人工分析确认` |
+| 测试设计项 ID | 条件/数据/状态/组合 |
+|---|---|
+| TDI-001 | userRole=有转账权限；payerBalance=1000.00；transferAmount=100.00；payeeStatus=正常 |
+| TDI-002 | requestId=REQ_TRANSFER_0001；transferAmount=100.00；submitCount=2；业务内容相同 |
+| TDI-003 | payerBalance=99.99；transferAmount=100.00；payeeStatus=正常 |
+| TDI-004 | userRole=无代付权限；payerAccount=他人账户；transferAmount=100.00 |
+| TDI-005 | transferAmount=100.00；downstreamAccountingStatus=成功前失败；compensationRule=待确认 |
 
 **设计要点**：
 

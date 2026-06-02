@@ -1,4 +1,4 @@
-# 处理周期测试技术 PCT
+﻿# 处理周期测试技术 PCT
 
 ## 方法定义
 
@@ -103,14 +103,14 @@ PCT 适合账期、结算、批处理、定时任务、重试轮次等场景。�
 
 **测试点**：验证日终结算的周期边界、跨周期归属、重复执行和失败重试。
 
-| 测试设计项 ID | 条件/数据/状态/组合 | 预期结果 |
-|---|---|---|
-| TDI-001 | 新账期开始时无待结算成功交易 | 不生成结算单，任务记录空跑结果 |
-| TDI-002 | 当日周期内成功交易首次参与日终结算 | 生成当日结算单，交易标记为已结算 |
-| TDI-003 | 交易完成时间为当日 `23:59:59` | 交易归属当日账期并参与当日结算 |
-| TDI-004 | 交易完成时间为次日 `00:00:00` | 交易归属次日账期，不进入前一日结算 |
-| TDI-005 | 已结算交易再次参与同一账期任务 | 不重复生成结算单，保留幂等执行记录 |
-| TDI-006 | 结算依赖失败后恢复并触发重试 | 失败原因可追踪，恢复后交易完成结算 |
+| 测试设计项 ID | 条件/数据/状态/组合 |
+|---|---|
+| TDI-001 | cycleDate=2026-06-02；pendingSettlementCount=0；taskType=日终结算 |
+| TDI-002 | cycleDate=2026-06-02；transactionId=TXN_SUCCESS_001；transactionTime=2026-06-02 12:00:00；settlementStatus=未结算 |
+| TDI-003 | cycleDate=2026-06-02；transactionId=TXN_EDGE_001；transactionTime=2026-06-02 23:59:59 |
+| TDI-004 | cycleDate=2026-06-02；transactionId=TXN_EDGE_002；transactionTime=2026-06-03 00:00:00 |
+| TDI-005 | cycleDate=2026-06-02；transactionId=TXN_SETTLED_001；settlementStatus=已结算；taskRun=重复执行 |
+| TDI-006 | cycleDate=2026-06-02；dependencyStatus=首次失败后恢复；retryCount=1 |
 
 **设计要点**：
 

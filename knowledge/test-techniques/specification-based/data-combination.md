@@ -1,4 +1,4 @@
-# 数据组合测试技术 DCoT
+﻿# 数据组合测试技术 DCoT
 
 ## 方法定义
 
@@ -107,13 +107,13 @@ DCoT 的目标不是穷举所有可能，而是在成本可控的前提下覆盖
 
 **测试点**：验证订单 ID 生成规则在关键渠道和生成器组合下表现一致。
 
-| 测试设计项 ID | 条件/数据/状态/组合 | 预期结果 |
-|---|---|---|
-| TDI-001 | APP 渠道 + MaliOrderId13BitsGenerator + ReasonType 已配置业务前缀 | 生成 13 位订单 ID，前缀使用 ReasonType 配置值，查询和确认链路可识别 |
-| TDI-002 | USSD 渠道 + MaliOrderId13BitsGenerator + ReasonType 已配置业务前缀 | 生成 13 位订单 ID，前缀使用 ReasonType 配置值，交易结果可查询 |
-| TDI-003 | API 渠道 + MaliOrderId13BitsGenerator + ReasonType 未配置业务前缀 | 生成 13 位订单 ID，前缀使用默认业务前缀 |
-| TDI-004 | WEB 渠道 + MaliOrderId13BitsGenerator + ReasonType 未配置业务前缀 | 生成 13 位订单 ID，前缀使用默认业务前缀，后台交易记录可识别 |
-| TDI-005 | APP 渠道 + OrderId22BitsGenerator | 生成 22 位订单 ID，老生成器规则保持兼容 |
+| 测试设计项 ID | 条件/数据/状态/组合 |
+|---|---|
+| TDI-001 | channel=APP；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=AGT |
+| TDI-002 | channel=USSD；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=AGT |
+| TDI-003 | channel=API；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=未配置；defaultPrefix=SYS |
+| TDI-004 | channel=WEB；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=未配置；defaultPrefix=SYS |
+| TDI-005 | channel=APP；orderIdGenerator=OrderId22BitsGenerator；reasonTypePrefix=AGT |
 
 **设计要点**：
 

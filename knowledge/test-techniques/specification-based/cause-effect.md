@@ -1,4 +1,4 @@
-# 因果图测试技术
+﻿# 因果图测试技术
 
 ## 方法定义
 
@@ -106,17 +106,17 @@
 
 **测试点**：验证转账放行原因、拒绝结果和高风险屏蔽优先级。
 
-| 测试设计项 ID | 条件/数据/状态/组合 | 预期结果 |
-|---|---|---|
-| TDI-001 | 已实名、收款账户正常、金额未超限且未命中高风险名单 | 转账请求允许提交 |
-| TDI-002 | 未实名、收款账户正常、金额未超限且未命中高风险名单 | 转账被拒绝，返回 `KYC_NOT_VERIFIED` |
-| TDI-003 | 已实名、收款账户异常、金额未超限且未命中高风险名单 | 转账被拒绝，返回 `PAYEE_INVALID` |
-| TDI-004 | 已实名、收款账户正常、金额超过单笔限额且未命中高风险名单 | 转账被拒绝，返回 `AMOUNT_LIMIT_EXCEEDED` |
-| TDI-005 | 已实名、收款账户正常、金额未超限但命中高风险名单 | 转账被拒绝，返回 `RISK_BLOCKED` |
-| TDI-006 | 未实名且命中高风险名单 | 转账被拒绝，返回 `RISK_BLOCKED`，验证高风险屏蔽优先级 |
+| 测试设计项 ID | 条件/数据/状态/组合 |
+|---|---|
+| TDI-001 | payerKycStatus=已实名；payeeStatus=正常；amount=1000.00；singleLimit=5000.00；riskListHit=false |
+| TDI-002 | payerKycStatus=未实名；payeeStatus=正常；amount=1000.00；singleLimit=5000.00；riskListHit=false |
+| TDI-003 | payerKycStatus=已实名；payeeStatus=冻结；amount=1000.00；singleLimit=5000.00；riskListHit=false |
+| TDI-004 | payerKycStatus=已实名；payeeStatus=正常；amount=5000.01；singleLimit=5000.00；riskListHit=false |
+| TDI-005 | payerKycStatus=已实名；payeeStatus=正常；amount=1000.00；singleLimit=5000.00；riskListHit=true |
+| TDI-006 | payerKycStatus=未实名；payeeStatus=正常；amount=1000.00；riskListHit=true |
 
 **设计要点**：
 
 - 因果图示例要把原因、结果和优先级说清楚，再落成设计项。
-- 每条设计项只验证一个预期结果，避免同时断言多个拒绝原因。
+- 同一叶子节点下的设计项应共享同一个预期结果；如果不同组合对应不同拒绝原因，应在分析层拆分叶子节点。
 - 若需求未说明错误码或拒绝优先级，预期结果写 `待人工分析确认`。

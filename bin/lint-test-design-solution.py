@@ -295,16 +295,7 @@ def collect_design_items(block_lines: list[str]) -> list[tuple[int, list[str]]]:
 
         design_id = match.group(1)
         item = match.group(2).strip()
-        expected_result = ""
-        for row_index in range(index + 1, len(block_lines)):
-            row = block_lines[row_index]
-            if re.match(r"^\s*-\s+TDI-\d{3}\s+", row) or row.startswith("#"):
-                break
-            stripped = row.strip()
-            if stripped.startswith(f"- {EXPECTED_PREFIX}"):
-                expected_result = stripped.removeprefix(f"- {EXPECTED_PREFIX}").strip()
-                break
-        items.append((index + 1, [design_id, item, expected_result]))
+        items.append((index + 1, [design_id, item]))
     return items
 
 
@@ -328,6 +319,23 @@ def check_leaf_block(
         errors.append(f"第 {line_number} 行：{label}缺少 `{DETAIL_PREFIX}`")
     elif detail_line.removeprefix(DETAIL_PREFIX).strip() in EMPTY_MARKERS:
         errors.append(f"第 {line_number} 行：测试点详情不能为空或模板占位")
+
+    expected_line = next((line for line in block_lines if line.startswith(f"- {EXPECTED_PREFIX}")), "")
+    if not expected_line:
+        errors.append(f"第 {line_number} 行：{label}缺少 `- {EXPECTED_PREFIX}`")
+    else:
+        expected_result = expected_line.removeprefix(f"- {EXPECTED_PREFIX}").strip()
+        if expected_result in EMPTY_MARKERS:
+            errors.append(f"第 {line_number} 行：预期结果不能为空或模板占位")
+        if has_generic_reference(expected_result):
+            errors.append(f"第 {line_number} 行：预期结果必须写明确结果或“{EXPECTED_FALLBACK}”，当前为: {expected_result}")
+        if any(word in expected_result for word in BANNED_STEP_WORDS):
+            errors.append(f"第 {line_number} 行：预期结果包含步骤化或脚本化表达: {expected_result}")
+
+    for offset, row in enumerate(block_lines):
+        if row.startswith(f"- {EXPECTED_PREFIX}") or not row.strip().startswith(f"- {EXPECTED_PREFIX}"):
+            continue
+        errors.append(f"第 {line_number + offset + 1} 行：TDI 下不得重复写预期结果，请把预期结果保留在测试点明细或失败类型明细层")
 
     design_items = collect_design_items(block_lines)
     if not design_items:
@@ -510,31 +518,25 @@ def main() -> int:
 
     seen_items: set[tuple[str, str]] = set()
     for expected_index, (line_number, cells) in enumerate(all_design_rows, start=1):
-        if len(cells) != 3:
-            errors.append(f"第 {line_number} 行：测试设计项期望 3 列，实际 {len(cells)} 列")
+        if len(cells) != 2:
+            errors.append(f"第 {line_number} 行：测试设计项期望 ID 和条件/数据/状态/组合，实际 {len(cells)} 项")
             continue
 
-        design_id, item, expected_result = cells
+        design_id, item = cells
         expected_id = f"TDI-{expected_index:03d}"
         if design_id != expected_id:
             errors.append(f"第 {line_number} 行：期望测试设计项 ID {expected_id}，实际 {design_id}")
 
         if item in EMPTY_MARKERS:
             errors.append(f"第 {line_number} 行：条件/数据/状态/组合不能为空或模板占位")
-        if expected_result in EMPTY_MARKERS:
-            errors.append(f"第 {line_number} 行：预期结果不能为空或模板占位")
         if has_generic_reference(item):
             errors.append(f"第 {line_number} 行：条件/数据/状态/组合使用了非自包含占位表达: {item}")
-        if has_generic_reference(expected_result):
-            errors.append(f"第 {line_number} 行：预期结果必须写明确结果或“{EXPECTED_FALLBACK}”，当前为: {expected_result}")
         if any(word in item for word in BANNED_STEP_WORDS):
             errors.append(f"第 {line_number} 行：测试设计项包含步骤化或脚本化表达: {item}")
-        if any(word in expected_result for word in BANNED_STEP_WORDS):
-            errors.append(f"第 {line_number} 行：预期结果包含步骤化或脚本化表达: {expected_result}")
         if item in {"验证功能正常", "异常场景覆盖", "正常场景", "异常场景", "功能正确"}:
             errors.append(f"第 {line_number} 行：测试设计项过于泛化: {item}")
 
-        key = (item, expected_result)
+        key = (item, "")
         if key in seen_items:
             warnings.append(f"第 {line_number} 行：测试设计项与前文重复: {item}")
         seen_items.add(key)

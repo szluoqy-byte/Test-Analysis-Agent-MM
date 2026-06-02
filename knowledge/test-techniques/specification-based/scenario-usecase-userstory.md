@@ -1,4 +1,4 @@
-# 场景与用户故事测试技术
+﻿# 场景与用户故事测试技术
 
 ## 方法定义
 
@@ -102,12 +102,12 @@
 
 **测试点**：验证用户取消订单的主路径、异常路径和重新进入后的可观察结果。
 
-| 测试设计项 ID | 条件/数据/状态/组合 | 预期结果 |
-|---|---|---|
-| TDI-001 | 本人名下待支付订单发起取消 | 订单状态变为已取消，占用资源释放，并记录取消操作日志 |
-| TDI-002 | 本人名下已支付订单发起自助取消 | 取消被拒绝，订单状态保持已支付 |
-| TDI-003 | 待支付订单取消成功后重新进入订单详情 | 订单详情展示已取消状态和取消时间 |
-| TDI-004 | 取消请求提交后用户中断页面并再次进入订单详情 | 展示订单最终一致状态；若中断处理规则未明确，预期结果写 `待人工分析确认` |
+| 测试设计项 ID | 条件/数据/状态/组合 |
+|---|---|
+| TDI-001 | userId=USER_OWN_001；orderId=ORDER_PENDING_001；orderOwner=本人；orderStatus=待支付；action=发起取消 |
+| TDI-002 | userId=USER_OWN_001；orderId=ORDER_PAID_001；orderOwner=本人；orderStatus=已支付；action=发起取消 |
+| TDI-003 | userId=USER_OWN_001；orderId=ORDER_CANCELED_001；orderStatus=已取消；action=重新进入订单详情 |
+| TDI-004 | userId=USER_OWN_001；orderId=ORDER_PENDING_002；action=提交取消后中断页面并重新进入订单详情 |
 
 **设计要点**：
 
