@@ -1,34 +1,34 @@
 ---
-description: Normalize Office input documents to cached Markdown
+description: 将 Office 输入文档归一化为缓存 Markdown
 agent: build
 ---
 
-Use the repository skill `normalize-input-documents`.
+使用仓库内置 skill `normalize-input-documents`。
 
-Treat the command arguments below as the skill `$ARGUMENTS`:
+将下面的命令参数视为该 skill 的 `$ARGUMENTS`：
 
 ```text
 $ARGUMENTS
 ```
 
-This command only normalizes input documents. Do not create `outputs/runs/<run-id>/`, do not generate `test-analysis-solution.md`, and do not generate `test-design-solution.md`.
+本命令只执行输入文档归一化。不得创建 `outputs/runs/<run-id>/`，不得生成 `test-analysis-solution.md`，也不得生成 `test-design-solution.md`。
 
-Supported argument hints:
+支持的参数提示：
 
-- Office input document: `<input.docx>` or `<input.xlsx>`.
-- Markdown input document: `<input.md>` or `<input.markdown>`; report that no conversion is needed.
-- Multiple inputs are allowed.
-- Optional force refresh: `--force`.
-- Optional machine-readable output: `--json`.
+- Office 输入文档：`<input.docx>` 或 `<input.xlsx>`。
+- Markdown 输入文档：`<input.md>` 或 `<input.markdown>`；只报告无需转换。
+- 支持一次传入多个输入文件。路径包含空格或中文时必须使用引号包裹。
+- 可选强制刷新：`--force`。
+- 可选机器可读输出：`--json`。
 
-Run from the repository root:
+从仓库根目录执行：
 
 ```text
 python bin/normalize-office-input.py <arguments>
 ```
 
-Use `outputs/input-cache/<sha256-12>/` as the fixed cache location. Report the normalized Markdown path, conversion metadata path, cache reuse status, and conversion warnings. Full analysis/design runs will later call the same script with `--run-dir outputs/runs/<run-id>` to bind the cached Markdown into `outputs/runs/<run-id>/inputs/`; this standalone command must not do that binding.
+固定使用 `outputs/input-cache/<sha256-12>/` 作为全局缓存位置。输出时说明归一化 Markdown 路径、转换 metadata 路径、缓存复用状态和转换警告。完整测试分析或测试设计 run 后续会用同一脚本追加 `--run-dir outputs/runs/<run-id>`，把缓存 Markdown 绑定到 `outputs/runs/<run-id>/inputs/`；本独立命令不得执行 run-local 绑定。
 
-If conversion metadata reports images or warnings, read `skills/normalize-input-documents/references/docx-image-and-diagram-workflow.md` and, when the active model supports multimodal image understanding, supplement image, diagram, flowchart, architecture, screenshot, EMF, or Visio facts before downstream analysis or design uses the normalized input. Keep supplemental facts in the same cache directory or report that image understanding was not performed because the active model is not multimodal.
+如果转换 metadata 报告图片或转换警告，读取 `skills/normalize-input-documents/references/docx-image-and-diagram-workflow.md`。当当前模型支持多模态图片理解时，在下游分析或设计使用归一化输入前，补充图片、图形、流程图、架构图、截图、EMF 或 Visio 中承载的事实。补充事实保存在同一缓存目录，或明确说明当前模型不支持多模态，因此未执行图片理解。
 
-When the input is a large or complex Excel knowledge source, read `skills/normalize-input-documents/references/xlsx-to-markdown.md` and `skills/normalize-input-documents/references/xlsx-to-ai-knowledge-base.md` before deciding whether raw table conversion is sufficient.
+当输入是大型或复杂 Excel 知识源时，先读取 `skills/normalize-input-documents/references/xlsx-to-markdown.md` 和 `skills/normalize-input-documents/references/xlsx-to-ai-knowledge-base.md`，再判断基础表格转换是否足够。

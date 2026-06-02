@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Normalize Office inputs to cached Markdown files."""
+"""将 Office 输入文档归一化为缓存 Markdown 文件。"""
 
 from __future__ import annotations
 
@@ -16,6 +16,33 @@ from typing import Any
 
 SUPPORTED_SUFFIXES = {".md", ".markdown", ".docx", ".xlsx"}
 INVALID_PATH_CHARS_RE = re.compile(r'[<>:"/\\|?*\x00-\x1f]+')
+
+
+class ChineseArgumentParser(argparse.ArgumentParser):
+    def format_usage(self) -> str:
+        return super().format_usage().replace("usage:", "用法:")
+
+    def format_help(self) -> str:
+        return super().format_help().replace("usage:", "用法:")
+
+    def error(self, message: str) -> None:
+        translations = {
+            "the following arguments are required: inputs": "缺少必需输入文件",
+            "unrecognized arguments:": "无法识别的参数:",
+            "expected one argument": "缺少参数值",
+        }
+        for original, translated in translations.items():
+            message = message.replace(original, translated)
+        self.print_usage(sys.stderr)
+        self.exit(2, f"{self.prog}: 参数错误: {message}\n")
+
+
+def configure_stdio() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
 
 
 def repo_root() -> Path:
@@ -47,11 +74,18 @@ def escape_table_cell(value: Any) -> str:
     return text.replace("\n", "<br>")
 
 
+def trim_trailing_empty(cells: list[str]) -> list[str]:
+    while cells and not cells[-1]:
+        cells.pop()
+    return cells
+
+
 def markdown_table(rows: list[list[str]]) -> list[str]:
     if not rows:
         return []
-    width = max(len(row) for row in rows)
-    padded = [row + [""] * (width - len(row)) for row in rows]
+    trimmed_rows = [trim_trailing_empty(row[:]) for row in rows]
+    width = max(len(row) for row in trimmed_rows)
+    padded = [row + [""] * (width - len(row)) for row in trimmed_rows]
     header = [cell if cell else f"列{index + 1}" for index, cell in enumerate(padded[0])]
     lines = [
         "| " + " | ".join(header) + " |",
@@ -131,7 +165,7 @@ def convert_docx(source: Path, output: Path) -> dict[str, Any]:
     try:
         from docx import Document
     except ImportError as exc:
-        raise RuntimeError("python-docx is required for .docx conversion") from exc
+        raise RuntimeError("转换 .docx 需要安装 python-docx") from exc
 
     doc = Document(str(source))
     image_count = docx_image_count(doc)
@@ -151,8 +185,8 @@ def convert_docx(source: Path, output: Path) -> dict[str, Any]:
     warnings: list[str] = []
     if image_count:
         warnings.append(
-            f"Detected {image_count} image(s). Text/table conversion completed, "
-            "but diagrams or screenshots require the local DOCX image and diagram supplement workflow."
+            f"检测到 {image_count} 个图片对象。文本和表格已转换，"
+            "但架构图、流程图或截图需要按 DOCX 图片与图形补充流程继续处理。"
         )
     return {"kind": "docx", "image_count": image_count, "warnings": warnings}
 
@@ -161,38 +195,67 @@ def convert_xlsx(source: Path, output: Path) -> dict[str, Any]:
     try:
         import openpyxl
     except ImportError as exc:
-        raise RuntimeError("openpyxl is required for .xlsx conversion") from exc
+        raise RuntimeError("转换 .xlsx 需要安装 openpyxl") from exc
 
     workbook = openpyxl.load_workbook(source, data_only=True)
     lines: list[str] = [f"# {source.stem}", ""]
     sheet_count = 0
+    warnings: list[str] = []
+    sheet_summaries: list[dict[str, Any]] = []
     for sheet in workbook.worksheets:
         rows: list[list[str]] = []
+        skipped_empty_rows = 0
         for row in sheet.iter_rows(values_only=True):
-            cells = [escape_table_cell(value) for value in row]
+            cells = trim_trailing_empty([escape_table_cell(value) for value in row])
             if any(cells):
                 rows.append(cells)
+            else:
+                skipped_empty_rows += 1
         if not rows:
+            sheet_summaries.append(
+                {
+                    "sheet": sheet.title,
+                    "rows": 0,
+                    "skipped_empty_rows": skipped_empty_rows,
+                    "merged_ranges": len(sheet.merged_cells.ranges),
+                }
+            )
             continue
         sheet_count += 1
+        merged_ranges = len(sheet.merged_cells.ranges)
+        if merged_ranges:
+            warnings.append(
+                f"工作表 `{sheet.title}` 检测到 {merged_ranges} 个合并单元格；"
+                "已保留左上角单元格内容，复杂多级表头建议人工确认。"
+            )
+        sheet_summaries.append(
+            {
+                "sheet": sheet.title,
+                "rows": len(rows),
+                "skipped_empty_rows": skipped_empty_rows,
+                "merged_ranges": merged_ranges,
+            }
+        )
         lines.extend([f"## {sheet.title}", ""])
         lines.extend(markdown_table(rows))
         lines.append("")
 
     output.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
-    return {"kind": "xlsx", "sheet_count": sheet_count, "warnings": []}
+    if sheet_count == 0:
+        warnings.append("未发现包含内容的工作表，已生成仅含标题的 Markdown。")
+    return {"kind": "xlsx", "sheet_count": sheet_count, "sheet_summaries": sheet_summaries, "warnings": warnings}
 
 
 def normalize_one(source: Path, cache_dir: Path, force: bool) -> dict[str, Any]:
     source = source.expanduser().resolve()
     if not source.exists():
-        raise FileNotFoundError(f"Input file does not exist: {source}")
+        raise FileNotFoundError(f"输入文件不存在: {source}")
     if not source.is_file():
-        raise ValueError(f"Input path is not a file: {source}")
+        raise ValueError(f"输入路径不是文件: {source}")
 
     suffix = source.suffix.lower()
     if suffix not in SUPPORTED_SUFFIXES:
-        raise ValueError(f"Unsupported input type {suffix}: {source}")
+        raise ValueError(f"不支持的输入类型 {suffix}: {source}")
 
     if suffix in {".md", ".markdown"}:
         sha = file_sha256(source)
@@ -287,7 +350,17 @@ def load_or_create_metadata(result: dict[str, Any]) -> dict[str, Any]:
 
 def bind_results_to_run_inputs(results: list[dict[str, Any]], run_input_dir: Path) -> Path:
     run_input_dir.mkdir(parents=True, exist_ok=True)
-    manifest_entries: list[dict[str, Any]] = []
+    manifest_path = run_input_dir / "input-normalization-manifest.json"
+    existing_entries: list[dict[str, Any]] = []
+    if manifest_path.exists():
+        try:
+            existing_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            existing_entries = list(existing_manifest.get("inputs", []))
+        except Exception:
+            existing_entries = []
+    manifest_entries_by_target: dict[str, dict[str, Any]] = {
+        str(entry.get("run_markdown", "")): entry for entry in existing_entries if entry.get("run_markdown")
+    }
 
     for result in results:
         basename = run_input_basename(result)
@@ -314,26 +387,23 @@ def bind_results_to_run_inputs(results: list[dict[str, Any]], run_input_dir: Pat
 
         result["run_markdown"] = str(run_markdown)
         result["run_metadata"] = str(run_metadata)
-        manifest_entries.append(
-            {
-                "source": result["source"],
-                "kind": result.get("kind", ""),
-                "sha256": result.get("sha256", ""),
-                "cached": result.get("cached", False),
-                "global_cache_markdown": str(Path(result["markdown"]).resolve()),
-                "global_cache_metadata": result.get("metadata", ""),
-                "run_markdown": str(run_markdown),
-                "run_metadata": str(run_metadata),
-                "warnings": result.get("warnings", []),
-            }
-        )
+        manifest_entries_by_target[str(run_markdown)] = {
+            "source": result["source"],
+            "kind": result.get("kind", ""),
+            "sha256": result.get("sha256", ""),
+            "cached": result.get("cached", False),
+            "global_cache_markdown": str(Path(result["markdown"]).resolve()),
+            "global_cache_metadata": result.get("metadata", ""),
+            "run_markdown": str(run_markdown),
+            "run_metadata": str(run_metadata),
+            "warnings": result.get("warnings", []),
+        }
 
     manifest = {
         "generated_at": utc_now_iso(),
         "run_input_dir": str(run_input_dir.resolve()),
-        "inputs": manifest_entries,
+        "inputs": list(manifest_entries_by_target.values()),
     }
-    manifest_path = run_input_dir / "input-normalization-manifest.json"
     manifest_path.write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
@@ -342,29 +412,37 @@ def bind_results_to_run_inputs(results: list[dict[str, Any]], run_input_dir: Pat
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Normalize .docx/.xlsx inputs to cached Markdown")
-    parser.add_argument("inputs", nargs="+", type=Path, help="Input .md, .docx or .xlsx files")
+    configure_stdio()
+    parser = ChineseArgumentParser(
+        description="将 .docx/.xlsx 输入文档归一化为缓存 Markdown",
+        add_help=False,
+        usage="python bin/normalize-office-input.py [选项] <输入文件...>",
+    )
+    parser._positionals.title = "位置参数"
+    parser._optionals.title = "可选参数"
+    parser.add_argument("-h", "--help", action="help", help="显示帮助信息并退出")
+    parser.add_argument("inputs", nargs="+", type=Path, help="输入 .md、.docx 或 .xlsx 文件")
     parser.add_argument(
         "--cache-dir",
         type=Path,
         default=repo_root() / "outputs" / "input-cache",
-        help="Cache directory, defaults to outputs/input-cache",
+        help="缓存目录，默认 outputs/input-cache",
     )
-    parser.add_argument("--force", action="store_true", help="Regenerate cached Markdown")
-    parser.add_argument("--json", action="store_true", help="Print machine-readable JSON")
+    parser.add_argument("--force", action="store_true", help="强制重新生成缓存 Markdown")
+    parser.add_argument("--json", action="store_true", help="输出机器可读 JSON")
     parser.add_argument(
         "--run-dir",
         type=Path,
-        help="Optional run directory; normalized inputs are copied to <run-dir>/inputs",
+        help="可选 run 目录；归一化输入会复制到 <run-dir>/inputs",
     )
     parser.add_argument(
         "--run-input-dir",
         type=Path,
-        help="Optional run-local input directory; overrides --run-dir/inputs",
+        help="可选 run-local inputs 目录；优先级高于 --run-dir/inputs",
     )
     args = parser.parse_args()
     if args.run_dir and args.run_input_dir:
-        print("失败: --run-dir and --run-input-dir cannot be used together", file=sys.stderr)
+        print("失败: --run-dir 和 --run-input-dir 不能同时使用", file=sys.stderr)
         return 2
 
     cache_dir = args.cache_dir
@@ -408,7 +486,7 @@ def main() -> int:
             for warning in result.get("warnings", []):
                 print(f"警告: {warning}")
         if manifest_path:
-            print(f"run input manifest: {manifest_path}")
+            print(f"run 输入 manifest: {manifest_path}")
     return 0
 
 

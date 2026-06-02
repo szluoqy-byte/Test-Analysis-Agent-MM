@@ -54,15 +54,15 @@ outputs/runs/<run-id>/inputs/input-normalization-manifest.json
 从仓库根目录执行：
 
 ```bash
-python bin/normalize-office-input.py <input1.docx> <input2.xlsx>
+python bin/normalize-office-input.py "<input1.docx>" "<input2.xlsx>"
 ```
 
-输出会列出每个输入的归一化结果。
+输出会使用中文列出每个输入的归一化结果。路径包含空格、中文或特殊字符时必须使用引号包裹。
 
 完整测试分析或测试设计主流程必须在创建 run 目录后执行：
 
 ```bash
-python bin/normalize-office-input.py --run-dir outputs/runs/<run-id> <input1.docx> <input2.xlsx>
+python bin/normalize-office-input.py --run-dir outputs/runs/<run-id> "<input1.docx>" "<input2.xlsx>"
 ```
 
 下游主流程必须使用 `outputs/runs/<run-id>/inputs/*.md` 路径作为需求文档、设计方案文档或外部分析方案路径。
@@ -70,7 +70,7 @@ python bin/normalize-office-input.py --run-dir outputs/runs/<run-id> <input1.doc
 如果需要机器可读结果：
 
 ```bash
-python bin/normalize-office-input.py --json --run-dir outputs/runs/<run-id> <input1.docx> <input2.xlsx>
+python bin/normalize-office-input.py --json --run-dir outputs/runs/<run-id> "<input1.docx>" "<input2.xlsx>"
 ```
 
 ## 复用规则
@@ -78,8 +78,17 @@ python bin/normalize-office-input.py --json --run-dir outputs/runs/<run-id> <inp
 1. 对每个输入计算内容哈希。
 2. 如果 `outputs/input-cache/<sha256-12>/<source-stem>.md` 和 `.conversion.json` 已存在，且未指定 `--force`，直接复用。
 3. 如果不存在缓存，执行转换。
-4. 如果传入 `--run-dir` 或 `--run-input-dir`，把归一化 Markdown 和 metadata 复制到 run-local inputs，并刷新 `input-normalization-manifest.json`。
+4. 如果传入 `--run-dir` 或 `--run-input-dir`，把归一化 Markdown 和 metadata 复制到 run-local inputs，并增量刷新 `input-normalization-manifest.json`。同一 run 多次执行归一化时，不得丢弃 manifest 中已有输入映射。
 5. 转换后必须记录源路径、源大小、源 mtime、SHA-256、转换时间、输出 Markdown 路径和转换警告。
+
+## 稳定执行要求
+
+- 一次完整分析或设计 run 中，优先把需求、设计方案和外部分析方案等 Office 输入一次性传给脚本，减少上下文遗漏。
+- 如果后续补充输入再次执行脚本，`input-normalization-manifest.json` 必须保留前序输入映射，并追加或更新本次输入映射。
+- 脚本对用户可见的状态、错误和警告使用中文输出；JSON schema 字段名保持稳定，不因中文化改名。
+- `.xlsx` 转换会裁剪每行尾部空单元格，避免 Excel 样式污染造成 Markdown 表格异常变宽。
+- `.xlsx` 中的合并单元格会在 metadata warnings 中记录；复杂多级表头或测试因子库仍应按内置 Excel 参考做人工增强或项目知识归档。
+- 若 `.docx` metadata 报告图片数量或图形风险，不得直接进入后续分析/设计并假设图中无信息；需要执行图片补充流程，或在过程产物记录未补充原因。
 
 ## DOCX 转换边界
 
