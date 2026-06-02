@@ -58,11 +58,26 @@ libreoffice --headless --convert-to png --outdir <media-dir> <media-dir>/image2.
 如果适合转 Mermaid，请给出 Mermaid；如果不适合，请给出可用于测试分析/测试设计的结构化文字描述。
 ```
 
-6. 将补充结果追加到归一化输入的过程记录中，或在 `process/context-pack.md` 记录“图片补充事实源”。不要把未经确认的图片推断直接写入主交付件；主交付件只能承接已经有证据的接口、流程、状态或依赖。
+6. 将补充结果合并回归一化 Markdown 中对应的 `DOCX_IMAGE_START` / `DOCX_IMAGE_END` 占位块。不要把 Mermaid 或图片事实只放在单独补充文件、过程记录、`process/context-pack.md` 或文末统一章节中；这些位置只能记录索引、状态和证据路径。
 
 ## 图片插入位置识别
 
 如果需要知道图片在正文中的上下文位置，可解析 `word/document.xml` 和 `word/_rels/document.xml.rels`。
+
+默认情况下，`bin/normalize-office-input.py` 会尽量在 Markdown 中按原始图片位置插入占位块：
+
+```markdown
+<!-- DOCX_IMAGE_START: image1.png#1 -->
+图片占位：image1.png#1
+
+- 来源：<docx 文件名> / image1.png
+- 原文位置：原 DOCX 图片所在段落之后
+- 补充状态：待处理
+- 位置要求：解析后的 Mermaid 或结构化图片事实必须替换此占位块，不得移动到文末或单独文件。
+<!-- DOCX_IMAGE_END: image1.png#1 -->
+```
+
+图片补充必须替换对应占位块，确保流程图、架构图或截图事实停留在原文上下文位置。如果 metadata 显示有图片未能生成占位块，必须先人工定位该图的上下文；无法确定位置时，本次归一化只能标记为 `需补充处理`。
 
 核心方法：
 
@@ -99,12 +114,13 @@ for match in re.finditer(r'embed="([^"]+)"', raw):
 
 ## Markdown 补充格式
 
-图片事实补充可以采用以下形式，供后续测试分析和测试设计读取。
+图片事实补充必须替换归一化 Markdown 中对应的图片占位块，供后续测试分析和测试设计读取。
 
 图形适合 Mermaid 时：
 
 ````markdown
-### 图片补充：<图片文件名或图题>
+<!-- DOCX_IMAGE_START: image1.png#1 -->
+图片补充：image1.png#1
 
 ```mermaid
 flowchart TD
@@ -112,18 +128,32 @@ flowchart TD
 ```
 
 - 来源：<docx 文件名> / <图片文件名>
+- 补充状态：已处理
 - 说明：<从图片可确认的接口、流程、状态或依赖>
+<!-- DOCX_IMAGE_END: image1.png#1 -->
 ````
 
 不适合 Mermaid 时：
 
 ```markdown
-### 图片补充：<图片文件名或图题>
+<!-- DOCX_IMAGE_START: image2.png#1 -->
+图片补充：image2.png#1
 
 - 图片类型：UI 截图 / 架构截图 / 表格截图 / 其他
+- 来源：<docx 文件名> / <图片文件名>
+- 补充状态：已处理 / 无需处理 / 未执行原因
 - 可确认事实：<逐条列出>
 - 不确定内容：<无法从图片确认的部分>
+<!-- DOCX_IMAGE_END: image2.png#1 -->
 ```
+
+位置要求：
+
+- 不得把 Mermaid 图统一追加到 Markdown 文末。
+- 不得只维护独立 `image-supplement.md`。
+- 不得只在 `process/context-pack.md` 里登记图片事实。
+- 不得删除 `DOCX_IMAGE_START` / `DOCX_IMAGE_END` 注释锚点；后续审查需要通过锚点确认每张图的处理状态。
+- 如果图片在表格单元格中，脚本会尽量把占位块放在该表格之后并标明单元格位置；补充内容必须留在该占位块处，不要挪到其他章节。
 
 ## 常见风险
 

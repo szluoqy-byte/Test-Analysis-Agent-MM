@@ -31,6 +31,8 @@ outputs/
 
 当需求文档、系统设计方案或外部分析方案输入为 `.docx` 或 `.xlsx` 时，必须先固定 `<run-id>` 并创建 run 目录，再通过 `normalize-input-documents` 归一化为 Markdown。归一化结果按源文件内容哈希写入 `outputs/input-cache/<sha256-12>/`，源文件内容不变时复用缓存；完整 run 还必须把本次实际使用的 Markdown 和 metadata 绑定到 `outputs/runs/<run-id>/inputs/`。后续测试分析和测试设计流程只读取 run-local Markdown 路径。
 
+DOCX 图片、流程图、架构图、状态图、截图或 EMF/Visio 图形解析后的 Mermaid/结构化事实必须合并回同一个归一化 Markdown，并放在脚本生成的 `DOCX_IMAGE_START` / `DOCX_IMAGE_END` 原文占位位置。不得只维护独立图片补充文件、文末补充章节、process、context-pack 或最终回复。若图片无法可靠定位到原文位置，归一化阶段不能标记为完成。
+
 ## 固定产物
 
 | 类型 | 路径 | 必须生成 | 说明 |
@@ -43,7 +45,7 @@ outputs/
 | 过程分析报告 | `reports/test-analysis-report.md` | 可选 | 记录方法证据、覆盖审查、独立评审和质量门禁 |
 | 全局归一化输入缓存 | `outputs/input-cache/<sha256-12>/<source-stem>.md` | Office 输入时是 | `.docx` / `.xlsx` 转换后的 Markdown 复用缓存，不属于单次 run 目录，可跨 run 复用 |
 | 全局归一化输入 metadata | `outputs/input-cache/<sha256-12>/<source-stem>.conversion.json` | Office 输入时是 | 记录源路径、源大小、mtime、SHA-256、转换时间、输出路径和转换警告 |
-| 本次 run 输入 Markdown | `inputs/<sha256-12>-<source-stem>.md` | 完整 run 且有 Office 输入时是 | 从全局缓存绑定到本次 run 的输入事实源，后续流程读取该路径 |
+| 本次 run 输入 Markdown | `inputs/<sha256-12>-<source-stem>.md` | 完整 run 且有 Office 输入时是 | 从全局缓存绑定到本次 run 的输入事实源，后续流程读取该路径；DOCX 图片/图形补充必须合并在该文件的原文占位位置 |
 | 本次 run 输入 metadata | `inputs/<sha256-12>-<source-stem>.conversion.json` | 完整 run 且有 Office 输入时是 | 记录源文件、全局缓存、run-local 路径、转换警告和绑定时间 |
 | 本次 run 输入 manifest | `inputs/input-normalization-manifest.json` | 完整 run 且有 Office 输入时是 | 记录本次所有归一化输入的源文件、全局缓存和 run-local 映射 |
 

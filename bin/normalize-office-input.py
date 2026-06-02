@@ -109,6 +109,73 @@ def docx_image_count(doc: Any) -> int:
     return max(inline_count, rel_count)
 
 
+def docx_image_map(doc: Any) -> dict[str, str]:
+    image_map: dict[str, str] = {}
+    try:
+        for rel_id, rel in doc.part.rels.items():
+            if "image" in rel.reltype:
+                image_map[rel_id] = Path(rel.target_ref).name
+    except Exception:
+        return {}
+    return image_map
+
+
+def image_refs_from_element(element: Any, image_map: dict[str, str]) -> list[str]:
+    rel_attrs = (
+        "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed",
+        "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}link",
+    )
+    refs: list[str] = []
+    try:
+        blips = element.xpath(".//*[local-name()='blip']")
+    except Exception:
+        blips = []
+    for blip in blips:
+        rel_id = ""
+        for attr in rel_attrs:
+            rel_id = blip.get(attr) or rel_id
+        refs.append(image_map.get(rel_id, rel_id or "unknown-image"))
+    return refs
+
+
+def image_placeholder_lines(source: Path, image_name: str, occurrence: int, location: str) -> list[str]:
+    image_id = f"{image_name}#{occurrence}"
+    return [
+        f"<!-- DOCX_IMAGE_START: {image_id} -->",
+        f"图片占位：{image_id}",
+        "",
+        f"- 来源：{source.name} / {image_name}",
+        f"- 原文位置：{location}",
+        "- 补充状态：待处理",
+        "- 位置要求：解析后的 Mermaid 或结构化图片事实必须替换此占位块，不得移动到文末或单独文件。",
+        f"<!-- DOCX_IMAGE_END: {image_id} -->",
+    ]
+
+
+def append_image_placeholders(
+    lines: list[str],
+    source: Path,
+    refs: list[str],
+    location: str,
+    image_occurrences: dict[str, int],
+    image_placeholders: list[dict[str, Any]],
+) -> None:
+    for image_name in refs:
+        image_occurrences[image_name] = image_occurrences.get(image_name, 0) + 1
+        occurrence = image_occurrences[image_name]
+        image_id = f"{image_name}#{occurrence}"
+        lines.extend(image_placeholder_lines(source, image_name, occurrence, location))
+        lines.append("")
+        image_placeholders.append(
+            {
+                "image": image_name,
+                "image_id": image_id,
+                "location": location,
+                "status": "pending",
+            }
+        )
+
+
 def iter_docx_blocks(parent: Any):
     from docx.document import Document as DocxDocument
     from docx.oxml.table import CT_Tbl
@@ -161,6 +228,16 @@ def table_to_markdown(table: Any) -> list[str]:
     return markdown_table(rows)
 
 
+def collect_table_image_refs(table: Any, image_map: dict[str, str]) -> list[tuple[str, list[str]]]:
+    refs: list[tuple[str, list[str]]] = []
+    for row_index, row in enumerate(table.rows, start=1):
+        for column_index, cell in enumerate(row.cells, start=1):
+            cell_refs = image_refs_from_element(cell._tc, image_map)
+            if cell_refs:
+                refs.append((f"表格第 {row_index} 行第 {column_index} 列之后", cell_refs))
+    return refs
+
+
 def convert_docx(source: Path, output: Path) -> dict[str, Any]:
     try:
         from docx import Document
@@ -169,26 +246,55 @@ def convert_docx(source: Path, output: Path) -> dict[str, Any]:
 
     doc = Document(str(source))
     image_count = docx_image_count(doc)
+    image_map = docx_image_map(doc)
+    image_occurrences: dict[str, int] = {}
+    image_placeholders: list[dict[str, Any]] = []
     lines: list[str] = [f"# {source.stem}", ""]
 
     for block in iter_docx_blocks(doc):
         if block.__class__.__name__ == "Paragraph":
             converted = paragraph_to_markdown(block)
+            image_refs = image_refs_from_element(block._element, image_map)
         else:
             converted = table_to_markdown(block)
+            table_image_refs = collect_table_image_refs(block, image_map)
+            image_refs = []
         if converted:
             lines.extend(converted)
             lines.append("")
+        if block.__class__.__name__ == "Paragraph" and image_refs:
+            append_image_placeholders(
+                lines,
+                source,
+                image_refs,
+                "原 DOCX 图片所在段落之后",
+                image_occurrences,
+                image_placeholders,
+            )
+        elif block.__class__.__name__ != "Paragraph":
+            for location, refs in table_image_refs:
+                append_image_placeholders(lines, source, refs, location, image_occurrences, image_placeholders)
 
     output.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
 
     warnings: list[str] = []
     if image_count:
         warnings.append(
-            f"检测到 {image_count} 个图片对象。文本和表格已转换，"
-            "但架构图、流程图或截图需要按 DOCX 图片与图形补充流程继续处理。"
+            f"检测到 {image_count} 个图片对象，已在 Markdown 中插入 {len(image_placeholders)} 个原文位置占位块。"
+            "架构图、流程图或截图需要按 DOCX 图片与图形补充流程在占位块原位置替换为 Mermaid 或结构化描述。"
         )
-    return {"kind": "docx", "image_count": image_count, "warnings": warnings}
+        if len(image_placeholders) < image_count:
+            warnings.append(
+                f"有 {image_count - len(image_placeholders)} 个图片对象未能可靠定位到正文位置，"
+                "可能位于页眉页脚、文本框、浮动图形或不支持的位置；完成归一化前必须人工定位并合并回正确上下文。"
+            )
+    return {
+        "kind": "docx",
+        "image_count": image_count,
+        "image_placeholder_count": len(image_placeholders),
+        "image_placeholders": image_placeholders,
+        "warnings": warnings,
+    }
 
 
 def convert_xlsx(source: Path, output: Path) -> dict[str, Any]:
