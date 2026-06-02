@@ -79,6 +79,10 @@
 - 测试设计项固定使用列表节点：`- TDI-001 <条件/数据/状态/组合>`，不得在 TDI 下一层重复写 `预期结果`。
 - `TDI-*` 应优先写具体数据值、数据槽位、接口返回、状态值或组合，例如 `amount=1000.00；category=PAY；customer_id=AGT_CUSTOMER_001`。
 - 接口类 `TDI-*` 不得写完整裸 URL，例如 `GET https://api.example.com/customers/?telephone_exact=...`；必须拆成同一行字段片段，例如 `接口=GET /customers/；telephone_exact=%2B225070000001；响应状态=HTTP 500`。
+- `TDI-*` 不得写结果或动作表达，例如“发送通知”“显示提示”“自动填充”“接口调用正确”“处理成功”“删除成功”；应改写为 `字段=值；状态=值；依赖=值；接口返回=值` 等组合。
+- 重复模式必须补充差异维度，例如 `场景=Add Payment`、`渠道=APP`、`操作=Delete Favorite`、`接口=POST /payments/`、`数据依赖=预验证已失败`。
+- 接口契约叶子节点应根据已明确字段约束展开代表性设计项，例如 `amount=1000.00；category=PAY；customer_id=AGT_CUSTOMER_001`、`amount=1000；缺少两位小数`、`amount=1000.001；超过两位小数`、`category=REFUND；枚举值非PAY`。
+- 超时、回滚、补偿或外部依赖恢复类叶子节点应使用可观察条件，例如 `查询返回count=1；payment_status=SUCCESS`、`查询返回count=0；payment_status=FAILED`、`查询超时；payment_status=TIMEOUT`。
 - 主输出不得使用测试设计项表格，避免 Markdown 转脑图时丢失层级。
 - `TDI-*` 后的正文写代表性条件、数据、状态或组合，不写“验证功能正常”这类泛化标题。
 - `预期结果` 只能写需求、设计方案或上游测试分析方案明确支持的结果；如果需求和设计方案没有明确错误提示、状态变化、错误码、返回内容或记录变化，写 `待人工分析确认`。

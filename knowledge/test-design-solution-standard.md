@@ -65,7 +65,11 @@
 - 测试设计项回答“这个分支用哪些代表性条件、数据、状态或组合覆盖”。
 - 测试设计项应优先给出具体数据值、数据槽位、接口返回、状态值或组合，例如 `amount=1000.00；category=PAY；customer_id=AGT_CUSTOMER_001`。
 - 不要只写“有效MSISDN”“有效金额”“错误PIN”“接口超时”等抽象标签；应补充具体取值、数据依赖或模拟返回条件。
+- 测试设计项不得写成结果或动作描述，例如“发送通知”“显示错误提示”“自动填充”“接口调用正确”“系统完成支付流程”；这些内容属于预期结果、验证点或执行行为，不能作为 `TDI-*` 正文。应改写为条件、数据、状态、接口返回或依赖组合，例如 `渠道=APP；号码来源=客户查询返回；telephone_exact=%2B225070000001`。
+- 同类条件在多个场景、渠道或流程中重复出现时，`TDI-*` 必须补充能区分语义的维度，例如 `场景=Add Payment`、`渠道=APP`、`操作=Delete Favorite`、`接口=POST /payments/`、`数据依赖=预验证已失败`；不得只复制相同的条件片段凑数量。
 - 接口类测试设计项不得写完整裸 URL，例如 `GET https://api.example.com/customers/?telephone_exact=...`。应拆成同一行字段片段，例如 `接口=GET /customers/；telephone_exact=%2B225070000001；响应状态=HTTP 500`，避免 Markdown 转脑图时被自动识别为链接或因长 URL 换行破坏层级。
+- 接口契约类叶子节点应根据需求或设计方案已明确的字段约束展开代表性条件。若设计明确 `amount` 为两位小数、`category=PAY`、`customer_id` 必填，则除有效组合外，应按适用性补充 `amount=1000`、`amount=1000.0`、`amount=1000.001`、`amount=abc`、`category=REFUND`、`缺少customer_id` 等不同契约风险的设计项；未被输入说明的字段或枚举不得编造。
+- 超时、回滚、补偿或依赖恢复类叶子节点应把业务设计中的可观察分支数据化，例如 `查询返回count=1；payment_status=SUCCESS`、`查询返回count=0；payment_status=FAILED`、`查询超时；payment_status=TIMEOUT`、`查询返回count>1；处理状态=待人工分析确认`；不要只写“接口超时”或“补偿成功”。
 - 如果不允许暴露真实测试数据，使用稳定数据槽位命名，例如 `AGT_REGISTERED_MSISDN_01`、`MM_VALID_PIN_01`、`PAYMENT_AMOUNT_VALID_01`。
 - 普通测试点明细至少应有一个测试设计项。
 - `E2E场景测试` 从分析方案继承为独立同级测试点，只维护端到端主流程成功闭环设计项；不得把其他规则、异常、接口、权限、状态、回滚或补偿设计项挂到 E2E 测试点下。

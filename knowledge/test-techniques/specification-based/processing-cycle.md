@@ -71,6 +71,8 @@ PCT 适合账期、结算、批处理、定时任务、重试轮次等场景。�
 - 明确触发周期处理的动作。
 - 对重复执行场景，应连续触发两次或多次。
 - 对跨周期场景，应先构造旧周期数据，再切换到新周期。
+- 对失败、重试、补偿或轮询场景，`TDI-*` 必须写清可观察分支条件，例如查询返回数量、依赖返回状态、对象终态、重试次数或补偿状态，不只写“补偿成功”“接口超时”。
+- 如果同一补偿逻辑覆盖不同入口或渠道，应在设计项中补充 `场景=`、`渠道=`、`操作=` 或 `数据依赖=` 等差异维度。
 
 ## 预期结果依据
 
@@ -111,9 +113,13 @@ PCT 适合账期、结算、批处理、定时任务、重试轮次等场景。�
 | TDI-004 | cycleDate=2026-06-02；transactionId=TXN_EDGE_002；transactionTime=2026-06-03 00:00:00 |
 | TDI-005 | cycleDate=2026-06-02；transactionId=TXN_SETTLED_001；settlementStatus=已结算；taskRun=重复执行 |
 | TDI-006 | cycleDate=2026-06-02；dependencyStatus=首次失败后恢复；retryCount=1 |
+| TDI-007 | cycleDate=2026-06-02；查询返回count=1；payment_status=SUCCESS；compensationAction=关闭补偿 |
+| TDI-008 | cycleDate=2026-06-02；查询返回count=0；payment_status=FAILED；compensationAction=标记失败 |
+| TDI-009 | cycleDate=2026-06-02；查询超时；payment_status=TIMEOUT；retryCount=达到上限 |
 
 **设计要点**：
 
 - 周期技术要把开始、边界、跨周期、重复执行和失败恢复分开表达。
 - 时间边界要使用能代表归属差异的具体点，不只写“跨天场景”。
+- 失败补偿设计项应把依赖返回和对象终态写成可观察组合，不要只写“接口超时”或“补偿完成”。
 - 如果账期归属口径、执行时间或重试策略未说明，预期结果写 `待人工分析确认`。

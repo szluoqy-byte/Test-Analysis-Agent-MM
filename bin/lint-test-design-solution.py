@@ -145,6 +145,44 @@ GENERIC_REFERENCE_WORDS = (
     "待补充",
     "待确认",
 )
+RESULT_OR_ACTION_TDI_TERMS = (
+    "发送通知",
+    "SMS通知发送",
+    "显示提示",
+    "显示错误",
+    "显示无注册号码提示",
+    "错误信息",
+    "自动填充",
+    "接口调用正确",
+    "调用正确",
+    "调用成功",
+    "处理成功",
+    "处理失败",
+    "系统完成",
+    "完成支付流程",
+    "删除成功",
+    "返回收藏列表数据",
+    "APP渠道调用",
+    "USSD渠道调用",
+    "补偿成功",
+    "补偿失败",
+)
+TDI_DISCRIMINATOR_TERMS = (
+    "场景=",
+    "渠道=",
+    "操作=",
+    "接口=",
+    "端点=",
+    "消息=",
+    "回调=",
+    "集成点=",
+    "数据依赖=",
+    "号码来源=",
+    "触发条件=",
+    "用户角色=",
+    "账户状态=",
+    "业务流=",
+)
 EMPTY_MARKERS = {
     "",
     "<代表性条件、数据、状态或组合>",
@@ -168,6 +206,10 @@ def has_generic_reference(value: str) -> bool:
     if value == EXPECTED_FALLBACK:
         return False
     return any(word in value for word in GENERIC_REFERENCE_WORDS)
+
+
+def has_tdi_discriminator(value: str) -> bool:
+    return any(term in value for term in TDI_DISCRIMINATOR_TERMS)
 
 
 def parse_id_sequence(lines: list[str], pattern: str) -> list[tuple[int, str]]:
@@ -559,10 +601,19 @@ def main() -> int:
                 f"第 {line_number} 行：测试设计项不得包含 http:// 或 https:// 裸链接；"
                 "请拆成 `接口=METHOD /path；参数名=参数值；响应状态=...` 等字段片段"
             )
+        matched_result_terms = [term for term in RESULT_OR_ACTION_TDI_TERMS if term in item]
+        if matched_result_terms:
+            warnings.append(
+                f"第 {line_number} 行：测试设计项疑似包含结果/动作表达 {matched_result_terms[0]}，"
+                f"建议改为条件、数据、状态、接口返回或依赖组合: {item}"
+            )
 
         key = (item, "")
         if key in seen_items:
-            warnings.append(f"第 {line_number} 行：测试设计项与前文重复: {item}")
+            hint = ""
+            if not has_tdi_discriminator(item):
+                hint = "；如确实属于不同业务流，请补充场景/渠道/操作/接口/数据依赖等区分维度"
+            warnings.append(f"第 {line_number} 行：测试设计项与前文重复{hint}: {item}")
         seen_items.add(key)
 
     for warning in warnings:

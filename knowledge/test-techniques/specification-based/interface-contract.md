@@ -110,6 +110,9 @@
 - 对幂等测试设计项需要重复发送相同业务请求。
 - 对回调测试设计项需要模拟回调成功、失败或重复。
 - 接口类测试设计项不写完整裸 URL；将请求方法、相对路径、参数和响应拆成同一行字段片段，例如 `接口=GET /customers/；telephone_exact=%2B225070000001；响应状态=HTTP 500`。
+- 字段契约明确时，不只生成正向有效组合；应按必填、类型、格式、精度、枚举、范围和依赖存在性选择代表性反例。
+- `TDI-*` 只写请求条件、字段值、依赖状态或响应模拟，不写“接口调用正确”“显示错误提示”“发送通知”等结果或动作语义。
+- 相同字段约束在不同接口、渠道或操作复用时，设计项必须包含 `接口=`、`渠道=`、`操作=` 或 `数据依赖=` 等差异维度。
 
 ## 预期结果依据
 
@@ -161,3 +164,34 @@
 - 幂等与字段校验是不同契约，不要合成一条泛化“异常请求”。
 - 如果规格没有错误码或响应结构，预期结果写 `待人工分析确认`，不得编造。
 - 不在测试设计项中输出 `http://` 或 `https://` 裸链接，避免 Markdown 转脑图时被自动链接解析或换行破坏层级。
+
+### 示例：添加支付接口的金额与枚举契约
+
+**测试场景**：钱包系统通过添加支付接口创建支付请求。
+
+**规格摘要**：
+
+- 接口为 `POST /payments/`。
+- `amount` 必填，要求数字且保留两位小数。
+- `category` 必填，当前仅允许 `PAY`。
+- `customer_id` 必填，必须能匹配已存在客户。
+- 合法请求创建支付请求；非法字段的错误码、错误提示或状态变化如果规格未说明，预期结果写 `待人工分析确认`。
+
+**测试点**：验证添加支付接口的字段契约。
+
+| 测试设计项 ID | 条件/数据/状态/组合 |
+|---|---|
+| TDI-001 | 接口=POST /payments/；amount=1000.00；category=PAY；customer_id=AGT_CUSTOMER_001 |
+| TDI-002 | 接口=POST /payments/；amount=1000；缺少两位小数；category=PAY；customer_id=AGT_CUSTOMER_001 |
+| TDI-003 | 接口=POST /payments/；amount=1000.0；仅一位小数；category=PAY；customer_id=AGT_CUSTOMER_001 |
+| TDI-004 | 接口=POST /payments/；amount=1000.001；超过两位小数；category=PAY；customer_id=AGT_CUSTOMER_001 |
+| TDI-005 | 接口=POST /payments/；amount=abc；非数字；category=PAY；customer_id=AGT_CUSTOMER_001 |
+| TDI-006 | 接口=POST /payments/；amount=1000.00；category=REFUND；枚举值非PAY；customer_id=AGT_CUSTOMER_001 |
+| TDI-007 | 接口=POST /payments/；amount=1000.00；category=PAY；请求体不包含customer_id |
+| TDI-008 | 接口=POST /payments/；amount=1000.00；category=PAY；customer_id=AGT_CUSTOMER_NOT_FOUND |
+
+**设计要点**：
+
+- 正向有效组合只是一条基准；字段契约必须覆盖不同错误类型，而不是把所有非法值合并成“金额格式错误”。
+- `接口=POST /payments/` 作为差异维度保留在每条设计项中，便于下游脑图或用例生成追溯目标接口。
+- `TDI-*` 不写“请求失败”“显示错误信息”；错误提示、错误码和状态变化由叶子节点预期结果承接，依据不足时写 `待人工分析确认`。
