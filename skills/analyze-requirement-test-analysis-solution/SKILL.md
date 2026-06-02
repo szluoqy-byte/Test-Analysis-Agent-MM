@@ -76,7 +76,7 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 1. 校验输入至少包含一份需求文档；识别可选设计方案文档，但此时不读取 Office 正文。
 2. 将当前 agent 会话工作目录固定为 `PROJECT_ROOT`，运行 `python bin/generate-run-id.py` 生成本次运行 ID，并创建 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/`、`process/`、`reports/` 和 `inputs/`。
 3. 使用 `templates/task-list-template.md` 创建 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/task-list.md`，并按阶段维护状态。
-4. 若输入包含 `.docx` 或 `.xlsx`，调用 `normalize-input-documents`，使用 `python bin/normalize-office-input.py --run-dir outputs/runs/<run-id> ...` 将 Office 输入转换到全局 cache，并绑定到 `${PROJECT_ROOT}/outputs/runs/<run-id>/inputs/`；后续步骤只使用 run-local Markdown 路径。若无 Office 输入，该阶段在 `process/task-list.md` 中标记为 `skipped`。
+4. 若输入包含 `.docx` 或 `.xlsx`，调用 `normalize-input-documents`，使用 `python bin/normalize-office-input.py --run-dir outputs/runs/<run-id> ...` 将 Office 输入转换到全局 cache，并绑定到 `${PROJECT_ROOT}/outputs/runs/<run-id>/inputs/`；必须按该 skill 的“完成判定”处理或记录所有图片、图形、复杂 Excel 和转换 warning 后，才能把“输入文档归一化”阶段标记为 `done`；后续步骤只使用 run-local Markdown 路径。若无 Office 输入，该阶段在 `process/task-list.md` 中标记为 `skipped`。
 5. 解析可选 `project-key` 和 `personal-key`，使用 `memory-context-builder` 扫描 core、project 和 personal 三层配置，生成 `process/context-pack.md`，登记适用 rules、Rules 与输入冲突记录和 project knowledge 阶段绑定。
 6. 使用 `requirement-testability` 分析需求文档，生成结构化需求模型，并登记需求待确认候选。
 7. 如果提供设计方案文档，使用 `design-solution-extraction` 提取架构决策、流程、接口、字段、状态机、权限、数据依赖、异常处理、配置开关、非功能指标和设计缺口；如果未提供设计方案，登记 `Q-DESIGN-*` 过程候选。
@@ -96,7 +96,7 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 
 | 阶段 | 必须产出 | 交给下一阶段 |
 |---|---|---|
-| `normalize-input-documents` | Office 输入全局 cache、run-local Markdown、conversion metadata、`inputs/input-normalization-manifest.json`；无 Office 输入时记录 skipped | 需求与设计方案分析 |
+| `normalize-input-documents` | Office 输入全局 cache、run-local Markdown、conversion metadata、`inputs/input-normalization-manifest.json`、warning 收口记录；无 Office 输入时记录 skipped | 需求与设计方案分析 |
 | `task-list` | `process/task-list.md` | 全流程阶段顺序与状态追踪 |
 | `memory-context-builder` | `process/context-pack.md`、适用强制规则、Rules 与输入冲突记录、project/personal 来源使用摘要、项目知识阶段绑定 | 需求与设计方案分析 |
 | `requirement-testability` | 结构化需求模型、需求待确认候选 | 测试技术路由、测试点生成 |

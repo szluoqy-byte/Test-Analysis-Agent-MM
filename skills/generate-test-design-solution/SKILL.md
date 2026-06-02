@@ -69,7 +69,7 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 2. 如果没有测试分析方案，先调用 `analyze-requirement-test-analysis-solution` 生成分析方案，并以其输出作为后续输入；该上游分析流程负责创建 run、归一化 Office 输入并绑定 run-local inputs。
 3. 固定 `PROJECT_ROOT` 和 `<run-id>`；如果输入分析方案位于 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.md`，优先复用该 run，否则运行 `python bin/generate-run-id.py` 新建 run。创建或复用 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/`、`process/`、`reports/` 和 `inputs/`。
 4. 创建或刷新 `process/task-list.md`，记录当前进入测试设计阶段。
-5. 若当前设计输入仍包含未在本 run manifest 中绑定的 `.docx` 或 `.xlsx`，调用 `normalize-input-documents`，使用 `python bin/normalize-office-input.py --run-dir outputs/runs/<run-id> ...` 将 Office 输入转换到全局 cache，并绑定到 `${PROJECT_ROOT}/outputs/runs/<run-id>/inputs/`；后续步骤只使用 run-local Markdown 路径。若 Office 输入已由上游分析 run 绑定，该阶段置为 `done` 并以既有 `inputs/input-normalization-manifest.json` 为证据；若无 Office 输入，该阶段置为 `skipped`。
+5. 若当前设计输入仍包含未在本 run manifest 中绑定的 `.docx` 或 `.xlsx`，调用 `normalize-input-documents`，使用 `python bin/normalize-office-input.py --run-dir outputs/runs/<run-id> ...` 将 Office 输入转换到全局 cache，并绑定到 `${PROJECT_ROOT}/outputs/runs/<run-id>/inputs/`；必须按该 skill 的“完成判定”处理或记录所有图片、图形、复杂 Excel 和转换 warning 后，才能把“输入文档归一化”阶段标记为 `done`；后续步骤只使用 run-local Markdown 路径。若 Office 输入已由上游分析 run 绑定，该阶段置为 `done` 并以既有 `inputs/input-normalization-manifest.json` 及 warning 收口记录为证据；若无 Office 输入，该阶段置为 `skipped`。
 6. 读取并校验 `deliverables/test-analysis-solution.md`；若文件存在，运行 `bin/lint-test-analysis-solution.py`。
 7. 读取或生成 `process/context-pack.md`，确认适用 rules、Rules 与输入冲突记录、project/personal 来源和项目知识阶段绑定。
 8. 创建或刷新 `process/clarification-session.md`；如果设计阶段没有新增待确认候选，声明 `无待确认候选`。
@@ -85,7 +85,7 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 
 | 阶段 | 必须产出 | 交给下一阶段 |
 |---|---|---|
-| `normalize-input-documents` | Office 输入全局 cache、run-local Markdown、conversion metadata、`inputs/input-normalization-manifest.json`；无 Office 输入时记录 skipped | 分析方案校验和设计依据补读 |
+| `normalize-input-documents` | Office 输入全局 cache、run-local Markdown、conversion metadata、`inputs/input-normalization-manifest.json`、warning 收口记录；无 Office 输入时记录 skipped | 分析方案校验和设计依据补读 |
 | `analysis-solution-check` | 已校验测试分析方案、承接关系检查 | 测试设计项生成 |
 | `memory-context-builder` | `process/context-pack.md` 或复用记录、适用强制规则、Rules 与输入冲突记录、项目知识阶段绑定 | 测试设计项生成和评审 |
 | `clarification-session` | `process/clarification-session.md`，无候选时声明 `无待确认候选` | 测试设计项生成和评审 |

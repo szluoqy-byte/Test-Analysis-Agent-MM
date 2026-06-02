@@ -475,6 +475,7 @@ def main() -> int:
         else:
             print(json.dumps(results, ensure_ascii=False, indent=2))
     else:
+        warning_count = 0
         for result in results:
             if result["kind"] == "markdown":
                 print(f"无需转换: {result['source']}")
@@ -484,9 +485,17 @@ def main() -> int:
             if result.get("run_markdown"):
                 print(f"绑定到 run inputs: {result['run_markdown']}")
             for warning in result.get("warnings", []):
+                warning_count += 1
                 print(f"警告: {warning}")
         if manifest_path:
             print(f"run 输入 manifest: {manifest_path}")
+        if warning_count:
+            print(
+                f"脚本阶段完成，但存在 {warning_count} 条转换警告；"
+                "调用 normalize-input-documents skill 时必须继续处理或记录这些警告后才能结束。"
+            )
+        else:
+            print("脚本阶段完成：未发现转换警告。")
     return 0
 
 

@@ -67,6 +67,7 @@
 
 - 当用户要求基于需求和设计方案生成测试场景、测试点、测试点明细粒度的方案时，使用 `analyze-requirement-test-analysis-solution`。
 - 如果需求文档、系统设计方案或外部分析方案输入是 `.docx` 或 `.xlsx`，先固定 `<run-id>` 并创建 run 目录，再使用 `normalize-input-documents` 调用 `python bin/normalize-office-input.py --run-dir outputs/runs/<run-id> ...` 转换到全局 cache 并绑定为 run-local Markdown；后续流程只读取 `outputs/runs/<run-id>/inputs/` 下的归一化 Markdown 路径。
+- `normalize-input-documents` 不能只以脚本执行成功作为完成标准；必须处理或记录 DOCX 图片/图形、复杂 Excel 和 metadata warnings 的收口状态后，才能把“输入文档归一化”阶段标记为 `done`。
 - 阶段性动作依次使用 `normalize-input-documents`（仅 Office 输入时触发）、`memory-context-builder`、`requirement-testability`、`design-solution-extraction`、`clarification-gate`、`testing-method-router`、路由选中的专项分析 skills、`testpoint-generation`、`test-analysis-solution-generation`、确定性 lint、`test-analysis-solution-review` 和 `coverage-review`。
 - 设计方案输入用于补充接口、字段、状态、权限、数据依赖、配置开关、异常处理和非功能指标；没有设计方案时继续生成，并把缺口沉淀到过程澄清记录或单条预期结果的 `待人工分析确认`。
 - 当用户要求基于已评审测试分析方案生成测试设计项时，使用 `generate-test-design-solution`。

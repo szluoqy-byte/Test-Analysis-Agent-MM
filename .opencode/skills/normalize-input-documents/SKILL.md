@@ -90,6 +90,23 @@ python bin/normalize-office-input.py --json --run-dir outputs/runs/<run-id> "<in
 - `.xlsx` 中的合并单元格会在 metadata warnings 中记录；复杂多级表头或测试因子库仍应按内置 Excel 参考做人工增强或项目知识归档。
 - 若 `.docx` metadata 报告图片数量或图形风险，不得直接进入后续分析/设计并假设图中无信息；需要执行图片补充流程，或在过程产物记录未补充原因。
 
+## 完成判定
+
+执行本 skill 时，不能只运行 `python bin/normalize-office-input.py ...` 后就结束。只有满足以下条件，才算本 skill 完成：
+
+1. `$ARGUMENTS` 中所有 `.md`、`.docx`、`.xlsx` 输入都已识别并逐项给出处理状态。
+2. 每个 Office 输入都有全局缓存 Markdown 和 `.conversion.json`；Markdown 输入明确标记为 `无需转换`。
+3. 如果处于完整 run，`outputs/runs/<run-id>/inputs/input-normalization-manifest.json` 已存在，且包含本次所有输入映射；下游输入路径必须切换为 run-local Markdown。
+4. 所有 metadata warnings 都已处理或记录收口状态：
+   - `已处理`：例如已补充图片/图形事实、已人工确认复杂 Excel 表头、已增强测试因子库归档。
+   - `无需处理`：例如图片仅为 logo、页眉页脚装饰图，或 Excel 合并单元格不影响可读性。
+   - `未执行原因`：例如当前模型不支持多模态、缺少 LibreOffice 转图能力、用户只要求基础转换。
+5. 如果 DOCX 存在图片、图形、EMF、Visio 或截图风险，必须读取 `references/docx-image-and-diagram-workflow.md`，并生成图片补充事实或明确记录未补充原因。
+6. 如果 XLSX 存在合并单元格、多级表头、大型测试因子库或 checklist 风险，必须读取 `references/xlsx-to-markdown.md`；若它是项目知识源，还必须读取 `references/xlsx-to-ai-knowledge-base.md`，并说明基础表格转换是否足够。
+7. 最终回复或过程产物必须包含“归一化完成摘要”，列出源文件、归一化 Markdown、metadata、run-local Markdown（如有）、缓存状态、warning 收口状态和下游应读取的路径。
+
+如果任一项未满足，本 skill 的结论必须写 `未完成` 或 `需补充处理`，不得说“完成”。
+
 ## DOCX 转换边界
 
 本仓库脚本提供稳定的文本与表格转换能力：
@@ -127,6 +144,7 @@ python bin/normalize-office-input.py --json --run-dir outputs/runs/<run-id> "<in
 - 若存在 Office 输入，主流程使用 `python bin/normalize-office-input.py --run-dir outputs/runs/<run-id> ...`；无 Office 输入时该阶段置为 `skipped`。
 - `process/task-list.md` 中的“输入文档归一化”阶段在触发时置为 `done`，证据路径写 `outputs/runs/<run-id>/inputs/input-normalization-manifest.json`；无 Office 输入时置为 `skipped`。
 - `process/context-pack.md` 应记录源文件、全局缓存路径、run-local Markdown 和 metadata 的映射，便于后续追踪源文件。
+- 只有在“完成判定”全部满足后，`process/task-list.md` 才能把“输入文档归一化”阶段置为 `done`；仍有图片、图形、复杂 Excel 或 warning 未收口时，阶段状态应保持 `pending`、`blocked` 或记录 `需补充处理`。
 
 ## 约束
 

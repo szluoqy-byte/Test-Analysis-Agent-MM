@@ -32,3 +32,13 @@ python bin/normalize-office-input.py <arguments>
 如果转换 metadata 报告图片或转换警告，读取 `skills/normalize-input-documents/references/docx-image-and-diagram-workflow.md`。当当前模型支持多模态图片理解时，在下游分析或设计使用归一化输入前，补充图片、图形、流程图、架构图、截图、EMF 或 Visio 中承载的事实。补充事实保存在同一缓存目录，或明确说明当前模型不支持多模态，因此未执行图片理解。
 
 当输入是大型或复杂 Excel 知识源时，先读取 `skills/normalize-input-documents/references/xlsx-to-markdown.md` 和 `skills/normalize-input-documents/references/xlsx-to-ai-knowledge-base.md`，再判断基础表格转换是否足够。
+
+完成条件：
+
+- 不能只运行 `python bin/normalize-office-input.py ...` 后就结束。
+- 必须逐个输入文件说明处理状态：无需转换、已转换或复用缓存。
+- 必须说明每个输出 Markdown、metadata 和缓存目录路径。
+- 必须处理或记录每条转换警告的收口状态：`已处理`、`无需处理` 或 `未执行原因`。
+- DOCX 图片/图形 warning 必须按图片补充流程处理，或说明当前模型/环境为什么不能处理。
+- XLSX 合并单元格、多级表头、大型测试因子库或 checklist warning 必须说明基础转换是否足够；如果不足，给出增强归档建议。
+- 最终回复必须包含“归一化完成摘要”。如果仍有 warning 未收口，结论必须写 `需补充处理`，不得写 `完成`。
