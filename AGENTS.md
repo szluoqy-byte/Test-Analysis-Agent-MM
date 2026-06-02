@@ -81,6 +81,7 @@
 - 主交付件不得使用 Markdown 加粗语法，例如 `**文本**` 或 `__文本__`。
 - 测试设计方案中的普通测试点明细或失败类型明细层保留一条 `- 预期结果：...`；`TDI-*` 必须使用列表节点，格式为 `- TDI-001 <条件/数据/状态/组合>`，不得在 TDI 下一层重复写预期结果，不得使用测试设计项表格。
 - `TDI-*` 应优先写具体数据值、数据槽位、状态值、接口返回或组合，例如 `amount=1000.00；category=PAY；customer_id=AGT_CUSTOMER_001`，不要只写“有效金额”“错误PIN”“接口超时”等抽象标签。
+- 接口类 `TDI-*` 不得写完整裸 URL，例如 `GET https://host/path?query=...`；必须拆成 `接口=GET /path`、`参数名=参数值`、`响应状态=HTTP 500` 等同一行字段片段，避免 Markdown 转脑图时被链接解析或换行破坏层级。
 - 确定性结构、编号、字段、Markdown 语法和固定产物一致性问题以 Python 脚本为事实源；`test-analysis-solution-review` 和 `coverage-review` 不重复执行脚本已覆盖的检查，只处理语义质量、覆盖、追踪、方法应用、rules/project knowledge 应用和过程门禁。
 - 在认为单次报告完成前，只运行当前 run 相关的确定性检查，例如对应交付件 lint 和 `bin/check-artifact-consistency.py`；不要在 review 阶段运行示例 smoke。
 

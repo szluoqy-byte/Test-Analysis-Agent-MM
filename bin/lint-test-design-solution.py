@@ -48,6 +48,7 @@ ENDPOINT_SIGNATURE_RE = re.compile(
     r"\b(?:GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+/[^\s`|，。；;）)]+"
     r"|/[A-Za-z0-9_{}?=&%./:-]+"
 )
+RAW_URL_RE = re.compile(r"https?://\S+", re.IGNORECASE)
 STRONG_NON_SUCCESS_DETAIL_TERMS = (
     "失败",
     "拒绝",
@@ -299,6 +300,17 @@ def collect_design_items(block_lines: list[str]) -> list[tuple[int, list[str]]]:
     return items
 
 
+def is_allowed_leaf_line(line: str) -> bool:
+    stripped = line.strip()
+    if not stripped:
+        return True
+    if line.startswith(DETAIL_PREFIX):
+        return True
+    if line.startswith(f"- {EXPECTED_PREFIX}"):
+        return True
+    return bool(re.match(r"^\s*-\s+TDI-\d{3}\s+.+", line))
+
+
 def check_leaf_block(
     line_number: int,
     block_id: str,
@@ -336,6 +348,13 @@ def check_leaf_block(
         if row.startswith(f"- {EXPECTED_PREFIX}") or not row.strip().startswith(f"- {EXPECTED_PREFIX}"):
             continue
         errors.append(f"第 {line_number + offset + 1} 行：TDI 下不得重复写预期结果，请把预期结果保留在测试点明细或失败类型明细层")
+
+    for offset, row in enumerate(block_lines):
+        if not is_allowed_leaf_line(row):
+            errors.append(
+                f"第 {line_number + offset + 1} 行：叶子节点下存在非标准文本行，"
+                "可能是 TDI 内容换行续写；测试设计项必须保持 `- TDI-001 条件/数据/状态/组合` 同一物理行"
+            )
 
     design_items = collect_design_items(block_lines)
     if not design_items:
@@ -535,6 +554,11 @@ def main() -> int:
             errors.append(f"第 {line_number} 行：测试设计项包含步骤化或脚本化表达: {item}")
         if item in {"验证功能正常", "异常场景覆盖", "正常场景", "异常场景", "功能正确"}:
             errors.append(f"第 {line_number} 行：测试设计项过于泛化: {item}")
+        if RAW_URL_RE.search(item):
+            errors.append(
+                f"第 {line_number} 行：测试设计项不得包含 http:// 或 https:// 裸链接；"
+                "请拆成 `接口=METHOD /path；参数名=参数值；响应状态=...` 等字段片段"
+            )
 
         key = (item, "")
         if key in seen_items:
