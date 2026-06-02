@@ -24,7 +24,7 @@ python bin/normalize-office-input.py <input.docx>
 
 2. 查看 metadata 中的 `image_count` 和 `warnings`。如果图片可能承载设计事实，继续做图片补充。
 
-3. 将 `.docx` 作为 zip 包解压到临时目录，列出 `word/media/` 下的图片。
+3. 读取 `.conversion.json` 中的 `image_processing.queue` 和 `image_processing.recommended_batches`。如果没有该字段，将 `.docx` 作为 zip 包解压到临时目录，列出 `word/media/` 下的图片，并按 `DOCX_IMAGE_START` 占位块重建队列。
 
 ```python
 import zipfile
@@ -48,7 +48,22 @@ for image in sorted(media_dir.glob("*")):
 libreoffice --headless --convert-to png --outdir <media-dir> <media-dir>/image2.emf
 ```
 
-5. 对每张业务相关图片做视觉分析，判断类型并抽取事实。
+5. 先做轻量预筛选，再分批做视觉分析。
+
+预筛选规则：
+
+- logo、页眉页脚、装饰图、纯图标：在对应 Markdown 占位块写 `补充状态：无需处理`。
+- 流程图、架构图、时序图、状态图、接口图、表格截图、业务截图：进入多模态处理队列。
+- 无法判断是否业务相关：进入处理队列，不凭经验跳过。
+
+分批规则：
+
+- 普通图片每批最多 3-5 张。
+- 复杂流程图、架构图、状态图或信息密度高的截图每批 1-2 张。
+- 当前批次只读取该批图片、对应占位块、图片前后少量正文和必要 metadata，不一次性读取全部图片。
+- 每批完成后立刻替换 Markdown 中对应占位块，再进入下一批。
+
+6. 对每批业务相关图片做视觉分析，判断类型并抽取事实。
 
 推荐分析提示：
 
@@ -58,7 +73,15 @@ libreoffice --headless --convert-to png --outdir <media-dir> <media-dir>/image2.
 如果适合转 Mermaid，请给出 Mermaid；如果不适合，请给出可用于测试分析/测试设计的结构化文字描述。
 ```
 
-6. 将补充结果合并回归一化 Markdown 中对应的 `DOCX_IMAGE_START` / `DOCX_IMAGE_END` 占位块。不要把 Mermaid 或图片事实只放在单独补充文件、过程记录、`process/context-pack.md` 或文末统一章节中；这些位置只能记录索引、状态和证据路径。
+7. 将当前批次补充结果合并回归一化 Markdown 中对应的 `DOCX_IMAGE_START` / `DOCX_IMAGE_END` 占位块。不要把 Mermaid 或图片事实只放在单独补充文件、过程记录、`process/context-pack.md` 或文末统一章节中；这些位置只能记录索引、状态和证据路径。
+
+8. 当前批次完成后，重新检查本批占位块状态：
+
+- `已处理`：已写入 Mermaid 或结构化事实。
+- `无需处理`：已说明跳过原因，例如 logo、页眉页脚或装饰图。
+- `未执行原因`：已说明当前模型或环境无法处理的原因。
+
+9. 全部批次完成后，扫描归一化 Markdown。任何占位块仍为 `补充状态：待处理` 时，归一化不能标记完成。
 
 ## 图片插入位置识别
 
@@ -155,6 +178,19 @@ flowchart TD
 - 不得删除 `DOCX_IMAGE_START` / `DOCX_IMAGE_END` 注释锚点；后续审查需要通过锚点确认每张图的处理状态。
 - 如果图片在表格单元格中，脚本会尽量把占位块放在该表格之后并标明单元格位置；补充内容必须留在该占位块处，不要挪到其他章节。
 
+## 批次状态摘要
+
+可以在过程产物或最终回复中记录批次摘要，但摘要不是事实源：
+
+```markdown
+| 批次 | 图片 | 状态 | 说明 |
+|---|---|---|---|
+| IMG-BATCH-001 | image1.png#1, image2.png#1 | 已完成 | 已原位回写 Markdown |
+| IMG-BATCH-002 | image3.png#1 | 需补充处理 | EMF 转 PNG 失败，需人工定位 |
+```
+
+批次摘要只用于恢复处理进度。下游测试分析和测试设计只能读取已经原位回写后的归一化 Markdown。
+
 ## 常见风险
 
 - 只抽取 Word 段落会漏掉图片中的接口名、状态机、异常分支和组件依赖。
@@ -162,3 +198,4 @@ flowchart TD
 - 图片里的箭头方向、条件文字和异常返回不能凭经验补写，必须以视觉可见内容为依据。
 - 截图类图片不一定适合 Mermaid，优先转成结构化描述。
 - 大量图片应按批次分析，避免遗漏和上下文混乱。
+- 每批结束必须立刻回写 Markdown，避免上下文压缩或中断导致前批分析结果丢失。

@@ -176,6 +176,37 @@ def append_image_placeholders(
         )
 
 
+def build_image_processing_plan(image_placeholders: list[dict[str, Any]], total_images: int) -> dict[str, Any]:
+    queue = [
+        {
+            "image_id": item["image_id"],
+            "image": item["image"],
+            "location": item["location"],
+            "status": item.get("status", "pending"),
+        }
+        for item in image_placeholders
+    ]
+    batches: list[dict[str, Any]] = []
+    for index in range(0, len(queue), 5):
+        batch_items = queue[index : index + 5]
+        batches.append(
+            {
+                "batch_id": f"IMG-BATCH-{len(batches) + 1:03d}",
+                "recommended_size": len(batch_items),
+                "image_ids": [item["image_id"] for item in batch_items],
+                "status": "pending",
+            }
+        )
+    return {
+        "strategy": "按原文顺序分批处理图片；普通图片每批最多 5 张，复杂流程图/架构图每批 1-2 张；每批完成后立即回写 Markdown 占位块。",
+        "total_images": total_images,
+        "located_images": len(image_placeholders),
+        "unlocated_images": max(0, total_images - len(image_placeholders)),
+        "queue": queue,
+        "recommended_batches": batches,
+    }
+
+
 def iter_docx_blocks(parent: Any):
     from docx.document import Document as DocxDocument
     from docx.oxml.table import CT_Tbl
@@ -293,6 +324,7 @@ def convert_docx(source: Path, output: Path) -> dict[str, Any]:
         "image_count": image_count,
         "image_placeholder_count": len(image_placeholders),
         "image_placeholders": image_placeholders,
+        "image_processing": build_image_processing_plan(image_placeholders, image_count),
         "warnings": warnings,
     }
 

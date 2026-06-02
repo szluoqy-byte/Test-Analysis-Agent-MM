@@ -46,6 +46,7 @@
 - 运行产物写入 `outputs/runs/<run-id>/`。
 - Office 输入归一化采用两层路径：全局复用缓存写入 `outputs/input-cache/<sha256-12>/`；完整 run 的本次输入绑定写入 `outputs/runs/<run-id>/inputs/`。
 - DOCX 图片、流程图、架构图、状态图、截图或 EMF/Visio 图形解析后的 Mermaid/结构化事实必须合并回同一个归一化 Markdown，并放在原 DOCX 图片对应的 Markdown 占位位置；不得只维护独立补充文件、文末章节、process、context-pack 或最终回复。
+- DOCX 图片理解和 Mermaid 转换必须按原文顺序分批处理：普通图片每批最多 3-5 张，复杂流程图/架构图/状态图每批 1-2 张；每批完成后立即回写对应 Markdown 占位块，避免模型上下文超限或结果丢失。
 - 新建完整 run 时，`run-id` 固定使用 `python bin/generate-run-id.py` 生成，格式为 `<YYYYMMDD-HHMMSS>`。
 - 测试分析主交付件固定为 `outputs/runs/<run-id>/deliverables/test-analysis-solution.md`。
 - 测试设计主交付件固定为 `outputs/runs/<run-id>/deliverables/test-design-solution.md`，优先复用上游测试分析方案所在 run。

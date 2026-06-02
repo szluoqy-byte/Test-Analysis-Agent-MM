@@ -17,6 +17,7 @@
 - 从仓库根目录解析路径，不要从 `.claude-plugin/`、`.opencode/`、skill 目录或输入文件目录解析。
 - 如果需求文档、系统设计方案或外部分析方案输入是 `.docx` 或 `.xlsx`，先固定 `<run-id>` 并创建 run 目录，再使用 `normalize-input-documents` 归一化为 Markdown；全局缓存路径为 `outputs/input-cache/<sha256-12>/`，本次 run 输入绑定路径为 `outputs/runs/<run-id>/inputs/`。
 - `normalize-input-documents` 必须处理或记录 DOCX 图片/图形、复杂 Excel 和 metadata warnings 的收口状态，且图片/图形解析后的 Mermaid 或结构化事实必须合并回同一个归一化 Markdown 的原文占位位置，不能只因脚本执行成功就结束。
+- DOCX 图片理解和 Mermaid 转换必须按原文顺序分批执行，每批完成后立即回写 Markdown 占位块；不得一次性读取所有图片。
 - 新建完整 run 时，`run-id` 固定使用 `python bin/generate-run-id.py` 生成，格式为 `<YYYYMMDD-HHMMSS>`。
 - `rules/` 是强制规则源，按 `core / project / personal` 三层加载，优先级低于当前用户明确指令但高于输入文档、memory 和 knowledge。
 - 已确定 `project-key` 时可扫描 `*/projects/<project-key>/**/*.md`；未唯一确定时不要读取所有项目目录正文。
