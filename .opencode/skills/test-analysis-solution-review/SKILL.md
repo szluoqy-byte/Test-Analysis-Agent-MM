@@ -16,7 +16,7 @@ description: 在测试分析方案通过确定性 lint 后使用，作为产物�
 - 需求文档和可选设计方案文档摘要。
 - `process/context-pack.md`。
 - `process/clarification-session.md`。
-- 方法证据、测试技术路由和测试点生成结果。
+- 方法证据、测试技术路由和测试分析方案生成结果。
 - `process/context-pack.md` 中绑定到 `test-analysis-solution-review` 的评审类 project knowledge；默认 checklist 类项目知识优先由 `coverage-review` 统一处理，避免重复读取。
 - `knowledge/test-analysis-methodology.md`。
 - `knowledge/test-analysis-solution-standard.md`。

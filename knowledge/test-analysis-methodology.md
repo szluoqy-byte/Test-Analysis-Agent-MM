@@ -1,6 +1,6 @@
 # 测试分析核心方法论
 
-本文档是本仓库的测试分析与测试设计核心事实源，统一定义分析边界、稳定术语、层级关系、分析维度和主交付件落点。它用于指导 `requirement-testability`、`testing-method-router`、专项分析 skill、`testpoint-generation`、`test-analysis-solution-generation`、`test-design-solution-generation` 和质量门禁。
+本文档是本仓库的测试分析与测试设计核心事实源，统一定义分析边界、稳定术语、层级关系、分析维度和主交付件落点。它用于指导 `requirement-testability`、`testing-method-router`、专项方法参考、`test-analysis-solution-generation`、`test-analysis-solution-generation`、`test-design-solution-generation` 和质量门禁。
 
 本 Agent 的主交付件是 `测试分析方案`，输出结构固定为：
 
@@ -61,8 +61,7 @@
 | 测试技术使用位置 | 输入 | 输出 | 边界 |
 |---|---|---|---|
 | 测试分析层 | 需求片段、设计方案事实、context pack、触发信号 | 分析维度、测试技术路由、`ME-*` 方法证据、测试点候选、过程缺口候选 | 回答 what to test，不把边界值清单、判定表或状态矩阵直接写入主交付件 |
-| 测试点生成层 | 方法证据、测试点候选、风险与设计事实 | 场景、`TP-*` 测试点 | 将技术产物上收为可理解的业务验证目标 |
-| 测试分析方案生成层 | 场景化测试点、需求/设计事实、方法证据摘要 | `TP-*-*` 测试点明细、预期结果 | 识别分析分支，不生成 TDI、执行步骤、自动化脚本或数据清单 |
+| 测试分析方案生成层 | 方法证据、测试点候选、风险与设计事实、需求/设计事实 | 场景、`TP-*` 测试点、`TP-*-*` 测试点明细、预期结果 | 将技术产物上收为可理解的业务验证目标，并识别分析分支；不生成 TDI、执行步骤、自动化脚本或数据清单 |
 | 测试设计层 | 评审后的测试分析方案、需求/设计事实、测试技术 | `TDI-*` 测试设计项 | 由 `test-design-agent` 承接普通 `TP-*-*` 或失败类型 `TP-*-*-*`，不由测试分析方案输出 |
 
 ## 层级边界
@@ -160,20 +159,20 @@
 
 ## 测试分析维度
 
-| 分析维度 | 关注对象 | 典型测试技术/Skill | 主交付件落点 |
+| 分析维度 | 关注对象 | 典型测试技术/方法参考 | 主交付件落点 |
 |---|---|---|---|
 | 需求可测性 | 需求目标、验收标准、可观察结果、歧义和缺口 | `requirement-testability` | 需求范围、场景目标、过程缺口 |
-| 风险与优先级 | 失败模式、影响范围、资损/越权/不可逆/历史缺陷 | `risk-based-test-analysis` | 测试点、高风险测试点明细 |
-| 业务场景与流程 | 用户旅程、系统触发、主流程、备选流程、异常流程 | `scenario-flow-analysis` | `SC-*` 场景、测试点、路径明细 |
-| 数据域与边界 | 金额、数量、时间、状态、枚举、格式、容量 | `boundary-equivalence-analysis` | 规则级测试点、有效/无效/边界类明细 |
-| 业务规则组合 | 多条件、多角色、多状态、开关共同决定结果 | `decision-table-analysis` | 规则组合测试点、允许/拒绝/默认/冲突明细 |
-| 状态与生命周期 | 初始状态、中间状态、终态、非法迁移、重试、超时、补偿 | `state-transition-analysis` | 状态规则测试点、迁移类明细 |
-| 权限与数据范围 | 角色、资源、动作、数据归属、租户、审批权限 | `permission-role-analysis` | 权限边界测试点、角色/数据范围明细 |
-| 接口与契约 | API、字段、错误码、鉴权、幂等、回调、超时、版本兼容 | `interface-contract-analysis` | 接口契约分析候选、字段/错误/幂等分支 |
-| 数据一致性 | 主数据、派生数据、缓存、统计、搜索、导出、日志、外部系统 | `data-consistency-analysis` | 数据一致性测试点、副作用和一致性明细 |
-| 组合与兼容 | 平台、版本、配置、渠道、语言地区、feature flag | `combinatorial-compatibility-analysis` | 兼容性场景、关键组合风险明细 |
-| 非功能质量属性 | 性能、可靠性、安全、易用性、服务化、部署 | `risk-based-test-analysis`、`testpoint-generation` | 专项场景、指标/约束明细 |
-| 经验与缺陷模式 | 历史缺陷、错误猜测、检查清单、缺陷分类 | `risk-based-test-analysis`、`knowledge/test-techniques/experience-based/error-guessing-checklist.md` | 风险测试点、经验补充明细 |
+| 风险与优先级 | 失败模式、影响范围、资损/越权/不可逆/历史缺陷 | `references/risk-based-test-analysis.md` | 测试点、高风险测试点明细 |
+| 业务场景与流程 | 用户旅程、系统触发、主流程、备选流程、异常流程 | `references/scenario-flow-analysis.md` | `SC-*` 场景、测试点、路径明细 |
+| 数据域与边界 | 金额、数量、时间、状态、枚举、格式、容量 | `references/boundary-equivalence-analysis.md` | 规则级测试点、有效/无效/边界类明细 |
+| 业务规则组合 | 多条件、多角色、多状态、开关共同决定结果 | `references/decision-table-analysis.md` | 规则组合测试点、允许/拒绝/默认/冲突明细 |
+| 状态与生命周期 | 初始状态、中间状态、终态、非法迁移、重试、超时、补偿 | `references/state-transition-analysis.md` | 状态规则测试点、迁移类明细 |
+| 权限与数据范围 | 角色、资源、动作、数据归属、租户、审批权限 | `references/permission-role-analysis.md` | 权限边界测试点、角色/数据范围明细 |
+| 接口与契约 | API、字段、错误码、鉴权、幂等、回调、超时、版本兼容 | `references/interface-contract-analysis.md` | 接口契约分析候选、字段/错误/幂等分支 |
+| 数据一致性 | 主数据、派生数据、缓存、统计、搜索、导出、日志、外部系统 | `references/data-consistency-analysis.md` | 数据一致性测试点、副作用和一致性明细 |
+| 组合与兼容 | 平台、版本、配置、渠道、语言地区、feature flag | `references/combinatorial-compatibility-analysis.md` | 兼容性场景、关键组合风险明细 |
+| 非功能质量属性 | 性能、可靠性、安全、易用性、服务化、部署 | `references/risk-based-test-analysis.md`、`test-analysis-solution-generation` | 专项场景、指标/约束明细 |
+| 经验与缺陷模式 | 历史缺陷、错误猜测、检查清单、缺陷分类 | `references/risk-based-test-analysis.md`、`knowledge/test-techniques/experience-based/error-guessing-checklist.md` | 风险测试点、经验补充明细 |
 
 ## 主交付件落点规则
 

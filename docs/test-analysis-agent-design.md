@@ -119,11 +119,10 @@ flowchart TD
   hasDesign -- 否 --> designGap[登记设计缺口候选]
   design --> cpInput[clarification-gate CP-INPUT<br/>收口输入冲突与缺失]
   designGap --> cpInput
-  cpInput --> route[testing-method-router<br/>选择测试技术与专项分析 skill]
-  route --> methods[专项分析 skills<br/>产出 ME-* 方法证据与测试点候选]
+  cpInput --> route[testing-method-router<br/>选择测试技术与专项方法参考]
+  route --> methods[专项方法参考<br/>产出 ME-* 方法证据与测试点候选]
   methods --> cpAnalysis[clarification-gate CP-ANALYSIS<br/>收口会影响覆盖和预期结果的缺口]
-  cpAnalysis --> tp[testpoint-generation<br/>生成 SC-* 与 TP-*]
-  tp --> analysis[test-analysis-solution-generation<br/>写入 test-analysis-solution.md<br/>非成功明细拆分 TP-*-*-*]
+  cpAnalysis --> analysis[test-analysis-solution-generation<br/>生成 SC-*、TP-* 与 TP-*-*<br/>写入 test-analysis-solution.md]
   analysis --> lint[bin/lint-test-analysis-solution.py<br/>确定性结构校验]
   lint --> lintDecision{lint 是否通过}
   lintDecision -- 否 --> fix[修正主交付件<br/>不进入模型评审]
@@ -146,10 +145,9 @@ flowchart TD
 | 需求分析 | `requirement-testability` | 结构化需求模型、识别可测性缺口 |
 | 设计提取 | `design-solution-extraction` | 提取接口、字段、状态、权限、数据依赖和设计缺口 |
 | 缺口治理 | `clarification-gate` | 合并过程缺口，不向主交付件写独立待确认章节 |
-| 方法路由 | `testing-method-router` | 选择适用测试技术和专项分析 skill |
-| 专项分析 | 各专项 `*-analysis` skill | 生成方法证据、测试点候选和技术缺口 |
-| 测试点生成 | `testpoint-generation` | 生成 `SC-*` 和 `TP-*` |
-| 测试分析方案生成 | `test-analysis-solution-generation` | 生成并写入 `TP-*-*` 测试点明细和预期结果；非成功测试点明细继续拆分 `TP-*-*-*` |
+| 方法路由 | `testing-method-router` | 选择适用测试技术和专项方法参考 |
+| 专项方法参考 | `skills/testing-method-router/references/*.md` | 生成方法证据、测试点候选和技术缺口 |
+| 测试分析方案生成 | `test-analysis-solution-generation` | 生成并写入 `SC-*`、`TP-*`、`TP-*-*` 测试点明细和预期结果；非成功测试点明细继续拆分 `TP-*-*-*` |
 | 确定性校验 | `bin/lint-test-analysis-solution.py` | 检查结构、编号、字段、Markdown 语法、禁用术语、E2E 存在性和第四层格式；失败时不进入模型评审 |
 | 独立评审 | `test-analysis-solution-review` | 只检查语义质量：测试点明细粒度、失败类型拆分充分性、预期结果依据、事实溯源和非用例化倾向 |
 | 覆盖审查 | `coverage-review` | 检查需求覆盖、方法覆盖、追踪关系、rules 应用、项目知识应用和过程门禁；不重复 lint 已覆盖的结构规则 |
@@ -162,7 +160,7 @@ flowchart TD
 | `knowledge/test-analysis-solution-standard.md` | 定义主交付件结构、字段和兜底规则 |
 | `knowledge/testpoint-standard.md` | 定义测试点粒度、分类和非用例化约束 |
 | `knowledge/test-techniques/` | 测试技术库，支持分析阶段识别覆盖分支，也可供 `@test-design-agent` 复用 |
-| `knowledge/test-method-routing-matrix.md` | 测试技术与专项 skill 路由参考 |
+| `knowledge/test-method-routing-matrix.md` | 测试技术与专项方法参考路由矩阵 |
 | `knowledge/basic-test-types.md` | 基础测试类型参考 |
 | `knowledge/method-evidence-standard.md` | 方法证据 `ME-*` 记录标准 |
 
@@ -182,7 +180,7 @@ flowchart TD
 
 `knowledge/projects/<project-key>/` 下的文件名没有硬性要求。context pack 阶段只判断文件用途和强制应用环节，不提前判断具体测试点或测试点明细命中。
 
-- 测试设计因子库、业务测试设计模式库可绑定到 `testing-method-router`、`testpoint-generation`、`test-analysis-solution-generation` 和 `test-design-solution-generation`。
+- 测试设计因子库、业务测试设计模式库可绑定到 `testing-method-router`、`test-analysis-solution-generation`、`test-analysis-solution-generation` 和 `test-design-solution-generation`。
 - 测试设计 checklist 默认绑定到 `coverage-review` 统一查漏；只有文件或用户指令明确要求产物语义评审时，才额外绑定到 `test-analysis-solution-review` 或 `test-design-solution-review`。
 - 被绑定到某阶段的 project knowledge，该阶段必须读取相关章节并输出应用状态。
 - 应用状态只能使用 `applied`、`not_applicable`、`insufficient_evidence`、`conflict_with_requirement` 或 `deferred_to_review`。

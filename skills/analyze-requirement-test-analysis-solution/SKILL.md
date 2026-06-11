@@ -1,6 +1,6 @@
 ---
 name: analyze-requirement-test-analysis-solution
-description: 当用户提供需求文档和可选设计方案文档，并要求生成“测试场景 -> 测试点 -> 测试点明细”的测试分析方案时使用；非成功测试点明细需要继续拆分失败类型明细。该 skill 是主入口，负责编排上下文、需求与设计方案分析、测试技术路由、测试点生成、测试分析方案生成、独立评审和 Markdown 产物输出；入参来自 $ARGUMENTS。
+description: 当用户提供需求文档和可选设计方案文档，并要求生成“测试场景 -> 测试点 -> 测试点明细”的测试分析方案时使用；非成功测试点明细需要继续拆分失败类型明细。该 skill 是主入口，负责编排上下文、需求与设计方案分析、测试技术路由、测试分析方案生成、独立评审和 Markdown 产物输出；入参来自 $ARGUMENTS。
 ---
 
 # 需求到测试分析方案主入口
@@ -39,8 +39,7 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 - `requirement-testability` 负责需求模型和可测性判断。
 - `design-solution-extraction` 负责设计方案事实摘要和设计缺口候选。
 - `clarification-gate` 负责过程级缺口治理；它不向主交付件写待确认章节。
-- `testpoint-generation` 负责生成场景化测试点。
-- `test-analysis-solution-generation` 负责把测试点扩展为测试点明细和预期结果。
+- `test-analysis-solution-generation` 负责生成测试场景、测试点、测试点明细、失败类型明细和预期结果。
 - `test-analysis-solution-review` 负责在确定性 lint 通过后检查主交付件语义质量，不重复结构、编号、字段和 Markdown 语法检查。
 - `coverage-review` 负责覆盖、追踪、方法应用、rules/project knowledge 应用和过程一致性收口，不重复 lint 已覆盖的确定性规则。
 - 主交付件是 `outputs/runs/<run-id>/deliverables/test-analysis-solution.md`。
@@ -81,16 +80,15 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 6. 使用 `requirement-testability` 分析需求文档，生成结构化需求模型，并登记需求待确认候选。
 7. 如果提供设计方案文档，使用 `design-solution-extraction` 提取架构决策、流程、接口、字段、状态机、权限、数据依赖、异常处理、配置开关、非功能指标和设计缺口；如果未提供设计方案，登记 `Q-DESIGN-*` 过程候选。
 8. 使用 `clarification-gate` 执行 `CP-INPUT`，合并 memory、需求与设计方案之间的冲突、缺失和歧义，不向用户提问。
-9. 使用 `testing-method-router` 对需求片段和设计方案片段进行测试技术路由，选择适用测试技术和专项分析 skill；如果 context pack 绑定了本阶段 project knowledge，必须先读取并记录应用状态。
-10. 使用路由选中的专项分析 skill 产出 `ME-*` 方法证据、测试点候选、技术缺口候选和按源补读记录。
+9. 使用 `testing-method-router` 对需求片段和设计方案片段进行测试技术路由，选择适用测试技术和专项方法参考；如果 context pack 绑定了本阶段 project knowledge，必须先读取并记录应用状态。
+10. 使用路由选中的专项方法参考产出 `ME-*` 方法证据、测试点候选、技术缺口候选和按源补读记录。
 11. 使用 `clarification-gate` 执行 `CP-ANALYSIS`，收口会导致测试点、方法覆盖或预期结果失真的信息缺口；如果没有任何候选，也必须刷新 `process/clarification-session.md` 并声明 `无待确认候选`。
-12. 使用 `testpoint-generation` 生成场景化测试点、接口契约候选和场景测试条件；如果 context pack 绑定了本阶段 project knowledge，必须先读取并记录应用状态。
-13. 使用 `test-analysis-solution-generation` 基于场景、测试点、测试技术库和需求/设计方案上下文生成并写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.md`；如果 context pack 绑定了本阶段 project knowledge，必须先读取并记录应用状态。
-14. 执行确定性校验：运行 `bin/lint-test-analysis-solution.py ${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.md`。如果失败，先按脚本失败项修正主交付件，不进入独立评审和覆盖审查。
-15. 使用 `test-analysis-solution-review` 独立语义评审测试分析方案，重点检查测试点明细粒度、失败类型拆分充分性、预期结果依据、事实溯源、非用例化语义和本阶段绑定的 project review knowledge；不得重复执行 lint 已覆盖的结构、编号、字段和 Markdown 语法检查。
-16. 使用 `coverage-review` 执行覆盖、追踪、方法应用、rules 应用、project knowledge 应用和过程门禁收口；如果 context pack 绑定了本阶段 project knowledge，必须读取并检查前序阶段应用状态。专家评分和深度语义检查仅在用户明确要求或高风险场景下执行。
-17. 如需保留过程审查信息，将分析报告写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md`。
-18. 最终输出前刷新 `process/task-list.md`：所有必选阶段必须为 `done`，未触发的可选阶段为 `skipped` 并说明原因；`process/task-list.md`、`process/context-pack.md` 和 `process/clarification-session.md` 必须同时存在；运行 `bin/check-artifact-consistency.py ${PROJECT_ROOT}/outputs/runs/<run-id>` 做最终一致性检查；如果存在 `blocked`，必须在过程报告中说明。
+12. 使用 `test-analysis-solution-generation` 基于需求模型、设计事实、测试技术路由、专项方法参考、方法证据和项目知识生成并写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.md`；如果 context pack 绑定了本阶段 project knowledge，必须先读取并记录应用状态。
+13. 执行确定性校验：运行 `bin/lint-test-analysis-solution.py ${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.md`。如果失败，先按脚本失败项修正主交付件，不进入独立评审和覆盖审查。
+14. 使用 `test-analysis-solution-review` 独立语义评审测试分析方案，重点检查测试点明细粒度、失败类型拆分充分性、预期结果依据、事实溯源、非用例化语义和本阶段绑定的 project review knowledge；不得重复执行 lint 已覆盖的结构、编号、字段和 Markdown 语法检查。
+15. 使用 `coverage-review` 执行覆盖、追踪、方法应用、rules 应用、project knowledge 应用和过程门禁收口；如果 context pack 绑定了本阶段 project knowledge，必须读取并检查前序阶段应用状态。专家评分和深度语义检查仅在用户明确要求或高风险场景下执行。
+16. 如需保留过程审查信息，将分析报告写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md`。
+17. 最终输出前刷新 `process/task-list.md`：所有必选阶段必须为 `done`，未触发的可选阶段为 `skipped` 并说明原因；`process/task-list.md`、`process/context-pack.md` 和 `process/clarification-session.md` 必须同时存在；运行 `bin/check-artifact-consistency.py ${PROJECT_ROOT}/outputs/runs/<run-id>` 做最终一致性检查；如果存在 `blocked`，必须在过程报告中说明。
 
 ## 阶段产物契约
 
@@ -99,13 +97,12 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 | `normalize-input-documents` | Office 输入全局 cache、run-local Markdown、conversion metadata、`inputs/input-normalization-manifest.json`、warning 收口记录；无 Office 输入时记录 skipped | 需求与设计方案分析 |
 | `task-list` | `process/task-list.md` | 全流程阶段顺序与状态追踪 |
 | `memory-context-builder` | `process/context-pack.md`、适用强制规则、Rules 与输入冲突记录、project/personal 来源使用摘要、项目知识阶段绑定 | 需求与设计方案分析 |
-| `requirement-testability` | 结构化需求模型、需求待确认候选 | 测试技术路由、测试点生成 |
-| `design-solution-extraction` | 设计方案事实摘要、接口/状态/字段/数据依赖清单、设计缺口候选 | 测试技术路由、测试点生成 |
+| `requirement-testability` | 结构化需求模型、需求待确认候选 | 测试技术路由、测试分析方案生成 |
+| `design-solution-extraction` | 设计方案事实摘要、接口/状态/字段/数据依赖清单、设计缺口候选 | 测试技术路由、测试分析方案生成 |
 | `clarification-gate` | `process/clarification-session.md` | 固定 process 产物；记录过程缺口治理、预期结果兜底依据；无候选时声明 `无待确认候选` |
-| `testing-method-router` | 分析维度覆盖表、测试技术路由表 | 专项分析 skill、测试点生成 |
-| 专项分析 skill | `ME-*` 方法证据、测试点候选、技术缺口候选 | 测试点生成、测试分析方案生成 |
-| `testpoint-generation` | 场景化测试点、接口契约候选、场景测试条件 | 测试分析方案生成 |
-| `test-analysis-solution-generation` | `deliverables/test-analysis-solution.md`、测试点明细、预期结果 | 确定性校验 |
+| `testing-method-router` | 分析维度覆盖表、测试技术路由表 | 专项方法参考、测试分析方案生成 |
+| 专项方法参考 | `ME-*` 方法证据、测试点候选、技术缺口候选 | 测试分析方案生成 |
+| `test-analysis-solution-generation` | `deliverables/test-analysis-solution.md`、测试场景、测试点、测试点明细、失败类型明细、预期结果 | 确定性校验 |
 | 确定性校验 | `lint-test-analysis-solution.py` 结果 | 独立语义评审；失败时回到主交付件修正 |
 | `test-analysis-solution-review` | 独立语义评审结论、修正建议 | 覆盖审查与输出收口 |
 | `coverage-review` | 覆盖/追踪/方法/rules/project knowledge 门禁结果、阻断项和修正建议 | 主交付件和过程报告刷新 |

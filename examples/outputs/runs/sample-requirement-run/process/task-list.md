@@ -18,9 +18,8 @@
 | 4 | 设计方案提取 | design-solution-extraction | 设计方案事实摘要、接口/状态/字段/数据依赖清单 | skipped | 未提供设计方案 |
 | 5 | 待确认治理 | clarification-gate | CP-INPUT、CP-ANALYSIS、CP-REVIEW、process/clarification-session.md | done | process/clarification-session.md |
 | 6 | 测试技术路由 | testing-method-router | 分析维度覆盖表、测试技术路由表、project knowledge 应用记录 | done | reports/test-analysis-report.md |
-| 7 | 专项分析 | selected method skills | ME-* 方法证据、测试点候选、技术缺口候选 | done | reports/test-analysis-report.md |
-| 8 | 按源补读 | selected method skills | 按需补读记录、来源说明 | skipped | 示例未触发补读 |
-| 9 | 场景化测试点生成 | testpoint-generation | 场景、测试点、project knowledge 应用记录 | done | deliverables/test-analysis-solution.md |
+| 7 | 专项分析 | selected method references | ME-* 方法证据、测试点候选、技术缺口候选 | done | reports/test-analysis-report.md |
+| 8 | 按源补读 | selected method references | 按需补读记录、来源说明 | skipped | 示例未触发补读 |
 | 10 | 测试分析方案生成 | test-analysis-solution-generation | deliverables/test-analysis-solution.md、project knowledge 应用记录 | done | deliverables/test-analysis-solution.md |
 | 11 | 确定性校验 | bin | lint-test-analysis-solution.py 结构校验结果；失败不进入评审 | done | bin/lint-test-analysis-solution.py |
 | 12 | 独立评审 | test-analysis-solution-review | 语义覆盖、测试点明细粒度、预期结果依据、事实溯源和非用例化语义 | done | reports/test-analysis-report.md |

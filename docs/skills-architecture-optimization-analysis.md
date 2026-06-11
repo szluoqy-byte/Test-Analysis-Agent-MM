@@ -26,10 +26,9 @@
 | 需求分析层 | `requirement-testability` | 提取可验证对象、角色、规则、流程、状态、接口和缺口 | 结构化需求模型、需求待确认候选 |
 | 设计分析层 | `design-solution-extraction` | 提取接口、字段、状态、权限、数据依赖、配置、异常处理、非功能约束和设计缺口 | 设计方案事实摘要、设计缺口候选 |
 | 待确认治理层 | `clarification-gate` | 在 `CP-INPUT`、`CP-ANALYSIS`、`CP-REVIEW` 三个检查点治理候选缺口 | `process/clarification-session.md`、预期结果兜底清单 |
-| 路由层 | `testing-method-router` | 根据分析维度和触发信号选择测试技术和专项分析 skill | 测试技术路由表、技术范围缺口候选 |
-| 专项分析层 | 专项 skill | 产出 `ME-*` 方法证据和测试点候选 | 方法证据、测试点候选、技术缺口候选 |
-| 测试点聚合层 | `testpoint-generation` | 把方法证据和候选归并为场景和测试点 | `SC-*`、`TP-*` |
-| 测试分析方案生成层 | `test-analysis-solution-generation` | 把测试点展开为测试点明细和预期结果；非成功测试点明细继续拆分失败类型明细 | `TP-*-*` 测试点明细、`TP-*-*-*` 失败类型明细 |
+| 路由层 | `testing-method-router` | 根据分析维度和触发信号选择测试技术和专项方法参考 | 测试技术路由表、技术范围缺口候选 |
+| 专项方法参考层 | `skills/testing-method-router/references/*.md` | 为路由阶段提供专项分析步骤，产出 `ME-*` 方法证据和测试点候选 | 方法证据、测试点候选、技术缺口候选 |
+| 测试分析方案生成层 | `test-analysis-solution-generation` | 把方法证据和候选归并为场景、测试点、测试点明细和预期结果；非成功测试点明细继续拆分失败类型明细 | `SC-*`、`TP-*`、`TP-*-*` 测试点明细、`TP-*-*-*` 失败类型明细 |
 | 确定性校验层 | `bin/lint-test-analysis-solution.py` / `bin/lint-test-design-solution.py` | 检查结构、编号、字段、禁用术语、Markdown 语法和固定交付件格式 | lint 结果 |
 | 独立评审层 | `test-analysis-solution-review` | 在 lint 通过后评审测试点明细粒度、失败类型拆分充分性、预期结果依据、事实溯源和非用例化语义 | 独立语义评审结论 |
 | 测试设计方案生成层 | `test-design-solution-generation` | 把普通测试点明细或失败类型明细扩展为代表性条件、具体数据值、数据槽位、状态、接口返回或组合 | `TDI-*` 测试设计项 |
@@ -79,7 +78,7 @@ project knowledge 文件不要求固定命名或固定结构。`memory-context-b
 
 影响：
 
-- 测试设计因子库、业务测试设计模式库可以绑定到测试技术路由、测试点生成和测试分析方案生成。
+- 测试设计因子库、业务测试设计模式库可以绑定到测试技术路由和测试分析方案生成。
 - 测试设计 checklist 默认绑定到覆盖审查统一查漏；只有明确声明产物语义评审用途时，才额外绑定到独立评审。
 - 后续阶段必须读取绑定文件并输出应用状态，避免“读过但没有用”的假强应用。
 
@@ -92,17 +91,16 @@ project knowledge 文件不要求固定命名或固定结构。`memory-context-b
 | 上下文层 | 保持独立 | 将 project/personal 发现策略和 project knowledge 阶段绑定沉淀在 context pack，不下放给后续 skill 自行搜索 |
 | 需求与设计层 | 保持双输入契约 | `requirement-testability` 负责需求模型，`design-solution-extraction` 负责设计事实摘要 |
 | 路由层 | 保持独立 | 明确输出只到测试技术路由，不提前选择测试点明细 |
-| 专项分析层 | 统一输出骨架 | 所有专项 skill 使用同一方法证据表、候选测试点表和缺口候选表 |
-| 测试点生成层 | 强化 handoff | `testpoint-generation` 输出稳定的场景/测试点中间契约 |
-| 测试分析方案生成层 | 保持独立 | 专注 `TP-*-*` 测试点明细、非成功 `TP-*-*-*` 失败类型明细和预期结果 |
+| 专项方法参考层 | 统一输出骨架 | 所有专项方法参考使用同一方法证据表、候选测试点表和缺口候选表 |
+| 测试分析方案生成层 | 保持独立 | 统一生成 `SC-*`、`TP-*`、`TP-*-*`、非成功 `TP-*-*-*` 失败类型明细和预期结果 |
 | 确定性校验层 | 前置执行 | 先跑 lint，结构失败时不进入模型评审 |
 | 独立评审层 | 保持独立但收窄职责 | 只审粒度、预期结果依据、事实溯源、失败类型充分性和非用例化语义 |
 | 覆盖审查层 | 拆分判断类型 | 覆盖、追踪、方法应用、rules/project knowledge、过程一致性和可选专家评分分别列明结果 |
 
 ## 5. 后续优化路线
 
-1. 统一专项 skill 输出骨架：所有专项分析都引用 `knowledge/method-evidence-standard.md` 和 `templates/method-analysis-template.md`。
-2. 强化设计事实使用：让 `design-solution-extraction` 的结构化结果稳定进入测试技术路由、测试点生成和测试点明细生成。
+1. 统一专项方法参考输出骨架：所有专项分析都引用 `knowledge/method-evidence-standard.md` 和 `templates/method-analysis-template.md`。
+2. 强化设计事实使用：让 `design-solution-extraction` 的结构化结果稳定进入测试技术路由和测试分析方案生成。
 3. 梳理 test-techniques：明确哪些内容服务 `test-analysis-agent`，哪些示例服务 `test-design-agent`。
 4. 扩展评审样例：增加包含错误码缺失、状态变化缺失和提示文案缺失的样例，验证 `待人工分析确认` 规则。
 

@@ -40,7 +40,7 @@ knowledge/user/<自定义文件名>.md
 
 ## 使用说明
 
-- 适用阶段：testing-method-router / testpoint-generation / test-analysis-solution-generation / test-design-solution-generation / coverage-review
+- 适用阶段：testing-method-router / test-analysis-solution-generation / test-design-solution-generation / coverage-review
 - 适用范围：<业务域、接口域、产品域>
 - 使用方式：<生成测试点、生成测试设计项或校验遗漏时如何引用>
 
@@ -167,7 +167,7 @@ context pack 阶段不需要提前判断具体命中哪个测试点，只需要�
 
 建议绑定：
 
-- 测试设计因子库：`testing-method-router`、`testpoint-generation`、`test-analysis-solution-generation`、`test-design-solution-generation`。
-- 业务测试设计模式库：`testing-method-router`、`testpoint-generation`、`test-design-solution-generation`。
+- 测试设计因子库：`testing-method-router`、`test-analysis-solution-generation`、`test-design-solution-generation`。
+- 业务测试设计模式库：`testing-method-router`、`test-analysis-solution-generation`、`test-design-solution-generation`。
 - checklist：默认绑定 `coverage-review`；只有明确用于语义评审时才绑定 review skill。
 - Oracle 或预期结果依据：`test-analysis-solution-generation`、`test-design-solution-generation`、review skill。

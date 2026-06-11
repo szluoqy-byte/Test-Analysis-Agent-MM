@@ -24,14 +24,13 @@
 | 4 | 设计方案提取 | design-solution-extraction | 设计方案事实摘要、接口/状态/字段/数据依赖清单 | pending |  |
 | 5 | 待确认治理 | clarification-gate | CP-INPUT、CP-ANALYSIS、CP-REVIEW、process/clarification-session.md | pending | process/clarification-session.md |
 | 6 | 测试技术路由 | testing-method-router | 分析维度覆盖表、测试技术路由表、project knowledge 应用记录 | pending |  |
-| 7 | 专项分析 | selected method skills | ME-* 方法证据、测试点候选、技术缺口候选 | pending |  |
-| 8 | 按源补读 | selected method skills | 按需补读记录、来源说明 | pending |  |
-| 9 | 场景化测试点生成 | testpoint-generation | 场景、测试点、project knowledge 应用记录 | pending |  |
-| 10 | 测试分析方案生成 | test-analysis-solution-generation | deliverables/test-analysis-solution.md、project knowledge 应用记录 | pending |  |
-| 11 | 确定性校验 | bin | lint-test-analysis-solution.py 结构校验结果；失败不进入评审 | pending |  |
-| 12 | 独立评审 | test-analysis-solution-review | 语义覆盖、测试点明细粒度、预期结果依据、事实溯源和非用例化语义 | pending |  |
-| 13 | 覆盖审查 | coverage-review | 需求/方法/rules/project knowledge 应用检查、阻断项；专家评分仅深度评估时执行 | pending |  |
-| 14 | 输出收口 | analyze-requirement-test-analysis-solution | 主交付件路径、过程报告路径、check-artifact-consistency.py 结果 | pending |  |
+| 7 | 专项分析 | selected method references | ME-* 方法证据、测试点候选、技术缺口候选 | pending |  |
+| 8 | 按源补读 | selected method references | 按需补读记录、来源说明 | pending |  |
+| 9 | 测试分析方案生成 | test-analysis-solution-generation | deliverables/test-analysis-solution.md、测试场景、测试点、测试点明细、project knowledge 应用记录 | pending |  |
+| 10 | 确定性校验 | bin | lint-test-analysis-solution.py 结构校验结果；失败不进入评审 | pending |  |
+| 11 | 独立评审 | test-analysis-solution-review | 语义覆盖、测试点明细粒度、预期结果依据、事实溯源和非用例化语义 | pending |  |
+| 12 | 覆盖审查 | coverage-review | 需求/方法/rules/project knowledge 应用检查、阻断项；专家评分仅深度评估时执行 | pending |  |
+| 13 | 输出收口 | analyze-requirement-test-analysis-solution | 主交付件路径、过程报告路径、check-artifact-consistency.py 结果 | pending |  |
 
 ## 状态说明
 

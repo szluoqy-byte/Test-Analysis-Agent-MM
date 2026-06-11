@@ -10,10 +10,10 @@ from pathlib import Path
 
 
 TESTPOINT_HEADER = "| ID | 模块 | 测试点 | 类型 | 方法 | 需求依据 | 级别 | 风险/备注 |"
-ROUTE_HEADER = "| 需求片段 | 触发信号 | 适用方法 | 调用 skill | 必要性 | 置信度 | 说明 |"
-ROUTE_HEADER_WITH_DIMENSION = "| 需求片段 | 分析维度 | 触发信号 | 适用方法 | 调用 skill | 必要性 | 置信度 | 说明 |"
-ROUTE_HEADER_TECHNIQUE = "| 需求片段 | 触发信号 | 适用测试技术 | 调用 skill | 必要性 | 置信度 | 说明 |"
-ROUTE_HEADER_WITH_DIMENSION_TECHNIQUE = "| 需求片段 | 分析维度 | 触发信号 | 适用测试技术 | 调用 skill | 必要性 | 置信度 | 说明 |"
+ROUTE_HEADER = "| 需求片段 | 触发信号 | 适用方法 | 方法参考 | 必要性 | 置信度 | 说明 |"
+ROUTE_HEADER_WITH_DIMENSION = "| 需求片段 | 分析维度 | 触发信号 | 适用方法 | 方法参考 | 必要性 | 置信度 | 说明 |"
+ROUTE_HEADER_TECHNIQUE = "| 需求片段 | 触发信号 | 适用测试技术 | 方法参考 | 必要性 | 置信度 | 说明 |"
+ROUTE_HEADER_WITH_DIMENSION_TECHNIQUE = "| 需求片段 | 分析维度 | 触发信号 | 适用测试技术 | 方法参考 | 必要性 | 置信度 | 说明 |"
 QUESTION_HEADER = "| ID | 问题 | 影响 | 关联需求依据 |"
 EVIDENCE_HEADER = "| 证据ID | 方法 | 需求片段 | 分析结论 | 关联测试点/待确认 |"
 GATE_HEADER = "| 门禁 | 结果 | 失败/警告项 | 修正建议 |"

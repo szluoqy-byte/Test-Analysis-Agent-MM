@@ -1,24 +1,19 @@
----
-name: risk-based-test-analysis
-description: 当需要按产品、业务、数据、权限、集成、运维和历史缺陷风险来识别重点覆盖区域和测试点级别时使用。
----
+# 风险驱动测试分析 方法参考
 
-# 风险驱动测试分析 Skill
-
-本 skill 用来判断“哪里失败代价最高，哪里应该优先测”。
+本方法参考 用来判断“哪里失败代价最高，哪里应该优先测”。
 
 ## 职责边界
 
-- 本 skill 只产出风险方法证据、风险登记和级别建议，供 `testpoint-generation` 给测试点定级和补充风险备注。
+- 本方法参考 只产出风险方法证据、风险登记和级别建议，供 `test-analysis-solution-generation` 给测试点定级和补充风险备注。
 - 风险评分、失败模式和历史缺陷信号是优先级依据，不直接变成 TDI 展开规则、用例数量或执行步骤。
-- 测试分析方案生成阶段会基于风险测试点生成测试点明细；本 skill 不写 TDI 或完整测试用例。
+- 测试分析方案生成阶段会基于风险测试点生成测试点明细；本方法参考 不写 TDI 或完整测试用例。
 
 ## 输入
 
 - 结构化需求模型。
 - 记忆上下文包。
 - 记忆上下文包中命中的 project/personal 风险画像、个人关注点和 oracle 补充。
-- `process/context-pack.md` 中绑定到 `risk-based-test-analysis` 的 project knowledge 文件，例如风险画像、历史高风险策略或风险类 checklist。
+- `process/context-pack.md` 中绑定到 `testing-method-router` 的 project knowledge 文件，例如风险画像、历史高风险策略或风险类 checklist。
 - `knowledge/testpoint-standard.md`。
 - `knowledge/test-techniques/README.md`。
 - `knowledge/test-techniques/risk-based/risk-based-testing.md`。
@@ -30,7 +25,7 @@ description: 当需要按产品、业务、数据、权限、集成、运维和�
 - 使用 `knowledge/test-techniques/experience-based/error-guessing-checklist.md` 匹配通用缺陷模式。
 - 使用 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.md` 中的项目历史缺陷和项目风险模式修正关注点。
 - 使用 context pack 中的 project/personal knowledge 补充识别项目级风险画像、个人关注点、覆盖策略和判定依据启发；补充不得写成已确认业务事实。
-- 如果 context pack 的“项目知识阶段绑定”存在绑定到 `risk-based-test-analysis` 的 project knowledge，必须读取相关章节并输出应用状态。
+- 如果 context pack 的“项目知识阶段绑定”存在绑定到 `testing-method-router` 的风险类 project knowledge，必须读取相关章节并输出应用状态。
 - 使用 `knowledge/test-techniques/risk-based/risk-based-testing.md` 判断建议级别，级别定义仍以 `knowledge/testpoint-standard.md` 为准。
 
 风险识别必须区分三类来源：
@@ -43,7 +38,7 @@ description: 当需要按产品、业务、数据、权限、集成、运维和�
 
 ## 级别规则
 
-级别定义以 `knowledge/testpoint-standard.md` 为准；本 skill 只负责根据风险原因建议级别。
+级别定义以 `knowledge/testpoint-standard.md` 为准；本方法参考 只负责根据风险原因建议级别。
 
 ## 输出
 
