@@ -61,6 +61,12 @@
 |---|---|---|---|---|---|
 |  | 测试设计因子库/测试设计模式库/测试设计Checklist/风险画像/Oracle/路由说明/术语表/unclassified | 文件名、frontmatter、标题或摘要 | testing-method-router / test-analysis-solution-generation / test-design-solution-generation / coverage-review 等；checklist 默认绑定 coverage-review，明确评审用途时才绑定独立评审 | 阶段开始前按相关章节或关键词读取，不全量复制大文件 | 输出 applied / not_applicable / insufficient_evidence / conflict_with_requirement / deferred_to_review |
 
+## 附加门禁绑定
+
+| 来源文件 | 层级 | 判断依据 | 适用阶段 | 检查摘要 | 读取策略 | 应用留痕要求 |
+|---|---|---|---|---|---|---|
+|  | quality-gates/projects/<project-key>/**/*.md / quality-gates/user/**/*.md | 文件名、frontmatter、标题或摘要 | coverage-review / test-analysis-solution-review / test-design-solution-review |  | 阶段开始前按相关章节或关键词读取，不全量复制大文件 | 输出 applied / not_applicable / insufficient_evidence / conflict_with_requirement / overridden_by_user |
+
 ## 相关项目事实
 
 ## 相关领域术语
@@ -91,9 +97,10 @@
 
 - 只注入能改善本次分析的 memory。
 - rules 是强制规则源，不按“是否改善分析”判断；适用 rules 必须进入 context pack。
-- project/personal 补充只注入与当前需求直接相关的风险画像、覆盖策略、术语映射、路由说明、模板偏好、附加门禁、个人检查偏好或测试 oracle 补充。
+- project/personal 补充只注入与当前需求直接相关的风险画像、覆盖策略、术语映射、路由说明、附加门禁、个人检查偏好或测试 oracle 补充。
 - rules 优先级低于当前用户明确指令，但高于当前输入文档、memory 和 knowledge。rules 与输入冲突时默认遵守 rules，并记录覆盖原因。
 - project knowledge 文件名没有硬性要求；构建 context pack 时必须基于文件名、frontmatter、标题、章节和少量摘要自理解识别用途，并在“项目知识阶段绑定”中登记强制应用环节。
+- `quality-gates/projects/<project-key>/**/*.md` 和 `quality-gates/user/**/*.md` 不写入“项目知识阶段绑定”，必须写入“附加门禁绑定”。
 - context pack 不提前判断测试设计模式或 checklist 的具体命中项，只登记文件类型、适用环节和后续读取策略。
 - 优先匹配模块、角色、对象、状态、接口或项目历史缺陷。
 - 每条内容保持简洁，并标记来源 memory 文件或来源章节。
@@ -103,5 +110,6 @@
 - 无 rules 约束时，事实/契约冲突以当前输入文档和 project memory 为准；输出偏好冲突以当前用户指令和 personal 偏好优先，但不得违反适用 rules、事实、交付件契约和质量门禁。
 - 大文件只记录来源、命中原因和建议补读范围，不整文件注入；后续 skill 可按来源文件和相关章节受控补读。
 - 被绑定到某个阶段的 project knowledge，后续阶段必须读取、应用或解释不适用，并在方法证据、过程报告或覆盖审查中留痕。
+- 被绑定到某个阶段的附加门禁，后续阶段必须读取、执行或解释不适用，并在过程报告或覆盖审查中留痕。
 - 被登记为适用的 rules，后续阶段必须应用或解释不适用，并在过程报告或覆盖审查中留痕。
 - 构建 context pack 时不修改长期 memory 源文件。

@@ -15,13 +15,12 @@ description: 每次需求分析或测试设计开始前使用，用于从 rules�
 - 自动扫描得到的、与 `project-key` 匹配的 project rules：`rules/projects/<project-key>/**/*.md`。
 - 自动扫描得到的 personal rules：`rules/user/**/*.md`。
 - `memory/project-memory.md`，包括全局项目事实、全局约束和输出偏好。
-- 自动扫描得到的、与当前需求匹配的 `memory/domains/*.md` 业务域分片。
 - `memory/testing-experience-memory.md`。
 - 自动扫描得到的、与 `project-key` 匹配且与当前需求相关的 `memory/projects/<project-key>/**/*.md` 项目化 memory。
 - 自动扫描得到的、与 `project-key` 匹配的 `knowledge/projects/<project-key>/**/*.md` 项目化知识补充；先做阶段绑定，再按当前需求相关性摘录片段。
 - 可选 `personal-key`：来自用户显式参数、当前运行者配置或默认个人配置；personal 目录为 `*/user/`，后续可扩展为 `*/user/<personal-key>/`。
 - 自动扫描得到的、与当前需求相关的 `memory/user/**/*.md` 和 `knowledge/user/**/*.md` personal 补充。
-- 自动扫描得到的、与当前需求相关的 `templates/projects/<project-key>/**/*.md`、`templates/user/**/*.md`、`quality-gates/projects/<project-key>/**/*.md` 和 `quality-gates/user/**/*.md` 本地附加配置。
+- 自动扫描得到的、与当前需求相关的 `quality-gates/projects/<project-key>/**/*.md` 和 `quality-gates/user/**/*.md` 附加门禁；先做附加门禁绑定，再按当前需求相关性摘录片段。
 - `templates/context-pack-template.md`。
 
 ## 三层配置模型
@@ -131,9 +130,9 @@ personal 层用于表达当前使用者的输出偏好、个人检查清单和�
 
 ## 选择规则
 
-先扫描 core 层 `rules/*.md` 并记录适用强制规则，再读取 core 层的 `memory/project-memory.md`，并自动扫描 `memory/domains/*.md` 业务域分片并跳过 `README.md`。如果已确定 `project-key`，继续扫描 project 层的 `rules/projects/<project-key>/**/*.md`、`memory/projects/<project-key>/**/*.md`、`knowledge/projects/<project-key>/**/*.md`、`templates/projects/<project-key>/**/*.md` 和 `quality-gates/projects/<project-key>/**/*.md`。最后扫描 personal 层的 `rules/user/**/*.md`、`memory/user/**/*.md`、`knowledge/user/**/*.md`、`templates/user/**/*.md` 和 `quality-gates/user/**/*.md`。所有扫描都跳过各级 `README.md` 正文，但可使用 README 的标题、目录结构和说明作为 L0 元信息。
+先扫描 core 层 `rules/*.md` 并记录适用强制规则，再读取 core 层的 `memory/project-memory.md`。如果已确定 `project-key`，继续扫描 project 层的 `rules/projects/<project-key>/**/*.md`、`memory/projects/<project-key>/**/*.md`、`knowledge/projects/<project-key>/**/*.md` 和 `quality-gates/projects/<project-key>/**/*.md`。最后扫描 personal 层的 `rules/user/**/*.md`、`memory/user/**/*.md`、`knowledge/user/**/*.md` 和 `quality-gates/user/**/*.md`。所有扫描都跳过各级 `README.md` 正文，但可使用 README 的标题、目录结构和说明作为 L0 元信息。
 
-全局分片和项目分片都不需要在 `project-memory.md` 中登记。根据文件名、标题、适用范围、关键词、领域术语、角色、接口、状态、数据对象和以下内容选择相关片段：
+项目化 memory 文件不需要在 `project-memory.md` 中登记。根据文件名、标题、适用范围、关键词、领域术语、角色、接口、状态、数据对象和以下内容选择相关片段：
 
 - 需求模块、产品区域、用户角色或业务对象。
 - rules 中声明的适用范围、适用阶段、必须、禁止、优先级和冲突处理。
@@ -156,9 +155,10 @@ personal 层用于表达当前使用者的输出偏好、个人检查清单和�
 - 项目化 memory 优先于全局 memory；当前输入文档中的明确规则优先于任何 memory。
 - 项目化 knowledge 只能补充项目风险、术语、覆盖策略、测试 oracle、测试设计因子、测试设计模式和 checklist，不得覆盖 `knowledge/` 根目录中的核心类型、字段、级别、交付件契约和质量门禁。
 - `memory/project-memory.md` 中的全局高优先级规则始终纳入，但不得把整份文件原样复制进 context pack。
-- `memory/domains/*.md` 中的用户扩展内容按片段引用；每个片段必须保留来源文件名和命中原因。
-- `memory/projects/<project-key>/**/*.md`、`knowledge/projects/<project-key>/**/*.md`、`templates/projects/<project-key>/**/*.md` 和 `quality-gates/projects/<project-key>/**/*.md` 中的内容按片段引用；每个片段必须保留项目标识、来源文件和命中原因。
-- `memory/user/**/*.md`、`knowledge/user/**/*.md`、`templates/user/**/*.md` 和 `quality-gates/user/**/*.md` 中的内容按片段引用；每个片段必须保留 personal 层来源文件和命中原因。
+- `memory/projects/<project-key>/**/*.md` 和 `knowledge/projects/<project-key>/**/*.md` 中的内容按片段引用；每个片段必须保留项目标识、来源文件和命中原因。
+- `quality-gates/projects/<project-key>/**/*.md` 中的附加门禁写入“附加门禁绑定”，每个片段必须保留项目标识、来源文件、命中原因、适用阶段、检查摘要和应用留痕要求。
+- `memory/user/**/*.md` 和 `knowledge/user/**/*.md` 中的内容按片段引用；每个片段必须保留 personal 层来源文件和命中原因。
+- `quality-gates/user/**/*.md` 中的附加门禁写入“附加门禁绑定”，每个片段必须保留 personal 层来源文件、命中原因、适用阶段、检查摘要和应用留痕要求。
 - personal 层只能补充个人偏好和本地检查关注点，不得覆盖当前用户明确指令、需求文档、project memory、core 输出契约或 core/project 质量门禁。
 - 冲突裁剪按信息类型处理：当前用户明确指令最高；rules 与输入文档冲突时遵守 rules 并记录覆盖原因；事实/契约在无 rules 约束时以当前输入文档和 project memory 为准；测试策略以 project knowledge 优先于 personal knowledge；输出偏好以当前用户指令优先于 personal，再优先于 project，但不得违反强制规则、事实、交付件契约或门禁。
 - `memory/testing-experience-memory.md` 只摘取与当前需求的方法选择、风险模式、输出反馈直接相关的经验。
@@ -175,8 +175,8 @@ personal 层用于表达当前使用者的输出偏好、个人检查清单和�
 - 适用强制规则、规则来源、适用阶段和冲突处理。
 - project/personal 来源使用摘要，包括命中来源、未采用来源、冲突处理和补读建议。
 - 领域术语片段。
-- 相关业务域分片和命中原因。
 - 相关项目化 knowledge 补充、阶段绑定和命中原因。
+- 相关 project/personal 附加门禁、适用阶段、读取策略和应用留痕要求。
 - 相关 personal 偏好或本地检查补充和命中原因。
 - 历史缺陷和风险模式。
 - 已确认的项目测试经验。
@@ -198,6 +198,7 @@ personal 层用于表达当前使用者的输出偏好、个人检查清单和�
 | 命中摘要 | 命中的 memory 文件、片段和原因 |
 | Project/Personal 使用摘要 | project/personal 的命中、未采用、冲突处理和补读建议 |
 | 项目知识阶段绑定 | project knowledge 文件的自理解类型、强制应用环节、读取策略和留痕要求 |
+| 附加门禁绑定 | project/personal 附加门禁的来源、层级、适用阶段、检查摘要、读取策略和留痕要求 |
 | 项目事实 | 影响测试分析的已确认事实 |
 | 业务术语 | 当前需求会用到的项目特有术语 |
 | 项目知识补充 | 当前项目适用的风险画像、覆盖策略、术语映射或 oracle 补充 |
@@ -211,8 +212,6 @@ personal 层用于表达当前使用者的输出偏好、个人检查清单和�
 
 ## 约束
 
-- 不把所有业务域分片全量注入 context pack；可以扫描文件元信息和标题结构，但只摘取与本次需求相关的片段。
-- 新增 `memory/domains/*.md` 分片无需登记索引；但分片内容必须自带清晰的标题、适用范围、关键词或术语，便于自动匹配。
 - 新增 `*/projects/<project-key>/**/*.md` 和 `*/user/**/*.md` 文件无需登记索引；project 目录名必须是稳定的 `project-key`。project knowledge 文件名不作硬性要求，但文件名、标题、frontmatter 或开头摘要应能让 Agent 自理解识别用途和适用环节。
 - 超过 50KB 的 project/personal Markdown 不要求提供索引文件，但 context pack 只能记录来源、命中原因、标题结构或少量摘录，不得整文件注入。
 - 未确定 `project-key` 时，不得全量读取所有项目目录正文，避免跨项目污染。

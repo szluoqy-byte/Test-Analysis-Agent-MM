@@ -14,8 +14,8 @@ Rules = 优先于输入文档的强制规则
 | 层级 | 路径 | 默认提交 Git | 作用 |
 |---|---|---|---|
 | core | `rules/*.md`、`knowledge/*.md`、`memory/*.md`、`templates/*.md`、`quality-gates/*.md` | 是 | Agent 包随附的强制规则、稳定标准、模板和基础规则 |
-| project | `rules/projects/<project-key>/**/*.md`、`knowledge/projects/<project-key>/**/*.md`、`memory/projects/<project-key>/**/*.md`、`templates/projects/<project-key>/**/*.md`、`quality-gates/projects/<project-key>/**/*.md` | 否 | 当前项目的强制规则、事实、经验、策略、模板补充和附加门禁 |
-| personal | `rules/user/**/*.md`、`knowledge/user/**/*.md`、`memory/user/**/*.md`、`templates/user/**/*.md`、`quality-gates/user/**/*.md` | 否 | 当前使用者的个人强制规则、偏好、本地检查清单和补充启发 |
+| project | `rules/projects/<project-key>/**/*.md`、`knowledge/projects/<project-key>/**/*.md`、`memory/projects/<project-key>/**/*.md`、`quality-gates/projects/<project-key>/**/*.md` | 否 | 当前项目的强制规则、事实、经验、策略和附加门禁 |
+| personal | `rules/user/**/*.md`、`knowledge/user/**/*.md`、`memory/user/**/*.md`、`quality-gates/user/**/*.md` | 否 | 当前使用者的个人强制规则、偏好、本地检查清单和补充启发 |
 
 project 和 personal 是当前 run 的一等输入源：必须由 `memory-context-builder` 统一发现、裁剪和记录到 `process/context-pack.md`，后续 skill 只能消费 context pack 或按其来源记录受控补读。project knowledge 文件名没有硬性要求，但 context pack 必须记录其自理解类型和项目知识阶段绑定。
 
@@ -60,14 +60,15 @@ Rules 是高优先级约束源：优先级低于当前用户明确指令，高�
 | 运行产物分类、固定文件名和下游消费约定 | `docs/output-artifact-contract.md` | 输出契约，防止 skill、模板和脚本各自发散 |
 | 测试设计 Agent 架构、流程和边界 | `docs/test-design-agent-design.md` | 设计层架构文档，说明如何承接测试分析方案 |
 | 报告、中间产物和运行产物的 Markdown 结构 | `templates/*.md` | 模板层只定义形状和占位，不维护另一套标准 |
-| 输出是否通过的检查项、失败条件和字段校验 | `quality-gates/*.md` | 质量门禁层负责判定，不产生新知识 |
+| 公共覆盖门禁和 project/personal 附加门禁入口 | `quality-gates/*.md`、`quality-gates/projects/`、`quality-gates/user/` | 跨阶段或本地附加门禁，不产生新知识 |
+| coverage-review 私有审查清单 | `skills/coverage-review/references/*.md` | 仅供覆盖审查执行，不放在公共 quality-gates 根目录 |
 | 可机械执行的结构、一致性、启发式语义和回归检查 | `bin/*.py` | 脚本层只做可重复检查；模型 review 不重复脚本已覆盖的确定性项 |
 
 ## 禁止重复
 
 - `agents/` 只维护用户入口和意图路由，不重复维护测试点类型、方法枚举和通用缺陷模式。
 - `skills/` 不重复维护测试点类型、方法枚举和通用缺陷模式，只引用 `knowledge/`。
-- `skills/` 不把方法证据写成自由发挥的叙述，统一引用 `skills/testing-method-router/references/method-evidence-standard.md` 和 `templates/method-analysis-template.md`。
+- `skills/` 不把方法证据写成自由发挥的叙述，统一引用 `skills/testing-method-router/references/method-evidence-standard.md`。
 - `memory/` 不保存通用测试理论、通用缺陷模式、通用类型定义和方法步骤。
 - `rules/` 不保存普通知识、历史经验或临时偏好；只有明确“必须/禁止/优先于输入”的约束才进入 rules。
 - `memory/` 不重复维护框架术语定义；框架术语归属 `knowledge/test-workflow-boundaries.md`，memory 只记录项目专属术语或覆盖。
@@ -78,6 +79,7 @@ Rules 是高优先级约束源：优先级低于当前用户明确指令，高�
 - 未唯一确定 `project-key` 时，不读取所有项目目录正文，避免跨项目知识和 memory 污染。
 - project 和 personal 层默认不提交 Git；仓库只保留对应 README 和发现规则。
 - `rules/projects/<project-key>/` 和 `rules/user/` 默认不提交 Git；仓库只保留对应 README 和发现规则。
+- `templates/` 只保留 core 模板，不提供 project/personal 分层模板补充；项目或个人输出偏好应归入 memory，强制格式要求应归入 rules。
 - `context-pack.md` 只摘录与本次需求相关的 memory 和 project/personal 补充，不复制整份长期文件，也不放在 `memory/` 下。
 - `context-pack.md` 的“项目知识阶段绑定”只判断文件应进入哪些环节；具体命中和应用由对应 skill 在阶段内读取后判断，并记录应用状态。
 - `task-list.md`、`context-pack.md` 和 `clarification-session.md` 必须随 run 目录生成，分别记录固定阶段顺序、上下文绑定和待确认治理结果；即使无 project/personal 命中或无待确认候选，也必须生成并说明原因。

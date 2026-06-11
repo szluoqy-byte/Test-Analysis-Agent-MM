@@ -260,7 +260,7 @@ flowchart TD
 ```text
 agents/test-eval-agent.md
 skills/evaluate-test-artifact-quality/SKILL.md
-templates/evaluation-report-template.md
+evaluation report template（待定）
 knowledge/test-artifact-quality-standard.md
 ```
 

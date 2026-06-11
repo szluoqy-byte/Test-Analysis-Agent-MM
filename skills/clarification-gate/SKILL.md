@@ -109,7 +109,8 @@ description: 在多个测试分析检查点使用。用于收集、去重、分�
 
 - 当前检查点。
 - 治理结论，取值为 `无待确认候选` 或 `存在待确认候选`。
-- 候选问题队列。
+- 候选问题队列，使用 `templates/clarification-template.md` 中的中文简表；不要把内部候选 schema 的所有英文控制字段原样铺到过程记录中。
+- 候选问题详情，记录为什么需要确认、可选处理方向、关联需求依据和 memory 冲突。
 - 去重和排序结果。
 - 未进入主交付件的原因。
 - 需要触发 `预期结果 = 待人工分析确认` 的测试点明细范围。
@@ -136,4 +137,4 @@ description: 在多个测试分析检查点使用。用于收集、去重、分�
 - 不在分析过程中向用户提问或暂停主流程。
 - 不把任何候选问题伪装成用户已确认事实。
 - 不向 `deliverables/test-analysis-solution.md` 写待确认信息章节。
-- 不把用户本次后续反馈自动写入 `memory/project-memory.md`、`memory/domains/*.md` 或 `memory/testing-experience-memory.md`。
+- 不把用户本次后续反馈自动写入 `memory/project-memory.md`、`memory/projects/<project-key>/**/*.md` 或 `memory/testing-experience-memory.md`。

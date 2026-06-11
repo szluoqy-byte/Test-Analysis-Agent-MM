@@ -13,23 +13,29 @@
 
 ## 1. 候选问题总表
 
-| 问题ID | checkpoint | sourceStage | header | question | why | impact | options | blockingLevel | priority | askPolicy | mustAsk | relatedRequirement | memoryConflict |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| CQ-001 | CP-INPUT | input-fact-modeling |  |  |  |  |  | Important/Blocking | High/Medium/Low | defer/auto-resolve | false |  |  |
+| 问题ID | 检查点 | 来源阶段 | 问题摘要 | 待确认问题 | 影响范围 | 优先级 | 处理方式 |
+|---|---|---|---|---|---|---|---|
+| CQ-001 | CP-INPUT | input-fact-modeling |  |  |  | P0/P1/P2/P3 | 过程保留/预期结果兜底/已移除 |
 
-## 2. 去重与降级结果
+## 2. 候选问题详情
+
+| 问题ID | 为什么需要确认 | 可选处理方向 | 关联需求依据 | memory 冲突 |
+|---|---|---|---|---|
+| CQ-001 |  |  |  | 无 |
+
+## 3. 去重与降级结果
 
 | 原问题ID | 处理结果 | 合并到 | 降级原因 | 保留影响 |
 |---|---|---|---|---|
 |  | kept/merged/downgraded/dropped |  |  |  |
 
-## 3. 预期结果兜底清单
+## 4. 预期结果兜底清单
 
 | 问题ID | 影响场景/测试点/测试点明细 | 兜底原因 | 主交付件处理 |
 |---|---|---|---|
 | CQ-001 | TP-001 / TP-001-002 | 需求未说明错误提示、状态变化或错误码 | 预期结果写 `待人工分析确认` |
 
-## 4. 治理规则
+## 5. 治理规则
 
 - 本 Agent 默认不向用户提问，不暂停主流程。
 - 问题必须说明会影响哪些测试分析结论、场景、接口、测试点或测试点明细。

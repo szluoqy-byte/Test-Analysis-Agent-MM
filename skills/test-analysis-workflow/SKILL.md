@@ -65,7 +65,7 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 
 project 和 personal 是当前 run 的一等输入源，不是后续阶段随意搜索的资料目录。主入口必须让 `memory-context-builder` 统一发现、裁剪并写入 `process/context-pack.md`；后续 skill 只能消费 context pack，或按 context pack 的来源记录进行受控补读。
 
-project/personal 层只能补充项目风险画像、覆盖策略、术语映射、测试 oracle、模板偏好、个人关注点或附加门禁，不得覆盖 core 层中的核心标准、字段、输出契约和质量门禁。personal 层也不得覆盖需求文档、设计方案文档或 project memory，不得作为项目事实或团队共识。
+project/personal 层只能补充项目风险画像、覆盖策略、术语映射、测试 oracle、个人关注点或附加门禁，不得覆盖 core 层中的核心标准、字段、输出契约和质量门禁。personal 层也不得覆盖需求文档、设计方案文档或 project memory，不得作为项目事实或团队共识。
 
 project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<project-key>/` 下存在自由格式 Markdown，`memory-context-builder` 必须基于文件名、frontmatter、标题、章节和摘要自理解识别文件用途，并在 `context-pack.md` 生成“项目知识阶段绑定”。主流程后续阶段必须遵守该绑定：被绑定到某个阶段的文件，在该阶段开始前必须读取相关章节，并输出应用状态。context-pack 阶段不提前判断具体测试点或测试点明细命中。
 

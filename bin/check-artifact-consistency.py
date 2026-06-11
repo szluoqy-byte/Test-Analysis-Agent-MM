@@ -209,8 +209,9 @@ def validate_clarification_session(path: Path) -> tuple[list[str], list[str]]:
     required_markers = [
         "# 待确认治理记录",
         "## 1. 候选问题总表",
-        "## 2. 去重与降级结果",
-        "## 3. 预期结果兜底清单",
+        "## 2. 候选问题详情",
+        "## 3. 去重与降级结果",
+        "## 4. 预期结果兜底清单",
     ]
     for marker in required_markers:
         if marker not in text:

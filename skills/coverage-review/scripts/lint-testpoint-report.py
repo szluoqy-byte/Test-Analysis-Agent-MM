@@ -263,8 +263,8 @@ def main() -> int:
         ]:
             if not value:
                 errors.append(f"第 {line_number} 行：方法证据必填字段为空: {name}")
-        if not ("TP-" in links or "Q-" in links):
-            warnings.append(f"第 {line_number} 行：方法证据建议关联 TP-* 或 Q-*: {links}")
+        if not ("TP-" in links or "CQ-" in links):
+            warnings.append(f"第 {line_number} 行：方法证据建议关联 TP-* 或 CQ-*: {links}")
 
     expected_tp_id = 1
     for line_number, cells in rows:

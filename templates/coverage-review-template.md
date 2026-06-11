@@ -35,10 +35,11 @@
 | 维度 | 结果 | 说明 | 修正建议 |
 |---|---|---|---|
 
-## Project Knowledge 应用记录
+## Project Knowledge 与附加门禁应用记录
 
-| 来源文件 | 阶段 | 应用状态 | 应用位置 | 说明 |
-|---|---|---|---|---|
+| 来源类型 | 来源文件 | 阶段 | 应用状态 | 应用位置 | 说明 |
+|---|---|---|---|---|---|
+| project knowledge / additional gate |  |  | applied/not_applicable/insufficient_evidence/conflict_with_requirement/overridden_by_user |  |  |
 
 ## Rules 应用记录
 

@@ -182,8 +182,8 @@ def main() -> int:
             warnings.append(f"第 {line_number} 行：方法证据中的方法 `{method}` 未出现在知识标准方法中")
         if not fragment or not conclusion or not links:
             errors.append(f"第 {line_number} 行：方法证据存在空字段")
-        if "TP-" not in links and "Q-" not in links:
-            warnings.append(f"第 {line_number} 行：方法证据未关联 TP-* 或 Q-*")
+        if "TP-" not in links and "CQ-" not in links:
+            warnings.append(f"第 {line_number} 行：方法证据未关联 TP-* 或 CQ-*")
 
     for line_number, cells in testpoint_rows:
         if len(cells) != 8 or not is_testpoint_id(cells[0]):

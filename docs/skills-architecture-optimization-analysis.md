@@ -98,7 +98,7 @@ project knowledge 文件不要求固定命名或固定结构。`memory-context-b
 
 ## 5. 后续优化路线
 
-1. 统一专项方法参考输出骨架：所有专项分析都引用 `skills/testing-method-router/references/method-evidence-standard.md` 和 `templates/method-analysis-template.md`。
+1. 统一专项方法参考输出骨架：所有专项分析都引用 `skills/testing-method-router/references/method-evidence-standard.md`。
 2. 强化输入事实使用：让 `input-fact-modeling` 的结构化结果稳定进入测试技术路由和测试分析方案生成。
 3. 梳理 test-techniques：明确哪些内容服务 `test-analysis-agent`，哪些示例服务 `test-design-agent`。
 4. 扩展评审样例：增加包含错误码缺失、状态变化缺失和提示文案缺失的样例，验证 `待人工分析确认` 规则。

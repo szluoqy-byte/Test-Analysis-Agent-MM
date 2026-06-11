@@ -38,10 +38,11 @@
 | 门禁 | 结果 | 说明 |
 |---|---|---|
 
-## 8. Project Knowledge 应用记录
+## 8. Project Knowledge 与附加门禁应用记录
 
-| 来源文件 | 当前阶段 | 应用状态 | 应用位置 | 说明 |
-|---|---|---|---|---|
+| 来源类型 | 来源文件 | 当前阶段 | 应用状态 | 应用位置 | 说明 |
+|---|---|---|---|---|---|
+| project knowledge / additional gate |  |  | applied/not_applicable/insufficient_evidence/conflict_with_requirement/overridden_by_user |  |  |
 
 ## 9. 建议沉淀的记忆更新
 

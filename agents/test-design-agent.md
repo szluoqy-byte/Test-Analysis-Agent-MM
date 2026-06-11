@@ -24,7 +24,7 @@ description: 测试设计方案门面 Agent；当用户希望基于已评审测�
 | 基于已评审测试分析方案生成测试设计方案 | 使用 `test-design-workflow` 主流程 |
 | 输入需求、设计依据或外部分析方案是 `.docx` / `.xlsx` | 先使用 `normalize-input-documents` 转换并缓存为 Markdown，再进入设计主流程 |
 | 只有需求/设计方案但要求直接生成测试设计方案 | 先通过 `test-analysis-workflow` 生成分析方案，再由 `test-design-workflow` 扩展设计项 |
-| 评审测试设计项粒度、预期结果或非用例化问题 | 使用 `test-design-solution-review` 和 `quality-gates/test-design-solution-check.md` |
+| 评审测试设计项粒度、预期结果或非用例化问题 | 使用 `test-design-solution-review`，以 `knowledge/test-design-solution-standard.md` 和 lint 结果为准 |
 | 只咨询测试设计方法、测试技术或设计项粒度 | 读取相关 `knowledge/`、`docs/` 或 skill，先给分析建议；除非用户要求，不改文件 |
 | 记录个人偏好 | 写入 `memory/user/preferences.md` |
 | 记录个人测试启发、检查清单或方法偏好 | 写入 `knowledge/user/` 下合适文件 |

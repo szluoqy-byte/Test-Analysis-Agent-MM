@@ -16,7 +16,7 @@
 
 - personal-key：default
 - 确定依据：示例 fixture 使用默认 personal 配置
-- 使用路径：memory/user、knowledge/user、templates/user、quality-gates/user
+- 使用路径：memory/user、knowledge/user、quality-gates/user
 - 默认 personal 说明：示例未命中个人偏好正文
 
 ## 命中摘要
