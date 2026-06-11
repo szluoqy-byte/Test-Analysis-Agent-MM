@@ -4,7 +4,7 @@
 
 ## 适用场景
 
-当 `bin/normalize-office-input.py` 的 metadata 出现图片数量或转换警告时，进入本流程。
+当 `skills/normalize-input-documents/scripts/normalize-office-input.py` 的 metadata 出现图片数量或转换警告时，进入本流程。
 
 常见需要补充分析的内容包括：
 
@@ -19,7 +19,7 @@
 1. 先运行输入归一化脚本，得到 Markdown 和 `.conversion.json`。
 
 ```bash
-python bin/normalize-office-input.py <input.docx>
+python skills/normalize-input-documents/scripts/normalize-office-input.py <input.docx>
 ```
 
 2. 查看 metadata 中的 `image_count` 和 `warnings`。如果图片可能承载设计事实，继续做图片补充。
@@ -87,7 +87,7 @@ libreoffice --headless --convert-to png --outdir <media-dir> <media-dir>/image2.
 
 如果需要知道图片在正文中的上下文位置，可解析 `word/document.xml` 和 `word/_rels/document.xml.rels`。
 
-默认情况下，`bin/normalize-office-input.py` 会尽量在 Markdown 中按原始图片位置插入占位块：
+默认情况下，`skills/normalize-input-documents/scripts/normalize-office-input.py` 会尽量在 Markdown 中按原始图片位置插入占位块：
 
 ```markdown
 <!-- DOCX_IMAGE_START: image1.png#1 -->

@@ -10,7 +10,7 @@
 
 ## 输入
 
-- 结构化需求模型。
+- 输入事实模型。
 - 记忆上下文包。
 - 记忆上下文包中命中的 project/personal 风险画像、个人关注点和 oracle 补充。
 - `process/context-pack.md` 中绑定到 `testing-method-router` 的 project knowledge 文件，例如风险画像、历史高风险策略或风险类 checklist。

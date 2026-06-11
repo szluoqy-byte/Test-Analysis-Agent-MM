@@ -13,11 +13,12 @@ from pathlib import Path
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 PROJECT_KEY_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
 MAIN_SKILLS = {
-    "analysis": "analyze-requirement-test-analysis-solution",
-    "design": "generate-test-design-solution",
+    "analysis": "test-analysis-workflow",
+    "design": "test-design-workflow",
 }
 REQUIRED_SKILLS = {
     *MAIN_SKILLS.values(),
+    "input-fact-modeling",
     "normalize-input-documents",
     "test-analysis-solution-generation",
     "test-analysis-solution-review",
@@ -25,12 +26,12 @@ REQUIRED_SKILLS = {
     "test-design-solution-review",
 }
 REQUIRED_AGENTS = {
-    "test-analysis-agent": ("analyze-requirement-test-analysis-solution", "normalize-input-documents", "context-capture"),
-    "test-design-agent": ("generate-test-design-solution", "normalize-input-documents", "test-design-solution-generation", "context-capture"),
+    "test-analysis-agent": ("test-analysis-workflow", "normalize-input-documents", "context-capture"),
+    "test-design-agent": ("test-design-workflow", "normalize-input-documents", "test-design-solution-generation", "context-capture"),
 }
 OPENCODE_COMMANDS = {
-    ".opencode/commands/analyze-requirement-test-analysis-solution.md": "analyze-requirement-test-analysis-solution",
-    ".opencode/commands/generate-test-design-solution.md": "generate-test-design-solution",
+    ".opencode/commands/test-analysis-workflow.md": "test-analysis-workflow",
+    ".opencode/commands/test-design-workflow.md": "test-design-workflow",
     ".opencode/commands/normalize-input-documents.md": "normalize-input-documents",
 }
 

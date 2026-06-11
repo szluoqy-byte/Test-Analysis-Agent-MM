@@ -11,7 +11,7 @@
 - 必选测试技术是否落到测试分析方案中的场景、测试点或测试点明细，或是否有过程缺口解释。
 - 必选测试技术是否有方法分析证据，或是否有过程缺口解释。
 - 适用的测试分析维度是否落到主交付件，而不是只留在过程报告。
-- 测试场景、测试点和测试点明细是否符合 `knowledge/test-analysis-methodology.md` 的层级边界。
+- 测试场景、测试点和测试点明细是否符合 `knowledge/test-analysis-solution-standard.md` 的层级边界；测试设计项是否符合 `knowledge/test-design-solution-standard.md` 的承接边界。
 - 过程报告中的测试点类型和方法是否来自 `knowledge/testpoint-standard.md`。
 - 过程报告与测试分析方案是否不冲突。
 - 测试分析方案是否自包含，是否把后续测试设计必须知道的业务规则、状态集合、角色权限、接口契约和预期结果依据写入主交付件。
@@ -30,7 +30,7 @@
 bin/lint-test-analysis-solution.py ${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.md
 bin/lint-test-design-solution.py ${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.md
 bin/check-artifact-consistency.py ${PROJECT_ROOT}/outputs/runs/<run-id>
-bin/semantic-testpoint-check.py ${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md
+skills/coverage-review/scripts/semantic-testpoint-check.py ${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md
 ```
 
 `bin/smoke-test-analysis.py` 是框架回归和示例 fixture smoke 检查，不属于单次测试分析/测试设计方案的 review 阶段；只有修改 Agent、skill、knowledge、template、quality gate、bin 脚本或示例 fixture 时才需要运行。

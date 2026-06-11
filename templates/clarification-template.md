@@ -15,7 +15,7 @@
 
 | 问题ID | checkpoint | sourceStage | header | question | why | impact | options | blockingLevel | priority | askPolicy | mustAsk | relatedRequirement | memoryConflict |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| CQ-001 | CP-INPUT | requirement-testability |  |  |  |  |  | Important/Blocking | High/Medium/Low | defer/auto-resolve | false |  |  |
+| CQ-001 | CP-INPUT | input-fact-modeling |  |  |  |  |  | Important/Blocking | High/Medium/Low | defer/auto-resolve | false |  |  |
 
 ## 2. 去重与降级结果
 

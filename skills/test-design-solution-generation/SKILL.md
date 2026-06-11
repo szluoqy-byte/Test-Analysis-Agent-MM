@@ -13,7 +13,7 @@ description: 当需要把已评审测试分析方案中的测试点明细扩展�
 
 - 本 skill 中所有 `knowledge/...`、`templates/...`、`quality-gates/...` 路径均为仓库根目录相对路径。
 - 读取测试技术时，先读取 `knowledge/test-techniques/README.md`，再按 README 路由读取同目录下的具体技术文件。
-- 粒度边界读取 `knowledge/test-analysis-methodology.md`、`knowledge/test-analysis-solution-standard.md` 和 `knowledge/test-design-solution-standard.md`。
+- 工作流边界读取 `knowledge/test-workflow-boundaries.md`；分析方案承接和设计方案粒度细则读取 `knowledge/test-analysis-solution-standard.md` 和 `knowledge/test-design-solution-standard.md`。
 - 输出结构读取 `templates/test-design-solution-template.md`。
 
 ## 职责边界
@@ -29,8 +29,8 @@ description: 当需要把已评审测试分析方案中的测试点明细扩展�
 ## 输入
 
 - 已评审测试分析方案，优先读取 `outputs/runs/<run-id>/deliverables/test-analysis-solution.md`。
-- 结构化需求模型或原始需求摘要。
-- 设计方案事实摘要，尤其是接口、字段、状态、权限、数据依赖、配置开关、异常处理和非功能指标。
+- 输入事实模型或原始需求摘要。
+- 输入事实模型中的设计事实，尤其是接口、字段、状态、权限、数据依赖、配置开关、异常处理和非功能指标。
 - `process/context-pack.md` 中与本次相关的项目事实、历史缺陷、测试设计因子、项目测试设计模式、Oracle 和输出偏好。
 - `process/context-pack.md` 中绑定到 `test-design-solution-generation` 的 project knowledge 文件。
 - `process/clarification-session.md` 中已收口的过程缺口候选。
@@ -38,7 +38,7 @@ description: 当需要把已评审测试分析方案中的测试点明细扩展�
 ## 生成步骤
 
 1. 读取 context pack 的“项目知识阶段绑定”。如果存在绑定到 `test-design-solution-generation` 的 project knowledge，先按来源文件、相关章节、关键词或标题读取，不全量复制大文件。
-2. 按 `knowledge/test-analysis-methodology.md` 检查输入是否保持 `测试场景 -> 测试点 -> 测试点明细` 层级；如果非成功测试点明细存在 `TP-*-*-*` 第四层，必须保留该层级；如果单一弱结果分支停留在 `TP-*-*`，直接把该明细作为叶子分析节点，不为了设计阶段机械新增第四层。如果分析方案已经把数据值写进测试点明细，不继续放大错误，应记录输入质量问题并上收为设计项候选。
+2. 按 `knowledge/test-analysis-solution-standard.md` 检查输入是否保持 `测试场景 -> 测试点 -> 测试点明细` 层级；如果非成功测试点明细存在 `TP-*-*-*` 第四层，必须保留该层级；如果单一弱结果分支停留在 `TP-*-*`，直接把该明细作为叶子分析节点，不为了设计阶段机械新增第四层。如果分析方案已经把数据值写进测试点明细，不继续放大错误，应记录输入质量问题并上收为设计项候选。
 3. 按 `knowledge/test-design-solution-standard.md` 确认设计项粒度：测试设计项应是代表性条件、具体数据值、数据槽位、状态、接口返回或组合，不是用例标题口号、测试步骤或数据清单。
 4. 对每个叶子分析节点识别主要设计信号：普通分支的叶子是 `TP-*-*`，非成功分支的叶子是 `TP-*-*-*`。设计信号包括边界、等价类、枚举、字段格式、字段长度、组合、判定、周期、状态、权限、接口、历史缺陷、风险或质量属性。
    - 普通 `TP-*-*` 叶子包括成功分支、普通规则分支和“未注册返回空结果”“未找到返回 count=0”“列表为空”“回滚状态确认”等单一弱结果分支。

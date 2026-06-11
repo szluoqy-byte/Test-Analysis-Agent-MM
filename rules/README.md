@@ -40,7 +40,7 @@ Rules 内部冲突时，按 `core > project > personal` 处理；project/persona
 
 - project-key：
 - 适用模块：
-- 适用阶段：requirement-testability / test-analysis-solution-generation / test-design-solution-generation / review / coverage-review
+- 适用阶段：input-fact-modeling / test-analysis-solution-generation / test-design-solution-generation / review / coverage-review
 
 ## 强制规则
 

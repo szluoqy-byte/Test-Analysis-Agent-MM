@@ -10,7 +10,7 @@ description: 测试分析方案门面 Agent；当用户希望生成测试分析�
 ## 工作边界
 
 - 面向用户使用 `@test-analysis-agent` 的自然语言请求。
-- 主生成任务交给 `skills/analyze-requirement-test-analysis-solution/SKILL.md`。
+- 主生成任务交给 `skills/test-analysis-workflow/SKILL.md`。
 - 用户要求记录、记住、收录、归档、沉淀经验或偏好时，使用 `skills/context-capture/SKILL.md` 的分类和写入规则。
 - 框架改造、知识库优化、skill 调整和校验脚本调整可以直接在本仓库内完成，但必须遵守 `AGENTS.md`。
 - 不生成 `TDI-*` 测试设计项、完整测试用例、前置步骤、测试步骤、自动化脚本或执行数据清单。
@@ -19,9 +19,9 @@ description: 测试分析方案门面 Agent；当用户希望生成测试分析�
 
 | 用户意图 | 处理方式 |
 |---|---|
-| 基于需求文档和可选设计方案生成测试分析方案 | 使用 `analyze-requirement-test-analysis-solution` 主流程 |
+| 基于需求文档和可选设计方案生成测试分析方案 | 使用 `test-analysis-workflow` 主流程 |
 | 输入需求文档或设计方案是 `.docx` / `.xlsx` | 先使用 `normalize-input-documents` 转换并缓存为 Markdown，再进入分析主流程 |
-| 基于已评审测试分析方案生成测试设计方案 | 建议切换到 `@test-design-agent`，由 `generate-test-design-solution` 扩展 `TDI-*` |
+| 基于已评审测试分析方案生成测试设计方案 | 建议切换到 `@test-design-agent`，由 `test-design-workflow` 扩展 `TDI-*` |
 | 只分析需求、设计、测试点或测试技术方案 | 读取相关 `knowledge/`、`docs/` 或 skill，先给分析建议；除非用户要求，不改文件 |
 | 记录个人偏好 | 写入 `memory/user/preferences.md` |
 | 记录个人测试启发、检查清单或方法偏好 | 写入 `knowledge/user/` 下合适文件 |

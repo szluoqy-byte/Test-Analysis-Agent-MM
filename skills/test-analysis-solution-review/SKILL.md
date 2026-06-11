@@ -18,7 +18,7 @@ description: 在测试分析方案通过确定性 lint 后使用，作为产物�
 - `process/clarification-session.md`。
 - 方法证据、测试技术路由和测试分析方案生成结果。
 - `process/context-pack.md` 中绑定到 `test-analysis-solution-review` 的评审类 project knowledge；默认 checklist 类项目知识优先由 `coverage-review` 统一处理，避免重复读取。
-- `knowledge/test-analysis-methodology.md`。
+- `knowledge/test-workflow-boundaries.md`。
 - `knowledge/test-analysis-solution-standard.md`。
 
 ## 不再重复检查
@@ -50,7 +50,7 @@ description: 在测试分析方案通过确定性 lint 后使用，作为产物�
 
 1. 确认 `bin/lint-test-analysis-solution.py` 已通过；若未通过，输出 `需修正`，只列脚本失败项和修正方向，不继续做语义评审。
 2. 读取 `process/context-pack.md` 的“项目知识阶段绑定”。如果存在绑定到 `test-analysis-solution-review` 的 project knowledge，按来源文件、相关章节、关键词或标题读取，不全量复制大文件。
-3. 对照结构化需求模型、设计方案事实摘要和方法证据，检查是否存在关键需求规则、主路径、失败路径、权限、状态、接口契约、数据一致性或高风险区域漏分析。
+3. 对照输入事实模型和方法证据，检查是否存在关键需求规则、主路径、失败路径、权限、状态、接口契约、数据一致性或高风险区域漏分析。
 4. 检查测试点明细是否停留在测试分析层：能支撑后续测试设计，但不直接列代表性条件、具体边界值、数据组合或执行数据清单。
 5. 检查明确非成功聚合测试点明细下的失败类型拆分是否充分；如果多个失败来源被混在一个失败类型明细中，要求拆分或记录依据不足。对“未找到返回空结果”“列表为空”“count=0”等单一弱结果分支，不因缺少第四层判为失败。
 6. 检查每个叶子分析节点的 `预期结果` 是否有可追溯依据；无法溯源的具体错误码、状态变化、提示文案、接口字段或阈值必须改为 `待人工分析确认`。

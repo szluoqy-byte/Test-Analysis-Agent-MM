@@ -11,7 +11,7 @@
 ## 输入
 
 - 接口相关需求片段。
-- 结构化需求模型。
+- 输入事实模型。
 - `knowledge/test-techniques/experience-based/error-guessing-checklist.md`。
 - `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.md`。
 

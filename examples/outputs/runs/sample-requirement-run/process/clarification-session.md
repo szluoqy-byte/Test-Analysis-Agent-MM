@@ -9,9 +9,9 @@
 
 | 问题ID | checkpoint | sourceStage | header | question | why | impact | options | blockingLevel | priority | askPolicy | mustAsk | relatedRequirement | memoryConflict |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| CQ-001 | CP-ANALYSIS | requirement-testability | 失败结果表达 | 非本人取消、状态限制失败、失败原因枚举是否有固定错误码、错误提示或状态变化规则 | 需求只说明取消失败或返回失败原因，未说明错误表达细节 | TP-003-001-002、TP-004-001-002、TP-014-001-002 | 补充接口错误码、错误提示、订单状态变化和失败原因枚举 | Important | High | defer | false | 普通用户取消订单、订单取消结果反馈 | 无 |
-| CQ-002 | CP-ANALYSIS | requirement-testability | 幂等识别规则 | 并发取消和重复取消是否有幂等键、请求去重窗口或并发锁规则 | 需求只说明库存不重复释放，未说明幂等识别机制 | TP-006-002 | 补充幂等键、去重窗口、并发锁或唯一约束规则 | Important | Medium | defer | false | 重复取消与副作用控制 | 无 |
-| CQ-003 | CP-ANALYSIS | requirement-testability | 客服审核状态 | 客服协助取消申请审核后订单状态、库存和支付限制如何变化 | 需求只说明提交取消申请成功，未说明审核后状态机 | TP-008-002 | 补充客服审核通过、拒绝、超时后的订单状态和库存处理 | Important | Medium | defer | false | 客服协助取消 | 无 |
+| CQ-001 | CP-ANALYSIS | input-fact-modeling | 失败结果表达 | 非本人取消、状态限制失败、失败原因枚举是否有固定错误码、错误提示或状态变化规则 | 需求只说明取消失败或返回失败原因，未说明错误表达细节 | TP-003-001-002、TP-004-001-002、TP-014-001-002 | 补充接口错误码、错误提示、订单状态变化和失败原因枚举 | Important | High | defer | false | 普通用户取消订单、订单取消结果反馈 | 无 |
+| CQ-002 | CP-ANALYSIS | input-fact-modeling | 幂等识别规则 | 并发取消和重复取消是否有幂等键、请求去重窗口或并发锁规则 | 需求只说明库存不重复释放，未说明幂等识别机制 | TP-006-002 | 补充幂等键、去重窗口、并发锁或唯一约束规则 | Important | Medium | defer | false | 重复取消与副作用控制 | 无 |
+| CQ-003 | CP-ANALYSIS | input-fact-modeling | 客服审核状态 | 客服协助取消申请审核后订单状态、库存和支付限制如何变化 | 需求只说明提交取消申请成功，未说明审核后状态机 | TP-008-002 | 补充客服审核通过、拒绝、超时后的订单状态和库存处理 | Important | Medium | defer | false | 客服协助取消 | 无 |
 
 ## 2. 去重与降级结果
 

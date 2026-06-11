@@ -19,12 +19,11 @@
 | Agent 门面 | `agents/test-analysis-agent.md` | 支持 `@test-analysis-agent`，识别测试分析、上下文归档或框架维护意图 | 用户入口、路由决策 |
 | Agent 门面 | `agents/test-design-agent.md` | 支持 `@test-design-agent`，识别测试设计、设计评审或框架维护意图 | 用户入口、路由决策 |
 | 输入归一化层 | `normalize-input-documents` | 将 `.docx` / `.xlsx` 需求、设计依据或外部分析方案转换到全局 cache，并绑定为 run-local Markdown | `outputs/input-cache/<sha256-12>/`、`outputs/runs/<run-id>/inputs/` |
-| 分析编排入口 | `analyze-requirement-test-analysis-solution` | 固定项目根目录、创建 run、编排分析链路、写出测试分析方案 | `deliverables/test-analysis-solution.md` |
-| 设计编排入口 | `generate-test-design-solution` | 复用或创建 run，承接已评审测试分析方案，写出测试设计方案 | `deliverables/test-design-solution.md` |
+| 分析编排入口 | `test-analysis-workflow` | 固定项目根目录、创建 run、编排分析链路、写出测试分析方案 | `deliverables/test-analysis-solution.md` |
+| 设计编排入口 | `test-design-workflow` | 复用或创建 run，承接已评审测试分析方案，写出测试设计方案 | `deliverables/test-design-solution.md` |
 | 上下文归档 | `context-capture` | 处理“记住/记录/收录/归档”类请求，判断写入 memory 或 knowledge | 长期 personal/project 上下文 |
 | 上下文层 | `memory-context-builder` | 发现并裁剪 core/project/personal 上下文，登记 project knowledge 阶段绑定 | `process/context-pack.md` |
-| 需求分析层 | `requirement-testability` | 提取可验证对象、角色、规则、流程、状态、接口和缺口 | 结构化需求模型、需求待确认候选 |
-| 设计分析层 | `design-solution-extraction` | 提取接口、字段、状态、权限、数据依赖、配置、异常处理、非功能约束和设计缺口 | 设计方案事实摘要、设计缺口候选 |
+| 输入事实建模层 | `input-fact-modeling` | 从需求文档和可选设计方案建立事实清单、需求-设计映射、待确认事项和来源应用说明 | `process/input-fact-model.md` |
 | 待确认治理层 | `clarification-gate` | 在 `CP-INPUT`、`CP-ANALYSIS`、`CP-REVIEW` 三个检查点治理候选缺口 | `process/clarification-session.md`、预期结果兜底清单 |
 | 路由层 | `testing-method-router` | 根据分析维度和触发信号选择测试技术和专项方法参考 | 测试技术路由表、技术范围缺口候选 |
 | 专项方法参考层 | `skills/testing-method-router/references/*.md` | 为路由阶段提供专项分析步骤，产出 `ME-*` 方法证据和测试点候选 | 方法证据、测试点候选、技术缺口候选 |
@@ -89,7 +88,7 @@ project knowledge 文件不要求固定命名或固定结构。`memory-context-b
 | Agent 门面 | 保持轻量 | 只做意图识别、路由和用户体验收口，不沉淀测试理论或复杂流程 |
 | 编排入口 | 保持单入口 | 只负责调度、run 目录、任务清单和最终落盘 |
 | 上下文层 | 保持独立 | 将 project/personal 发现策略和 project knowledge 阶段绑定沉淀在 context pack，不下放给后续 skill 自行搜索 |
-| 需求与设计层 | 保持双输入契约 | `requirement-testability` 负责需求模型，`design-solution-extraction` 负责设计事实摘要 |
+| 需求与设计层 | 统一输入事实模型 | `input-fact-modeling` 负责需求事实、设计事实、映射关系、缺口冲突和待确认事项 |
 | 路由层 | 保持独立 | 明确输出只到测试技术路由，不提前选择测试点明细 |
 | 专项方法参考层 | 统一输出骨架 | 所有专项方法参考使用同一方法证据表、候选测试点表和缺口候选表 |
 | 测试分析方案生成层 | 保持独立 | 统一生成 `SC-*`、`TP-*`、`TP-*-*`、非成功 `TP-*-*-*` 失败类型明细和预期结果 |
@@ -99,8 +98,8 @@ project knowledge 文件不要求固定命名或固定结构。`memory-context-b
 
 ## 5. 后续优化路线
 
-1. 统一专项方法参考输出骨架：所有专项分析都引用 `knowledge/method-evidence-standard.md` 和 `templates/method-analysis-template.md`。
-2. 强化设计事实使用：让 `design-solution-extraction` 的结构化结果稳定进入测试技术路由和测试分析方案生成。
+1. 统一专项方法参考输出骨架：所有专项分析都引用 `skills/testing-method-router/references/method-evidence-standard.md` 和 `templates/method-analysis-template.md`。
+2. 强化输入事实使用：让 `input-fact-modeling` 的结构化结果稳定进入测试技术路由和测试分析方案生成。
 3. 梳理 test-techniques：明确哪些内容服务 `test-analysis-agent`，哪些示例服务 `test-design-agent`。
 4. 扩展评审样例：增加包含错误码缺失、状态变化缺失和提示文案缺失的样例，验证 `待人工分析确认` 规则。
 

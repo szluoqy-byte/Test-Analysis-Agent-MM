@@ -7,7 +7,7 @@ description: 当需求文档、设计方案文档或已评审分析方案输入�
 
 本 skill 负责在测试分析或测试设计正式开始前，把 Office 输入文档归一化为 Markdown。最终产物必须是一个 Markdown 输入事实源：正文文本、表格内容以及被判定为相关的图片/图形补充事实都合并在同一个 `.md` 文件中。它解决三个问题：
 
-- 主流程只消费 Markdown，避免 `requirement-testability`、`design-solution-extraction` 和设计依据补读重复处理 Office 文件。
+- 主流程只消费 Markdown，避免 `input-fact-modeling` 和设计依据补读重复处理 Office 文件。
 - 转换结果按源文件内容哈希归档，源文件未变化时复用缓存，避免重复解析。
 - 完整 run 在 `outputs/runs/<run-id>/inputs/` 下保存本次实际使用的归一化输入副本和 manifest，保证单次交付自包含可追踪。
 - DOCX 中相关图片、流程图、架构图、状态图、截图或 EMF/Visio 图形被解析后，必须追加到同一个归一化 Markdown 中；不得只维护单独的图片补充文件、过程记录或 context-pack。
@@ -55,7 +55,7 @@ outputs/runs/<run-id>/inputs/input-normalization-manifest.json
 从仓库根目录执行：
 
 ```bash
-python bin/normalize-office-input.py "<input1.docx>" "<input2.xlsx>"
+python skills/normalize-input-documents/scripts/normalize-office-input.py "<input1.docx>" "<input2.xlsx>"
 ```
 
 输出会使用中文列出每个输入的归一化结果。路径包含空格、中文或特殊字符时必须使用引号包裹。
@@ -63,7 +63,7 @@ python bin/normalize-office-input.py "<input1.docx>" "<input2.xlsx>"
 完整测试分析或测试设计主流程必须在创建 run 目录后执行：
 
 ```bash
-python bin/normalize-office-input.py --run-dir outputs/runs/<run-id> "<input1.docx>" "<input2.xlsx>"
+python skills/normalize-input-documents/scripts/normalize-office-input.py --run-dir outputs/runs/<run-id> "<input1.docx>" "<input2.xlsx>"
 ```
 
 下游主流程必须使用 `outputs/runs/<run-id>/inputs/*.md` 路径作为需求文档、设计方案文档或外部分析方案路径。
@@ -71,7 +71,7 @@ python bin/normalize-office-input.py --run-dir outputs/runs/<run-id> "<input1.do
 如果需要机器可读结果：
 
 ```bash
-python bin/normalize-office-input.py --json --run-dir outputs/runs/<run-id> "<input1.docx>" "<input2.xlsx>"
+python skills/normalize-input-documents/scripts/normalize-office-input.py --json --run-dir outputs/runs/<run-id> "<input1.docx>" "<input2.xlsx>"
 ```
 
 ## 复用规则
@@ -93,7 +93,7 @@ python bin/normalize-office-input.py --json --run-dir outputs/runs/<run-id> "<in
 
 ## 完成判定
 
-执行本 skill 时，不能只运行 `python bin/normalize-office-input.py ...` 后就结束。只有满足以下条件，才算本 skill 完成：
+执行本 skill 时，不能只运行 `python skills/normalize-input-documents/scripts/normalize-office-input.py ...` 后就结束。只有满足以下条件，才算本 skill 完成：
 
 1. `$ARGUMENTS` 中所有 `.md`、`.docx`、`.xlsx` 输入都已识别并逐项给出处理状态。
 2. 每个 Office 输入都有全局缓存 Markdown 和 `.conversion.json`；Markdown 输入明确标记为 `无需转换`。
@@ -167,7 +167,7 @@ DOCX 图片抽取和占位可以一次完成，但图片理解、Mermaid 转换�
 
 推荐流程：
 
-1. 运行 `python bin/normalize-office-input.py ...`，生成 Markdown、metadata、图片占位块和 `image_processing` 队列。
+1. 运行 `python skills/normalize-input-documents/scripts/normalize-office-input.py ...`，生成 Markdown、metadata、图片占位块和 `image_processing` 队列。
 2. 读取 `.conversion.json` 中的 `image_processing.queue` 与 `image_processing.recommended_batches`。
 3. 先做轻量预筛选：
    - logo、页眉页脚、装饰图、纯图标：在对应占位块写 `补充状态：无需处理`。
@@ -203,8 +203,8 @@ DOCX 图片抽取和占位可以一次完成，但图片理解、Mermaid 转换�
 
 ## 主流程集成
 
-- `analyze-requirement-test-analysis-solution` 和 `generate-test-design-solution` 必须先固定 `<run-id>` 并创建 run 目录，再执行本 skill。
-- 若存在 Office 输入，主流程使用 `python bin/normalize-office-input.py --run-dir outputs/runs/<run-id> ...`；无 Office 输入时该阶段置为 `skipped`。
+- `test-analysis-workflow` 和 `test-design-workflow` 必须先固定 `<run-id>` 并创建 run 目录，再执行本 skill。
+- 若存在 Office 输入，主流程使用 `python skills/normalize-input-documents/scripts/normalize-office-input.py --run-dir outputs/runs/<run-id> ...`；无 Office 输入时该阶段置为 `skipped`。
 - `process/task-list.md` 中的“输入文档归一化”阶段在触发时置为 `done`，证据路径写 `outputs/runs/<run-id>/inputs/input-normalization-manifest.json`；无 Office 输入时置为 `skipped`。
 - `process/context-pack.md` 应记录源文件、全局缓存路径、run-local Markdown、metadata 和图片/图形补充合并状态，便于后续追踪源文件。
 - 只有在“完成判定”全部满足后，`process/task-list.md` 才能把“输入文档归一化”阶段置为 `done`；仍有图片、图形、复杂 Excel 或 warning 未收口时，阶段状态应保持 `pending`、`blocked` 或记录 `需补充处理`。

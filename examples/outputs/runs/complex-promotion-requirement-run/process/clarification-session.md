@@ -9,10 +9,10 @@
 
 | 问题ID | checkpoint | sourceStage | header | question | why | impact | options | blockingLevel | priority | askPolicy | mustAsk | relatedRequirement | memoryConflict |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| CQ-001 | CP-ANALYSIS | requirement-testability | 优惠券领取失败表达 | 活动时间外、库存为零、重复领取等失败路径是否有固定错误码、错误提示或原因枚举 | 需求说明领取失败或不可重复领取，但未说明失败表达细节 | TP-002-002-001、TP-002-002-002、TP-003-001-002、TP-004-001-002 | 补充失败原因枚举、错误码、错误提示和状态变化 | Important | High | defer | false | 限时优惠券领取 | 无 |
-| CQ-002 | CP-ANALYSIS | requirement-testability | 优惠试算与不可用原因 | 优惠券不可用原因枚举、金额精度和四舍五入规则是否固定 | 需求只说明返回优惠金额、应付金额或不可用原因，未说明契约细节 | TP-006-002-002、TP-007-002-002、TP-018-002 | 补充金额精度、舍入规则、不可用原因枚举和展示规则 | Important | High | defer | false | 优惠券可用性与优惠计算、优惠规则展示与版本兼容 | 无 |
-| CQ-003 | CP-ANALYSIS | requirement-testability | 支付幂等与回调一致性 | 支付幂等键、并发请求识别、回调乱序和重复回调处理规则是否固定 | 需求说明不重复扣减和支付结果更新，但未说明识别与补偿机制 | TP-012-002、TP-016-002 | 补充幂等键、并发锁、回调去重、乱序处理和补偿规则 | Important | High | defer | false | 优惠券支付、支付超时失败与回调 | 无 |
-| CQ-004 | CP-ANALYSIS | requirement-testability | 支付超时释放失败表达 | 支付超时释放优惠券失败时是否有错误状态、重试或补偿规则 | 需求说明超时释放已锁定优惠券，未说明释放失败处理 | TP-014-001-002 | 补充释放失败状态、重试策略、补偿任务和告警规则 | Important | Medium | defer | false | 支付超时、失败与回调 | 无 |
+| CQ-001 | CP-ANALYSIS | input-fact-modeling | 优惠券领取失败表达 | 活动时间外、库存为零、重复领取等失败路径是否有固定错误码、错误提示或原因枚举 | 需求说明领取失败或不可重复领取，但未说明失败表达细节 | TP-002-002-001、TP-002-002-002、TP-003-001-002、TP-004-001-002 | 补充失败原因枚举、错误码、错误提示和状态变化 | Important | High | defer | false | 限时优惠券领取 | 无 |
+| CQ-002 | CP-ANALYSIS | input-fact-modeling | 优惠试算与不可用原因 | 优惠券不可用原因枚举、金额精度和四舍五入规则是否固定 | 需求只说明返回优惠金额、应付金额或不可用原因，未说明契约细节 | TP-006-002-002、TP-007-002-002、TP-018-002 | 补充金额精度、舍入规则、不可用原因枚举和展示规则 | Important | High | defer | false | 优惠券可用性与优惠计算、优惠规则展示与版本兼容 | 无 |
+| CQ-003 | CP-ANALYSIS | input-fact-modeling | 支付幂等与回调一致性 | 支付幂等键、并发请求识别、回调乱序和重复回调处理规则是否固定 | 需求说明不重复扣减和支付结果更新，但未说明识别与补偿机制 | TP-012-002、TP-016-002 | 补充幂等键、并发锁、回调去重、乱序处理和补偿规则 | Important | High | defer | false | 优惠券支付、支付超时失败与回调 | 无 |
+| CQ-004 | CP-ANALYSIS | input-fact-modeling | 支付超时释放失败表达 | 支付超时释放优惠券失败时是否有错误状态、重试或补偿规则 | 需求说明超时释放已锁定优惠券，未说明释放失败处理 | TP-014-001-002 | 补充释放失败状态、重试策略、补偿任务和告警规则 | Important | Medium | defer | false | 支付超时、失败与回调 | 无 |
 
 ## 2. 去重与降级结果
 

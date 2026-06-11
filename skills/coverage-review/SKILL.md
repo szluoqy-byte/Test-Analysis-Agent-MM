@@ -20,13 +20,13 @@ description: 在测试分析方案或测试设计方案生成后使用，作为�
 - `${PROJECT_ROOT}/outputs/runs/<run-id>/process/clarification-session.md`。
 - `process/context-pack.md` 中的适用强制规则和 Rules 与输入冲突记录。
 - `process/context-pack.md` 中绑定到 `coverage-review` 的 project checklist、覆盖策略、风险画像、Oracle 或附加门禁。
-- `knowledge/test-analysis-methodology.md`。
-- `knowledge/basic-test-types.md`。
+- `knowledge/test-workflow-boundaries.md`。
+- `skills/coverage-review/references/basic-test-types.md`。
 - `knowledge/test-analysis-solution-standard.md`。
 - 审查测试设计方案时读取 `knowledge/test-design-solution-standard.md`。
 - 测试分析维度与测试技术路由表。
 - 方法分析证据摘要。
-- 结构化需求模型。
+- 输入事实模型。
 - `quality-gates/coverage-check.md`。
 - `quality-gates/traceability-check.md`。
 - `quality-gates/method-application-check.md`。
@@ -45,7 +45,7 @@ description: 在测试分析方案或测试设计方案生成后使用，作为�
 7. 执行 `rules-application-check.md`，检查适用 rules 是否被应用、解释不适用，或由当前用户明确指令覆盖。
 8. 执行 `project-knowledge-application-check.md`，检查项目知识阶段绑定、绑定文件读取和应用状态；默认 checklist 类项目知识在本阶段统一查漏，避免独立评审和覆盖审查重复读取。
 9. 按绑定的 project checklist、覆盖策略、风险画像或 Oracle 检查项目级漏覆盖，并验证前序绑定阶段是否有应用状态记录。
-10. 如果过程分析报告已生成且本次要求校验过程报告，运行 `bin/lint-testpoint-report.py ${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md` 和 `bin/semantic-testpoint-check.py ${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md`；否则不因未生成过程报告额外触发语义脚本。
+10. 如果过程分析报告已生成且本次要求校验过程报告，运行 `skills/coverage-review/scripts/lint-testpoint-report.py ${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md` 和 `skills/coverage-review/scripts/semantic-testpoint-check.py ${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md`；否则不因未生成过程报告额外触发语义脚本。
 11. 检查 `process/task-list.md` 当前阶段状态和证据路径是否具备收口条件；`bin/check-artifact-consistency.py ${PROJECT_ROOT}/outputs/runs/<run-id>` 必须在输出收口阶段刷新最终 task-list 后运行，本阶段如已有结果则消费并记录，否则标记为 `pending_to_output_close`。
 12. 如果使用了 rules 或 project/personal 补充，检查相关强制规则、覆盖策略、判定依据、个人偏好、模板偏好或附加门禁是否已正确处理，且没有违反 rules、核心字段、输出契约和质量门禁。
 13. 检查 rules/project/personal 使用情况是否在 context pack 和过程报告或审查记录中可见，包括绑定结果、命中来源、未采用来源、冲突处理、适用强制规则、项目知识阶段绑定、应用状态和后续补读建议；personal 内容不得被写成项目事实或团队共识。

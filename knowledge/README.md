@@ -6,7 +6,7 @@ Knowledge 保存本 Agent 稳定、可复用的测试分析与测试设计知识
 
 | 层级 | 路径 | 默认提交 Git | 主流程默认读取 | 说明 |
 |---|---|---|---|---|
-| core | `knowledge/*.md`、`knowledge/test-techniques/**/*.md` | 是 | 是 | 测试分析方案和测试设计方案生成所需的稳定标准、方法论和测试技术 |
+| core | `knowledge/*.md`、`knowledge/test-techniques/**/*.md` | 是 | 是 | 测试分析方案和测试设计方案生成所需的跨 skill 稳定标准、方法论和公共测试技术 |
 | project | `knowledge/projects/<project-key>/**/*.md` | 否 | 按需 | 项目级风险画像、覆盖策略、术语映射、测试设计因子/模式、checklist 和测试启发 |
 | user | `knowledge/user/**/*.md` | 否 | 按需 | 个人测试启发、检查清单和本地关注点 |
 
@@ -14,12 +14,19 @@ Knowledge 保存本 Agent 稳定、可复用的测试分析与测试设计知识
 
 | 分类 | 文件或目录 | 用途 |
 |---|---|---|
-| 方法论层 | `test-analysis-methodology.md` | 定义稳定术语、测试分析、测试设计、测试技术和非完整用例输出边界 |
-| 标准层 | `testpoint-standard.md`、`test-analysis-solution-standard.md`、`test-design-solution-standard.md`、`basic-test-types.md` | 定义测试点字段、测试点明细字段、测试设计项字段、预期结果兜底、类型和非用例化标准 |
-| 路由与证据层 | `test-method-routing-matrix.md`、`method-evidence-standard.md` | 定义测试技术路由和方法证据要求 |
+| 工作流边界层 | `test-workflow-boundaries.md` | 定义稳定术语、测试分析、测试设计、测试技术和非完整用例输出边界 |
+| 标准层 | `testpoint-standard.md`、`test-analysis-solution-standard.md`、`test-design-solution-standard.md` | 定义测试点字段、测试点明细字段、测试设计项字段、预期结果兜底和非用例化标准 |
 | 测试技术层 | `test-techniques/` | 同时支持测试分析和测试设计：分析层识别测试条件、覆盖项和风险；设计层把测试点扩展成代表性条件、数据、状态或组合 |
 
 覆盖检查、专家评分和追踪检查属于 `quality-gates/`，不再作为 `knowledge/` 根节点知识维护。
+
+只被单个 skill 使用的参考材料归档到对应 skill：
+
+| 所属 skill | 文件或目录 | 用途 |
+|---|---|---|
+| `testing-method-router` | `skills/testing-method-router/references/test-method-routing-matrix.md` | 测试技术路由矩阵 |
+| `testing-method-router` | `skills/testing-method-router/references/method-evidence-standard.md` | 方法证据字段和质量要求 |
+| `coverage-review` | `skills/coverage-review/references/basic-test-types.md` | 覆盖审查使用的测试类型分类速查 |
 
 ## Project / User 边界
 

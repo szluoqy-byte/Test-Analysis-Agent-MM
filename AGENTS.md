@@ -25,8 +25,8 @@
 - Claude Code 使用 `.claude-plugin/plugin.json`、根目录 `agents/` 和根目录 `skills/`。
 - OpenCode 使用 `opencode.json`、`AGENTS.md`、`.opencode/agents/`、`.opencode/commands/` 和 `.opencode/skills/`。
 - 用户主入口 Agent 包括 `@test-analysis-agent` 和 `@test-design-agent`，源文件分别是 `agents/test-analysis-agent.md` 和 `agents/test-design-agent.md`。
-- 测试分析主流程 skill 入口是 `skills/analyze-requirement-test-analysis-solution/SKILL.md`。
-- 测试设计主流程 skill 入口是 `skills/generate-test-design-solution/SKILL.md`。
+- 测试分析主流程 skill 入口是 `skills/test-analysis-workflow/SKILL.md`。
+- 测试设计主流程 skill 入口是 `skills/test-design-workflow/SKILL.md`。
 - OpenCode 独立文档归一化命令入口是 `.opencode/commands/normalize-input-documents.md`，用于在切换到多模态模型后单独执行 `.docx` / `.xlsx` 转 Markdown 与可选图片/图形补充，不进入测试分析或测试设计主流程。
 - Agent 门面负责用户意图识别和路由；具体流程动作仍放在 skills、knowledge 文件、templates 或 quality gates 中。
 
@@ -67,12 +67,12 @@
 
 ## 主流程
 
-- 当用户要求基于需求和设计方案生成测试场景、测试点、测试点明细粒度的方案时，使用 `analyze-requirement-test-analysis-solution`。
-- 如果需求文档、系统设计方案或外部分析方案输入是 `.docx` 或 `.xlsx`，先固定 `<run-id>` 并创建 run 目录，再使用 `normalize-input-documents` 调用 `python bin/normalize-office-input.py --run-dir outputs/runs/<run-id> ...` 转换到全局 cache 并绑定为 run-local Markdown；后续流程只读取 `outputs/runs/<run-id>/inputs/` 下的归一化 Markdown 路径。
+- 当用户要求基于需求和设计方案生成测试场景、测试点、测试点明细粒度的方案时，使用 `test-analysis-workflow`。
+- 如果需求文档、系统设计方案或外部分析方案输入是 `.docx` 或 `.xlsx`，先固定 `<run-id>` 并创建 run 目录，再使用 `normalize-input-documents` 调用 `python skills/normalize-input-documents/scripts/normalize-office-input.py --run-dir outputs/runs/<run-id> ...` 转换到全局 cache 并绑定为 run-local Markdown；后续流程只读取 `outputs/runs/<run-id>/inputs/` 下的归一化 Markdown 路径。
 - `normalize-input-documents` 不能只以脚本执行成功作为完成标准；必须处理或记录 DOCX 图片/图形、复杂 Excel 和 metadata warnings 的收口状态，并确认图片/图形补充已合并到归一化 Markdown 的正确原文位置后，才能把“输入文档归一化”阶段标记为 `done`。
-- 阶段性动作依次使用 `normalize-input-documents`（仅 Office 输入时触发）、`memory-context-builder`、`requirement-testability`、`design-solution-extraction`、`clarification-gate`、`testing-method-router`、路由选中的专项方法参考、`test-analysis-solution-generation`、确定性 lint、`test-analysis-solution-review` 和 `coverage-review`。
+- 阶段性动作依次使用 `normalize-input-documents`（仅 Office 输入时触发）、`memory-context-builder`、`input-fact-modeling`、`clarification-gate`、`testing-method-router`、路由选中的专项方法参考、`test-analysis-solution-generation`、确定性 lint、`test-analysis-solution-review` 和 `coverage-review`。
 - 设计方案输入用于补充接口、字段、状态、权限、数据依赖、配置开关、异常处理和非功能指标；没有设计方案时继续生成，并把缺口沉淀到过程澄清记录或单条预期结果的 `待人工分析确认`。
-- 当用户要求基于已评审测试分析方案生成测试设计项时，使用 `generate-test-design-solution`。
+- 当用户要求基于已评审测试分析方案生成测试设计项时，使用 `test-design-workflow`。
 - 测试设计阶段使用 `test-design-solution-generation`、确定性 lint 和 `test-design-solution-review`，在每个 `TP-*-*` 下生成 `TDI-*`；如果用户只提供需求/设计方案且要求测试设计，必须先生成或取得测试分析方案，再进入测试设计。
 - 不编造业务事实、状态、角色、接口契约、阈值、错误码、错误提示或状态变化；测试设计阶段可使用由规则推导的代表值或稳定数据槽位，但不得伪造真实生产数据或需求未说明的业务事实。
 - 如果需求和设计方案没有说明错误提示、状态变化、错误码或其他判定依据，相关测试点明细或失败类型明细的 `预期结果` 写 `待人工分析确认`。

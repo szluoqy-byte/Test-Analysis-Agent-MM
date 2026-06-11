@@ -36,7 +36,7 @@
 - `测试点明细` 只表达分析层规则分支、路径分支、状态分支、权限分支、接口契约分支或风险分支。
 - `预期结果` 只能写需求或设计方案明确支持的结果；如果错误提示、状态变化、错误码、接口返回或数据记录变化没有依据，写 `待人工分析确认`。
 - 主输出不设置 `未明确规则` 章节，也不设置独立待确认信息清单。
-- 测试分析、测试设计和测试技术边界以 `knowledge/test-analysis-methodology.md` 为准。
+- 测试分析、测试设计和测试技术边界以 `knowledge/test-workflow-boundaries.md` 为准。
 - 测试分析方案字段和粒度以 `knowledge/test-analysis-solution-standard.md` 为准。
 - 测试设计方案字段和粒度以 `knowledge/test-design-solution-standard.md` 为准。
 - 过程分析报告可以包含测试分析维度与测试技术路由、方法证据、质量门禁结果、独立评审、专家评分和建议沉淀的 Memory 更新，但不得替代主输出。

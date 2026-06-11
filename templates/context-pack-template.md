@@ -47,7 +47,7 @@
 
 | 规则 ID | 来源文件 | 层级 | 适用阶段 | 规则摘要 | 应用要求 |
 |---|---|---|---|---|---|
-|  | rules/*.md / rules/projects/<project-key>/**/*.md / rules/user/**/*.md | core/project/personal | requirement-testability / test-analysis-solution-generation / test-design-solution-generation / review / coverage-review |  | applied / not_applicable / overridden_by_user / conflict_recorded |
+|  | rules/*.md / rules/projects/<project-key>/**/*.md / rules/user/**/*.md | core/project/personal | input-fact-modeling / test-analysis-solution-generation / test-design-solution-generation / review / coverage-review |  | applied / not_applicable / overridden_by_user / conflict_recorded |
 
 ## Rules 与输入冲突记录
 

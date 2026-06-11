@@ -17,20 +17,19 @@
 
 | 序号 | 阶段 | 负责 skill | 必须产物/检查点 | 状态 | 证据/路径 |
 |---|---|---|---|---|---|
-| 0 | 固定 PROJECT_ROOT 与运行目录 | analyze-requirement-test-analysis-solution | outputs/runs/<run-id>/ | pending |  |
+| 0 | 固定 PROJECT_ROOT 与运行目录 | test-analysis-workflow | outputs/runs/<run-id>/ | pending |  |
 | 1 | 输入文档归一化 | normalize-input-documents | inputs/input-normalization-manifest.json；无 Office 输入时 skipped | pending |  |
 | 2 | 构建上下文包 | memory-context-builder | process/context-pack.md、项目知识阶段绑定 | pending |  |
-| 3 | 需求可测性分析 | requirement-testability | 结构化需求模型、需求待确认候选 | pending |  |
-| 4 | 设计方案提取 | design-solution-extraction | 设计方案事实摘要、接口/状态/字段/数据依赖清单 | pending |  |
-| 5 | 待确认治理 | clarification-gate | CP-INPUT、CP-ANALYSIS、CP-REVIEW、process/clarification-session.md | pending | process/clarification-session.md |
-| 6 | 测试技术路由 | testing-method-router | 分析维度覆盖表、测试技术路由表、project knowledge 应用记录 | pending |  |
-| 7 | 专项分析 | selected method references | ME-* 方法证据、测试点候选、技术缺口候选 | pending |  |
-| 8 | 按源补读 | selected method references | 按需补读记录、来源说明 | pending |  |
-| 9 | 测试分析方案生成 | test-analysis-solution-generation | deliverables/test-analysis-solution.md、测试场景、测试点、测试点明细、project knowledge 应用记录 | pending |  |
-| 10 | 确定性校验 | bin | lint-test-analysis-solution.py 结构校验结果；失败不进入评审 | pending |  |
-| 11 | 独立评审 | test-analysis-solution-review | 语义覆盖、测试点明细粒度、预期结果依据、事实溯源和非用例化语义 | pending |  |
-| 12 | 覆盖审查 | coverage-review | 需求/方法/rules/project knowledge 应用检查、阻断项；专家评分仅深度评估时执行 | pending |  |
-| 13 | 输出收口 | analyze-requirement-test-analysis-solution | 主交付件路径、过程报告路径、check-artifact-consistency.py 结果 | pending |  |
+| 3 | 输入事实建模 | input-fact-modeling | process/input-fact-model.md、事实清单、需求-设计映射、待确认事项 | pending |  |
+| 4 | 待确认治理 | clarification-gate | CP-INPUT、CP-ANALYSIS、CP-REVIEW、process/clarification-session.md | pending | process/clarification-session.md |
+| 5 | 测试技术路由 | testing-method-router | 分析维度覆盖表、测试技术路由表、project knowledge 应用记录 | pending |  |
+| 6 | 专项分析 | selected method references | ME-* 方法证据、测试点候选、技术缺口候选 | pending |  |
+| 7 | 按源补读 | selected method references | 按需补读记录、来源说明 | pending |  |
+| 8 | 测试分析方案生成 | test-analysis-solution-generation | deliverables/test-analysis-solution.md、测试场景、测试点、测试点明细、project knowledge 应用记录 | pending |  |
+| 9 | 确定性校验 | bin | lint-test-analysis-solution.py 结构校验结果；失败不进入评审 | pending |  |
+| 10 | 独立评审 | test-analysis-solution-review | 语义覆盖、测试点明细粒度、预期结果依据、事实溯源和非用例化语义 | pending |  |
+| 11 | 覆盖审查 | coverage-review | 需求/方法/rules/project knowledge 应用检查、阻断项；专家评分仅深度评估时执行 | pending |  |
+| 12 | 输出收口 | test-analysis-workflow | 主交付件路径、过程报告路径、check-artifact-consistency.py 结果 | pending |  |
 
 ## 状态说明
 
@@ -59,16 +58,16 @@
 
 | 序号 | 阶段 | 负责 skill | 必须产物/检查点 | 状态 | 证据/路径 |
 |---|---|---|---|---|---|
-| 0 | 固定 PROJECT_ROOT 与运行目录 | generate-test-design-solution | outputs/runs/<run-id>/ | pending |  |
+| 0 | 固定 PROJECT_ROOT 与运行目录 | test-design-workflow | outputs/runs/<run-id>/ | pending |  |
 | 1 | 输入文档归一化 | normalize-input-documents | inputs/input-normalization-manifest.json；无 Office 输入时 skipped | pending |  |
-| 2 | 测试分析方案校验 | generate-test-design-solution | lint-test-analysis-solution.py 结果；失败不进入设计生成 | pending |  |
+| 2 | 测试分析方案校验 | test-design-workflow | lint-test-analysis-solution.py 结果；失败不进入设计生成 | pending |  |
 | 3 | 构建上下文包 | memory-context-builder | process/context-pack.md、适用 rules、项目知识阶段绑定 | pending |  |
-| 4 | 设计依据补读 | generate-test-design-solution | 需求/设计/过程依据补读记录；不适用时 skipped | pending |  |
+| 4 | 设计依据补读 | test-design-workflow | 需求/设计/过程依据补读记录；不适用时 skipped | pending |  |
 | 5 | 测试设计方案生成 | test-design-solution-generation | deliverables/test-design-solution.md、project knowledge 应用记录 | pending |  |
 | 6 | 确定性校验 | bin | lint-test-design-solution.py 结构校验结果；失败不进入评审 | pending |  |
 | 7 | 独立评审 | test-design-solution-review | 分析方案承接、设计项数据化粒度、叶子节点预期结果依据、非用例化语义 | pending |  |
 | 8 | 覆盖审查 | coverage-review | 需求/分析方案/rules/project knowledge 应用检查、阻断项 | pending |  |
-| 9 | 输出收口 | generate-test-design-solution | 主交付件路径、过程报告路径、check-artifact-consistency.py 结果 | pending |  |
+| 9 | 输出收口 | test-design-workflow | 主交付件路径、过程报告路径、check-artifact-consistency.py 结果 | pending |  |
 
 ## 状态说明
 

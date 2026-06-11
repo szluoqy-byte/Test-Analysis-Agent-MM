@@ -84,10 +84,10 @@ outputs/runs/<run-id>/deliverables/test-design-solution.md
 flowchart TD
   start(["用户请求"])
   start --> agent["test-design-agent<br/>识别设计意图与入口"]
-  agent --> main["generate-test-design-solution<br/>创建或复用 run、inputs 与任务清单"]
+  agent --> main["test-design-workflow<br/>创建或复用 run、inputs 与任务清单"]
   main --> normalize["normalize-input-documents<br/>Office 输入转 Markdown<br/>复用 input-cache 并绑定 run inputs"]
   normalize --> hasAnalysis{"是否已有已评审分析方案"}
-  hasAnalysis -- 否 --> analysis["analyze-requirement-test-analysis-solution<br/>先生成测试分析方案"]
+  hasAnalysis -- 否 --> analysis["test-analysis-workflow<br/>先生成测试分析方案"]
   analysis --> analysisCheck["bin/lint-test-analysis-solution.py"]
   hasAnalysis -- 是 --> analysisCheck
   analysisCheck --> ctx["memory-context-builder<br/>读取或生成 context-pack<br/>确认适用 rules"]
@@ -107,7 +107,7 @@ flowchart TD
 |---|---|---|
 | Agent 门面 | `test-design-agent` | 识别用户意图，路由设计生成、评审、记录和框架维护任务 |
 | 输入归一化 | `normalize-input-documents` | 将 `.docx` / `.xlsx` 需求、设计依据或外部分析方案转换到全局 cache，并绑定为 run-local Markdown，后续流程只读取 `outputs/runs/<run-id>/inputs/` |
-| 主入口 | `generate-test-design-solution` | 固定根目录、复用或创建 run、编排设计链路、输出主交付件 |
+| 主入口 | `test-design-workflow` | 固定根目录、复用或创建 run、编排设计链路、输出主交付件 |
 | 设计生成 | `test-design-solution-generation` | 在普通 `TP-*-*` 或失败类型 `TP-*-*-*` 下保留预期结果，并生成数据化 `TDI-*` |
 | 确定性校验 | `bin/lint-test-design-solution.py` | 检查结构、编号、字段、Markdown 语法和禁用术语；失败时不进入模型评审 |
 | 独立评审 | `test-design-solution-review` | 检查承接关系、设计项数据化粒度、叶子节点预期结果依据和非完整用例化语义 |
@@ -127,7 +127,7 @@ flowchart TD
 
 | 路径 | 作用 |
 |---|---|
-| `knowledge/test-analysis-methodology.md` | 定义测试分析、测试设计、测试技术之间的边界 |
+| `knowledge/test-workflow-boundaries.md` | 定义测试分析、测试设计、测试技术之间的边界 |
 | `knowledge/test-analysis-solution-standard.md` | 定义上游分析方案结构和设计承接边界 |
 | `knowledge/test-design-solution-standard.md` | 定义设计方案结构、字段、粒度和兜底规则 |
 | `knowledge/test-techniques/` | 测试技术库，支持把测试点明细扩展为代表性条件、数据、状态或组合 |

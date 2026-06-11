@@ -2,12 +2,13 @@
 
 ## 目的
 
-检查生成的测试分析方案是否覆盖结构化需求模型、测试分析维度和高风险区域。
+检查生成的测试分析方案是否覆盖输入事实模型、测试分析维度和高风险区域。
 
 ## 必需覆盖维度
 
 - 模块和主要需求片段。
-- `knowledge/test-analysis-methodology.md` 中适用于当前需求的分析维度。
+- `skills/testing-method-router/references/test-method-routing-matrix.md` 中适用于当前需求的分析维度。
+- `knowledge/test-workflow-boundaries.md` 中定义的分析/设计层级边界。
 - 主业务流程。
 - 每个测试场景的 `E2E场景测试` 主流程闭环。
 - 业务规则。

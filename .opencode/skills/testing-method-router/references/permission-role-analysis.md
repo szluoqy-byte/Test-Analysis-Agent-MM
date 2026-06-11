@@ -10,7 +10,7 @@
 
 ## 输入
 
-- 结构化需求模型。
+- 输入事实模型。
 - 角色与权限相关片段。
 - `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.md` 中的项目术语、角色和权限上下文。
 

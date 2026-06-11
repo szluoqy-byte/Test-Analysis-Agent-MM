@@ -14,6 +14,11 @@ from pathlib import Path
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
 
+def write_text_lf(path: Path, text: str) -> None:
+    with path.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(text)
+
+
 def parse_frontmatter(path: Path) -> dict[str, str]:
     text = path.read_text(encoding="utf-8")
     lines = text.splitlines()
@@ -175,7 +180,7 @@ def mirror_skills(root: Path, check: bool) -> int:
         shutil.copytree(skill_dir, destination / skill_dir.name)
 
     if readme_text:
-        readme.write_text(readme_text, encoding="utf-8", newline="\n")
+        write_text_lf(readme, readme_text)
 
     print(f"Mirrored {len(skill_dirs)} skills to {destination.relative_to(root)}")
     return 0
@@ -238,14 +243,10 @@ def mirror_agents(root: Path, check: bool) -> int:
             child.unlink()
 
     for agent_file in agent_files:
-        (destination / agent_file.name).write_text(
-            render_opencode_agent(agent_file),
-            encoding="utf-8",
-            newline="\n",
-        )
+        write_text_lf(destination / agent_file.name, render_opencode_agent(agent_file))
 
     if readme_text:
-        readme.write_text(readme_text, encoding="utf-8", newline="\n")
+        write_text_lf(readme, readme_text)
 
     print(f"Mirrored {len(agent_files)} agents to {destination.relative_to(root)}")
     return 0

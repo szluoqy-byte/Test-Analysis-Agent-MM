@@ -95,11 +95,11 @@ flowchart TD
   request --> intent{用户目标}
   intent -- 生成测试分析方案 --> analysisAgent[test-analysis-agent]
   intent -- 生成测试设计方案 --> designAgent[test-design-agent]
-  analysisAgent --> analysisSkill[analyze-requirement-test-analysis-solution]
+  analysisAgent --> analysisSkill[test-analysis-workflow]
   analysisSkill --> analysisOutput[deliverables/test-analysis-solution.md]
   designAgent --> hasAnalysis{是否已有已评审分析方案}
   hasAnalysis -- 否 --> analysisSkill
-  hasAnalysis -- 是 --> designSkill[generate-test-design-solution]
+  hasAnalysis -- 是 --> designSkill[test-design-workflow]
   analysisOutput --> designSkill
   designSkill --> designOutput[deliverables/test-design-solution.md]
 ```
@@ -110,15 +110,11 @@ flowchart TD
 flowchart TD
   start([用户请求])
   start --> agent[test-analysis-agent<br/>识别意图与入口]
-  agent --> main["analyze-requirement-test-analysis-solution<br/>创建 run、inputs 与任务清单"]
+  agent --> main["test-analysis-workflow<br/>创建 run、inputs 与任务清单"]
   main --> normalize["normalize-input-documents<br/>Office 输入转 Markdown<br/>复用 input-cache 并绑定 run inputs"]
   normalize --> ctx["memory-context-builder<br/>加载适用 rules<br/>生成 context-pack 与项目知识阶段绑定"]
-  ctx --> req[requirement-testability<br/>结构化需求与可测性分析]
-  req --> hasDesign{是否提供设计方案}
-  hasDesign -- 是 --> design[design-solution-extraction<br/>提取接口/字段/状态/权限/数据依赖]
-  hasDesign -- 否 --> designGap[登记设计缺口候选]
-  design --> cpInput[clarification-gate CP-INPUT<br/>收口输入冲突与缺失]
-  designGap --> cpInput
+  ctx --> facts[input-fact-modeling<br/>建立输入事实模型<br/>事实清单/需求-设计映射/待确认事项]
+  facts --> cpInput[clarification-gate CP-INPUT<br/>收口输入冲突与缺失]
   cpInput --> route[testing-method-router<br/>选择测试技术与专项方法参考]
   route --> methods[专项方法参考<br/>产出 ME-* 方法证据与测试点候选]
   methods --> cpAnalysis[clarification-gate CP-ANALYSIS<br/>收口会影响覆盖和预期结果的缺口]
@@ -140,10 +136,9 @@ flowchart TD
 |---|---|---|
 | Agent 门面 | `test-analysis-agent` | 识别用户意图，路由生成、记录、咨询和框架维护任务 |
 | 输入归一化 | `normalize-input-documents` | 将 `.docx` / `.xlsx` 需求或设计方案转换到全局 cache，并绑定为 run-local Markdown，后续流程只读取 `outputs/runs/<run-id>/inputs/` |
-| 主入口 | `analyze-requirement-test-analysis-solution` | 固定根目录、创建 run、编排全链路、输出主交付件 |
+| 主入口 | `test-analysis-workflow` | 固定根目录、创建 run、编排全链路、输出主交付件 |
 | 上下文 | `memory-context-builder` | 发现适用 rules、core/project/personal 上下文和项目知识阶段绑定 |
-| 需求分析 | `requirement-testability` | 结构化需求模型、识别可测性缺口 |
-| 设计提取 | `design-solution-extraction` | 提取接口、字段、状态、权限、数据依赖和设计缺口 |
+| 输入事实建模 | `input-fact-modeling` | 建立输入事实模型，记录事实清单、需求-设计映射、待确认事项和来源应用说明 |
 | 缺口治理 | `clarification-gate` | 合并过程缺口，不向主交付件写独立待确认章节 |
 | 方法路由 | `testing-method-router` | 选择适用测试技术和专项方法参考 |
 | 专项方法参考 | `skills/testing-method-router/references/*.md` | 生成方法证据、测试点候选和技术缺口 |
@@ -156,13 +151,13 @@ flowchart TD
 
 | 路径 | 作用 |
 |---|---|
-| `knowledge/test-analysis-methodology.md` | 定义测试分析、测试设计、测试技术之间的边界 |
+| `knowledge/test-workflow-boundaries.md` | 定义测试分析、测试设计、测试技术之间的边界 |
 | `knowledge/test-analysis-solution-standard.md` | 定义主交付件结构、字段和兜底规则 |
 | `knowledge/testpoint-standard.md` | 定义测试点粒度、分类和非用例化约束 |
 | `knowledge/test-techniques/` | 测试技术库，支持分析阶段识别覆盖分支，也可供 `@test-design-agent` 复用 |
-| `knowledge/test-method-routing-matrix.md` | 测试技术与专项方法参考路由矩阵 |
-| `knowledge/basic-test-types.md` | 基础测试类型参考 |
-| `knowledge/method-evidence-standard.md` | 方法证据 `ME-*` 记录标准 |
+| `skills/testing-method-router/references/test-method-routing-matrix.md` | 测试技术与专项方法参考路由矩阵 |
+| `skills/coverage-review/references/basic-test-types.md` | 基础测试类型参考 |
+| `skills/testing-method-router/references/method-evidence-standard.md` | 方法证据 `ME-*` 记录标准 |
 
 ## Rules 分工
 

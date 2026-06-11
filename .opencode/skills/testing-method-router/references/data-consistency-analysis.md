@@ -10,7 +10,7 @@
 
 ## 输入
 
-- 结构化需求模型。
+- 输入事实模型。
 - 数据对象、持久化规则、同步规则、缓存规则、统计、导出、日志和集成信息。
 - `knowledge/test-techniques/experience-based/error-guessing-checklist.md`。
 - `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.md`。

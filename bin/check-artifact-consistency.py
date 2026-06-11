@@ -15,8 +15,7 @@ TASK_STATUS_VALUES = {"pending", "in_progress", "done", "blocked", "skipped"}
 ANALYSIS_REQUIRED_TASK_STAGES = [
     "固定 PROJECT_ROOT 与运行目录",
     "构建上下文包",
-    "需求可测性分析",
-    "设计方案提取",
+    "输入事实建模",
     "待确认治理",
     "测试技术路由",
     "专项分析",
@@ -38,11 +37,13 @@ DESIGN_REQUIRED_TASK_STAGES = [
     "覆盖审查",
     "输出收口",
 ]
-OPTIONAL_TASK_STAGES = {"按源补读", "设计方案提取", "设计依据补读"}
+OPTIONAL_TASK_STAGES = {"按源补读", "设计依据补读"}
 TASK_STAGE_ALIASES = {
     "方法路由": "测试技术路由",
     "专项方法分析": "专项分析",
     "场景化测试点生成": "测试分析方案生成",
+    "需求可测性分析": "输入事实建模",
+    "设计方案提取": "输入事实建模",
 }
 
 

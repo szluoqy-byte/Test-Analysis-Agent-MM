@@ -31,17 +31,19 @@ Rules 是高优先级约束源：优先级低于当前用户明确指令，高�
 | 项目强制规则 | `rules/projects/<project-key>/**/*.md` | 项目级必须遵守的约束，确定 `project-key` 后扫描 |
 | 个人强制规则 | `rules/user/**/*.md` | 使用者本地强制约束，不得覆盖 core/project rules |
 | 测试点定义、字段、类型、方法 | `knowledge/testpoint-standard.md` | 稳定标准，所有 skill 共用 |
-| 测试分析、测试设计边界、分析维度和交付件落点 | `knowledge/test-analysis-methodology.md` | 本项目的上位方法论 |
-| 测试场景、测试点、测试点明细、测试设计项和完整测试用例边界 | `knowledge/test-analysis-methodology.md` | 主输出层级边界标准 |
+| 测试分析、测试设计、测试技术和执行级用例边界 | `knowledge/test-workflow-boundaries.md` | 本项目的公共工作流边界 |
+| 测试分析维度和技术路由 | `skills/testing-method-router/references/test-method-routing-matrix.md` | testing-method-router 私有路由参考 |
+| 测试场景、测试点、测试点明细和失败类型明细边界 | `knowledge/test-analysis-solution-standard.md` | 测试分析主输出层级边界标准 |
+| 测试设计项和完整测试用例边界 | `knowledge/test-design-solution-standard.md` | 测试设计主输出层级边界标准 |
 | 测试点明细字段、粒度和预期结果兜底规则 | `knowledge/test-analysis-solution-standard.md` | 主交付件标准 |
 | 测试设计项字段、粒度和预期结果兜底规则 | `knowledge/test-design-solution-standard.md` | 测试设计主交付件标准 |
-| 测试类型大类和子类 | `knowledge/basic-test-types.md` | 本项目内置测试类型体系 |
+| 测试类型大类和子类 | `skills/coverage-review/references/basic-test-types.md` | 本项目内置测试类型体系 |
 | 风险优先、异常优先、状态优先等专家原则 | `knowledge/test-techniques/README.md`、`knowledge/test-techniques/risk-based/risk-based-testing.md` | 测试技术的通用审视规则，分析层识别风险和测试点明细，设计层控制设计项深度 |
 | 空值、重复提交、越权、幂等等通用缺陷模式 | `knowledge/test-techniques/experience-based/error-guessing-checklist.md` | 经验型测试技术补充，分析层识别缺陷风险，设计层补充高价值设计项 |
-| 需求文档、需求依据、方法证据、记忆上下文包等框架术语 | `knowledge/test-analysis-methodology.md` | 稳定分析术语，所有 skill 共用 |
-| 分析维度、需求信号到测试技术的映射 | `knowledge/test-method-routing-matrix.md` | 稳定路由知识 |
-| 方法分析证据字段和质量要求 | `knowledge/method-evidence-standard.md` | 证明测试理论被实际应用的统一标准 |
-| 设计方案事实摘要字段 | `templates/design-facts-template.md` | 设计事实是运行期结构化产物，模板定义形状，具体事实由 `design-solution-extraction` 提取 |
+| 需求文档、需求依据、方法证据、记忆上下文包等框架术语 | `knowledge/test-workflow-boundaries.md` | 稳定分析术语，所有 skill 共用 |
+| 分析维度、需求信号到测试技术的映射 | `skills/testing-method-router/references/test-method-routing-matrix.md` | 稳定路由知识 |
+| 方法分析证据字段和质量要求 | `skills/testing-method-router/references/method-evidence-standard.md` | 证明测试理论被实际应用的统一标准 |
+| 输入事实模型字段 | `templates/input-fact-model-template.md` | 输入事实模型是运行期结构化产物，模板定义事实清单、需求-设计映射、待确认事项和来源说明 |
 | 项目风险画像、覆盖策略、术语映射、路由说明、测试 oracle、测试设计因子、测试设计模式和 checklist 补充 | `knowledge/projects/<project-key>/**/*.md` | 项目级测试知识补充，确定 `project-key` 后按需扫描并登记阶段绑定 |
 | 个人测试启发、检查清单和本地关注点 | `knowledge/user/**/*.md` | personal 层知识补充，按需扫描 |
 | 记住、记录、归档类请求的写入分类流程 | `skills/context-capture/SKILL.md` | 判断写入 memory/knowledge 与 personal/project 层级 |
@@ -65,10 +67,10 @@ Rules 是高优先级约束源：优先级低于当前用户明确指令，高�
 
 - `agents/` 只维护用户入口和意图路由，不重复维护测试点类型、方法枚举和通用缺陷模式。
 - `skills/` 不重复维护测试点类型、方法枚举和通用缺陷模式，只引用 `knowledge/`。
-- `skills/` 不把方法证据写成自由发挥的叙述，统一引用 `knowledge/method-evidence-standard.md` 和 `templates/method-analysis-template.md`。
+- `skills/` 不把方法证据写成自由发挥的叙述，统一引用 `skills/testing-method-router/references/method-evidence-standard.md` 和 `templates/method-analysis-template.md`。
 - `memory/` 不保存通用测试理论、通用缺陷模式、通用类型定义和方法步骤。
 - `rules/` 不保存普通知识、历史经验或临时偏好；只有明确“必须/禁止/优先于输入”的约束才进入 rules。
-- `memory/` 不重复维护框架术语定义；框架术语归属 `knowledge/test-analysis-methodology.md`，memory 只记录项目专属术语或覆盖。
+- `memory/` 不重复维护框架术语定义；框架术语归属 `knowledge/test-workflow-boundaries.md`，memory 只记录项目专属术语或覆盖。
 - `knowledge/` 不保存项目事实、用户临时偏好、单次运行结果和未确认假设。
 - `knowledge/projects/<project-key>/` 只能保存项目级测试知识补充，不保存未确认业务事实、真实缺陷复盘或输出偏好。
 - `knowledge/projects/<project-key>/` 不覆盖根目录 `knowledge/` 的测试点字段、类型、方法、输出契约和质量门禁。

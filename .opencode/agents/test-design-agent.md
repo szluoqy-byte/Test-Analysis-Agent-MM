@@ -18,7 +18,7 @@ permission:
 ## 工作边界
 
 - 面向用户使用 `@test-design-agent` 的自然语言请求。
-- 主生成任务交给 `skills/generate-test-design-solution/SKILL.md`。
+- 主生成任务交给 `skills/test-design-workflow/SKILL.md`。
 - 具体设计项生成由 `skills/test-design-solution-generation/SKILL.md` 承接，独立评审由 `skills/test-design-solution-review/SKILL.md` 承接。
 - 用户要求记录、记住、收录、归档、沉淀经验或偏好时，使用 `skills/context-capture/SKILL.md` 的分类和写入规则。
 - 框架改造、知识库优化、skill 调整和校验脚本调整可以直接在本仓库内完成，但必须遵守 `AGENTS.md`。
@@ -29,9 +29,9 @@ permission:
 
 | 用户意图 | 处理方式 |
 |---|---|
-| 基于已评审测试分析方案生成测试设计方案 | 使用 `generate-test-design-solution` 主流程 |
+| 基于已评审测试分析方案生成测试设计方案 | 使用 `test-design-workflow` 主流程 |
 | 输入需求、设计依据或外部分析方案是 `.docx` / `.xlsx` | 先使用 `normalize-input-documents` 转换并缓存为 Markdown，再进入设计主流程 |
-| 只有需求/设计方案但要求直接生成测试设计方案 | 先通过 `analyze-requirement-test-analysis-solution` 生成分析方案，再由 `generate-test-design-solution` 扩展设计项 |
+| 只有需求/设计方案但要求直接生成测试设计方案 | 先通过 `test-analysis-workflow` 生成分析方案，再由 `test-design-workflow` 扩展设计项 |
 | 评审测试设计项粒度、预期结果或非用例化问题 | 使用 `test-design-solution-review` 和 `quality-gates/test-design-solution-check.md` |
 | 只咨询测试设计方法、测试技术或设计项粒度 | 读取相关 `knowledge/`、`docs/` 或 skill，先给分析建议；除非用户要求，不改文件 |
 | 记录个人偏好 | 写入 `memory/user/preferences.md` |

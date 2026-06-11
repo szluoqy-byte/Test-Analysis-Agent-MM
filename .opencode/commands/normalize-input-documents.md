@@ -24,7 +24,7 @@ $ARGUMENTS
 从仓库根目录执行：
 
 ```text
-python bin/normalize-office-input.py <arguments>
+python skills/normalize-input-documents/scripts/normalize-office-input.py <arguments>
 ```
 
 固定使用 `outputs/input-cache/<sha256-12>/` 作为全局缓存位置。输出时说明归一化 Markdown 路径、转换 metadata 路径、缓存复用状态和转换警告。完整测试分析或测试设计 run 后续会用同一脚本追加 `--run-dir outputs/runs/<run-id>`，把缓存 Markdown 绑定到 `outputs/runs/<run-id>/inputs/`；本独立命令不得执行 run-local 绑定。
@@ -35,7 +35,7 @@ python bin/normalize-office-input.py <arguments>
 
 完成条件：
 
-- 不能只运行 `python bin/normalize-office-input.py ...` 后就结束。
+- 不能只运行 `python skills/normalize-input-documents/scripts/normalize-office-input.py ...` 后就结束。
 - 必须逐个输入文件说明处理状态：无需转换、已转换或复用缓存。
 - 必须说明每个输出 Markdown、metadata 和缓存目录路径。
 - 必须处理或记录每条转换警告的收口状态：`已处理`、`无需处理` 或 `未执行原因`。
