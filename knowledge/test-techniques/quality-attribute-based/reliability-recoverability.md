@@ -105,10 +105,28 @@
 
 - 测试点：验证支付依赖失败、重试、恢复和重复回调下系统保持安全状态。
 
-- TDI-001 dependency=外部支付；firstAttempt=超时；retryAttempt=成功；retryCount=1
-- TDI-002 dependency=外部支付；timeoutCount=3；retryLimit=3
-- TDI-003 dependency=外部支付；recoveryStatus=已恢复；compensationTarget=待确认支付请求
-- TDI-004 callbackType=支付成功；paymentId=PAY_20260602_0001；duplicateArrivalCount=2
+```json
+{
+  "designItems": [
+    {
+      "id": "TDI-001",
+      "content": "dependency=外部支付；firstAttempt=超时；retryAttempt=成功；retryCount=1"
+    },
+    {
+      "id": "TDI-002",
+      "content": "dependency=外部支付；timeoutCount=3；retryLimit=3"
+    },
+    {
+      "id": "TDI-003",
+      "content": "dependency=外部支付；recoveryStatus=已恢复；compensationTarget=待确认支付请求"
+    },
+    {
+      "id": "TDI-004",
+      "content": "callbackType=支付成功；paymentId=PAY_20260602_0001；duplicateArrivalCount=2"
+    }
+  ]
+}
+```
 
 - 设计要点：
 

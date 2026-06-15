@@ -19,6 +19,7 @@ description: 在测试设计方案 JSON 通过确定性 lint 且 Markdown 已渲
 - `process/clarification-session.json`。
 - `process/context-pack.json` 中绑定到 `test-design-solution-review` 的评审类 project knowledge；默认 checklist 类项目知识优先由 `coverage-review` 统一处理，避免重复读取。
 - `knowledge/test-design-solution-standard.md`。
+- `templates/review-report-json-template.json`，作为语义评审 JSON 输出结构参考。
 
 ## 不再重复检查
 
@@ -26,7 +27,7 @@ description: 在测试设计方案 JSON 通过确定性 lint 且 Markdown 已渲
 
 - 主标题、必需章节、禁止章节和固定路径。
 - `SC-*`、`TP-*`、`TP-*-*`、`TP-*-*-*`、`TDI-*` 的格式、挂载位置和连续编号。
-- 测试设计项是否使用列表节点而非表格。
+- 测试设计项是否使用 `designItems[]` 而非表格或手写 Markdown 列表。
 - `TDI-*` 是否保持同一物理行，以及是否包含 `http://` 或 `https://` 裸链接。
 - 每个叶子分析节点是否至少有一个 `TDI-*`。
 - 禁用字段、Markdown 加粗、完整测试用例字段和旧编号泄漏。
@@ -70,30 +71,16 @@ description: 在测试设计方案 JSON 通过确定性 lint 且 Markdown 已渲
 
 ## 输出
 
-评审输出写入 `reports/test-design-solution-review.json`，使用以下结构；如需人读版，由 `bin/render-run-markdown.py` 渲染：
+评审输出写入 `reports/test-design-solution-review.json`，结构以 `templates/review-report-json-template.json` 为准；如需人读版，由 `bin/render-run-markdown.py` 渲染。JSON 至少包含：
 
-| 评审项 | 结果 | 证据 | 修正建议 |
-|---|---|---|---|
-| 确定性 lint 前置 | 通过/失败 |  |  |
-| 分析方案承接 | 通过/警告/失败 |  |  |
-| E2E 与接口继承 | 通过/警告/失败 |  |  |
-| 第四层继承 | 通过/警告/失败 |  |  |
-| 设计项粒度 | 通过/警告/失败 |  |  |
-| 设计项数据化语义 | 通过/警告/失败 |  |  |
-| 重复项区分维度 | 通过/警告/失败 |  |  |
-| 接口契约代表性 | 通过/警告/失败 |  |  |
-| 补偿分支可观察性 | 通过/警告/失败 |  |  |
-| 覆盖代表性 | 通过/警告/失败 |  |  |
-| 预期结果依据 | 通过/警告/失败 |  |  |
-| 事实完整性 | 通过/警告/失败 |  |  |
-| 非用例化语义 | 通过/警告/失败 |  |  |
-| 自包含性 | 通过/警告/失败 |  |  |
-| 项目评审知识 | 通过/警告/失败/不适用 |  |  |
-
-如本阶段绑定了 project knowledge，追加应用记录：
-
-| 来源文件 | 当前阶段 | 应用状态 | 应用位置 | 说明 |
-|---|---|---|---|---|
+- `artifactType` 固定为 `test-design-solution-review`，`schemaVersion` 固定为 `1.0`。
+- `result` 使用 `通过` 或 `需修正`。
+- `summary` 记录整体评审结论。
+- `findings[]` 记录确定性 lint 前置、分析方案承接、E2E 与接口继承、第四层继承、设计项粒度、设计项数据化语义、重复项区分维度、接口契约代表性、补偿分支可观察性、覆盖代表性、预期结果依据、事实完整性、非用例化语义、自包含性和项目评审知识等维度的语义发现。
+- `blockingIssues[]` 只记录必须修正后才能进入覆盖审查的问题。
+- `recommendations[]` 记录非阻断修正建议。
+- `evidenceRefs[]` 记录需求、设计方案、分析方案、主交付件、过程产物、rules 或 project knowledge 的证据来源。
+- `knowledgeApplications[]` 记录本阶段绑定 project knowledge 的应用状态、应用位置和说明。
 
 结论必须明确为：
 

@@ -102,10 +102,28 @@
 
 - 测试点：验证用户取消订单的主路径、异常路径和重新进入后的可观察结果。
 
-- TDI-001 userId=USER_OWN_001；orderId=ORDER_PENDING_001；orderOwner=本人；orderStatus=待支付；action=发起取消
-- TDI-002 userId=USER_OWN_001；orderId=ORDER_PAID_001；orderOwner=本人；orderStatus=已支付；action=发起取消
-- TDI-003 userId=USER_OWN_001；orderId=ORDER_CANCELED_001；orderStatus=已取消；action=重新进入订单详情
-- TDI-004 userId=USER_OWN_001；orderId=ORDER_PENDING_002；action=提交取消后中断页面并重新进入订单详情
+```json
+{
+  "designItems": [
+    {
+      "id": "TDI-001",
+      "content": "userId=USER_OWN_001；orderId=ORDER_PENDING_001；orderOwner=本人；orderStatus=待支付；action=发起取消"
+    },
+    {
+      "id": "TDI-002",
+      "content": "userId=USER_OWN_001；orderId=ORDER_PAID_001；orderOwner=本人；orderStatus=已支付；action=发起取消"
+    },
+    {
+      "id": "TDI-003",
+      "content": "userId=USER_OWN_001；orderId=ORDER_CANCELED_001；orderStatus=已取消；action=重新进入订单详情"
+    },
+    {
+      "id": "TDI-004",
+      "content": "userId=USER_OWN_001；orderId=ORDER_PENDING_002；action=提交取消后中断页面并重新进入订单详情"
+    }
+  ]
+}
+```
 
 - 设计要点：
 

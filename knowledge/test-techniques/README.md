@@ -9,7 +9,7 @@
 
 `test-analysis-agent` 只输出测试分析方案，不输出 `TDI-*`；`test-design-agent` 复用本目录把普通测试点明细或失败类型明细扩展为测试设计项。
 
-本目录中的测试设计项示例只表达 JSON canonical 中 `designItems[]` 的内容形态。示例统一使用 `- TDI-001 <条件/数据/状态/组合>` 列表表达；不得把示例改回测试设计项表格，也不得引导模型直接维护 Markdown 主交付件。
+本目录中的测试设计项示例只表达 JSON canonical 中 `designItems[]` 的内容形态。示例统一使用 JSON 片段表达 `id` 与 `content`；不得把示例改回测试设计项表格或 Markdown 列表，也不得引导模型直接维护 Markdown 主交付件。
 
 每个技术文件都应回答四个问题：
 

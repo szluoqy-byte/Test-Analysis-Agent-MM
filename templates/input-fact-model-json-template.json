@@ -1,0 +1,127 @@
+{
+  "artifactType": "input-fact-model",
+  "schemaVersion": "1.0",
+  "title": "输入事实模型",
+  "sections": [
+    {
+      "heading": "输入来源",
+      "level": 2,
+      "content": [
+        {
+          "type": "table",
+          "columns": [
+            "来源类型",
+            "文件/来源",
+            "范围",
+            "说明"
+          ],
+          "rows": [
+            [
+              "需求",
+              "",
+              "",
+              ""
+            ],
+            [
+              "设计方案",
+              "",
+              "",
+              "未提供/已提供"
+            ],
+            [
+              "Context Pack",
+              "process/context-pack.json",
+              "",
+              ""
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "事实清单",
+      "level": 2,
+      "content": [
+        {
+          "type": "table",
+          "columns": [
+            "事实ID",
+            "来源",
+            "对象/范围",
+            "事实内容",
+            "约束/条件",
+            "可观察结果",
+            "缺口/冲突"
+          ],
+          "rows": [
+            [
+              "FACT-001",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "无"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "需求-设计映射",
+      "level": 2,
+      "content": [
+        {
+          "type": "table",
+          "columns": [
+            "需求事实ID",
+            "设计事实ID",
+            "关系",
+            "说明"
+          ],
+          "rows": []
+        }
+      ]
+    },
+    {
+      "heading": "待确认事项",
+      "level": 2,
+      "content": [
+        {
+          "type": "table",
+          "columns": [
+            "编号",
+            "来源事实",
+            "问题",
+            "影响",
+            "处理建议"
+          ],
+          "rows": []
+        }
+      ]
+    },
+    {
+      "heading": "来源与应用说明",
+      "level": 2,
+      "content": [
+        {
+          "type": "table",
+          "columns": [
+            "来源文件",
+            "应用状态",
+            "应用位置",
+            "说明"
+          ],
+          "rows": [
+            [
+              "process/context-pack.json",
+              "applied/not_applicable/insufficient_evidence/conflict_with_requirement",
+              "输入事实建模",
+              ""
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

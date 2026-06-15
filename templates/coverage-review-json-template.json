@@ -1,0 +1,64 @@
+{
+  "artifactType": "coverage-review",
+  "schemaVersion": "1.0",
+  "title": "覆盖审查结果",
+  "result": "通过",
+  "summary": "",
+  "findings": [
+    {
+      "id": "CV-001",
+      "severity": "info/warning/blocking",
+      "gate": "",
+      "location": "",
+      "description": "",
+      "evidence": "",
+      "recommendation": ""
+    }
+  ],
+  "blockingIssues": [],
+  "recommendations": [],
+  "evidenceRefs": [
+    {
+      "source": "",
+      "location": "",
+      "description": ""
+    }
+  ],
+  "qualityGates": [
+    {
+      "gate": "确定性校验",
+      "result": "通过/警告/失败/不适用",
+      "description": "",
+      "recommendation": ""
+    }
+  ],
+  "rulesApplications": [
+    {
+      "ruleId": "",
+      "sourceFile": "",
+      "stage": "coverage-review",
+      "status": "applied/not_applicable/insufficient_evidence/conflict_with_requirement/overridden_by_user",
+      "location": "",
+      "note": ""
+    }
+  ],
+  "projectKnowledgeApplications": [
+    {
+      "sourceType": "project knowledge/additional gate",
+      "sourceFile": "",
+      "stage": "coverage-review",
+      "status": "applied/not_applicable/insufficient_evidence/conflict_with_requirement/overridden_by_user",
+      "location": "",
+      "note": ""
+    }
+  ],
+  "coverageGaps": [
+    {
+      "id": "GAP-001",
+      "requirementRef": "",
+      "artifactLocation": "",
+      "description": "",
+      "suggestedFix": ""
+    }
+  ]
+}

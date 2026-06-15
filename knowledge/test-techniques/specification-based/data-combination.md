@@ -107,11 +107,32 @@ DCoT 的目标不是穷举所有可能，而是在成本可控的前提下覆盖
 
 - 测试点：验证订单 ID 生成规则在关键渠道和生成器组合下表现一致。
 
-- TDI-001 channel=APP；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=AGT
-- TDI-002 channel=USSD；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=AGT
-- TDI-003 channel=API；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=未配置；defaultPrefix=SYS
-- TDI-004 channel=WEB；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=未配置；defaultPrefix=SYS
-- TDI-005 channel=APP；orderIdGenerator=OrderId22BitsGenerator；reasonTypePrefix=AGT
+```json
+{
+  "designItems": [
+    {
+      "id": "TDI-001",
+      "content": "channel=APP；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=AGT"
+    },
+    {
+      "id": "TDI-002",
+      "content": "channel=USSD；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=AGT"
+    },
+    {
+      "id": "TDI-003",
+      "content": "channel=API；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=未配置；defaultPrefix=SYS"
+    },
+    {
+      "id": "TDI-004",
+      "content": "channel=WEB；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=未配置；defaultPrefix=SYS"
+    },
+    {
+      "id": "TDI-005",
+      "content": "channel=APP；orderIdGenerator=OrderId22BitsGenerator；reasonTypePrefix=AGT"
+    }
+  ]
+}
+```
 
 - 设计要点：
 

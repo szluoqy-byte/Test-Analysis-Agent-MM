@@ -14,14 +14,12 @@ description: 每次需求分析或测试设计开始前使用，用于从 rules�
 - 自动扫描得到的 core rules：`rules/*.md`，跳过 `README.md`。
 - 自动扫描得到的、与 `project-key` 匹配的 project rules：`rules/projects/<project-key>/**/*.md`。
 - 自动扫描得到的 personal rules：`rules/user/**/*.md`。
-- `memory/project-memory.md`，包括全局项目事实、全局约束和输出偏好。
-- `memory/testing-experience-memory.md`。
 - 自动扫描得到的、与 `project-key` 匹配且与当前需求相关的 `memory/projects/<project-key>/**/*.md` 项目化 memory。
 - 自动扫描得到的、与 `project-key` 匹配的 `knowledge/projects/<project-key>/**/*.md` 项目化知识补充；先做阶段绑定，再按当前需求相关性摘录片段。
 - 可选 `personal-key`：来自用户显式参数、当前运行者配置或默认个人配置；personal 目录为 `*/user/`，后续可扩展为 `*/user/<personal-key>/`。
 - 自动扫描得到的、与当前需求相关的 `memory/user/**/*.md` 和 `knowledge/user/**/*.md` personal 补充。
 - 自动扫描得到的、与当前需求相关的 `quality-gates/projects/<project-key>/**/*.md` 和 `quality-gates/user/**/*.md` 附加门禁；先做附加门禁绑定，再按当前需求相关性摘录片段。
-- `templates/process-artifacts-json-template.json` 和 `templates/context-pack-template.md`。前者定义 JSON 事实源形态，后者仅作为渲染后 Markdown 样式参考。
+- `templates/context-pack-json-template.json` 和 `templates/context-pack-template.md`。前者定义 JSON 事实源形态，后者仅作为渲染后 Markdown 样式参考。
 
 ## 三层配置模型
 
@@ -29,7 +27,7 @@ description: 每次需求分析或测试设计开始前使用，用于从 rules�
 
 | 层级 | 路径 | 是否默认提交 Git | 作用 |
 |---|---|---|---|
-| core | `rules/*.md`、`knowledge/*.md`、`memory/*.md`、`templates/*.md`、`quality-gates/*.md` | 是 | Agent 包随附的强制规则、稳定标准、模板和基础规则 |
+| core | `rules/*.md`、`knowledge/*.md`、`templates/*.md`、`quality-gates/*.md` | 是 | Agent 包随附的强制规则、稳定标准、模板和基础规则 |
 | project | `*/projects/<project-key>/**/*.md` | 否 | 当前项目的强制规则、事实、经验、风险画像、覆盖策略和附加门禁 |
 | personal | `*/user/**/*.md`，后续可扩展为 `*/user/<personal-key>/**/*.md` | 否 | 当前使用者的个人强制规则、偏好、检查清单和本地补充 |
 
@@ -114,7 +112,7 @@ context pack 必须在 JSON 中输出“项目知识阶段绑定”。后续被�
 2. 需求 Markdown frontmatter 中存在 `project` 或 `project_key`。
 3. `rules/projects/`、`memory/projects/` 或 `knowledge/projects/` 下存在唯一目录名，且该目录名、目录 README、项目标题或关键词与需求标题、模块或正文显式匹配。
 
-如果无法唯一确定项目，继续使用 core rules、全局 `memory/` 和 `knowledge/`，不要扫描所有项目目录正文；只在 context pack 的“待确认候选”中记录项目归属不明确。
+如果无法唯一确定项目，继续使用 core rules 和 `knowledge/`，不要扫描所有项目目录正文；只在 context pack 的“待确认候选”中记录项目归属不明确。
 
 ## 个人配置发现
 
@@ -130,9 +128,9 @@ personal 层用于表达当前使用者的输出偏好、个人检查清单和�
 
 ## 选择规则
 
-先扫描 core 层 `rules/*.md` 并记录适用强制规则，再读取 core 层的 `memory/project-memory.md`。如果已确定 `project-key`，继续扫描 project 层的 `rules/projects/<project-key>/**/*.md`、`memory/projects/<project-key>/**/*.md`、`knowledge/projects/<project-key>/**/*.md` 和 `quality-gates/projects/<project-key>/**/*.md`。最后扫描 personal 层的 `rules/user/**/*.md`、`memory/user/**/*.md`、`knowledge/user/**/*.md` 和 `quality-gates/user/**/*.md`。所有扫描都跳过各级 `README.md` 正文，但可使用 README 的标题、目录结构和说明作为 L0 元信息。
+先扫描 core 层 `rules/*.md` 并记录适用强制规则。如果已确定 `project-key`，继续扫描 project 层的 `rules/projects/<project-key>/**/*.md`、`memory/projects/<project-key>/**/*.md`、`knowledge/projects/<project-key>/**/*.md` 和 `quality-gates/projects/<project-key>/**/*.md`。最后扫描 personal 层的 `rules/user/**/*.md`、`memory/user/**/*.md`、`knowledge/user/**/*.md` 和 `quality-gates/user/**/*.md`。所有扫描都跳过各级 `README.md` 正文，但可使用 README 的标题、目录结构和说明作为 L0 元信息。
 
-项目化 memory 文件不需要在 `project-memory.md` 中登记。根据文件名、标题、适用范围、关键词、领域术语、角色、接口、状态、数据对象和以下内容选择相关片段：
+项目化 memory 文件不需要在全局 memory 文件中登记。根据文件名、标题、适用范围、关键词、领域术语、角色、接口、状态、数据对象和以下内容选择相关片段：
 
 - 需求模块、产品区域、用户角色或业务对象。
 - rules 中声明的适用范围、适用阶段、必须、禁止、优先级和冲突处理。
@@ -152,16 +150,14 @@ personal 层用于表达当前使用者的输出偏好、个人检查清单和�
 - 大文件只通过文件名、frontmatter、标题结构、关键词或明确的补读需求定位片段；不得把整份大文件复制进 context pack。
 - 同一事实在多个 memory 文件中重复出现时，只保留更具体、更新或适用范围更窄的一条。
 - rules 优先于当前输入文档、memory 和 knowledge；当前用户明确指令优先于 rules。
-- 项目化 memory 优先于全局 memory；当前输入文档中的明确规则优先于任何 memory。
+- 当前输入文档中的明确规则优先于任何 memory。
 - 项目化 knowledge 只能补充项目风险、术语、覆盖策略、测试 oracle、测试设计因子、测试设计模式和 checklist，不得覆盖 `knowledge/` 根目录中的核心类型、字段、级别、交付件契约和质量门禁。
-- `memory/project-memory.md` 中的全局高优先级规则始终纳入，但不得把整份文件原样复制进 context pack。
 - `memory/projects/<project-key>/**/*.md` 和 `knowledge/projects/<project-key>/**/*.md` 中的内容按片段引用；每个片段必须保留项目标识、来源文件和命中原因。
 - `quality-gates/projects/<project-key>/**/*.md` 中的附加门禁写入“附加门禁绑定”，每个片段必须保留项目标识、来源文件、命中原因、适用阶段、检查摘要和应用留痕要求。
 - `memory/user/**/*.md` 和 `knowledge/user/**/*.md` 中的内容按片段引用；每个片段必须保留 personal 层来源文件和命中原因。
 - `quality-gates/user/**/*.md` 中的附加门禁写入“附加门禁绑定”，每个片段必须保留 personal 层来源文件、命中原因、适用阶段、检查摘要和应用留痕要求。
 - personal 层只能补充个人偏好和本地检查关注点，不得覆盖当前用户明确指令、需求文档、project memory、core 输出契约或 core/project 质量门禁。
 - 冲突裁剪按信息类型处理：当前用户明确指令最高；rules 与输入文档冲突时遵守 rules 并记录覆盖原因；事实/契约在无 rules 约束时以当前输入文档和 project memory 为准；测试策略以 project knowledge 优先于 personal knowledge；输出偏好以当前用户指令优先于 personal，再优先于 project，但不得违反强制规则、事实、交付件契约或门禁。
-- `memory/testing-experience-memory.md` 只摘取与当前需求的方法选择、风险模式、输出反馈直接相关的经验。
 - 如果相关性无法判断，宁可少量摘要并登记待确认候选，也不要全量注入。
 
 ## 输出
@@ -192,7 +188,7 @@ personal 层用于表达当前使用者的输出偏好、个人检查清单和�
 | 本次需求标识 | 需求文件、标题、run-id |
 | 项目标识 | project-key、确定依据、无法确定时的原因 |
 | 个人配置标识 | personal-key、确定依据、默认 personal 说明 |
-| 已扫描来源 | 全局 memory、项目 memory、项目 knowledge、personal 补充的文件清单 |
+| 已扫描来源 | 项目 memory、项目 knowledge、personal 补充的文件清单 |
 | 适用强制规则 | core/project/personal rules 命中规则、适用阶段和应用要求 |
 | Rules 与输入冲突记录 | 被 rules 覆盖的需求、设计方案或分析方案内容，以及覆盖原因 |
 | 命中摘要 | 命中的 memory 文件、片段和原因 |

@@ -155,11 +155,32 @@
 
 - 测试点：验证资金转账的资损防护、幂等、权限拦截和审计记录。
 
-- TDI-001 userRole=有转账权限；payerBalance=1000.00；transferAmount=100.00；payeeStatus=正常
-- TDI-002 requestId=REQ_TRANSFER_0001；transferAmount=100.00；submitCount=2；业务内容相同
-- TDI-003 payerBalance=99.99；transferAmount=100.00；payeeStatus=正常
-- TDI-004 userRole=无代付权限；payerAccount=他人账户；transferAmount=100.00
-- TDI-005 transferAmount=100.00；downstreamAccountingStatus=成功前失败；compensationRule=待确认
+```json
+{
+  "designItems": [
+    {
+      "id": "TDI-001",
+      "content": "userRole=有转账权限；payerBalance=1000.00；transferAmount=100.00；payeeStatus=正常"
+    },
+    {
+      "id": "TDI-002",
+      "content": "requestId=REQ_TRANSFER_0001；transferAmount=100.00；submitCount=2；业务内容相同"
+    },
+    {
+      "id": "TDI-003",
+      "content": "payerBalance=99.99；transferAmount=100.00；payeeStatus=正常"
+    },
+    {
+      "id": "TDI-004",
+      "content": "userRole=无代付权限；payerAccount=他人账户；transferAmount=100.00"
+    },
+    {
+      "id": "TDI-005",
+      "content": "transferAmount=100.00；downstreamAccountingStatus=成功前失败；compensationRule=待确认"
+    }
+  ]
+}
+```
 
 - 设计要点：
 

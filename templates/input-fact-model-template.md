@@ -1,6 +1,6 @@
 # 输入事实模型模板
 
-本模板是 `process/input-fact-model.md` 派生阅读版样式参考。输入事实模型事实源是 `process/input-fact-model.json`，用于 `clarification-gate`、`testing-method-router` 和测试分析方案生成；它不包含测试技术路由、测试点或测试设计项。
+构建当前运行目录下的 `process/input-fact-model.json` 时使用 `templates/input-fact-model-json-template.json`；本文件只作为 `process/input-fact-model.md` 派生阅读版样式参考。输入事实模型用于 `clarification-gate`、`testing-method-router` 和测试分析方案生成；它不包含测试技术路由、测试点或测试设计项。
 
 ```markdown
 # 输入事实模型

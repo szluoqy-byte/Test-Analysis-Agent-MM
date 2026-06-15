@@ -134,10 +134,28 @@
 
 - 测试点：使用经验清单补充幂等、延迟回调、权限缓存和默认值风险。
 
-- TDI-001 callbackType=支付成功；paymentId=PAY_20260602_0001；arrivalCount=2；arrivalInterval=5s
-- TDI-002 orderId=ORDER_CANCELED_001；orderStatus=已取消；delayedCallback=支付成功
-- TDI-003 userId=USER_PERMISSION_001；permissionStatus=已移除；accessTarget=原有受限入口
-- TDI-004 configKey=CRITICAL_DEFAULT_001；configValue=空；requestType=依赖该配置的业务请求
+```json
+{
+  "designItems": [
+    {
+      "id": "TDI-001",
+      "content": "callbackType=支付成功；paymentId=PAY_20260602_0001；arrivalCount=2；arrivalInterval=5s"
+    },
+    {
+      "id": "TDI-002",
+      "content": "orderId=ORDER_CANCELED_001；orderStatus=已取消；delayedCallback=支付成功"
+    },
+    {
+      "id": "TDI-003",
+      "content": "userId=USER_PERMISSION_001；permissionStatus=已移除；accessTarget=原有受限入口"
+    },
+    {
+      "id": "TDI-004",
+      "content": "configKey=CRITICAL_DEFAULT_001；configValue=空；requestType=依赖该配置的业务请求"
+    }
+  ]
+}
+```
 
 - 设计要点：
 

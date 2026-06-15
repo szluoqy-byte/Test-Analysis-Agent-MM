@@ -107,9 +107,24 @@
 
 - 测试点：验证下发订单 ID 总长度边界和分段结构。
 
-- TDI-001 orderId=ABC1234567890；总长度=13位；业务前缀=ABC；订单流水号=1234567890
-- TDI-002 orderId=AB1234567890；总长度=12位；其余字符集保持合法
-- TDI-003 orderId=ABCD1234567890；总长度=14位；其余字符集保持合法
+```json
+{
+  "designItems": [
+    {
+      "id": "TDI-001",
+      "content": "orderId=ABC1234567890；总长度=13位；业务前缀=ABC；订单流水号=1234567890"
+    },
+    {
+      "id": "TDI-002",
+      "content": "orderId=AB1234567890；总长度=12位；其余字符集保持合法"
+    },
+    {
+      "id": "TDI-003",
+      "content": "orderId=ABCD1234567890；总长度=14位；其余字符集保持合法"
+    }
+  ]
+}
+```
 
 - 设计要点：
 
@@ -130,15 +145,48 @@
 
 - 测试点：验证 Order ID Business Prefix 的必填、长度和字符集校验。
 
-- TDI-004 businessPrefix为空字符串
-- TDI-005 businessPrefix=123；长度=3位；字符集=数字
-- TDI-006 businessPrefix=12A；长度=3位；字符集=数字+大写字母
-- TDI-007 businessPrefix=1AB；长度=3位；字符集=数字+大写字母
-- TDI-008 businessPrefix=ABC；长度=3位；字符集=大写字母
-- TDI-009 businessPrefix=AB；长度=2位
-- TDI-010 businessPrefix=ABCD；长度=4位
-- TDI-011 businessPrefix=Ab1；包含小写字母
-- TDI-012 businessPrefix=A#1；包含特殊字符
+```json
+{
+  "designItems": [
+    {
+      "id": "TDI-004",
+      "content": "businessPrefix为空字符串"
+    },
+    {
+      "id": "TDI-005",
+      "content": "businessPrefix=123；长度=3位；字符集=数字"
+    },
+    {
+      "id": "TDI-006",
+      "content": "businessPrefix=12A；长度=3位；字符集=数字+大写字母"
+    },
+    {
+      "id": "TDI-007",
+      "content": "businessPrefix=1AB；长度=3位；字符集=数字+大写字母"
+    },
+    {
+      "id": "TDI-008",
+      "content": "businessPrefix=ABC；长度=3位；字符集=大写字母"
+    },
+    {
+      "id": "TDI-009",
+      "content": "businessPrefix=AB；长度=2位"
+    },
+    {
+      "id": "TDI-010",
+      "content": "businessPrefix=ABCD；长度=4位"
+    },
+    {
+      "id": "TDI-011",
+      "content": "businessPrefix=Ab1；包含小写字母"
+    },
+    {
+      "id": "TDI-012",
+      "content": "businessPrefix=A#1；包含特殊字符"
+    }
+  ]
+}
+```
 
 - 设计要点：
 
@@ -159,12 +207,36 @@
 
 - 测试点：验证转账金额范围和精度边界。
 
-- TDI-013 amount=1.00；边界=最小值
-- TDI-014 amount=0.99；边界=小于最小值
-- TDI-015 amount=5000.00；边界=最大值
-- TDI-016 amount=5000.01；边界=大于最大值
-- TDI-017 amount=1000.00；范围=合法范围内；精度=2位小数
-- TDI-018 amount=1000.001；范围=合法范围内；精度=3位小数
+```json
+{
+  "designItems": [
+    {
+      "id": "TDI-013",
+      "content": "amount=1.00；边界=最小值"
+    },
+    {
+      "id": "TDI-014",
+      "content": "amount=0.99；边界=小于最小值"
+    },
+    {
+      "id": "TDI-015",
+      "content": "amount=5000.00；边界=最大值"
+    },
+    {
+      "id": "TDI-016",
+      "content": "amount=5000.01；边界=大于最大值"
+    },
+    {
+      "id": "TDI-017",
+      "content": "amount=1000.00；范围=合法范围内；精度=2位小数"
+    },
+    {
+      "id": "TDI-018",
+      "content": "amount=1000.001；范围=合法范围内；精度=3位小数"
+    }
+  ]
+}
+```
 
 - 设计要点：
 

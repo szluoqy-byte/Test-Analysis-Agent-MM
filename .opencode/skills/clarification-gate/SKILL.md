@@ -15,7 +15,7 @@ description: 在多个测试分析检查点使用。用于收集、去重、分�
 - 当前阶段产物，例如记忆上下文包、输入事实模型、测试技术路由表、方法证据、测试分析方案草稿或覆盖审查结果。
 - 已累计的待确认候选问题。
 - `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.json`。
-- `templates/process-artifacts-json-template.json` 和 `templates/clarification-template.md`。前者定义 JSON 事实源形态，后者仅作为渲染后 Markdown 样式参考。
+- `templates/clarification-session-json-template.json` 和 `templates/clarification-template.md`。前者定义 JSON 事实源形态，后者仅作为渲染后 Markdown 样式参考。
 
 ## 检查点
 
@@ -137,4 +137,4 @@ description: 在多个测试分析检查点使用。用于收集、去重、分�
 - 不在分析过程中向用户提问或暂停主流程。
 - 不把任何候选问题伪装成用户已确认事实。
 - 不向 `deliverables/test-analysis-solution.json` 写待确认信息章节。
-- 不把用户本次后续反馈自动写入 `memory/project-memory.md`、`memory/projects/<project-key>/**/*.md` 或 `memory/testing-experience-memory.md`。
+- 不把用户本次后续反馈自动写入 `memory/projects/<project-key>/**/*.md` 或 `memory/user/**/*.md`。

@@ -32,6 +32,7 @@ description: 在测试分析方案或测试设计方案 JSON 生成后使用，�
 - `skills/coverage-review/references/review-gates.md`。
 - `skills/coverage-review/references/context-application-gates.md`。
 - 可选深度评估时读取 `skills/coverage-review/references/deep-review-rubric.md`。
+- `templates/coverage-review-json-template.json` 和 `templates/coverage-review-template.md`。前者定义 JSON 事实源形态，后者仅作为渲染后 Markdown 样式参考。
 
 ## 审查步骤
 
@@ -79,10 +80,20 @@ description: 在测试分析方案或测试设计方案 JSON 生成后使用，�
 
 ## 输出
 
-输出写入 `reports/coverage-review.json`；如需人读版，由 `bin/render-run-markdown.py` 渲染。`templates/coverage-review-template.md` 仅作为渲染后 Markdown 样式参考。
+输出写入 `reports/coverage-review.json`，结构以 `templates/coverage-review-json-template.json` 为准；如需人读版，由 `bin/render-run-markdown.py` 渲染。`templates/coverage-review-template.md` 仅作为渲染后 Markdown 样式参考。
 
 审查输出必须包含：
 
+- `artifactType` 固定为 `coverage-review`，`schemaVersion` 固定为 `1.0`。
+- `result` 使用 `通过`、`警告`、`失败`、`需修正` 或 `不适用`。
+- `findings[]` 记录覆盖问题、质量门禁结果和需要返工的位置。
+- `blockingIssues[]` 只记录阻断交付的问题。
+- `recommendations[]` 记录非阻断修正建议。
+- `evidenceRefs[]` 记录需求、设计方案、主交付件、过程产物、rules、project knowledge 或 quality gate 的证据来源。
+- `qualityGates[]` 记录覆盖类 gate 的结构化结果。
+- `rulesApplications[]` 记录适用 rules 的应用、解释不适用、冲突或用户指令覆盖情况。
+- `projectKnowledgeApplications[]` 记录 project knowledge 和附加门禁的读取与应用状态。
+- `coverageGaps[]` 记录可定位到需求或主交付件位置的覆盖缺口。
 - 确定性校验结果：lint 脚本名称、通过/失败、关键失败项；最终一致性检查结果可在输出收口阶段补充。
 - 独立评审结论：只引用结论和阻断项，不重复展开所有结构规则。
 - 每个覆盖类 quality gate 的结果和失败/警告项。

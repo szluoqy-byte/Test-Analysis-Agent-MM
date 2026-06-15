@@ -102,10 +102,28 @@
 
 - 测试点：验证交易查询与导出在典型负载和容量边界下满足性能指标。
 
-- TDI-001 historyTransactionCount=1,000,000；queryType=按回执号精确查询；receiptNo=RCPT_20260602_0001
-- TDI-002 concurrentUsers=50；operation=查询交易列表；pageSize=20
-- TDI-003 exportRecordCount=100,000；operation=单次导出交易记录
-- TDI-004 pageSize=系统允许最大分页大小；operation=查询交易列表
+```json
+{
+  "designItems": [
+    {
+      "id": "TDI-001",
+      "content": "historyTransactionCount=1,000,000；queryType=按回执号精确查询；receiptNo=RCPT_20260602_0001"
+    },
+    {
+      "id": "TDI-002",
+      "content": "concurrentUsers=50；operation=查询交易列表；pageSize=20"
+    },
+    {
+      "id": "TDI-003",
+      "content": "exportRecordCount=100,000；operation=单次导出交易记录"
+    },
+    {
+      "id": "TDI-004",
+      "content": "pageSize=系统允许最大分页大小；operation=查询交易列表"
+    }
+  ]
+}
+```
 
 - 设计要点：
 

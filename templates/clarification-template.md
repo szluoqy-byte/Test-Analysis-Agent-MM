@@ -1,6 +1,6 @@
 # 待确认治理记录模板
 
-本模板是 `process/clarification-session.md` 派生阅读版样式参考。待确认治理事实源是 `process/clarification-session.json`，候选问题只作为过程治理信息，不写入主交付件 `deliverables/test-analysis-solution.json` 的独立章节。
+构建当前运行目录下的 `process/clarification-session.json` 时使用 `templates/clarification-session-json-template.json`；本文件只作为 `process/clarification-session.md` 派生阅读版样式参考。候选问题只作为过程治理信息，不写入主交付件 `deliverables/test-analysis-solution.json` 的独立章节。
 
 `process/clarification-session.json` 是固定 process 产物。即使当前 run 没有待确认候选，也必须生成 JSON，并在运行状态中声明 `无待确认候选`。
 

@@ -102,11 +102,32 @@ STT 适合审批、订单、任务、账户、工单等具有生命周期的对�
 
 - 测试点：验证订单支付状态的合法迁移、非法迁移和终态保护。
 
-- TDI-001 initialStatus=待支付；event=支付成功；paymentId=PAY-20260602-0001
-- TDI-002 initialStatus=待支付；event=用户取消；cancelSource=用户自助
-- TDI-003 initialStatus=已取消；event=再次发起支付；paymentId=PAY-20260602-0002
-- TDI-004 initialStatus=已支付；event=用户取消；cancelSource=用户自助
-- TDI-005 initialStatus=已支付；event=重复支付成功通知；paymentId=PAY-20260602-0001
+```json
+{
+  "designItems": [
+    {
+      "id": "TDI-001",
+      "content": "initialStatus=待支付；event=支付成功；paymentId=PAY-20260602-0001"
+    },
+    {
+      "id": "TDI-002",
+      "content": "initialStatus=待支付；event=用户取消；cancelSource=用户自助"
+    },
+    {
+      "id": "TDI-003",
+      "content": "initialStatus=已取消；event=再次发起支付；paymentId=PAY-20260602-0002"
+    },
+    {
+      "id": "TDI-004",
+      "content": "initialStatus=已支付；event=用户取消；cancelSource=用户自助"
+    },
+    {
+      "id": "TDI-005",
+      "content": "initialStatus=已支付；event=重复支付成功通知；paymentId=PAY-20260602-0001"
+    }
+  ]
+}
+```
 
 - 设计要点：
 

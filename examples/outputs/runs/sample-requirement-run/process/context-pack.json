@@ -90,10 +90,10 @@
           ],
           "rows": [
             [
-              "memory/testing-experience-memory.md",
-              "库存相关取消流程需要关注幂等和重复释放",
-              "需求包含重复取消和库存释放",
-              "写入历史经验和风险备注"
+              "无",
+              "示例 run 未绑定 project memory",
+              "project-key 未唯一确定",
+              "不注入长期 memory"
             ]
           ]
         }
@@ -108,7 +108,7 @@
           "items": [
             {
               "label": "core",
-              "value": "memory/project-memory.md、memory/testing-experience-memory.md"
+              "value": "core 层不含 memory；仅包含 rules、knowledge、templates 和 quality-gates"
             },
             {
               "label": "project",

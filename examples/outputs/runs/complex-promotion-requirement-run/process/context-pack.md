@@ -23,11 +23,11 @@
 
 | 来源 | 片段 | 命中原因 | 使用方式 |
 |---|---|---|---|
-| memory/testing-experience-memory.md | 大促交易链路需要重点关注优惠、支付、库存、权限、幂等和版本兼容 | 需求包含优惠券、支付、库存和多角色 | 写入历史经验和风险备注 |
+| 无 | 示例 run 未绑定 project memory | project-key 未唯一确定 | 不注入长期 memory |
 
 ## 已扫描来源
 
-- core：memory/project-memory.md、memory/testing-experience-memory.md
+- core：core 层不含 memory；仅包含 rules、knowledge、templates 和 quality-gates
 - project：未扫描项目正文，project-key 未唯一确定
 - personal：扫描默认 personal 元信息，未命中相关正文
 

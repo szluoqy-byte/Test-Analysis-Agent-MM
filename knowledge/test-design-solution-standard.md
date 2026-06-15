@@ -41,23 +41,33 @@
 
 不得在主交付件中使用 `TD-*`、`TC-*`、`TCT-*`、`TI-*`、`ITP-*` 或 `ITDI-*` 作为编号体系。
 
-## 测试设计项字段
+## JSON 字段结构
 
-每个普通测试点明细下必须使用固定列表节点。若分析方案中某个非成功测试点明细已拆出 `TP-*-*-*`，则测试设计项列表必须挂在第四层失败类型明细下，不挂在父级 `TP-*-*` 下。主交付件不使用测试设计项表格，便于 Markdown 转脑图时保持层级。
+每个普通测试点明细下必须使用 `designItems[]` 表达测试设计项。若分析方案中某个非成功测试点明细已拆出 `TP-*-*-*`，则 `designItems[]` 必须挂在第四层失败类型明细下，不挂在父级 `TP-*-*` 下。主交付件 JSON 不使用测试设计项表格；派生 Markdown 会渲染为 `- TDI-001 <条件/数据/状态/组合>` 列表节点，便于转脑图时保持层级。
 
-`预期结果` 固定保留在普通测试点明细或失败类型明细层，只写一次；`TDI-*` 只写代表性条件、数据、状态或组合，不在下一层重复写 `预期结果`。
+`expectedResult` 固定保留在普通测试点明细或失败类型明细层，只写一次；`designItems[].content` 只写代表性条件、数据、状态或组合，不重复写 `expectedResult`。
 
-```markdown
-- 预期结果：<明确预期结果或待人工分析确认>
-
-- TDI-001 <代表性条件、数据、状态或组合>
+```json
+{
+  "id": "TP-001-001",
+  "title": "<测试点明细>",
+  "description": "<来自测试分析方案的测试点详情。>",
+  "expectedResult": "<明确预期结果或待人工分析确认>",
+  "failureDetails": [],
+  "designItems": [
+    {
+      "id": "TDI-001",
+      "content": "<代表性条件、数据、状态或组合>"
+    }
+  ]
+}
 ```
 
 | 字段 | 要求 |
 |---|---|
-| 测试设计项节点 | 使用 `- TDI-001 <条件/数据/状态/组合>` 形式，全局连续编号 |
-| 条件/数据/状态/组合 | 写在 `TDI-*` 同一物理行，说明覆盖该测试点明细或失败类型明细的代表性条件、具体数据值、状态、接口返回或组合，不写步骤 |
-| 预期结果 | 写在普通测试点明细或失败类型明细层，格式为 `- 预期结果：...`；依据不足时写 `待人工分析确认`；不得写在 `TDI-*` 下一层 |
+| `designItems[].id` | 使用 `TDI-001` 形式，全局连续编号 |
+| `designItems[].content` | 说明覆盖该测试点明细或失败类型明细的代表性条件、具体数据值、状态、接口返回或组合，不写步骤 |
+| `expectedResult` | 写在普通测试点明细或失败类型明细层；依据不足时写 `待人工分析确认`；不得写入 `designItems[].content` |
 
 ## 粒度规则
 
@@ -84,99 +94,177 @@
 
 ## 示例
 
-```markdown
-### SC-001 订单下发
-
-#### TP-001 E2E场景测试
-
-##### TP-001-001 订单下发主流程成功闭环
-
-- 测试点详情：验证订单下发场景的端到端主流程能够从请求接收到订单处理结果完成闭环。
-
-- 预期结果：订单下发成功
-
-- TDI-001 渠道=API；订单ID=ORD20260528001；用户状态=正常；商品状态=可售；库存数量=10；提交数量=1
-
-#### TP-002 验证下发订单 ID 长度规则
-
-##### TP-002-001 下发订单 ID 满足长度要求
-
-- 测试点详情：验证下发订单 ID 符合需求定义的长度规则时，系统能够正常识别并处理订单下发请求。
-
-- 预期结果：下发成功
-
-- TDI-002 orderId=ORD2026052801；总长度=13位
-
-##### TP-002-002 下发订单 ID 不满足长度要求
-
-###### TP-002-002-001 下发订单 ID 长度小于规则要求
-
-- 测试点详情：验证下发订单 ID 长度短于需求定义的长度规则时，系统能够识别为无效订单 ID 并拒绝处理订单下发请求。
-
-- 预期结果：待人工分析确认
-
-- TDI-003 orderId=ORD202605280；总长度=12位
-
-###### TP-002-002-002 下发订单 ID 长度大于规则要求
-
-- 测试点详情：验证下发订单 ID 长度长于需求定义的长度规则时，系统能够识别为无效订单 ID 并拒绝处理订单下发请求。
-
-- 预期结果：待人工分析确认
-
-- TDI-004 orderId=ORD20260528001；总长度=14位
+```json
+{
+  "artifactType": "test-design-solution",
+  "schemaVersion": "1.0",
+  "title": "订单下发 测试设计方案",
+  "inputs": [
+    {"field": "测试分析方案来源", "content": "deliverables/test-analysis-solution.json"}
+  ],
+  "scenarios": [
+    {
+      "id": "SC-001",
+      "title": "订单下发",
+      "fields": [
+        {"field": "场景目标", "content": "验证订单下发主流程和订单 ID 规则"}
+      ],
+      "testPoints": [
+        {
+          "id": "TP-001",
+          "title": "E2E场景测试",
+          "details": [
+            {
+              "id": "TP-001-001",
+              "title": "订单下发主流程成功闭环",
+              "description": "验证订单下发场景的端到端主流程能够从请求接收到订单处理结果完成闭环。",
+              "expectedResult": "订单下发成功",
+              "failureDetails": [],
+              "designItems": [
+                {
+                  "id": "TDI-001",
+                  "content": "渠道=API；订单ID=ORD20260528001；用户状态=正常；商品状态=可售；库存数量=10；提交数量=1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "TP-002",
+          "title": "验证下发订单 ID 长度规则",
+          "details": [
+            {
+              "id": "TP-002-001",
+              "title": "下发订单 ID 满足长度要求",
+              "description": "验证下发订单 ID 符合需求定义的长度规则时，系统能够正常识别并处理订单下发请求。",
+              "expectedResult": "下发成功",
+              "failureDetails": [],
+              "designItems": [
+                {
+                  "id": "TDI-002",
+                  "content": "orderId=ORD2026052801；总长度=13位"
+                }
+              ]
+            },
+            {
+              "id": "TP-002-002",
+              "title": "下发订单 ID 不满足长度要求",
+              "failureDetails": [
+                {
+                  "id": "TP-002-002-001",
+                  "title": "下发订单 ID 长度小于规则要求",
+                  "description": "验证下发订单 ID 长度短于需求定义的长度规则时，系统能够识别为无效订单 ID 并拒绝处理订单下发请求。",
+                  "expectedResult": "待人工分析确认",
+                  "designItems": [
+                    {
+                      "id": "TDI-003",
+                      "content": "orderId=ORD202605280；总长度=12位"
+                    }
+                  ]
+                },
+                {
+                  "id": "TP-002-002-002",
+                  "title": "下发订单 ID 长度大于规则要求",
+                  "description": "验证下发订单 ID 长度长于需求定义的长度规则时，系统能够识别为无效订单 ID 并拒绝处理订单下发请求。",
+                  "expectedResult": "待人工分析确认",
+                  "designItems": [
+                    {
+                      "id": "TDI-004",
+                      "content": "orderId=ORD20260528001；总长度=14位"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
 ```
 
 弱结果分支直接承接示例：
 
-```markdown
-#### TP-003 接口：GET /customers/?telephone_exact={phone}
-
-##### TP-003-001 未注册 MSISDN 返回空结果
-
-- 测试点详情：验证查询客户接口在 MSISDN 未注册时返回空结果。
-
-- 预期结果：返回 count=0；若错误处理规则未说明则待人工分析确认
-
-- TDI-005 telephone_exact=%2B225070000002；数据依赖=AGT未注册但MSISDN格式有效
+```json
+{
+  "id": "TP-003-001",
+  "title": "未注册 MSISDN 返回空结果",
+  "description": "验证查询客户接口在 MSISDN 未注册时返回空结果。",
+  "expectedResult": "返回 count=0；若错误处理规则未说明则待人工分析确认",
+  "failureDetails": [],
+  "designItems": [
+    {
+      "id": "TDI-005",
+      "content": "telephone_exact=%2B225070000002；数据依赖=AGT未注册但MSISDN格式有效"
+    }
+  ]
+}
 ```
 
 接口场景继承示例：
 
-```markdown
-### SC-002 客户查询接口
-
-#### TP-004 接口：GET /customers/?telephone_exact={phone}
-
-##### TP-004-001 有效 MSISDN 返回客户数据
-
-- 测试点详情：验证查询客户接口在 MSISDN 已注册时返回客户详情。
-
-- 预期结果：返回 count=1 和设计方案明确的客户详情字段
-
-- TDI-006 telephone_exact=%2B225070000001；数据依赖=AGT已注册客户；MSISDN已URL编码
-
-##### TP-004-002 telephone_exact 参数不满足格式要求
-
-###### TP-004-002-001 参数缺失
-
-- 测试点详情：验证查询客户接口在缺少 telephone_exact 参数时的错误处理。
-
-- 预期结果：待人工分析确认
-
-- TDI-007 请求参数不包含telephone_exact
-
-###### TP-004-002-002 参数格式非法
-
-- 测试点详情：验证查询客户接口在 telephone_exact 参数格式非法时的错误处理。
-
-- 预期结果：待人工分析确认
-
-- TDI-008 telephone_exact=%2B22507ABC001；包含非数字字符
+```json
+{
+  "id": "SC-002",
+  "title": "客户查询接口",
+  "testPoints": [
+    {
+      "id": "TP-004",
+      "title": "接口：GET /customers/?telephone_exact={phone}",
+      "details": [
+        {
+          "id": "TP-004-001",
+          "title": "有效 MSISDN 返回客户数据",
+          "description": "验证查询客户接口在 MSISDN 已注册时返回客户详情。",
+          "expectedResult": "返回 count=1 和设计方案明确的客户详情字段",
+          "failureDetails": [],
+          "designItems": [
+            {
+              "id": "TDI-006",
+              "content": "telephone_exact=%2B225070000001；数据依赖=AGT已注册客户；MSISDN已URL编码"
+            }
+          ]
+        },
+        {
+          "id": "TP-004-002",
+          "title": "telephone_exact 参数不满足格式要求",
+          "failureDetails": [
+            {
+              "id": "TP-004-002-001",
+              "title": "参数缺失",
+              "description": "验证查询客户接口在缺少 telephone_exact 参数时的错误处理。",
+              "expectedResult": "待人工分析确认",
+              "designItems": [
+                {
+                  "id": "TDI-007",
+                  "content": "请求参数不包含telephone_exact"
+                }
+              ]
+            },
+            {
+              "id": "TP-004-002-002",
+              "title": "参数格式非法",
+              "description": "验证查询客户接口在 telephone_exact 参数格式非法时的错误处理。",
+              "expectedResult": "待人工分析确认",
+              "designItems": [
+                {
+                  "id": "TDI-008",
+                  "content": "telephone_exact=%2B22507ABC001；包含非数字字符"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
 ```
 
 ## 预期结果规则
 
-预期结果不是完整测试用例里的长清单，只写叶子分析节点级简短判定。测试设计方案继承测试分析方案中的判定语义，并在普通测试点明细或失败类型明细层保留一条 `- 预期结果：...`。`TDI-*` 不再重复写预期结果。
+预期结果不是完整测试用例里的长清单，只写叶子分析节点级简短判定。测试设计方案继承测试分析方案中的判定语义，并在普通测试点明细或失败类型明细层保留 `expectedResult`。`designItems[].content` 不再重复写预期结果。
 
 适合写入：
 

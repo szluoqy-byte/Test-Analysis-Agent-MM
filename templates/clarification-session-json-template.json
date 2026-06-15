@@ -1,0 +1,96 @@
+{
+  "artifactType": "clarification-session",
+  "schemaVersion": "1.0",
+  "title": "待确认治理记录",
+  "sections": [
+    {
+      "heading": "运行状态",
+      "level": 2,
+      "content": [
+        {
+          "type": "items",
+          "items": [
+            {
+              "label": "治理结论",
+              "value": "无待确认候选"
+            },
+            {
+              "label": "说明",
+              "value": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "候选问题总表",
+      "level": 2,
+      "content": [
+        {
+          "type": "table",
+          "columns": [
+            "问题ID",
+            "检查点",
+            "来源阶段",
+            "问题摘要",
+            "待确认问题",
+            "影响范围",
+            "优先级",
+            "处理方式"
+          ],
+          "rows": []
+        }
+      ]
+    },
+    {
+      "heading": "候选问题详情",
+      "level": 2,
+      "content": [
+        {
+          "type": "table",
+          "columns": [
+            "问题ID",
+            "为什么需要确认",
+            "可选处理方向",
+            "关联需求依据",
+            "memory 冲突"
+          ],
+          "rows": []
+        }
+      ]
+    },
+    {
+      "heading": "去重与降级结果",
+      "level": 2,
+      "content": [
+        {
+          "type": "table",
+          "columns": [
+            "原问题ID",
+            "处理结果",
+            "合并到",
+            "降级原因",
+            "保留影响"
+          ],
+          "rows": []
+        }
+      ]
+    },
+    {
+      "heading": "预期结果兜底清单",
+      "level": 2,
+      "content": [
+        {
+          "type": "table",
+          "columns": [
+            "问题ID",
+            "影响场景/测试点/测试点明细",
+            "兜底原因",
+            "主交付件处理"
+          ],
+          "rows": []
+        }
+      ]
+    }
+  ]
+}

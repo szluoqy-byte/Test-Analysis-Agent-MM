@@ -106,12 +106,36 @@
 
 - 测试点：验证转账放行原因、拒绝结果和高风险屏蔽优先级。
 
-- TDI-001 payerKycStatus=已实名；payeeStatus=正常；amount=1000.00；singleLimit=5000.00；riskListHit=false
-- TDI-002 payerKycStatus=未实名；payeeStatus=正常；amount=1000.00；singleLimit=5000.00；riskListHit=false
-- TDI-003 payerKycStatus=已实名；payeeStatus=冻结；amount=1000.00；singleLimit=5000.00；riskListHit=false
-- TDI-004 payerKycStatus=已实名；payeeStatus=正常；amount=5000.01；singleLimit=5000.00；riskListHit=false
-- TDI-005 payerKycStatus=已实名；payeeStatus=正常；amount=1000.00；singleLimit=5000.00；riskListHit=true
-- TDI-006 payerKycStatus=未实名；payeeStatus=正常；amount=1000.00；riskListHit=true
+```json
+{
+  "designItems": [
+    {
+      "id": "TDI-001",
+      "content": "payerKycStatus=已实名；payeeStatus=正常；amount=1000.00；singleLimit=5000.00；riskListHit=false"
+    },
+    {
+      "id": "TDI-002",
+      "content": "payerKycStatus=未实名；payeeStatus=正常；amount=1000.00；singleLimit=5000.00；riskListHit=false"
+    },
+    {
+      "id": "TDI-003",
+      "content": "payerKycStatus=已实名；payeeStatus=冻结；amount=1000.00；singleLimit=5000.00；riskListHit=false"
+    },
+    {
+      "id": "TDI-004",
+      "content": "payerKycStatus=已实名；payeeStatus=正常；amount=5000.01；singleLimit=5000.00；riskListHit=false"
+    },
+    {
+      "id": "TDI-005",
+      "content": "payerKycStatus=已实名；payeeStatus=正常；amount=1000.00；singleLimit=5000.00；riskListHit=true"
+    },
+    {
+      "id": "TDI-006",
+      "content": "payerKycStatus=未实名；payeeStatus=正常；amount=1000.00；riskListHit=true"
+    }
+  ]
+}
+```
 
 - 设计要点：
 

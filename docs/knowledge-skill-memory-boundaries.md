@@ -13,7 +13,7 @@ Rules = 优先于输入文档的强制规则
 
 | 层级 | 路径 | 默认提交 Git | 作用 |
 |---|---|---|---|
-| core | `rules/*.md`、`knowledge/*.md`、`memory/*.md`、`templates/*.md`、`quality-gates/*.md` | 是 | Agent 包随附的强制规则、稳定标准、模板和基础规则 |
+| core | `rules/*.md`、`knowledge/*.md`、`templates/*.md`、`quality-gates/*.md` | 是 | Agent 包随附的强制规则、稳定标准、模板和基础规则 |
 | project | `rules/projects/<project-key>/**/*.md`、`knowledge/projects/<project-key>/**/*.md`、`memory/projects/<project-key>/**/*.md`、`quality-gates/projects/<project-key>/**/*.md` | 否 | 当前项目的强制规则、事实、经验、策略和附加门禁 |
 | personal | `rules/user/**/*.md`、`knowledge/user/**/*.md`、`memory/user/**/*.md`、`quality-gates/user/**/*.md` | 否 | 当前使用者的个人强制规则、偏好、本地检查清单和补充启发 |
 
@@ -50,9 +50,7 @@ Rules 是高优先级约束源：优先级低于当前用户明确指令，高�
 | `.docx` / `.xlsx` 输入转 Markdown 与缓存复用流程 | `skills/normalize-input-documents/SKILL.md` | 输入归一化流程；转换结果写入全局 `outputs/input-cache/` 并在完整 run 中绑定到 `outputs/runs/<run-id>/inputs/`，不沉淀为 knowledge 或 memory |
 | 某个测试技术的执行步骤 | `skills/*/SKILL.md` | 过程性动作，不是事实库 |
 | 输入、输出、约束、质量门禁调用顺序 | `skills/*/SKILL.md` | 插件运行流程 |
-| 项目全局事实、全局约束、输出偏好和项目专属术语覆盖 | `memory/project-memory.md` | 项目专属且经确认 |
-| 项目真实历史缺陷、复盘教训、团队测试习惯 | `memory/testing-experience-memory.md` | 项目专属经验 |
-| 指定项目的事实、业务域分片、历史经验和输出偏好 | `memory/projects/<project-key>/**/*.md` | 项目级长期 memory，确定 `project-key` 后自动扫描 |
+| 指定项目的事实、历史经验、团队反馈和输出偏好 | `memory/projects/<project-key>/**/*.md` | 项目级长期 memory，确定 `project-key` 后自动扫描 |
 | 个人输出偏好、检查习惯和本地记忆 | `memory/user/**/*.md` | personal 层 memory，按需扫描 |
 | 本次运行筛选出的少量上下文 | `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.json` | 运行产物事实源，不是长期事实源；同名 Markdown 为派生阅读版 |
 | 本次运行缺口治理结果 | `${PROJECT_ROOT}/outputs/runs/<run-id>/process/clarification-session.json` | 运行产物事实源，用于解释 `待人工分析确认` 的来源 |

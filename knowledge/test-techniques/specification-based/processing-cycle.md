@@ -105,15 +105,48 @@ PCT 适合账期、结算、批处理、定时任务、重试轮次等场景。�
 
 - 测试点：验证日终结算的周期边界、跨周期归属、重复执行和失败重试。
 
-- TDI-001 cycleDate=2026-06-02；pendingSettlementCount=0；taskType=日终结算
-- TDI-002 cycleDate=2026-06-02；transactionId=TXN_SUCCESS_001；transactionTime=2026-06-02 12:00:00；settlementStatus=未结算
-- TDI-003 cycleDate=2026-06-02；transactionId=TXN_EDGE_001；transactionTime=2026-06-02 23:59:59
-- TDI-004 cycleDate=2026-06-02；transactionId=TXN_EDGE_002；transactionTime=2026-06-03 00:00:00
-- TDI-005 cycleDate=2026-06-02；transactionId=TXN_SETTLED_001；settlementStatus=已结算；taskRun=重复执行
-- TDI-006 cycleDate=2026-06-02；dependencyStatus=首次失败后恢复；retryCount=1
-- TDI-007 cycleDate=2026-06-02；查询返回count=1；payment_status=SUCCESS；compensationAction=关闭补偿
-- TDI-008 cycleDate=2026-06-02；查询返回count=0；payment_status=FAILED；compensationAction=标记失败
-- TDI-009 cycleDate=2026-06-02；查询超时；payment_status=TIMEOUT；retryCount=达到上限
+```json
+{
+  "designItems": [
+    {
+      "id": "TDI-001",
+      "content": "cycleDate=2026-06-02；pendingSettlementCount=0；taskType=日终结算"
+    },
+    {
+      "id": "TDI-002",
+      "content": "cycleDate=2026-06-02；transactionId=TXN_SUCCESS_001；transactionTime=2026-06-02 12:00:00；settlementStatus=未结算"
+    },
+    {
+      "id": "TDI-003",
+      "content": "cycleDate=2026-06-02；transactionId=TXN_EDGE_001；transactionTime=2026-06-02 23:59:59"
+    },
+    {
+      "id": "TDI-004",
+      "content": "cycleDate=2026-06-02；transactionId=TXN_EDGE_002；transactionTime=2026-06-03 00:00:00"
+    },
+    {
+      "id": "TDI-005",
+      "content": "cycleDate=2026-06-02；transactionId=TXN_SETTLED_001；settlementStatus=已结算；taskRun=重复执行"
+    },
+    {
+      "id": "TDI-006",
+      "content": "cycleDate=2026-06-02；dependencyStatus=首次失败后恢复；retryCount=1"
+    },
+    {
+      "id": "TDI-007",
+      "content": "cycleDate=2026-06-02；查询返回count=1；payment_status=SUCCESS；compensationAction=关闭补偿"
+    },
+    {
+      "id": "TDI-008",
+      "content": "cycleDate=2026-06-02；查询返回count=0；payment_status=FAILED；compensationAction=标记失败"
+    },
+    {
+      "id": "TDI-009",
+      "content": "cycleDate=2026-06-02；查询超时；payment_status=TIMEOUT；retryCount=达到上限"
+    }
+  ]
+}
+```
 
 - 设计要点：
 

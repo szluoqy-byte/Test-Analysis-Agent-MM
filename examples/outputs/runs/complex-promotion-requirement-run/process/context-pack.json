@@ -90,10 +90,10 @@
           ],
           "rows": [
             [
-              "memory/testing-experience-memory.md",
-              "大促交易链路需要重点关注优惠、支付、库存、权限、幂等和版本兼容",
-              "需求包含优惠券、支付、库存和多角色",
-              "写入历史经验和风险备注"
+              "无",
+              "示例 run 未绑定 project memory",
+              "project-key 未唯一确定",
+              "不注入长期 memory"
             ]
           ]
         }
@@ -108,7 +108,7 @@
           "items": [
             {
               "label": "core",
-              "value": "memory/project-memory.md、memory/testing-experience-memory.md"
+              "value": "core 层不含 memory；仅包含 rules、knowledge、templates 和 quality-gates"
             },
             {
               "label": "project",

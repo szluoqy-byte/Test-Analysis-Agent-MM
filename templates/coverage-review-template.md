@@ -1,6 +1,6 @@
 # 覆盖审查模板
 
-本模板是 `reports/coverage-review.md` 派生阅读版样式参考。覆盖审查事实源是 `reports/coverage-review.json`，由 coverage-review skill 写入；Markdown 由 `bin/render-run-markdown.py` 渲染。
+构建当前运行目录下的 `reports/coverage-review.json` 时使用 `templates/coverage-review-json-template.json`；本文件只作为 `reports/coverage-review.md` 派生阅读版样式参考。Markdown 由 `bin/render-run-markdown.py` 渲染。
 
 ```markdown
 ## 覆盖审查结果

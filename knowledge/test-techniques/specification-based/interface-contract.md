@@ -49,32 +49,51 @@
 
 推荐测试分析结构：
 
-```markdown
-### SC-001 外部接口集成
-
-#### TP-001 E2E场景测试
-
-##### TP-001-001 外部接口集成主流程成功闭环
-
-- 测试点详情：验证外部接口集成场景的认证、业务请求和结果确认主流程能够按预期闭环。
-
-- 预期结果：接口集成主流程按预期完成或待人工分析确认。
-
-#### TP-002 接口：POST /customers/{customer_id}/transactions/
-
-##### TP-002-001 合法支付请求创建交易
-
-- 测试点详情：验证添加支付接口在 customer_id、amount 和 reference 符合契约时能够创建支付交易。
-
-- 预期结果：HTTP 201 Created；响应内容以设计方案为准。
-
-##### TP-002-002 支付请求字段不满足契约
-
-###### TP-002-002-001 amount 格式无效
-
-- 测试点详情：验证添加支付接口在 amount 不满足金额格式契约时能够拒绝请求。
-
-- 预期结果：待人工分析确认。
+```json
+{
+  "id": "SC-001",
+  "title": "外部接口集成",
+  "testPoints": [
+    {
+      "id": "TP-001",
+      "title": "E2E场景测试",
+      "details": [
+        {
+          "id": "TP-001-001",
+          "title": "外部接口集成主流程成功闭环",
+          "description": "验证外部接口集成场景的认证、业务请求和结果确认主流程能够按预期闭环。",
+          "expectedResult": "接口集成主流程按预期完成或待人工分析确认。",
+          "failureDetails": []
+        }
+      ]
+    },
+    {
+      "id": "TP-002",
+      "title": "接口：POST /customers/{customer_id}/transactions/",
+      "details": [
+        {
+          "id": "TP-002-001",
+          "title": "合法支付请求创建交易",
+          "description": "验证添加支付接口在 customer_id、amount 和 reference 符合契约时能够创建支付交易。",
+          "expectedResult": "HTTP 201 Created；响应内容以设计方案为准。",
+          "failureDetails": []
+        },
+        {
+          "id": "TP-002-002",
+          "title": "支付请求字段不满足契约",
+          "failureDetails": [
+            {
+              "id": "TP-002-002-001",
+              "title": "amount 格式无效",
+              "description": "验证添加支付接口在 amount 不满足金额格式契约时能够拒绝请求。",
+              "expectedResult": "待人工分析确认。"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
 ```
 
 跨多个接口共用的鉴权、状态码或错误处理规则可以单独建 `TP-*`，但必须写清适用范围，例如 `通用接口鉴权规则（适用于所有外部 API）`，不能只写“鉴权规则”或“状态码规则”。
@@ -149,11 +168,32 @@
 
 - 测试点：验证创建交易接口的订单 ID 字段契约和幂等契约。
 
-- TDI-001 orderId=ABC1234567890；requestId=REQ-20260602-0001；requestId唯一
-- TDI-002 requestId=REQ-20260602-0002；请求体不包含orderId字段
-- TDI-003 orderId=AB1234567890；总长度=12位；requestId=REQ-20260602-0003
-- TDI-004 orderId=A#C1234567890；前3位包含特殊字符；requestId=REQ-20260602-0004
-- TDI-005 requestId=REQ-20260602-0001；orderId=ABC1234567890；重复提交相同业务内容
+```json
+{
+  "designItems": [
+    {
+      "id": "TDI-001",
+      "content": "orderId=ABC1234567890；requestId=REQ-20260602-0001；requestId唯一"
+    },
+    {
+      "id": "TDI-002",
+      "content": "requestId=REQ-20260602-0002；请求体不包含orderId字段"
+    },
+    {
+      "id": "TDI-003",
+      "content": "orderId=AB1234567890；总长度=12位；requestId=REQ-20260602-0003"
+    },
+    {
+      "id": "TDI-004",
+      "content": "orderId=A#C1234567890；前3位包含特殊字符；requestId=REQ-20260602-0004"
+    },
+    {
+      "id": "TDI-005",
+      "content": "requestId=REQ-20260602-0001；orderId=ABC1234567890；重复提交相同业务内容"
+    }
+  ]
+}
+```
 
 - 设计要点：
 
@@ -177,14 +217,44 @@
 
 - 测试点：验证添加支付接口的字段契约。
 
-- TDI-001 接口=POST /payments/；amount=1000.00；category=PAY；customer_id=AGT_CUSTOMER_001
-- TDI-002 接口=POST /payments/；amount=1000；缺少两位小数；category=PAY；customer_id=AGT_CUSTOMER_001
-- TDI-003 接口=POST /payments/；amount=1000.0；仅一位小数；category=PAY；customer_id=AGT_CUSTOMER_001
-- TDI-004 接口=POST /payments/；amount=1000.001；超过两位小数；category=PAY；customer_id=AGT_CUSTOMER_001
-- TDI-005 接口=POST /payments/；amount=abc；非数字；category=PAY；customer_id=AGT_CUSTOMER_001
-- TDI-006 接口=POST /payments/；amount=1000.00；category=REFUND；枚举值非PAY；customer_id=AGT_CUSTOMER_001
-- TDI-007 接口=POST /payments/；amount=1000.00；category=PAY；请求体不包含customer_id
-- TDI-008 接口=POST /payments/；amount=1000.00；category=PAY；customer_id=AGT_CUSTOMER_NOT_FOUND
+```json
+{
+  "designItems": [
+    {
+      "id": "TDI-001",
+      "content": "接口=POST /payments/；amount=1000.00；category=PAY；customer_id=AGT_CUSTOMER_001"
+    },
+    {
+      "id": "TDI-002",
+      "content": "接口=POST /payments/；amount=1000；缺少两位小数；category=PAY；customer_id=AGT_CUSTOMER_001"
+    },
+    {
+      "id": "TDI-003",
+      "content": "接口=POST /payments/；amount=1000.0；仅一位小数；category=PAY；customer_id=AGT_CUSTOMER_001"
+    },
+    {
+      "id": "TDI-004",
+      "content": "接口=POST /payments/；amount=1000.001；超过两位小数；category=PAY；customer_id=AGT_CUSTOMER_001"
+    },
+    {
+      "id": "TDI-005",
+      "content": "接口=POST /payments/；amount=abc；非数字；category=PAY；customer_id=AGT_CUSTOMER_001"
+    },
+    {
+      "id": "TDI-006",
+      "content": "接口=POST /payments/；amount=1000.00；category=REFUND；枚举值非PAY；customer_id=AGT_CUSTOMER_001"
+    },
+    {
+      "id": "TDI-007",
+      "content": "接口=POST /payments/；amount=1000.00；category=PAY；请求体不包含customer_id"
+    },
+    {
+      "id": "TDI-008",
+      "content": "接口=POST /payments/；amount=1000.00；category=PAY；customer_id=AGT_CUSTOMER_NOT_FOUND"
+    }
+  ]
+}
+```
 
 - 设计要点：
 

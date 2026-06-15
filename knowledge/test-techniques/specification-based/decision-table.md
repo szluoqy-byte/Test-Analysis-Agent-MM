@@ -104,12 +104,36 @@ DTT 适合业务规则清晰但组合较多的场景，能防止遗漏互斥规�
 
 - 测试点：验证优惠券使用资格的规则组合、拒绝原因和优先级。
 
-- TDI-001 userType=会员；orderAmount=100.00；couponStatus=未过期；productCategory=普通商品
-- TDI-002 userType=非会员；orderAmount=100.00；couponStatus=未过期；productCategory=普通商品
-- TDI-003 userType=会员；orderAmount=99.99；couponStatus=未过期；productCategory=普通商品
-- TDI-004 userType=会员；orderAmount=100.00；couponStatus=已过期；productCategory=普通商品
-- TDI-005 userType=会员；orderAmount=100.00；couponStatus=未过期；productCategory=排除品类
-- TDI-006 userType=非会员；orderAmount=99.99；couponStatus=已过期；productCategory=排除品类
+```json
+{
+  "designItems": [
+    {
+      "id": "TDI-001",
+      "content": "userType=会员；orderAmount=100.00；couponStatus=未过期；productCategory=普通商品"
+    },
+    {
+      "id": "TDI-002",
+      "content": "userType=非会员；orderAmount=100.00；couponStatus=未过期；productCategory=普通商品"
+    },
+    {
+      "id": "TDI-003",
+      "content": "userType=会员；orderAmount=99.99；couponStatus=未过期；productCategory=普通商品"
+    },
+    {
+      "id": "TDI-004",
+      "content": "userType=会员；orderAmount=100.00；couponStatus=已过期；productCategory=普通商品"
+    },
+    {
+      "id": "TDI-005",
+      "content": "userType=会员；orderAmount=100.00；couponStatus=未过期；productCategory=排除品类"
+    },
+    {
+      "id": "TDI-006",
+      "content": "userType=非会员；orderAmount=99.99；couponStatus=已过期；productCategory=排除品类"
+    }
+  ]
+}
+```
 
 - 设计要点：
 

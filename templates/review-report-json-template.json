@@ -1,0 +1,39 @@
+{
+  "artifactType": "test-analysis-solution-review",
+  "alternateArtifactTypes": [
+    "test-design-solution-review"
+  ],
+  "schemaVersion": "1.0",
+  "title": "测试方案语义评审",
+  "result": "通过",
+  "summary": "",
+  "findings": [
+    {
+      "id": "RV-001",
+      "severity": "info/warning/blocking",
+      "dimension": "",
+      "location": "",
+      "description": "",
+      "evidence": "",
+      "recommendation": ""
+    }
+  ],
+  "blockingIssues": [],
+  "recommendations": [],
+  "evidenceRefs": [
+    {
+      "source": "",
+      "location": "",
+      "description": ""
+    }
+  ],
+  "knowledgeApplications": [
+    {
+      "sourceFile": "",
+      "stage": "test-analysis-solution-review/test-design-solution-review",
+      "status": "applied/not_applicable/insufficient_evidence/conflict_with_requirement/deferred_to_review",
+      "location": "",
+      "note": ""
+    }
+  ]
+}

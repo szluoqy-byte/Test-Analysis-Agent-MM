@@ -1,6 +1,6 @@
 # 记忆上下文包模板
 
-构建当前运行目录下的 `process/context-pack.json` 时使用 `templates/process-artifacts-json-template.json`；本文件只作为 `process/context-pack.md` 派生阅读版样式参考。
+构建当前运行目录下的 `process/context-pack.json` 时使用 `templates/context-pack-json-template.json`；本文件只作为 `process/context-pack.md` 派生阅读版样式参考。
 
 ```markdown
 # 记忆上下文包

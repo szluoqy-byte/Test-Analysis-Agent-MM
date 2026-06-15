@@ -100,9 +100,24 @@ DPT 比判定表更轻量，适合条件较少、动作结果明确、不需要�
 
 - 测试点：验证订单提交时库存是否充足的判定分支。
 
-- TDI-001 availableStock=10；submitQuantity=9
-- TDI-002 availableStock=10；submitQuantity=10
-- TDI-003 availableStock=10；submitQuantity=11
+```json
+{
+  "designItems": [
+    {
+      "id": "TDI-001",
+      "content": "availableStock=10；submitQuantity=9"
+    },
+    {
+      "id": "TDI-002",
+      "content": "availableStock=10；submitQuantity=10"
+    },
+    {
+      "id": "TDI-003",
+      "content": "availableStock=10；submitQuantity=11"
+    }
+  ]
+}
+```
 
 - 设计要点：
 
