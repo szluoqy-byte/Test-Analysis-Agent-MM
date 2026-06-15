@@ -19,12 +19,12 @@
 | Agent 门面 | `agents/test-analysis-agent.md` | 支持 `@test-analysis-agent`，识别测试分析、上下文归档或框架维护意图 | 用户入口、路由决策 |
 | Agent 门面 | `agents/test-design-agent.md` | 支持 `@test-design-agent`，识别测试设计、设计评审或框架维护意图 | 用户入口、路由决策 |
 | 输入归一化层 | `normalize-input-documents` | 将 `.docx` / `.xlsx` 需求、设计依据或外部分析方案转换到全局 cache，并绑定为 run-local Markdown | `outputs/input-cache/<sha256-12>/`、`outputs/runs/<run-id>/inputs/` |
-| 分析编排入口 | `test-analysis-workflow` | 固定项目根目录、创建 run、编排分析链路、写出测试分析方案 | `deliverables/test-analysis-solution.md` |
-| 设计编排入口 | `test-design-workflow` | 复用或创建 run，承接已评审测试分析方案，写出测试设计方案 | `deliverables/test-design-solution.md` |
+| 分析编排入口 | `test-analysis-workflow` | 固定项目根目录、创建 run、编排分析链路、写出测试分析方案 | `deliverables/test-analysis-solution.json` |
+| 设计编排入口 | `test-design-workflow` | 复用或创建 run，承接已评审测试分析方案，写出测试设计方案 | `deliverables/test-design-solution.json` |
 | 上下文归档 | `context-capture` | 处理“记住/记录/收录/归档”类请求，判断写入 memory 或 knowledge | 长期 personal/project 上下文 |
-| 上下文层 | `memory-context-builder` | 发现并裁剪 core/project/personal 上下文，登记 project knowledge 阶段绑定 | `process/context-pack.md` |
-| 输入事实建模层 | `input-fact-modeling` | 从需求文档和可选设计方案建立事实清单、需求-设计映射、待确认事项和来源应用说明 | `process/input-fact-model.md` |
-| 待确认治理层 | `clarification-gate` | 在 `CP-INPUT`、`CP-ANALYSIS`、`CP-REVIEW` 三个检查点治理候选缺口 | `process/clarification-session.md`、预期结果兜底清单 |
+| 上下文层 | `memory-context-builder` | 发现并裁剪 core/project/personal 上下文，登记 project knowledge 阶段绑定 | `process/context-pack.json` |
+| 输入事实建模层 | `input-fact-modeling` | 从需求文档和可选设计方案建立事实清单、需求-设计映射、待确认事项和来源应用说明 | `process/input-fact-model.json` |
+| 待确认治理层 | `clarification-gate` | 在 `CP-INPUT`、`CP-ANALYSIS`、`CP-REVIEW` 三个检查点治理候选缺口 | `process/clarification-session.json`、预期结果兜底清单 |
 | 路由层 | `testing-method-router` | 根据分析维度和触发信号选择测试技术和专项方法参考 | 测试技术路由表、技术范围缺口候选 |
 | 专项方法参考层 | `skills/testing-method-router/references/*.md` | 为路由阶段提供专项分析步骤，产出 `ME-*` 方法证据和测试点候选 | 方法证据、测试点候选、技术缺口候选 |
 | 测试分析方案生成层 | `test-analysis-solution-generation` | 把方法证据和候选归并为场景、测试点、测试点明细和预期结果；非成功测试点明细继续拆分失败类型明细 | `SC-*`、`TP-*`、`TP-*-*` 测试点明细、`TP-*-*-*` 失败类型明细 |

@@ -14,7 +14,7 @@ description: 在需求结构化之后使用，用于根据需求片段的分析�
 - 输入事实模型。
 - 记忆上下文包。
 - 记忆上下文包中命中的 project/personal 覆盖策略、风险画像、个人关注点和路由补充。
-- `process/context-pack.md` 中绑定到 `testing-method-router` 的 project knowledge 文件，例如测试设计因子库、测试设计模式库、风险画像、覆盖策略或路由说明。
+- `process/context-pack.json` 中绑定到 `testing-method-router` 的 project knowledge 文件，例如测试设计因子库、测试设计模式库、风险画像、覆盖策略或路由说明。
 - `knowledge/test-workflow-boundaries.md`。
 - `skills/testing-method-router/references/test-method-routing-matrix.md`。
 - `skills/testing-method-router/references/*.md` 中的专项方法参考。
@@ -67,7 +67,7 @@ description: 在需求结构化之后使用，用于根据需求片段的分析�
 - 工作流术语和分析/设计边界以 `knowledge/test-workflow-boundaries.md` 为准。
 - 分析维度和路由矩阵以 `skills/testing-method-router/references/test-method-routing-matrix.md` 为准。
 - 覆盖要求以 `quality-gates/coverage-check.md` 为准。
-- project/personal knowledge 补充以当前 run 的 `process/context-pack.md` 为准，只能补充关注点和原因；personal 层不能覆盖 project 层或 core 层约束。
+- project/personal knowledge 补充以当前 run 的 `process/context-pack.json` 为准，只能补充关注点和原因；personal 层不能覆盖 project 层或 core 层约束。
 - 绑定到本阶段的 project knowledge 必须读取并留痕；如果未应用，必须使用 `not_applicable`、`insufficient_evidence`、`conflict_with_requirement` 或 `deferred_to_review` 解释。
 - 本 skill 只负责把当前需求片段映射到测试技术和专项方法参考，并说明选择或跳过原因。
 - 同一需求片段可路由到多个测试技术；后续由 `test-analysis-solution-generation` 合并重复测试点。

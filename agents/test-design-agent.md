@@ -36,6 +36,7 @@ description: 测试设计方案门面 Agent；当用户希望基于已评审测�
 ## 生成测试设计方案时
 
 - 测试分析方案是设计主账本，提供测试场景、测试点、测试点明细和已有失败类型明细。
+- 测试设计主交付件事实源固定为 `outputs/runs/<run-id>/deliverables/test-design-solution.json`；`test-design-solution.md` 是脚本渲染的人读版，不手工维护。上游分析方案优先读取 `test-analysis-solution.json`。
 - 需求文档和设计方案是校验依据，用于确认阈值、状态、错误处理、接口契约、字段规则和预期结果。
 - 测试设计项属于测试设计层；它只表达用哪些代表性条件、数据、状态或组合覆盖某个普通测试点明细或失败类型明细。
 - 设计阶段继承分析方案的 `E2E场景测试`：该测试点只维护端到端主流程成功闭环设计项，其他规则、异常、接口、权限、状态、回滚或补偿设计项不得挂到 E2E 下。
@@ -43,8 +44,8 @@ description: 测试设计方案门面 Agent；当用户希望基于已评审测�
 - 设计阶段不重新判定是否新增第四层：已有 `TP-*-*-*` 失败类型明细时，在第四层下生成 `TDI-*`；单一弱结果分支停留在 `TP-*-*` 时，直接在该明细下生成 `TDI-*`；发现分析层级缺口时记录过程问题，必要时回到 `@test-analysis-agent`。
 - 主交付件术语与缩写固定为测试场景 `SC-*`、测试点 `TP-*`、测试点明细 `TP-*-*`、失败类型明细 `TP-*-*-*`、测试设计项 `TDI-*`，不展开英文全名。
 - 每个普通测试点明细或失败类型明细下至少应有 1 个 `TDI-*`，除非该叶子分析节点被评审为不适合设计展开并在过程记录说明。
-- `TDI-*` 必须使用列表节点，格式为 `- TDI-001 <条件/数据/状态/组合>`，下一层缩进写 `- 预期结果：...`；不得使用测试设计项表格。
-- 如果 `process/context-pack.md` 绑定了 project knowledge 到设计生成、设计评审或覆盖审查阶段，该阶段必须读取相关章节并记录应用状态。
+- `TDI-*` 必须使用列表节点，格式为 `- TDI-001 <条件/数据/状态/组合>`；预期结果只保留在普通测试点明细或失败类型明细层，不在 TDI 下一层重复写；不得使用测试设计项表格。
+- 如果 `process/context-pack.json` 绑定了 project knowledge 到设计生成、设计评审或覆盖审查阶段，该阶段必须读取相关章节并记录应用状态。
 - 主交付件不得使用 Markdown 加粗语法，例如 `**文本**` 或 `__文本__`。
 - 如果需求和设计方案没有说明错误提示、状态变化、错误码、接口返回或数据记录变化，相关设计项的预期结果写 `待人工分析确认`。
 
@@ -54,5 +55,6 @@ description: 测试设计方案门面 Agent；当用户希望基于已评审测�
 - 修改 `skills/*/SKILL.md` 或 `agents/*.md` 后，运行 `python bin/sync-opencode-skills.py`。
 - 修改运行时 wiring 后，运行 `python bin/validate-agent-runtime.py`。
 - 单次测试设计方案 review 只运行当前 run 相关的 lint、consistency 和必要语义检查。
+- 当前 run 相关 lint 包括 `bin/lint-run-json.py`、`bin/render-run-markdown.py --check`、派生 Markdown lint 和 `bin/check-artifact-consistency.py`。
 - 修改 Agent、skill、knowledge、template、quality gate、bin 脚本或示例 fixture 后，再运行 `python bin/sync-opencode-skills.py --check`、`python bin/smoke-test-analysis.py` 和必要 lint。
 - 不直接编辑 `.opencode/skills/` 或 `.opencode/agents/`；它们由同步脚本生成。

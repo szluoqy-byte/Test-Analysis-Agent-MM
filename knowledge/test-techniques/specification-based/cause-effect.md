@@ -90,9 +90,9 @@
 
 ### 示例：实名与风控原因共同决定转账放行
 
-**测试场景**：用户提交钱包转账请求，系统根据实名、收款账户、金额限额和风控名单决定是否放行。
+- 测试场景：用户提交钱包转账请求，系统根据实名、收款账户、金额限额和风控名单决定是否放行。
 
-**规格摘要**：
+- 规格摘要：
 
 - 原因 A：付款用户已实名。
 - 原因 B：收款账户状态正常。
@@ -104,18 +104,16 @@
 - 结果 R4：C 为假时拒绝并返回 `AMOUNT_LIMIT_EXCEEDED`。
 - 结果 R5：D 为真时拒绝并返回 `RISK_BLOCKED`，且优先级高于其他拒绝原因。
 
-**测试点**：验证转账放行原因、拒绝结果和高风险屏蔽优先级。
+- 测试点：验证转账放行原因、拒绝结果和高风险屏蔽优先级。
 
-| 测试设计项 ID | 条件/数据/状态/组合 |
-|---|---|
-| TDI-001 | payerKycStatus=已实名；payeeStatus=正常；amount=1000.00；singleLimit=5000.00；riskListHit=false |
-| TDI-002 | payerKycStatus=未实名；payeeStatus=正常；amount=1000.00；singleLimit=5000.00；riskListHit=false |
-| TDI-003 | payerKycStatus=已实名；payeeStatus=冻结；amount=1000.00；singleLimit=5000.00；riskListHit=false |
-| TDI-004 | payerKycStatus=已实名；payeeStatus=正常；amount=5000.01；singleLimit=5000.00；riskListHit=false |
-| TDI-005 | payerKycStatus=已实名；payeeStatus=正常；amount=1000.00；singleLimit=5000.00；riskListHit=true |
-| TDI-006 | payerKycStatus=未实名；payeeStatus=正常；amount=1000.00；riskListHit=true |
+- TDI-001 payerKycStatus=已实名；payeeStatus=正常；amount=1000.00；singleLimit=5000.00；riskListHit=false
+- TDI-002 payerKycStatus=未实名；payeeStatus=正常；amount=1000.00；singleLimit=5000.00；riskListHit=false
+- TDI-003 payerKycStatus=已实名；payeeStatus=冻结；amount=1000.00；singleLimit=5000.00；riskListHit=false
+- TDI-004 payerKycStatus=已实名；payeeStatus=正常；amount=5000.01；singleLimit=5000.00；riskListHit=false
+- TDI-005 payerKycStatus=已实名；payeeStatus=正常；amount=1000.00；singleLimit=5000.00；riskListHit=true
+- TDI-006 payerKycStatus=未实名；payeeStatus=正常；amount=1000.00；riskListHit=true
 
-**设计要点**：
+- 设计要点：
 
 - 因果图示例要把原因、结果和优先级说清楚，再落成设计项。
 - 同一叶子节点下的设计项应共享同一个预期结果；如果不同组合对应不同拒绝原因，应在分析层拆分叶子节点。

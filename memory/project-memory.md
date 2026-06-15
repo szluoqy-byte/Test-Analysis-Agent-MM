@@ -5,16 +5,16 @@
 ## 加载约定
 
 1. 每次分析开始前，先读取本文件中的全局项目事实、全局约束和输出偏好。
-2. 只把与本次需求直接相关的全局内容摘要注入 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.md`。
+2. 只把与本次需求直接相关的全局内容摘要注入 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.json`。
 3. 如果 memory 与当前输入文档冲突，不直接覆盖输入，以过程缺口记录；相关预期结果缺少依据时写 `待人工分析确认`。
 4. 未经用户或评审明确确认的业务规则，不写入长期 memory。
 
 ## 全局项目事实
 
 - 项目名称：Test Analysis Agent。
-- 当前目标：基于 Markdown 需求文档和可选设计方案文档生成测试分析方案，并基于已评审测试分析方案生成测试设计方案。
-- 当前范围：v1 每次处理一份 Markdown 需求文档，并可选处理一份或多份设计方案 Markdown 文档。
-- 主要产物：测试分析方案文件、测试设计方案文件；过程分析/设计报告可按需保留。
+- 当前目标：基于 Markdown 输入文档和可选设计方案文档生成 JSON canonical 测试分析方案，并基于已评审测试分析方案生成 JSON canonical 测试设计方案。
+- 当前范围：v1 每次处理一份需求文档，并可选处理一份或多份设计方案文档；Office 输入先归一化为 run-local Markdown 输入事实源。
+- 主要产物：测试分析方案 JSON、测试设计方案 JSON；同名 Markdown 由脚本渲染为人读版，review/coverage JSON 和固定 process JSON 承载过程结论；遗留过程分析/设计报告仅作为迁移兼容证据按需保留。
 
 ## Memory 使用规则
 
@@ -25,21 +25,21 @@
 
 ## 全局输出偏好
 
-- 输出使用 Markdown。
-- 测试分析主输出文件固定为 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.md`，新建 run 的目录名由 `python bin/generate-run-id.py` 生成，格式为 `<YYYYMMDD-HHMMSS>`。
-- 测试设计主输出文件固定为 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.md`，优先复用上游分析方案所在 run。
+- 输出以 JSON 为事实源，Markdown 只作为脚本渲染的人读版。
+- 测试分析主输出文件固定为 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.json`，同目录 `test-analysis-solution.md` 由 `bin/render-run-markdown.py` 渲染；新建 run 的目录名由 `python bin/generate-run-id.py` 生成，格式为 `<YYYYMMDD-HHMMSS>`。
+- 测试设计主输出文件固定为 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.json`，同目录 `test-design-solution.md` 由 `bin/render-run-markdown.py` 渲染；优先复用上游分析方案所在 run。
 - 测试分析主输出按 `测试场景 -> 测试点 -> 测试点明细` 组织。
 - 测试设计主输出按 `测试场景 -> 测试点 -> 测试点明细 -> 测试设计项` 组织。
 - 主输出固定使用 `SC-*`、`TP-*`、`TP-*-*`、设计阶段使用 `TDI-*`，不展开英文全名，不使用其他编号体系。
-- 测试分析方案中的测试点明细使用三级标题，并包含 `测试点详情` 和 `预期结果`。
-- 测试设计方案中的测试设计项使用表格，并包含 `测试设计项 ID`、`条件/数据/状态/组合` 和 `预期结果`。
+- 测试分析方案 JSON 中的测试点明细使用 `details[]` 表达，并包含 `description` 和 `expectedResult`；派生 Markdown 渲染为标题与列表字段。
+- 测试设计方案 JSON 中的测试设计项使用 `designItems[]` 表达，只包含 `id` 与代表性 `content`；派生 Markdown 渲染为 `- TDI-001 <条件/数据/状态/组合>` 列表节点，不使用测试设计项表格。
 - `测试点明细` 只表达分析层规则分支、路径分支、状态分支、权限分支、接口契约分支或风险分支。
 - `预期结果` 只能写需求或设计方案明确支持的结果；如果错误提示、状态变化、错误码、接口返回或数据记录变化没有依据，写 `待人工分析确认`。
 - 主输出不设置 `未明确规则` 章节，也不设置独立待确认信息清单。
 - 测试分析、测试设计和测试技术边界以 `knowledge/test-workflow-boundaries.md` 为准。
 - 测试分析方案字段和粒度以 `knowledge/test-analysis-solution-standard.md` 为准。
 - 测试设计方案字段和粒度以 `knowledge/test-design-solution-standard.md` 为准。
-- 过程分析报告可以包含测试分析维度与测试技术路由、方法证据、质量门禁结果、独立评审、专家评分和建议沉淀的 Memory 更新，但不得替代主输出。
+- 测试分析维度与测试技术路由、方法证据、质量门禁结果、独立评审、专家评分和建议沉淀的 Memory 更新应优先进入结构化过程 JSON 或 review/coverage JSON，不得替代主输出。
 - 默认输出件按 `docs/output-artifact-contract.md` 分类落盘，不再默认生成按需求名变化的测试点明细或过程文件。
 
 ## 全局非范围

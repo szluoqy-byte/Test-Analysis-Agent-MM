@@ -1,6 +1,6 @@
 # 输入事实模型模板
 
-本模板用于承载 `input-fact-modeling` 的输出。输入事实模型是需求文档、可选设计方案和上下文补充的事实化结果，用于 `clarification-gate`、`testing-method-router` 和测试分析方案生成；它不包含测试技术路由、测试点或测试设计项。
+本模板是 `process/input-fact-model.md` 派生阅读版样式参考。输入事实模型事实源是 `process/input-fact-model.json`，用于 `clarification-gate`、`testing-method-router` 和测试分析方案生成；它不包含测试技术路由、测试点或测试设计项。
 
 ```markdown
 # 输入事实模型
@@ -11,7 +11,7 @@
 |---|---|---|---|
 | 需求 |  |  |  |
 | 设计方案 |  |  | 未提供/已提供 |
-| Context Pack | process/context-pack.md |  |  |
+| Context Pack | process/context-pack.json |  |  |
 
 ## 2. 事实清单
 
@@ -36,7 +36,7 @@
 
 | 来源文件 | 应用状态 | 应用位置 | 说明 |
 |---|---|---|---|
-| process/context-pack.md | applied/not_applicable/insufficient_evidence/conflict_with_requirement | 输入事实建模 |  |
+| process/context-pack.json | applied/not_applicable/insufficient_evidence/conflict_with_requirement | 输入事实建模 |  |
 ```
 
 ## 使用规则

@@ -90,9 +90,9 @@ STT 适合审批、订单、任务、账户、工单等具有生命周期的对�
 
 ### 示例：订单支付状态迁移
 
-**测试场景**：用户对订单执行支付、取消和重复通知处理。
+- 测试场景：用户对订单执行支付、取消和重复通知处理。
 
-**规格摘要**：
+- 规格摘要：
 
 - `待支付` 订单支付成功后进入 `已支付`。
 - `待支付` 订单用户取消后进入 `已取消`，并释放占用资源。
@@ -100,17 +100,15 @@ STT 适合审批、订单、任务、账户、工单等具有生命周期的对�
 - `已支付` 订单不允许再次取消，返回 `ORDER_STATUS_NOT_CANCELABLE`。
 - 非法迁移必须保持原状态，并记录失败原因。
 
-**测试点**：验证订单支付状态的合法迁移、非法迁移和终态保护。
+- 测试点：验证订单支付状态的合法迁移、非法迁移和终态保护。
 
-| 测试设计项 ID | 条件/数据/状态/组合 |
-|---|---|
-| TDI-001 | initialStatus=待支付；event=支付成功；paymentId=PAY-20260602-0001 |
-| TDI-002 | initialStatus=待支付；event=用户取消；cancelSource=用户自助 |
-| TDI-003 | initialStatus=已取消；event=再次发起支付；paymentId=PAY-20260602-0002 |
-| TDI-004 | initialStatus=已支付；event=用户取消；cancelSource=用户自助 |
-| TDI-005 | initialStatus=已支付；event=重复支付成功通知；paymentId=PAY-20260602-0001 |
+- TDI-001 initialStatus=待支付；event=支付成功；paymentId=PAY-20260602-0001
+- TDI-002 initialStatus=待支付；event=用户取消；cancelSource=用户自助
+- TDI-003 initialStatus=已取消；event=再次发起支付；paymentId=PAY-20260602-0002
+- TDI-004 initialStatus=已支付；event=用户取消；cancelSource=用户自助
+- TDI-005 initialStatus=已支付；event=重复支付成功通知；paymentId=PAY-20260602-0001
 
-**设计要点**：
+- 设计要点：
 
 - 合法迁移和非法迁移必须拆开，不把“状态流转正常”写成一条泛化设计项。
 - 终态保护要覆盖“再次操作”和“重复事件”两类触发方式。

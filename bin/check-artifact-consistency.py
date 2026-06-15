@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -235,7 +236,43 @@ def main() -> int:
         print(f"失败: 运行目录不存在: {run_dir}")
         return 1
 
+    repo_root = Path(__file__).resolve().parents[1]
+    json_lint = subprocess.run(
+        [sys.executable, str(repo_root / "bin" / "lint-run-json.py"), str(run_dir)],
+        cwd=repo_root,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        capture_output=True,
+        check=False,
+    )
+    if json_lint.stdout:
+        print(json_lint.stdout.rstrip())
+    if json_lint.stderr:
+        print(json_lint.stderr.rstrip(), file=sys.stderr)
+    if json_lint.returncode != 0:
+        return json_lint.returncode
+
+    render_check = subprocess.run(
+        [sys.executable, str(repo_root / "bin" / "render-run-markdown.py"), str(run_dir), "--check"],
+        cwd=repo_root,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        capture_output=True,
+        check=False,
+    )
+    if render_check.stdout:
+        print(render_check.stdout.rstrip())
+    if render_check.stderr:
+        print(render_check.stderr.rstrip(), file=sys.stderr)
+    if render_check.returncode != 0:
+        return render_check.returncode
+
     required_paths = [
+        run_dir / "process" / "task-list.json",
+        run_dir / "process" / "context-pack.json",
+        run_dir / "process" / "clarification-session.json",
         run_dir / "process" / "task-list.md",
         run_dir / "process" / "context-pack.md",
         run_dir / "process" / "clarification-session.md",
@@ -246,6 +283,8 @@ def main() -> int:
 
     solution_path = run_dir / "deliverables" / "test-analysis-solution.md"
     design_solution_path = run_dir / "deliverables" / "test-design-solution.md"
+    solution_json_path = run_dir / "deliverables" / "test-analysis-solution.json"
+    design_solution_json_path = run_dir / "deliverables" / "test-design-solution.json"
     normalize_deliverable_markdown_files(run_dir / "deliverables")
     task_list_path = run_dir / "process" / "task-list.md"
     context_pack_path = run_dir / "process" / "context-pack.md"
@@ -253,6 +292,8 @@ def main() -> int:
 
     if not solution_path.exists() and not design_solution_path.exists():
         errors.append("缺少主交付件: deliverables/test-analysis-solution.md 或 deliverables/test-design-solution.md")
+    if not solution_json_path.exists() and not design_solution_json_path.exists():
+        errors.append("缺少主交付件 JSON: deliverables/test-analysis-solution.json 或 deliverables/test-design-solution.json")
 
     if task_list_path.exists():
         task_errors, task_warnings = validate_task_list(task_list_path)

@@ -23,15 +23,15 @@
 
 | Agent | 主问题 | 主输入 | 主输出 | 是否生成主交付件 |
 |---|---|---|---|---|
-| `test-analysis-agent` | what to test | 需求文档、可选设计方案 | `test-analysis-solution.md` | 是 |
-| `test-design-agent` | how to test | 已评审测试分析方案、可选需求/设计依据 | `test-design-solution.md` | 是 |
+| `test-analysis-agent` | what to test | 需求文档、可选设计方案 | `test-analysis-solution.json` | 是 |
+| `test-design-agent` | how to test | 已评审测试分析方案、可选需求/设计依据 | `test-design-solution.json` | 是 |
 | `test-eval-agent` | good enough / suspected missing / inconsistent | 需求、设计、分析方案、设计方案、context pack 和可选报告证据 | 测试产物质量评估报告 | 否 |
 
 `test-eval-agent` 默认不修改主交付件，不自动更新 memory、knowledge 或 rules。只有用户明确要求“按评估建议修复”“沉淀规则”“记录经验”时，才进入对应框架维护或长期上下文写入流程。
 
 ## 与现有 Review 的区别
 
-现有 `test-analysis-solution-review` 和 `test-design-solution-review` 是生成链路内部的独立语义评审步骤，重点保证粒度、事实依据、承接关系和非用例化语义不跑偏。产物结构、编号、字段和 Markdown 语法由确定性 lint 脚本前置检查，不再交给模型评审重复判断。
+现有 `test-analysis-solution-review` 和 `test-design-solution-review` 是生成链路内部的独立语义评审步骤，重点保证粒度、事实依据、承接关系和非用例化语义不跑偏。产物结构、编号、字段、JSON schema 和派生 Markdown 语法由确定性 lint 脚本前置检查，不再交给模型评审重复判断。
 
 `test-eval-agent` 是生成链路外部的质量诊断入口，重点发现疑似遗漏、弱覆盖、冲突、错位和系统性改进机会。它不声称自己产出的分析结论比生成 Agent 更正确，只输出基于证据索引和检查清单的风险提示。
 
@@ -52,10 +52,10 @@
 |---|---|---|
 | 需求文档 | 推荐 | 建立评估证据索引和业务规则线索 |
 | 设计方案文档 | 可选 | 补充接口、字段、状态、权限、数据依赖、异常处理和非功能指标 |
-| `deliverables/test-analysis-solution.md` | 分析评估必需 | 评估 `SC-* / TP-* / TP-*-* / TP-*-*-*` 质量 |
-| `deliverables/test-design-solution.md` | 设计评估必需 | 评估 `TDI-*` 的代表性条件、数据、状态或组合 |
-| `process/context-pack.md` | 推荐 | 检查 rules、project/personal 和项目知识是否被正确应用 |
-| `reports/*.md` | 可选 | 补充方法证据、评审结论和覆盖审查结果 |
+| `deliverables/test-analysis-solution.json` | 分析评估必需 | 评估 `SC-* / TP-* / TP-*-* / TP-*-*-*` 质量 |
+| `deliverables/test-design-solution.json` | 设计评估必需 | 评估 `TDI-*` 的代表性条件、数据、状态或组合 |
+| `process/context-pack.json` | 推荐 | 检查 rules、project/personal 和项目知识是否被正确应用 |
+| `reports/*.json` | 可选 | 补充方法证据、评审结论和覆盖审查结果；同名 Markdown 仅作为人读版 |
 
 缺少某类输入时，不阻断评估；评估报告应明确“未评估范围”和“不确定性”。
 
@@ -63,68 +63,48 @@
 
 - 如果测试分析或测试设计生成阶段传入过设计方案文档，Eval 阶段也应传入同一设计方案文档，或传入能等价承接设计事实的报告证据。
 - 如果 Eval 阶段缺少生成时使用过的设计方案，只能做降级评估：不得断言设计依据遗漏，只能标记为“设计依据未输入导致无法确认”。
-- 如果生成阶段使用了 `project-key`、rules、project knowledge 或 personal 上下文，Eval 阶段应传入对应 `process/context-pack.md`，否则 rules/project knowledge 应用检查只能标记为未评估。
+- 如果生成阶段使用了 `project-key`、rules、project knowledge 或 personal 上下文，Eval 阶段应传入对应 `process/context-pack.json`，否则 rules/project knowledge 应用检查只能标记为未评估。
 
 ## 输出定位
 
-未来实现后，评估报告建议写入：
+未来实现后，评估报告建议写入 JSON canonical，并按需渲染 Markdown 人读版：
 
 ```text
+outputs/runs/<run-id>/reports/test-evaluation-report.json
 outputs/runs/<run-id>/reports/test-evaluation-report.md
 ```
 
 如果评估外部文件或多个 run，可以新建评估 run：
 
 ```text
+outputs/runs/<run-id>/reports/test-evaluation-report.json
 outputs/runs/<run-id>/reports/test-evaluation-report.md
 ```
 
 报告不应写入 `deliverables/`，避免被误认为主交付件。
 
-## 输出结构建议
+## JSON 输出结构建议
 
-```markdown
-# 测试产物质量评估报告
-
-## 1. 总体结论
-
-| 字段 | 内容 |
-|---|---|
-| 评估对象 |  |
-| 是否建议进入下一阶段 | 是 / 否 / 有条件 |
-| 主要风险 |  |
-| 建议动作 |  |
-
-## 2. 疑似遗漏与弱覆盖分析
-
-| 问题ID | 问题类型 | 来源依据 | 当前映射结果 | 风险判断 | 建议补充 | 优先级 |
-|---|---|---|---|---|---|
-
-## 3. 一致性分析
-
-| 问题ID | 冲突类型 | 涉及位置 | 冲突说明 | 建议处理 | 优先级 |
-|---|---|---|---|---|---|
-
-## 4. 质量诊断
-
-| 问题ID | 质量维度 | 涉及位置 | 问题说明 | 建议优化 | 优先级 |
-|---|---|---|---|---|---|
-
-## 5. 补充建议清单
-
-| 建议ID | 建议补充位置 | 建议补充内容 | 依据 | 优先级 |
-|---|---|---|---|---|
-
-## 6. 规则与项目知识应用检查
-
-| 来源 | 期望应用阶段 | 当前应用状态 | 问题 | 建议 |
-|---|---|---|---|---|
-
-## 7. 可进入下一阶段判断
-
-| 判断项 | 结果 | 说明 |
-|---|---|---|
+```json
+{
+  "artifactType": "test-evaluation-report",
+  "schemaVersion": "1.0",
+  "summary": {
+    "evaluatedArtifacts": [],
+    "nextStageRecommendation": "yes/no/conditional",
+    "mainRisks": [],
+    "recommendedActions": []
+  },
+  "missingOrWeakCoverage": [],
+  "consistencyIssues": [],
+  "qualityFindings": [],
+  "recommendations": [],
+  "contextApplicationChecks": [],
+  "nextStageChecks": []
+}
 ```
+
+Markdown 报告只作为渲染样式，不由模型直接维护；如果 JSON 与 Markdown 不一致，以 JSON 为准重新渲染。
 
 ## 评估能力模型
 
@@ -173,7 +153,7 @@ outputs/runs/<run-id>/reports/test-evaluation-report.md
 - `TDI-*` 是否挂错 `TP-*-*` 或 `TP-*-*-*`。
 - 预期结果是否与需求、设计、rules 或分析方案冲突。
 - 同一术语、状态、角色、错误码、字段名是否前后不一致。
-- `context-pack.md` 登记的 rules、project knowledge、checklist 是否被实际应用。
+- `process/context-pack.json` 登记的 rules、project knowledge、checklist 是否被实际应用。
 
 典型一致性问题：
 
@@ -233,8 +213,9 @@ flowchart TD
   gap --> plan[补充建议清单]
   consistency --> plan
   quality --> plan
-  plan --> report[reports/test-evaluation-report.md]
-  report --> finish([输出评估报告])
+  plan --> reportJson[reports/test-evaluation-report.json]
+  reportJson --> reportMd[rendered reports/test-evaluation-report.md]
+  reportMd --> finish([输出评估报告])
 ```
 
 ## 与主流程的关系
@@ -242,8 +223,8 @@ flowchart TD
 第一阶段建议独立运行：
 
 ```text
-@test-eval-agent 评估 outputs/runs/<run-id>/deliverables/test-analysis-solution.md
-@test-eval-agent 评估 outputs/runs/<run-id>/deliverables/test-design-solution.md
+@test-eval-agent 评估 outputs/runs/<run-id>/deliverables/test-analysis-solution.json
+@test-eval-agent 评估 outputs/runs/<run-id>/deliverables/test-design-solution.json
 ```
 
 第二阶段可以作为可选 gate：
@@ -260,7 +241,7 @@ flowchart TD
 ```text
 agents/test-eval-agent.md
 skills/evaluate-test-artifact-quality/SKILL.md
-evaluation report template（待定）
+test-evaluation-report-json-template.json（待定）
 knowledge/test-artifact-quality-standard.md
 ```
 
@@ -269,6 +250,7 @@ knowledge/test-artifact-quality-standard.md
 ```text
 quality-gates/evaluation-quality-check.md
 bin/lint-test-evaluation-report.py
+examples/outputs/runs/*/reports/test-evaluation-report.json
 examples/outputs/runs/*/reports/test-evaluation-report.md
 ```
 

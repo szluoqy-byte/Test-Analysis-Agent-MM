@@ -1,6 +1,6 @@
 # 测试工作流边界
 
-本文档定义本仓库测试分析、测试设计、测试技术和执行级用例之间的公共边界。它只维护跨 skill 共用的稳定术语和层级关系；具体输出结构、字段、生成细则和质量检查分别维护在对应的 `knowledge/*-solution-standard.md`、`skills/*/references/` 和 `quality-gates/` 中。
+本文档定义本仓库测试分析、测试设计、测试技术和执行级用例之间的公共边界。它只维护跨 skill 共用的稳定术语和层级关系；具体输出结构、字段、生成细则维护在对应的 `knowledge/*-solution-standard.md` 和 `skills/*/references/` 中。公共覆盖入口保留在 `quality-gates/coverage-check.md`；确定性 JSON/Markdown 校验由 `bin/` 脚本负责。
 
 ## 稳定术语
 
@@ -10,7 +10,7 @@
 | 设计方案 | 可选输入，用于补充接口、字段、状态、权限、数据依赖、配置和非功能约束 | 不得编造缺失设计事实 |
 | 需求依据 | 测试场景、测试点或测试点明细对应的需求标题、段落、表格行、规则或风险确认点 | 用于可追踪性 |
 | 方法证据 | 专项测试技术分析后的 `ME-*` 证据摘要 | 用于证明测试技术被实际应用 |
-| 记忆上下文包 | 每次分析前从长期 memory 和 project/personal 补充中筛选出的上下文摘要 | 写入 `outputs/runs/<run-id>/process/context-pack.md` |
+| 记忆上下文包 | 每次分析前从长期 memory 和 project/personal 补充中筛选出的上下文摘要 | 写入 `outputs/runs/<run-id>/process/context-pack.json`，同名 Markdown 为派生阅读版 |
 | 测试场景 | 从需求和设计方案中识别出的业务使用、系统触发或专项质量验证情境 | 使用 `SC-*` |
 | 测试点 | 场景下需要验证的规则、路径、风险、接口契约、状态或质量关注点 | 使用 `TP-*` |
 | 测试点明细 | 测试点下的规则分支、路径分支、状态分支、权限分支、接口契约分支或风险分支 | 使用 `TP-*-*` |

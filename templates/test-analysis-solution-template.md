@@ -1,6 +1,6 @@
 # 测试分析方案模板
 
-本模板是 `test-analysis-agent` 的主输出。它不是完整测试用例文档，也不是测试设计方案，不包含前置步骤、测试步骤、自动化脚本、执行数据清单或 `TDI-*` 测试设计项。
+本模板是 `test-analysis-agent` 的 Markdown 派生阅读版样式参考。主输出事实源是 `deliverables/test-analysis-solution.json`，结构参考 `templates/test-analysis-solution-json-template.json`；本 Markdown 不手工维护，由 `bin/render-run-markdown.py` 渲染。
 
 主输出必须是自包含交付件：后续人工评审或 `@test-design-agent` 只读取本文件，也应能理解需求范围、设计约束、测试场景、测试点、测试点明细和预期结果。
 
@@ -58,9 +58,9 @@
 
 ## 生成规则
 
-- 主输出路径固定为：`${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.md`。
-- 如保留过程分析报告，路径固定为 `${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md`。
-- 运行任务清单、上下文和澄清记录分别写入 `process/task-list.md`、`process/context-pack.md` 和 `process/clarification-session.md`。
+- 主输出 JSON 路径固定为：`${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.json`；Markdown 路径固定为同目录 `test-analysis-solution.md`，只能由渲染脚本生成。
+- 新 run 不应生成自由格式过程分析 Markdown 作为机器证据；review/coverage 结论写入 `reports/*.json`，必要时再渲染同名 Markdown 人读版。
+- 运行任务清单、上下文、输入事实模型和澄清记录分别写入 `process/task-list.json`、`process/context-pack.json`、`process/input-fact-model.json` 和 `process/clarification-session.json`，同名 Markdown 由脚本渲染。
 - 主交付件固定使用中文术语和缩写：测试场景 `SC-*`、测试点 `TP-*`、测试点明细 `TP-*-*`，不展开英文全名。
 - 测试场景 ID 使用 `SC-001` 起连续编号。
 - 测试点 ID 使用 `TP-001` 起连续编号；接口、消息、定时任务或批处理内容如果最终形成测试点，也统一使用 `TP-*`。

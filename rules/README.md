@@ -15,7 +15,7 @@ Rules 保存本 Agent 的强制规则。它不是测试知识库，也不是长�
   > skill 默认流程
 ```
 
-如果 rules 与输入文档冲突，默认遵守 rules，并在 `process/context-pack.md` 或过程报告中记录“规则覆盖输入”的原因。只有当前用户明确指令可以覆盖 rules。
+如果 rules 与输入文档冲突，默认遵守 rules，并在 `process/context-pack.json` 或结构化 review/coverage JSON 中记录“规则覆盖输入”的原因。只有当前用户明确指令可以覆盖 rules；同名 Markdown 只作为脚本渲染的人读版。
 
 Rules 内部冲突时，按 `core > project > personal` 处理；project/personal rules 可以细化更高层规则，但不得放宽或违反更高层强制约束。
 

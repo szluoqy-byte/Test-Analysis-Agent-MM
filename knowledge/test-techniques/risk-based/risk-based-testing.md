@@ -142,9 +142,9 @@
 
 ### 示例：高风险资金转账
 
-**测试场景**：用户发起钱包转账，系统需要控制资损、幂等、权限和审计风险。
+- 测试场景：用户发起钱包转账，系统需要控制资损、幂等、权限和审计风险。
 
-**规格摘要**：
+- 规格摘要：
 
 - 转账成功后扣减付款方余额，并增加收款方余额。
 - `requestId` 作为幂等键，同一 `requestId` 重复提交不得重复扣款。
@@ -153,17 +153,15 @@
 - 关键转账操作必须记录审计日志。
 - 下游记账失败时不得产生部分资损；补偿策略若未说明，需要人工确认。
 
-**测试点**：验证资金转账的资损防护、幂等、权限拦截和审计记录。
+- 测试点：验证资金转账的资损防护、幂等、权限拦截和审计记录。
 
-| 测试设计项 ID | 条件/数据/状态/组合 |
-|---|---|
-| TDI-001 | userRole=有转账权限；payerBalance=1000.00；transferAmount=100.00；payeeStatus=正常 |
-| TDI-002 | requestId=REQ_TRANSFER_0001；transferAmount=100.00；submitCount=2；业务内容相同 |
-| TDI-003 | payerBalance=99.99；transferAmount=100.00；payeeStatus=正常 |
-| TDI-004 | userRole=无代付权限；payerAccount=他人账户；transferAmount=100.00 |
-| TDI-005 | transferAmount=100.00；downstreamAccountingStatus=成功前失败；compensationRule=待确认 |
+- TDI-001 userRole=有转账权限；payerBalance=1000.00；transferAmount=100.00；payeeStatus=正常
+- TDI-002 requestId=REQ_TRANSFER_0001；transferAmount=100.00；submitCount=2；业务内容相同
+- TDI-003 payerBalance=99.99；transferAmount=100.00；payeeStatus=正常
+- TDI-004 userRole=无代付权限；payerAccount=他人账户；transferAmount=100.00
+- TDI-005 transferAmount=100.00；downstreamAccountingStatus=成功前失败；compensationRule=待确认
 
-**设计要点**：
+- 设计要点：
 
 - 风险技术要把失败后果转成更深覆盖，而不只是提高等级。
 - 资金类设计项必须观察余额、幂等记录和审计结果，避免只看接口返回。

@@ -16,5 +16,5 @@ memory/user/
 - 适合保存个人常用措辞、输出偏好、评审关注点和本地使用习惯。
 - 不保存项目事实、团队共识、真实缺陷复盘或未确认业务规则。
 - 不覆盖当前用户明确指令、需求文档、project memory、核心输出契约和质量门禁。
-- 只有与当前需求直接相关的片段才会进入 `outputs/runs/<run-id>/process/context-pack.md`。
+- 只有与当前需求直接相关的片段才会进入 `outputs/runs/<run-id>/process/context-pack.json`；同名 Markdown 只是派生阅读版。
 - 即使没有命中正文，context pack 也需要记录 personal 绑定、扫描来源、未采用原因和后续补读建议。

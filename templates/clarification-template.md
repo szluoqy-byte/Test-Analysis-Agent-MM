@@ -1,8 +1,8 @@
 # 待确认治理记录模板
 
-本模板用于记录各阶段产生的待确认候选。候选问题只作为过程治理信息，不写入主交付件 `deliverables/test-analysis-solution.md` 的独立章节。
+本模板是 `process/clarification-session.md` 派生阅读版样式参考。待确认治理事实源是 `process/clarification-session.json`，候选问题只作为过程治理信息，不写入主交付件 `deliverables/test-analysis-solution.json` 的独立章节。
 
-`process/clarification-session.md` 是固定 process 产物。即使当前 run 没有待确认候选，也必须生成本文件，并在运行状态中声明 `无待确认候选`。
+`process/clarification-session.json` 是固定 process 产物。即使当前 run 没有待确认候选，也必须生成 JSON，并在运行状态中声明 `无待确认候选`。
 
 如果某个缺口影响测试点明细的判定依据，主交付件只在对应测试点明细的 `预期结果` 写 `待人工分析确认`。
 

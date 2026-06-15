@@ -95,9 +95,9 @@ DCoT 的目标不是穷举所有可能，而是在成本可控的前提下覆盖
 
 ### 示例：订单 ID 新规则的渠道与生成器组合
 
-**测试场景**：不同交易入口触发订单 ID 生成。
+- 测试场景：不同交易入口触发订单 ID 生成。
 
-**规格摘要**：
+- 规格摘要：
 
 - 新生成器 `MaliOrderId13BitsGenerator` 生成 13 位订单 ID。
 - 老生成器 `OrderId22BitsGenerator` 保持 22 位订单 ID。
@@ -105,17 +105,15 @@ DCoT 的目标不是穷举所有可能，而是在成本可控的前提下覆盖
 - 马里局点默认使用新生成器；回滚兼容场景需要验证老生成器。
 - 所有入口的查询、确认和审计观察点应能识别对应订单 ID。
 
-**测试点**：验证订单 ID 生成规则在关键渠道和生成器组合下表现一致。
+- 测试点：验证订单 ID 生成规则在关键渠道和生成器组合下表现一致。
 
-| 测试设计项 ID | 条件/数据/状态/组合 |
-|---|---|
-| TDI-001 | channel=APP；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=AGT |
-| TDI-002 | channel=USSD；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=AGT |
-| TDI-003 | channel=API；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=未配置；defaultPrefix=SYS |
-| TDI-004 | channel=WEB；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=未配置；defaultPrefix=SYS |
-| TDI-005 | channel=APP；orderIdGenerator=OrderId22BitsGenerator；reasonTypePrefix=AGT |
+- TDI-001 channel=APP；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=AGT
+- TDI-002 channel=USSD；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=AGT
+- TDI-003 channel=API；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=未配置；defaultPrefix=SYS
+- TDI-004 channel=WEB；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=未配置；defaultPrefix=SYS
+- TDI-005 channel=APP；orderIdGenerator=OrderId22BitsGenerator；reasonTypePrefix=AGT
 
-**设计要点**：
+- 设计要点：
 
 - 渠道、生成器、ReasonType 前缀配置是三个组合因子。
 - 不需要全组合覆盖所有 4 x 2 x 2 组合；主链路覆盖每个渠道，高风险兼容覆盖老生成器代表组合。

@@ -6,7 +6,7 @@
 
 ### 目的
 
-检查测试分析方案和测试设计方案是否真正支撑后续完整用例编写，并在过程报告中体现测试技术、风险分层和需求追踪，而不是只满足结构。
+检查测试分析方案和测试设计方案是否真正支撑后续完整用例编写，并在结构化过程 JSON、review JSON 或 coverage JSON 中体现测试技术、风险分层和需求追踪，而不是只满足结构。
 
 结构、编号、字段、禁用术语、Markdown 语法和固定章节不在本门禁中重复判断；这些规则以对应 lint 脚本和 `bin/check-artifact-consistency.py` 的结果为准。
 
@@ -14,10 +14,10 @@
 
 - 必选测试技术是否落到测试分析方案中的场景、测试点或测试点明细，或是否有过程缺口解释。
 - 必选测试技术是否有方法分析证据，或是否有过程缺口解释。
-- 适用的测试分析维度是否落到主交付件，而不是只留在过程报告。
+- 适用的测试分析维度是否落到主交付件，而不是只留在结构化过程记录。
 - 测试场景、测试点和测试点明细是否符合 `knowledge/test-analysis-solution-standard.md` 的层级边界；测试设计项是否符合 `knowledge/test-design-solution-standard.md` 的承接边界。
-- 过程报告中的测试点类型和方法是否来自 `knowledge/testpoint-standard.md`。
-- 过程报告与测试分析方案是否不冲突。
+- 结构化过程记录中的测试点类型和方法是否来自 `knowledge/testpoint-standard.md`。
+- 结构化过程记录与测试分析方案是否不冲突。
 - 测试分析方案是否自包含，是否把后续测试设计必须知道的业务规则、状态集合、角色权限、接口契约和预期结果依据写入主交付件。
 - 测试设计方案是否自包含，是否把完整用例细化必须知道的代表性条件、数据、状态、组合和预期结果写入主交付件。
 - 适用 rules 是否被遵守；rules 与输入文档冲突时是否记录 rules 覆盖输入原因。
@@ -31,9 +31,16 @@
 ### 建议命令
 
 ```bash
+bin/lint-run-json.py ${PROJECT_ROOT}/outputs/runs/<run-id>
+bin/render-run-markdown.py ${PROJECT_ROOT}/outputs/runs/<run-id> --check
 bin/lint-test-analysis-solution.py ${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.md
 bin/lint-test-design-solution.py ${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.md
 bin/check-artifact-consistency.py ${PROJECT_ROOT}/outputs/runs/<run-id>
+```
+
+仅迁移旧 run 且用户明确要求校验遗留过程报告时，才额外运行：
+
+```bash
 skills/coverage-review/scripts/semantic-testpoint-check.py ${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md
 ```
 
@@ -49,7 +56,7 @@ skills/coverage-review/scripts/semantic-testpoint-check.py ${PROJECT_ROOT}/outpu
 - 测试分析方案把前置步骤、测试步骤、操作步骤或自动化脚本提前写入主交付件。
 - 测试设计方案把前置步骤、测试步骤、操作步骤、执行数据清单或自动化脚本提前写入主交付件。
 - 测试分析方案依赖“见原始需求”“见设计方案”“按需求实现”“同上”等泛化占位。
-- 过程报告和测试分析方案中的测试点表达冲突。
+- 结构化过程记录和测试分析方案中的测试点表达冲突。
 - 质量门禁结果存在 `失败`。
 - 适用 rules 未被执行，且没有当前用户明确指令覆盖说明。
 - 深度评估开启时，专家评分低于通过线或存在 0 分维度。

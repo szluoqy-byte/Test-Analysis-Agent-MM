@@ -1,6 +1,6 @@
 # 记忆上下文包模板
 
-构建当前运行目录下的 `process/context-pack.md` 时使用以下结构。
+构建当前运行目录下的 `process/context-pack.json` 时使用 `templates/process-artifacts-json-template.json`；本文件只作为 `process/context-pack.md` 派生阅读版样式参考。
 
 ```markdown
 # 记忆上下文包
@@ -109,7 +109,7 @@
 - 不把 personal 层内容当作项目事实或团队共识。
 - 无 rules 约束时，事实/契约冲突以当前输入文档和 project memory 为准；输出偏好冲突以当前用户指令和 personal 偏好优先，但不得违反适用 rules、事实、交付件契约和质量门禁。
 - 大文件只记录来源、命中原因和建议补读范围，不整文件注入；后续 skill 可按来源文件和相关章节受控补读。
-- 被绑定到某个阶段的 project knowledge，后续阶段必须读取、应用或解释不适用，并在方法证据、过程报告或覆盖审查中留痕。
-- 被绑定到某个阶段的附加门禁，后续阶段必须读取、执行或解释不适用，并在过程报告或覆盖审查中留痕。
-- 被登记为适用的 rules，后续阶段必须应用或解释不适用，并在过程报告或覆盖审查中留痕。
+- 被绑定到某个阶段的 project knowledge，后续阶段必须读取、应用或解释不适用，并在方法证据、结构化过程记录、review JSON 或 coverage JSON 中留痕。
+- 被绑定到某个阶段的附加门禁，后续阶段必须读取、执行或解释不适用，并在结构化过程记录、review JSON 或 coverage JSON 中留痕。
+- 被登记为适用的 rules，后续阶段必须应用或解释不适用，并在结构化过程记录、review JSON 或 coverage JSON 中留痕。
 - 构建 context pack 时不修改长期 memory 源文件。

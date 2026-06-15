@@ -19,8 +19,8 @@
 
 | Agent | 主问题 | 主输入 | 主输出 |
 |---|---|---|---|
-| `@test-analysis-agent` | what to test | 需求文档、可选设计方案；Office 输入先绑定为 run-local Markdown | `test-analysis-solution.md`，输出 `SC-* / TP-* / TP-*-*`，非成功明细可到 `TP-*-*-*` |
-| `@test-design-agent` | how to test | 已评审测试分析方案、可选需求/设计依据 | `test-design-solution.md`，在普通 `TP-*-*` 或失败类型 `TP-*-*-*` 下补充 `TDI-*` |
+| `@test-analysis-agent` | what to test | 需求文档、可选设计方案；Office 输入先绑定为 run-local Markdown | `test-analysis-solution.json`，输出 `SC-* / TP-* / TP-*-*`，非成功明细可到 `TP-*-*-*` |
+| `@test-design-agent` | how to test | 已评审测试分析方案、可选需求/设计依据 | `test-design-solution.json`，在普通 `TP-*-*` 或失败类型 `TP-*-*-*` 下补充 `TDI-*` |
 
 分析 Agent 不输出 `TDI-*`；设计 Agent 不擅自新增分析层级。若设计阶段发现分析方案缺口，应记录过程问题，必要时回到分析 Agent 修正。
 
@@ -29,7 +29,7 @@
 固定路径：
 
 ```text
-outputs/runs/<run-id>/deliverables/test-analysis-solution.md
+outputs/runs/<run-id>/deliverables/test-analysis-solution.json
 ```
 
 新建完整分析 run 时，`run-id` 固定使用 `python bin/generate-run-id.py` 生成，格式为 `<YYYYMMDD-HHMMSS>`。
@@ -96,12 +96,12 @@ flowchart TD
   intent -- 生成测试分析方案 --> analysisAgent[test-analysis-agent]
   intent -- 生成测试设计方案 --> designAgent[test-design-agent]
   analysisAgent --> analysisSkill[test-analysis-workflow]
-  analysisSkill --> analysisOutput[deliverables/test-analysis-solution.md]
+  analysisSkill --> analysisOutput[deliverables/test-analysis-solution.json]
   designAgent --> hasAnalysis{是否已有已评审分析方案}
   hasAnalysis -- 否 --> analysisSkill
   hasAnalysis -- 是 --> designSkill[test-design-workflow]
   analysisOutput --> designSkill
-  designSkill --> designOutput[deliverables/test-design-solution.md]
+  designSkill --> designOutput[deliverables/test-design-solution.json]
 ```
 
 ## 测试分析主运行流程
@@ -118,15 +118,17 @@ flowchart TD
   cpInput --> route[testing-method-router<br/>选择测试技术与专项方法参考]
   route --> methods[专项方法参考<br/>产出 ME-* 方法证据与测试点候选]
   methods --> cpAnalysis[clarification-gate CP-ANALYSIS<br/>收口会影响覆盖和预期结果的缺口]
-  cpAnalysis --> analysis[test-analysis-solution-generation<br/>生成 SC-*、TP-* 与 TP-*-*<br/>写入 test-analysis-solution.md]
-  analysis --> lint[bin/lint-test-analysis-solution.py<br/>确定性结构校验]
+  cpAnalysis --> analysis[test-analysis-solution-generation<br/>生成 SC-*、TP-* 与 TP-*-*<br/>写入 test-analysis-solution.json]
+  analysis --> jsonLint[bin/lint-run-json.py<br/>JSON canonical 校验]
+  jsonLint --> render[bin/render-run-markdown.py<br/>渲染派生 Markdown]
+  render --> lint[bin/lint-test-analysis-solution.py<br/>派生 Markdown 校验]
   lint --> lintDecision{lint 是否通过}
-  lintDecision -- 否 --> fix[修正主交付件<br/>不进入模型评审]
-  fix --> lint
+  lintDecision -- 否 --> fix[修正 JSON 事实源<br/>重新渲染，不手工改 Markdown]
+  fix --> jsonLint
   lintDecision -- 是 --> review[test-analysis-solution-review<br/>语义评审<br/>粒度/依据/事实/非用例化]
   review --> coverage[coverage-review<br/>覆盖/追踪/方法/rules/project knowledge]
   coverage --> consistency[bin/check-artifact-consistency.py<br/>最终一致性校验]
-  consistency --> output[deliverables/test-analysis-solution.md]
+  consistency --> output[deliverables/test-analysis-solution.json]
   output --> finish([完成])
 ```
 
@@ -143,7 +145,7 @@ flowchart TD
 | 方法路由 | `testing-method-router` | 选择适用测试技术和专项方法参考 |
 | 专项方法参考 | `skills/testing-method-router/references/*.md` | 生成方法证据、测试点候选和技术缺口 |
 | 测试分析方案生成 | `test-analysis-solution-generation` | 生成并写入 `SC-*`、`TP-*`、`TP-*-*` 测试点明细和预期结果；非成功测试点明细继续拆分 `TP-*-*-*` |
-| 确定性校验 | `bin/lint-test-analysis-solution.py` | 检查结构、编号、字段、Markdown 语法、禁用术语、E2E 存在性和第四层格式；失败时不进入模型评审 |
+| 确定性校验 | `bin/lint-run-json.py`、`bin/render-run-markdown.py --check`、`bin/lint-test-analysis-solution.py` | 先检查 JSON canonical 结构、编号和字段，再检查派生 Markdown 渲染一致性与人读格式；失败时修正 JSON，不手工改 Markdown |
 | 独立评审 | `test-analysis-solution-review` | 只检查语义质量：测试点明细粒度、失败类型拆分充分性、预期结果依据、事实溯源和非用例化倾向 |
 | 覆盖审查 | `coverage-review` | 检查需求覆盖、方法覆盖、追踪关系、rules 应用、项目知识应用和过程门禁；不重复 lint 已覆盖的结构规则 |
 
@@ -169,7 +171,7 @@ flowchart TD
 | `rules/projects/<project-key>/**/*.md` | 项目级强制规则，确定 `project-key` 后读取 |
 | `rules/user/**/*.md` | 个人本地强制规则，不得覆盖 core/project rules |
 
-适用 rules 必须进入 `process/context-pack.md` 的“适用强制规则”表；与输入冲突时默认遵守 rules，并在“Rules 与输入冲突记录”中留痕。
+适用 rules 必须进入 `process/context-pack.json` 的“适用强制规则”表；与输入冲突时默认遵守 rules，并在“Rules 与输入冲突记录”中留痕。
 
 ## Project Knowledge 应用
 
@@ -182,7 +184,7 @@ flowchart TD
 
 ## 质量门禁
 
-确定性结构、编号、字段、Markdown 语法和固定章节问题以 `bin/lint-test-analysis-solution.py` 为事实源；模型型 review 不重复逐项检查，只消费脚本结果并继续做语义和覆盖判断。
+确定性结构、编号、字段、JSON schema、Markdown 渲染一致性和固定章节问题以 `bin/lint-run-json.py`、`bin/render-run-markdown.py --check`、`bin/lint-test-analysis-solution.py` 和 `bin/check-artifact-consistency.py` 为事实源；模型型 review 不重复逐项检查，只消费脚本结果并继续做语义和覆盖判断。
 
 - 主输出必须按 `测试场景 -> 测试点 -> 测试点明细` 组织。
 - 每个测试场景必须包含 `E2E场景测试` 测试点。
@@ -203,6 +205,8 @@ flowchart TD
 ```bash
 python bin/sync-opencode-skills.py --check
 python bin/validate-agent-runtime.py
+python bin/lint-run-json.py outputs/runs/<run-id>
+python bin/render-run-markdown.py outputs/runs/<run-id> --check
 python bin/lint-test-analysis-solution.py outputs/runs/<run-id>/deliverables/test-analysis-solution.md
 python bin/check-artifact-consistency.py outputs/runs/<run-id>
 ```

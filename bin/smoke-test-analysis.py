@@ -42,12 +42,13 @@ REQUIRED_FILES = [
     "rules/user/README.md",
     "templates/test-analysis-solution-template.md",
     "templates/test-design-solution-template.md",
-    "templates/test-design-report-template.md",
     "templates/coverage-review-template.md",
-    "templates/task-list-template.md",
     "templates/context-pack-template.md",
     "templates/clarification-template.md",
     "templates/input-fact-model-template.md",
+    "templates/test-analysis-solution-json-template.json",
+    "templates/test-design-solution-json-template.json",
+    "templates/process-artifacts-json-template.json",
     "skills/input-fact-modeling/SKILL.md",
     "skills/context-capture/SKILL.md",
     "skills/test-analysis-workflow/SKILL.md",
@@ -65,6 +66,10 @@ REQUIRED_FILES = [
     "examples/evaluation-matrix.md",
     "bin/lint-test-analysis-solution.py",
     "bin/lint-test-design-solution.py",
+    "bin/lint-run-json.py",
+    "bin/render-run-markdown.py",
+    "bin/convert-legacy-run-to-json.py",
+    "bin/run_artifacts.py",
     "skills/normalize-input-documents/scripts/normalize-office-input.py",
     "bin/sync-opencode-skills.py",
     "bin/validate-agent-runtime.py",
@@ -111,6 +116,7 @@ def check_one_requirement(repo_root: Path, requirement: Path) -> bool:
     stem = requirement.stem
     run_dir = example_run_dir(repo_root, stem)
     solution = run_dir / "deliverables" / "test-analysis-solution.md"
+    solution_json = run_dir / "deliverables" / "test-analysis-solution.json"
 
     print(f"\n== {requirement} ==")
     if not run_dir.is_dir():
@@ -119,8 +125,13 @@ def check_one_requirement(repo_root: Path, requirement: Path) -> bool:
     if not solution.exists():
         print(f"失败: 未找到示例测试分析方案 {solution}")
         return False
+    if not solution_json.exists():
+        print(f"失败: 未找到示例测试分析方案 JSON {solution_json}")
+        return False
 
-    ok = run_command([sys.executable, "bin/lint-test-analysis-solution.py", str(solution)], repo_root)
+    ok = run_command([sys.executable, "bin/lint-run-json.py", str(run_dir)], repo_root)
+    ok &= run_command([sys.executable, "bin/render-run-markdown.py", str(run_dir), "--check"], repo_root)
+    ok &= run_command([sys.executable, "bin/lint-test-analysis-solution.py", str(solution)], repo_root)
     ok &= run_command([sys.executable, "bin/check-artifact-consistency.py", str(run_dir)], repo_root)
     return ok
 

@@ -122,9 +122,9 @@
 
 ### 示例：重复回调与权限缓存的经验补充
 
-**测试场景**：支付结果回调和用户权限变更存在历史高发缺陷，需要在规格设计之外补充经验项。
+- 测试场景：支付结果回调和用户权限变更存在历史高发缺陷，需要在规格设计之外补充经验项。
 
-**规格摘要**：
+- 规格摘要：
 
 - 支付成功回调可能因为网络重试重复到达。
 - 历史缺陷显示重复回调曾导致重复发货或重复积分。
@@ -132,16 +132,14 @@
 - 用户权限被移除后，旧入口和缓存权限必须及时失效。
 - 默认配置为空时的处理规则如果需求未说明，需要人工确认。
 
-**测试点**：使用经验清单补充幂等、延迟回调、权限缓存和默认值风险。
+- 测试点：使用经验清单补充幂等、延迟回调、权限缓存和默认值风险。
 
-| 测试设计项 ID | 条件/数据/状态/组合 |
-|---|---|
-| TDI-001 | callbackType=支付成功；paymentId=PAY_20260602_0001；arrivalCount=2；arrivalInterval=5s |
-| TDI-002 | orderId=ORDER_CANCELED_001；orderStatus=已取消；delayedCallback=支付成功 |
-| TDI-003 | userId=USER_PERMISSION_001；permissionStatus=已移除；accessTarget=原有受限入口 |
-| TDI-004 | configKey=CRITICAL_DEFAULT_001；configValue=空；requestType=依赖该配置的业务请求 |
+- TDI-001 callbackType=支付成功；paymentId=PAY_20260602_0001；arrivalCount=2；arrivalInterval=5s
+- TDI-002 orderId=ORDER_CANCELED_001；orderStatus=已取消；delayedCallback=支付成功
+- TDI-003 userId=USER_PERMISSION_001；permissionStatus=已移除；accessTarget=原有受限入口
+- TDI-004 configKey=CRITICAL_DEFAULT_001；configValue=空；requestType=依赖该配置的业务请求
 
-**设计要点**：
+- 设计要点：
 
 - 经验项必须转化为可触发条件，不能只写“检查历史问题是否修复”。
 - 经验补充不替代主规格技术；它只补规格技术容易漏掉的高价值失败模式。

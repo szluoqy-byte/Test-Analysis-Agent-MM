@@ -22,12 +22,13 @@
 - `rules/` 是强制规则源，按 `core / project / personal` 三层加载，优先级低于当前用户明确指令但高于输入文档、memory 和 knowledge。
 - 已确定 `project-key` 时可扫描 `*/projects/<project-key>/**/*.md`；未唯一确定时不要读取所有项目目录正文。
 - 配置按 `core / project / personal` 三层处理；personal 本地目录是 `*/user/`，project 和 personal 层默认本地化，不提交 Git。
-- project 和 personal 是当前 run 的一等输入源，命中、未采用和补读建议必须记录到 `process/context-pack.md`。
+- project 和 personal 是当前 run 的一等输入源，命中、未采用和补读建议必须记录到 `process/context-pack.json`，并渲染到 `process/context-pack.md`。
 - `knowledge/projects/<project-key>/` 下的文件名没有硬性要求；context pack 必须记录项目知识阶段绑定，被绑定阶段必须读取并留痕。
-- 每次 run 必须维护 `process/task-list.md`、`process/context-pack.md` 和 `process/clarification-session.md` 三个固定 process 产物。
-- `process/task-list.md` 用于约束阶段顺序和状态；`process/context-pack.md` 记录本次上下文绑定；`process/clarification-session.md` 记录待确认治理结果，无候选时也必须声明 `无待确认候选`。
-- 测试分析主交付件固定为 `outputs/runs/<run-id>/deliverables/test-analysis-solution.md`，输出粒度是“测试场景 -> 测试点 -> 测试点明细”；非成功测试点明细继续到失败类型明细。
-- 测试设计主交付件固定为 `outputs/runs/<run-id>/deliverables/test-design-solution.md`，输出粒度是“测试场景 -> 测试点 -> 测试点明细 -> 测试设计项”；非成功测试点明细继承失败类型明细后再生成测试设计项。
+- 每次 run 必须维护 `process/task-list.json/.md`、`process/context-pack.json/.md`、`process/input-fact-model.json/.md` 和 `process/clarification-session.json/.md` 四组固定 process 产物。
+- JSON 是 run 过程产物、主交付件、review 和 coverage 的事实源；Markdown 是 `bin/render-run-markdown.py` 派生的人读版，不手工维护。
+- `process/task-list.json` 用于约束阶段顺序和状态；`process/context-pack.json` 记录本次上下文绑定；`process/input-fact-model.json` 记录输入事实模型；`process/clarification-session.json` 记录待确认治理结果，无候选时也必须声明 `无待确认候选`。
+- 测试分析主交付件固定为 `outputs/runs/<run-id>/deliverables/test-analysis-solution.json`，并渲染 `test-analysis-solution.md`；输出粒度是“测试场景 -> 测试点 -> 测试点明细”，非成功测试点明细继续到失败类型明细。
+- 测试设计主交付件固定为 `outputs/runs/<run-id>/deliverables/test-design-solution.json`，并渲染 `test-design-solution.md`；输出粒度是“测试场景 -> 测试点 -> 测试点明细 -> 测试设计项”，非成功测试点明细继承失败类型明细后再生成测试设计项。
 - 主交付件术语与缩写固定为测试场景 `SC-*`、测试点 `TP-*`、测试点明细 `TP-*-*`、失败类型明细 `TP-*-*-*`、测试设计项 `TDI-*`，不展开英文全名。
 - 测试点明细只表达分析层规则分支、路径分支、状态分支、权限分支、接口契约分支或风险分支，以及基于需求/设计方案可确认的预期结果。
 - 每个测试场景必须包含 `E2E场景测试` 测试点；是否新增第四层由 `TP-*-*` 测试点明细决定，只有非成功测试点明细新增 `TP-*-*-*` 失败类型明细。

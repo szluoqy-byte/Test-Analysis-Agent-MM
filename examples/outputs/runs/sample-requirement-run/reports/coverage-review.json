@@ -1,0 +1,14 @@
+{
+  "artifactType": "coverage-review",
+  "schemaVersion": "1.0",
+  "title": "覆盖审查结果",
+  "result": "通过",
+  "summary": "示例覆盖审查 JSON，基于 JSON canonical 产物收口。",
+  "findings": [],
+  "blockingIssues": [],
+  "recommendations": [],
+  "evidenceRefs": [
+    "deliverables/test-analysis-solution.json",
+    "reports/test-analysis-solution-review.json"
+  ]
+}

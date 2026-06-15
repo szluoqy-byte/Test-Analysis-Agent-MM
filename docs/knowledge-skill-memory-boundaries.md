@@ -17,7 +17,7 @@ Rules = 优先于输入文档的强制规则
 | project | `rules/projects/<project-key>/**/*.md`、`knowledge/projects/<project-key>/**/*.md`、`memory/projects/<project-key>/**/*.md`、`quality-gates/projects/<project-key>/**/*.md` | 否 | 当前项目的强制规则、事实、经验、策略和附加门禁 |
 | personal | `rules/user/**/*.md`、`knowledge/user/**/*.md`、`memory/user/**/*.md`、`quality-gates/user/**/*.md` | 否 | 当前使用者的个人强制规则、偏好、本地检查清单和补充启发 |
 
-project 和 personal 是当前 run 的一等输入源：必须由 `memory-context-builder` 统一发现、裁剪和记录到 `process/context-pack.md`，后续 skill 只能消费 context pack 或按其来源记录受控补读。project knowledge 文件名没有硬性要求，但 context pack 必须记录其自理解类型和项目知识阶段绑定。
+project 和 personal 是当前 run 的一等输入源：必须由 `memory-context-builder` 统一发现、裁剪和记录到 `process/context-pack.json`，后续 skill 只能消费 context pack JSON 或按其来源记录受控补读。project knowledge 文件名没有硬性要求，但 context pack 必须记录其自理解类型和项目知识阶段绑定。
 
 Rules 是高优先级约束源：优先级低于当前用户明确指令，高于当前输入文档、memory 和 knowledge。rules 与输入文档冲突时，默认遵守 rules，并在过程产物记录覆盖原因。rules 内部按 `core > project > personal` 处理，低层只能细化高层规则，不能放宽或违反高层强制约束。
 
@@ -54,9 +54,9 @@ Rules 是高优先级约束源：优先级低于当前用户明确指令，高�
 | 项目真实历史缺陷、复盘教训、团队测试习惯 | `memory/testing-experience-memory.md` | 项目专属经验 |
 | 指定项目的事实、业务域分片、历史经验和输出偏好 | `memory/projects/<project-key>/**/*.md` | 项目级长期 memory，确定 `project-key` 后自动扫描 |
 | 个人输出偏好、检查习惯和本地记忆 | `memory/user/**/*.md` | personal 层 memory，按需扫描 |
-| 本次运行筛选出的少量上下文 | `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.md` | 运行产物，不是长期事实源 |
-| 本次运行缺口治理结果 | `${PROJECT_ROOT}/outputs/runs/<run-id>/process/clarification-session.md` | 运行产物，用于解释 `待人工分析确认` 的来源 |
-| 本次运行阶段顺序、状态和证据路径 | `${PROJECT_ROOT}/outputs/runs/<run-id>/process/task-list.md` | 运行产物，是流程事实源，不是长期配置 |
+| 本次运行筛选出的少量上下文 | `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.json` | 运行产物事实源，不是长期事实源；同名 Markdown 为派生阅读版 |
+| 本次运行缺口治理结果 | `${PROJECT_ROOT}/outputs/runs/<run-id>/process/clarification-session.json` | 运行产物事实源，用于解释 `待人工分析确认` 的来源 |
+| 本次运行阶段顺序、状态和证据路径 | `${PROJECT_ROOT}/outputs/runs/<run-id>/process/task-list.json` | 运行产物，是流程事实源，不是长期配置 |
 | 运行产物分类、固定文件名和下游消费约定 | `docs/output-artifact-contract.md` | 输出契约，防止 skill、模板和脚本各自发散 |
 | 测试设计 Agent 架构、流程和边界 | `docs/test-design-agent-design.md` | 设计层架构文档，说明如何承接测试分析方案 |
 | 报告、中间产物和运行产物的 Markdown 结构 | `templates/*.md` | 模板层只定义形状和占位，不维护另一套标准 |
@@ -80,10 +80,10 @@ Rules 是高优先级约束源：优先级低于当前用户明确指令，高�
 - project 和 personal 层默认不提交 Git；仓库只保留对应 README 和发现规则。
 - `rules/projects/<project-key>/` 和 `rules/user/` 默认不提交 Git；仓库只保留对应 README 和发现规则。
 - `templates/` 只保留 core 模板，不提供 project/personal 分层模板补充；项目或个人输出偏好应归入 memory，强制格式要求应归入 rules。
-- `context-pack.md` 只摘录与本次需求相关的 memory 和 project/personal 补充，不复制整份长期文件，也不放在 `memory/` 下。
-- `context-pack.md` 的“项目知识阶段绑定”只判断文件应进入哪些环节；具体命中和应用由对应 skill 在阶段内读取后判断，并记录应用状态。
-- `task-list.md`、`context-pack.md` 和 `clarification-session.md` 必须随 run 目录生成，分别记录固定阶段顺序、上下文绑定和待确认治理结果；即使无 project/personal 命中或无待确认候选，也必须生成并说明原因。
-- `task-list.md` 不替代运行时 todo 工具，但比运行时 UI 更适合作为可校验事实源。
+- `context-pack.json` 只摘录与本次需求相关的 memory 和 project/personal 补充，不复制整份长期文件，也不放在 `memory/` 下；`context-pack.md` 只是派生阅读版。
+- `context-pack.json` 的“项目知识阶段绑定”只判断文件应进入哪些环节；具体命中和应用由对应 skill 在阶段内读取后判断，并记录应用状态。
+- `task-list.json`、`context-pack.json`、`input-fact-model.json` 和 `clarification-session.json` 必须随 run 目录生成，分别记录固定阶段顺序、上下文绑定、输入事实模型和待确认治理结果；同名 Markdown 由脚本渲染，即使无 project/personal 命中或无待确认候选，也必须在 JSON 中说明原因。
+- `task-list.json` 不替代运行时 todo 工具，但比运行时 UI 更适合作为可校验流程事实源；`task-list.md` 只用于人工查看。
 - `templates/` 只列出字段、占位和最小示例，不直接维护或长篇引用背景知识；字段含义、类型、方法等标准由调用模板的 `skills/` 和 `quality-gates/` 按需引用 `knowledge/`。
 - `quality-gates/` 可以重复列出允许值用于校验，但必须以 `knowledge/` 的标准为来源，不维护独立定义。
 - `bin/` 中的枚举和章节列表必须服务于机械校验；如果标准变化，应同步来自 `knowledge/`、`templates/` 或 `quality-gates/` 的权威来源。

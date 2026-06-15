@@ -90,9 +90,9 @@ DTT 适合业务规则清晰但组合较多的场景，能防止遗漏互斥规�
 
 ### 示例：优惠券使用资格判定
 
-**测试场景**：用户提交订单时，系统判定优惠券是否可使用。
+- 测试场景：用户提交订单时，系统判定优惠券是否可使用。
 
-**规格摘要**：
+- 规格摘要：
 
 - 条件 A：用户为会员。
 - 条件 B：订单金额大于等于 100。
@@ -102,18 +102,16 @@ DTT 适合业务规则清晰但组合较多的场景，能防止遗漏互斥规�
 - 任一条件不满足时拒绝使用，并返回对应拒绝原因。
 - 如果多个条件同时不满足，拒绝原因优先级为：优惠券过期 > 商品排除 > 金额不足 > 非会员。
 
-**测试点**：验证优惠券使用资格的规则组合、拒绝原因和优先级。
+- 测试点：验证优惠券使用资格的规则组合、拒绝原因和优先级。
 
-| 测试设计项 ID | 条件/数据/状态/组合 |
-|---|---|
-| TDI-001 | userType=会员；orderAmount=100.00；couponStatus=未过期；productCategory=普通商品 |
-| TDI-002 | userType=非会员；orderAmount=100.00；couponStatus=未过期；productCategory=普通商品 |
-| TDI-003 | userType=会员；orderAmount=99.99；couponStatus=未过期；productCategory=普通商品 |
-| TDI-004 | userType=会员；orderAmount=100.00；couponStatus=已过期；productCategory=普通商品 |
-| TDI-005 | userType=会员；orderAmount=100.00；couponStatus=未过期；productCategory=排除品类 |
-| TDI-006 | userType=非会员；orderAmount=99.99；couponStatus=已过期；productCategory=排除品类 |
+- TDI-001 userType=会员；orderAmount=100.00；couponStatus=未过期；productCategory=普通商品
+- TDI-002 userType=非会员；orderAmount=100.00；couponStatus=未过期；productCategory=普通商品
+- TDI-003 userType=会员；orderAmount=99.99；couponStatus=未过期；productCategory=普通商品
+- TDI-004 userType=会员；orderAmount=100.00；couponStatus=已过期；productCategory=普通商品
+- TDI-005 userType=会员；orderAmount=100.00；couponStatus=未过期；productCategory=排除品类
+- TDI-006 userType=非会员；orderAmount=99.99；couponStatus=已过期；productCategory=排除品类
 
-**设计要点**：
+- 设计要点：
 
 - `TDI-001` 覆盖唯一允许规则。
 - `TDI-002` 到 `TDI-005` 每条只改变一个条件，便于定位拒绝原因。

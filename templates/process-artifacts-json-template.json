@@ -1,0 +1,43 @@
+{
+  "taskList": {
+    "artifactType": "task-list",
+    "schemaVersion": "1.0",
+    "metadata": {
+      "requirementDocument": "",
+      "designDocument": "未提供",
+      "runId": "<run-id>",
+      "projectRoot": "<PROJECT_ROOT>",
+      "generatedAt": "<YYYY-MM-DD HH:mm:ss>"
+    },
+    "stages": [
+      {
+        "order": 1,
+        "stage": "固定 PROJECT_ROOT 与运行目录",
+        "owner": "test-analysis-workflow",
+        "checkpoint": "outputs/runs/<run-id>/",
+        "status": "pending",
+        "evidence": ""
+      }
+    ]
+  },
+  "genericProcessDocument": {
+    "artifactType": "context-pack",
+    "schemaVersion": "1.0",
+    "title": "上下文包",
+    "sections": [
+      {
+        "heading": "本次需求标识",
+        "level": 2,
+        "content": [
+          {
+            "type": "items",
+            "items": [
+              {"label": "需求文档", "value": ""},
+              {"label": "运行 ID", "value": "<run-id>"}
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

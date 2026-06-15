@@ -1,0 +1,67 @@
+{
+  "artifactType": "test-analysis-solution",
+  "schemaVersion": "1.0",
+  "title": "<需求名称> 测试分析方案",
+  "scope": [
+    {"field": "需求 ID", "content": ""},
+    {"field": "需求名称", "content": ""},
+    {"field": "需求来源", "content": ""},
+    {"field": "设计方案来源", "content": ""},
+    {"field": "需求摘要", "content": ""},
+    {"field": "设计方案摘要", "content": ""},
+    {"field": "本次覆盖范围", "content": ""},
+    {"field": "本次不覆盖内容", "content": ""}
+  ],
+  "scenarios": [
+    {
+      "id": "SC-001",
+      "title": "<测试场景名称>",
+      "fields": [
+        {"field": "场景目标", "content": ""},
+        {"field": "场景入口/触发方式", "content": ""},
+        {"field": "执行用户/角色", "content": ""},
+        {"field": "业务与设计约束", "content": ""}
+      ],
+      "testPoints": [
+        {
+          "id": "TP-001",
+          "title": "E2E场景测试",
+          "details": [
+            {
+              "id": "TP-001-001",
+              "title": "<端到端主流程测试点明细>",
+              "description": "<说明该场景端到端业务主流程需要验证什么。>",
+              "expectedResult": "<业务主流程按预期完整闭环或待人工分析确认>",
+              "failureDetails": []
+            }
+          ]
+        },
+        {
+          "id": "TP-002",
+          "title": "<测试点>",
+          "details": [
+            {
+              "id": "TP-002-001",
+              "title": "<普通/成功测试点明细>",
+              "description": "<说明该规则分支、路径分支、状态分支或风险分支需要验证什么。>",
+              "expectedResult": "<明确预期结果或待人工分析确认>",
+              "failureDetails": []
+            },
+            {
+              "id": "TP-002-002",
+              "title": "<非成功测试点明细>",
+              "failureDetails": [
+                {
+                  "id": "TP-002-002-001",
+                  "title": "<失败类型明细>",
+                  "description": "<说明该失败类型、异常返回、数据校验、权限控制或外部依赖失败需要验证什么。>",
+                  "expectedResult": "<明确预期结果或待人工分析确认>"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

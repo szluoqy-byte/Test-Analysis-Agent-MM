@@ -1,6 +1,6 @@
 # 测试设计方案模板
 
-本模板是 `test-design-agent` 的主输出。它承接已评审测试分析方案，在普通 `测试场景 -> 测试点 -> 测试点明细` 下补充 `TDI-*` 测试设计项；如果非成功测试点明细已有失败类型明细，则在 `TP-*-*-*` 下补充 `TDI-*`。
+本模板是 `test-design-agent` 的 Markdown 派生阅读版样式参考。主输出事实源是 `deliverables/test-design-solution.json`，结构参考 `templates/test-design-solution-json-template.json`；本 Markdown 不手工维护，由 `bin/render-run-markdown.py` 渲染。
 
 它不是完整测试用例文档，不包含前置步骤、测试步骤、自动化脚本或执行数据清单。
 
@@ -61,8 +61,8 @@
 
 ## 生成规则
 
-- 主输出路径固定为：`${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.md`。
-- 如保留过程设计报告，路径固定为 `${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-design-report.md`。
+- 主输出 JSON 路径固定为：`${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.json`；Markdown 路径固定为同目录 `test-design-solution.md`，只能由渲染脚本生成。
+- 新 run 不应生成自由格式过程设计 Markdown 作为机器证据；review/coverage 结论写入 `reports/*.json`，必要时再渲染同名 Markdown 人读版。
 - 主交付件固定使用中文术语和缩写：测试场景 `SC-*`、测试点 `TP-*`、测试点明细 `TP-*-*`、测试设计项 `TDI-*`，不展开英文全名。
 - 测试场景 ID 使用 `SC-001` 起连续编号。
 - 测试点 ID 使用 `TP-001` 起连续编号。

@@ -13,7 +13,7 @@
 - 输入事实模型。
 - 记忆上下文包。
 - 记忆上下文包中命中的 project/personal 风险画像、个人关注点和 oracle 补充。
-- `process/context-pack.md` 中绑定到 `testing-method-router` 的 project knowledge 文件，例如风险画像、历史高风险策略或风险类 checklist。
+- `process/context-pack.json` 中绑定到 `testing-method-router` 的 project knowledge 文件，例如风险画像、历史高风险策略或风险类 checklist。
 - `knowledge/testpoint-standard.md`。
 - `knowledge/test-techniques/README.md`。
 - `knowledge/test-techniques/risk-based/risk-based-testing.md`。
@@ -23,7 +23,7 @@
 
 - 使用 `knowledge/test-techniques/README.md` 中的专家审视顺序和 Oracle 规则判断风险覆盖方向。
 - 使用 `knowledge/test-techniques/experience-based/error-guessing-checklist.md` 匹配通用缺陷模式。
-- 使用 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.md` 中的项目历史缺陷和项目风险模式修正关注点。
+- 使用 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.json` 中的项目历史缺陷和项目风险模式修正关注点。
 - 使用 context pack 中的 project/personal knowledge 补充识别项目级风险画像、个人关注点、覆盖策略和判定依据启发；补充不得写成已确认业务事实。
 - 如果 context pack 的“项目知识阶段绑定”存在绑定到 `testing-method-router` 的风险类 project knowledge，必须读取相关章节并输出应用状态。
 - 使用 `knowledge/test-techniques/risk-based/risk-based-testing.md` 判断建议级别，级别定义仍以 `knowledge/testpoint-standard.md` 为准。

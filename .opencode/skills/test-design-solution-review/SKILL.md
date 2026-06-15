@@ -1,23 +1,23 @@
 ---
 name: test-design-solution-review
-description: 在测试设计方案通过确定性 lint 后使用，作为产物级语义评审环节，检查分析方案承接、设计项数据化粒度、叶子节点预期结果依据、事实溯源和非完整用例化倾向；不重复执行 Python 脚本可确定性检查的结构、编号、字段和 Markdown 语法规则。
+description: 在测试设计方案 JSON 通过确定性 lint 且 Markdown 已渲染后使用，作为产物级语义评审环节，检查分析方案承接、设计项数据化粒度、叶子节点预期结果依据、事实溯源和非完整用例化倾向；不重复执行 Python 脚本可确定性检查的结构、编号、字段和 Markdown 语法规则。
 ---
 
 # 测试设计方案语义评审
 
-本 skill 是 `test-design-agent` 的产物级语义评审环节。结构、编号、固定章节、Markdown 加粗、禁用字段、测试设计项表格禁用和 `TDI-*` 连续性等确定性问题，以 `bin/lint-test-design-solution.py` 和 `bin/check-artifact-consistency.py` 的结果为准。
+本 skill 是 `test-design-agent` 的产物级语义评审环节。结构、编号、固定章节、JSON schema、Markdown 加粗、禁用字段、测试设计项表格禁用和 `TDI-*` 连续性等确定性问题，以 `bin/lint-run-json.py`、`bin/render-run-markdown.py --check`、`bin/lint-test-design-solution.py` 和 `bin/check-artifact-consistency.py` 的结果为准。
 
 如果确定性 lint 未通过，本 skill 不进入语义评审，只引用脚本失败项给出修正方向。
 
 ## 输入
 
-- `outputs/runs/<run-id>/deliverables/test-design-solution.md`。
-- `bin/lint-test-design-solution.py` 的执行结果。
-- `outputs/runs/<run-id>/deliverables/test-analysis-solution.md` 或外部测试分析方案。
+- `outputs/runs/<run-id>/deliverables/test-design-solution.json`，必要时参考派生 `test-design-solution.md`。
+- `bin/lint-run-json.py`、`bin/render-run-markdown.py --check` 和 `bin/lint-test-design-solution.py` 的执行结果。
+- `outputs/runs/<run-id>/deliverables/test-analysis-solution.json` 或外部测试分析方案。
 - 需求文档和可选设计方案文档摘要。
-- `process/context-pack.md`。
-- `process/clarification-session.md`。
-- `process/context-pack.md` 中绑定到 `test-design-solution-review` 的评审类 project knowledge；默认 checklist 类项目知识优先由 `coverage-review` 统一处理，避免重复读取。
+- `process/context-pack.json`。
+- `process/clarification-session.json`。
+- `process/context-pack.json` 中绑定到 `test-design-solution-review` 的评审类 project knowledge；默认 checklist 类项目知识优先由 `coverage-review` 统一处理，避免重复读取。
 - `knowledge/test-design-solution-standard.md`。
 
 ## 不再重复检查
@@ -52,8 +52,8 @@ description: 在测试设计方案通过确定性 lint 后使用，作为产物�
 
 ## 评审步骤
 
-1. 确认 `bin/lint-test-design-solution.py` 已通过；若未通过，输出 `需修正`，只列脚本失败项和修正方向，不继续做语义评审。
-2. 读取 context pack 的“项目知识阶段绑定”。如果存在绑定到 `test-design-solution-review` 的 project knowledge，按来源文件、相关章节、关键词或标题读取，不全量复制大文件。
+1. 确认 `bin/lint-run-json.py`、`bin/render-run-markdown.py --check` 和 `bin/lint-test-design-solution.py` 已通过；若未通过，输出 `需修正`，只列脚本失败项和修正方向，不继续做语义评审。
+2. 读取 `process/context-pack.json` 的“项目知识阶段绑定”。如果存在绑定到 `test-design-solution-review` 的 project knowledge，按来源文件、相关章节、关键词或标题读取，不全量复制大文件。
 3. 对照测试分析方案，检查设计方案是否忠实承接所有叶子分析节点，且没有改写分析层结论。
 4. 检查 E2E 和接口组织继承是否保持分析方案语义：E2E 不混入其他分支，接口设计项不混入无法定位目标接口的泛化测试点。
 5. 检查第四层继承是否正确：已有失败类型明细不合并回父级；单一弱结果分支不因评审偏好被机械要求新增第四层。
@@ -70,7 +70,7 @@ description: 在测试设计方案通过确定性 lint 后使用，作为产物�
 
 ## 输出
 
-评审输出使用以下结构：
+评审输出写入 `reports/test-design-solution-review.json`，使用以下结构；如需人读版，由 `bin/render-run-markdown.py` 渲染：
 
 | 评审项 | 结果 | 证据 | 修正建议 |
 |---|---|---|---|

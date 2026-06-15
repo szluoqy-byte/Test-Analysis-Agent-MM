@@ -2,7 +2,7 @@
 
 本目录按 `project-key` 保存项目级测试知识补充。它用于让分析过程理解某个项目特有的测试策略，而不是保存业务事实本身。
 
-本目录属于 `project` 层，默认不提交 Git；`.gitignore` 只保留本 README。团队如果确实希望共享某个项目配置，可以显式强制添加对应文件。project 层是当前 run 的一等输入源，命中和未采用情况必须记录到 `outputs/runs/<run-id>/process/context-pack.md`。
+本目录属于 `project` 层，默认不提交 Git；`.gitignore` 只保留本 README。团队如果确实希望共享某个项目配置，可以显式强制添加对应文件。project 层是当前 run 的一等输入源，命中和未采用情况必须记录到 `outputs/runs/<run-id>/process/context-pack.json`；同名 Markdown 只是派生阅读版。
 
 ## 建议结构
 
@@ -18,7 +18,7 @@ knowledge/projects/<project-key>/
   oracle-heuristics.md
 ```
 
-文件名不是硬性要求。Agent 会基于文件名、frontmatter、一级/二级标题、章节标题和开头摘要自理解识别用途，并在 `process/context-pack.md` 中登记“项目知识阶段绑定”。推荐命名只是为了降低误判概率。
+文件名不是硬性要求。Agent 会基于文件名、frontmatter、一级/二级标题、章节标题和开头摘要自理解识别用途，并在 `process/context-pack.json` 中登记“项目知识阶段绑定”。推荐命名只是为了降低误判概率。
 
 ## 适合放入的内容
 
@@ -35,7 +35,7 @@ knowledge/projects/<project-key>/
 - 未确认业务规则、一次性需求结论或临时假设。
 - 项目真实缺陷和团队反馈，这些应进入 `memory/projects/<project-key>/`。
 - 测试点字段、类型、方法、级别、输出结构和质量门禁覆盖规则。
-- 运行产物、context pack 或过程报告。
+- 运行产物、context pack、结构化过程记录或派生报告。
 
 ## 发现规则
 

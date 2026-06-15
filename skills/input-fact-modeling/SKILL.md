@@ -13,10 +13,10 @@ description: 在测试分析 workflow 中读取需求文档和可选设计方案
 
 - run-local 需求 Markdown。
 - 可选 run-local 设计方案 Markdown。
-- `process/context-pack.md`。
-- `process/context-pack.md` 中绑定到 `input-fact-modeling` 的 project knowledge，例如术语表、领域词表、接口/状态/设计约定或项目级输入建模约束。
+- `process/context-pack.json`。
+- `process/context-pack.json` 中绑定到 `input-fact-modeling` 的 project knowledge，例如术语表、领域词表、接口/状态/设计约定或项目级输入建模约束。
 - `knowledge/test-workflow-boundaries.md`。
-- `templates/input-fact-model-template.md`。
+- `templates/process-artifacts-json-template.json` 和 `templates/input-fact-model-template.md`。前者定义 JSON 事实源形态，后者仅作为渲染后 Markdown 样式参考。
 
 ## 建模步骤
 
@@ -33,11 +33,11 @@ description: 在测试分析 workflow 中读取需求文档和可选设计方案
    - `设计新增`：设计事实无法追溯到需求，需要作为设计假设或待确认事项。
 7. 将模糊、缺失、冲突和不可验证内容记录为人可读的待确认事项，只说明问题、影响和处理建议；不生成 `checkpoint`、`askPolicy`、`blockingLevel` 等 `clarification-gate` 内部字段。
 8. 记录来源与应用说明，尤其是本阶段读取的 project knowledge、应用状态和影响范围。
-9. 按 `templates/input-fact-model-template.md` 输出输入事实模型，交给 `clarification-gate`、`testing-method-router` 和测试分析方案生成阶段使用。
+9. 按通用 process JSON 结构输出 `process/input-fact-model.json`，交给 `clarification-gate`、`testing-method-router` 和测试分析方案生成阶段使用；不要手工维护 `process/input-fact-model.md`。
 
 ## 输出
 
-使用 `templates/input-fact-model-template.md`。输出至少包含：
+输出 `process/input-fact-model.json`，并由 `bin/render-run-markdown.py` 渲染 `process/input-fact-model.md`。输出至少包含：
 
 - 输入来源。
 - 事实清单。

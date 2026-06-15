@@ -2,7 +2,7 @@
 
 本目录按 `project-key` 隔离不同项目的长期 memory。项目化 memory 只保存经确认、会影响后续测试分析的项目事实、业务域约定、历史缺陷、输出偏好和团队反馈。
 
-本目录属于 `project` 层，默认不提交 Git；`.gitignore` 只保留本 README。团队如果确实希望共享某个项目配置，可以显式强制添加对应文件。project 层是当前 run 的一等输入源，命中和未采用情况必须记录到 `outputs/runs/<run-id>/process/context-pack.md`。
+本目录属于 `project` 层，默认不提交 Git；`.gitignore` 只保留本 README。团队如果确实希望共享某个项目配置，可以显式强制添加对应文件。project 层是当前 run 的一等输入源，命中和未采用情况必须记录到 `outputs/runs/<run-id>/process/context-pack.json`；同名 Markdown 只是派生阅读版。
 
 ## 目录结构
 

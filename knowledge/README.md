@@ -18,7 +18,7 @@ Knowledge 保存本 Agent 稳定、可复用的测试分析与测试设计知识
 | 标准层 | `testpoint-standard.md`、`test-analysis-solution-standard.md`、`test-design-solution-standard.md` | 定义测试点字段、测试点明细字段、测试设计项字段、预期结果兜底和非用例化标准 |
 | 测试技术层 | `test-techniques/` | 同时支持测试分析和测试设计：分析层识别测试条件、覆盖项和风险；设计层把测试点扩展成代表性条件、数据、状态或组合 |
 
-覆盖检查、专家评分和追踪检查属于 `quality-gates/`，不再作为 `knowledge/` 根节点知识维护。
+覆盖检查、专家评分和追踪检查不作为 `knowledge/` 根节点知识维护。公共覆盖入口保留在 `quality-gates/coverage-check.md`，coverage-review 私有 rubric 和深度检查标准归档到 `skills/coverage-review/references/`；确定性结构、编号、JSON/Markdown 一致性检查由 `bin/` 脚本负责。
 
 只被单个 skill 使用的参考材料归档到对应 skill：
 
@@ -40,6 +40,6 @@ Knowledge 保存本 Agent 稳定、可复用的测试分析与测试设计知识
 
 ## 发现规则
 
-`memory-context-builder` 确定 `project-key` 后，会按需扫描 `knowledge/projects/<project-key>/**/*.md`；同时会扫描 `knowledge/user/**/*.md`。只有与当前需求直接相关的片段会写入 `process/context-pack.md`。未确定 `project-key` 时，不读取所有项目目录正文。
+`memory-context-builder` 确定 `project-key` 后，会按需扫描 `knowledge/projects/<project-key>/**/*.md`；同时会扫描 `knowledge/user/**/*.md`。只有与当前需求直接相关的片段会写入 `process/context-pack.json`，再由渲染脚本生成 `process/context-pack.md` 人读版。未确定 `project-key` 时，不读取所有项目目录正文。
 
 Project knowledge 文件名没有硬性要求。context pack 阶段会自理解识别文件用途并登记“项目知识阶段绑定”；被绑定到 `testing-method-router`、`test-analysis-solution-generation`、`test-design-solution-generation` 或 `coverage-review` 等环节的文件，必须由对应 skill 读取并记录应用状态。Checklist 类文件默认绑定到 `coverage-review` 统一查漏；只有文件或用户指令明确要求产物语义评审时，才额外绑定到独立评审环节。

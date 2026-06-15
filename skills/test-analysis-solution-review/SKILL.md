@@ -1,23 +1,23 @@
 ---
 name: test-analysis-solution-review
-description: 在测试分析方案通过确定性 lint 后使用，作为产物级语义评审环节，检查测试点明细粒度、预期结果依据、事实溯源、失败类型拆分充分性、项目评审清单和非完整用例化倾向；不重复执行 Python 脚本可确定性检查的结构、编号、字段和 Markdown 语法规则。
+description: 在测试分析方案 JSON 通过确定性 lint 且 Markdown 已渲染后使用，作为产物级语义评审环节，检查测试点明细粒度、预期结果依据、事实溯源、失败类型拆分充分性、项目评审清单和非完整用例化倾向；不重复执行 Python 脚本可确定性检查的结构、编号、字段和 Markdown 语法规则。
 ---
 
 # 测试分析方案语义评审
 
-本 skill 是 `test-analysis-agent` 的产物级语义评审环节。它只处理 Python 脚本无法稳定判断的质量问题；结构、编号、禁用字段、固定章节、Markdown 加粗、`TDI-*` 泄漏、E2E 是否存在、第四层格式等确定性问题，以 `bin/lint-test-analysis-solution.py` 和 `bin/check-artifact-consistency.py` 的结果为准。
+本 skill 是 `test-analysis-agent` 的产物级语义评审环节。它只处理 Python 脚本无法稳定判断的质量问题；结构、编号、禁用字段、固定章节、JSON schema、Markdown 加粗、`TDI-*` 泄漏、E2E 是否存在、第四层格式等确定性问题，以 `bin/lint-run-json.py`、`bin/render-run-markdown.py --check`、`bin/lint-test-analysis-solution.py` 和 `bin/check-artifact-consistency.py` 的结果为准。
 
 如果确定性 lint 未通过，本 skill 不进入语义评审，只引用脚本失败项给出修正方向。
 
 ## 输入
 
-- `outputs/runs/<run-id>/deliverables/test-analysis-solution.md`。
-- `bin/lint-test-analysis-solution.py` 的执行结果。
+- `outputs/runs/<run-id>/deliverables/test-analysis-solution.json`，必要时参考派生 `test-analysis-solution.md`。
+- `bin/lint-run-json.py`、`bin/render-run-markdown.py --check` 和 `bin/lint-test-analysis-solution.py` 的执行结果。
 - 需求文档和可选设计方案文档摘要。
-- `process/context-pack.md`。
-- `process/clarification-session.md`。
+- `process/context-pack.json`。
+- `process/clarification-session.json`。
 - 方法证据、测试技术路由和测试分析方案生成结果。
-- `process/context-pack.md` 中绑定到 `test-analysis-solution-review` 的评审类 project knowledge；默认 checklist 类项目知识优先由 `coverage-review` 统一处理，避免重复读取。
+- `process/context-pack.json` 中绑定到 `test-analysis-solution-review` 的评审类 project knowledge；默认 checklist 类项目知识优先由 `coverage-review` 统一处理，避免重复读取。
 - `knowledge/test-workflow-boundaries.md`。
 - `knowledge/test-analysis-solution-standard.md`。
 
@@ -43,13 +43,13 @@ description: 在测试分析方案通过确定性 lint 后使用，作为产物�
 | 预期结果依据 | 预期结果能追溯到需求、设计方案、适用 rules 或明确业务不变量；依据不足时写 `待人工分析确认` |
 | 事实完整性 | 不编造需求或设计方案没有说明的状态、错误码、错误提示、接口字段、数据库字段、角色或阈值 |
 | 非用例化语义 | 虽然脚本已过滤明显步骤字段，但评审仍需识别隐性的执行流程、脚本化表达或完整用例倾向 |
-| 自包含性 | 后续人工评审和 `test-design-agent` 不需要回读过程报告即可理解测试场景、测试点和测试点明细 |
+| 自包含性 | 后续人工评审和 `test-design-agent` 不需要回读结构化过程记录即可理解测试场景、测试点和测试点明细 |
 | 项目评审知识 | 若 context pack 明确绑定本阶段 project knowledge，必须读取相关章节并记录应用状态 |
 
 ## 评审步骤
 
-1. 确认 `bin/lint-test-analysis-solution.py` 已通过；若未通过，输出 `需修正`，只列脚本失败项和修正方向，不继续做语义评审。
-2. 读取 `process/context-pack.md` 的“项目知识阶段绑定”。如果存在绑定到 `test-analysis-solution-review` 的 project knowledge，按来源文件、相关章节、关键词或标题读取，不全量复制大文件。
+1. 确认 `bin/lint-run-json.py`、`bin/render-run-markdown.py --check` 和 `bin/lint-test-analysis-solution.py` 已通过；若未通过，输出 `需修正`，只列脚本失败项和修正方向，不继续做语义评审。
+2. 读取 `process/context-pack.json` 的“项目知识阶段绑定”。如果存在绑定到 `test-analysis-solution-review` 的 project knowledge，按来源文件、相关章节、关键词或标题读取，不全量复制大文件。
 3. 对照输入事实模型和方法证据，检查是否存在关键需求规则、主路径、失败路径、权限、状态、接口契约、数据一致性或高风险区域漏分析。
 4. 检查测试点明细是否停留在测试分析层：能支撑后续测试设计，但不直接列代表性条件、具体边界值、数据组合或执行数据清单。
 5. 检查明确非成功聚合测试点明细下的失败类型拆分是否充分；如果多个失败来源被混在一个失败类型明细中，要求拆分或记录依据不足。对“未找到返回空结果”“列表为空”“count=0”等单一弱结果分支，不因缺少第四层判为失败。
@@ -60,7 +60,7 @@ description: 在测试分析方案通过确定性 lint 后使用，作为产物�
 
 ## 输出
 
-评审输出使用以下结构：
+评审输出写入 `reports/test-analysis-solution-review.json`，使用以下结构；如需人读版，由 `bin/render-run-markdown.py` 渲染：
 
 | 评审项 | 结果 | 证据 | 修正建议 |
 |---|---|---|---|

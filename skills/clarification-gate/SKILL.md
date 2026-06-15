@@ -7,15 +7,15 @@ description: 在多个测试分析检查点使用。用于收集、去重、分�
 
 本 skill 用于治理分析过程中的信息缺口。各阶段可以产出待确认候选问题，主流程统一去重、分级、排序和降级后，不触发中途交互。
 
-在本 Agent 中，缺口治理的原则是：过程缺口进入 `process/clarification-session.md`；主交付件 `deliverables/test-analysis-solution.md` 不设置待确认信息章节。如果缺口影响单条测试点明细的判定结果，生成阶段在该测试点明细的 `预期结果` 写 `待人工分析确认`。
+在本 Agent 中，缺口治理的原则是：过程缺口进入 `process/clarification-session.json`，并渲染 `process/clarification-session.md`；主交付件 `deliverables/test-analysis-solution.json` 不设置待确认信息章节。如果缺口影响单条测试点明细的判定结果，生成阶段在该测试点明细的 `expectedResult` 写 `待人工分析确认`。
 
 ## 输入
 
 - 当前检查点名称。
 - 当前阶段产物，例如记忆上下文包、输入事实模型、测试技术路由表、方法证据、测试分析方案草稿或覆盖审查结果。
 - 已累计的待确认候选问题。
-- `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.md`。
-- `templates/clarification-template.md`。
+- `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.json`。
+- `templates/process-artifacts-json-template.json` 和 `templates/clarification-template.md`。前者定义 JSON 事实源形态，后者仅作为渲染后 Markdown 样式参考。
 
 ## 检查点
 
@@ -85,8 +85,8 @@ description: 在多个测试分析检查点使用。用于收集、去重、分�
 2. 删除已被当前需求、设计方案、memory、上下文包或已有场景条件明确覆盖的问题。
 3. 按 `priority`、`blockingLevel`、影响范围和需求依据清晰度排序。
 4. 将仍未解决且会影响预期结果的问题标记 `expectedResultFallback = 是`。
-5. 将只影响过程说明或后续人工补充的问题保留在 `process/clarification-session.md`，不得写入主交付件章节。
-6. 如果当前检查点没有候选问题，也必须创建或刷新 `process/clarification-session.md`，并在运行状态中声明 `无待确认候选`。
+5. 将只影响过程说明或后续人工补充的问题保留在 `process/clarification-session.json`，不得写入主交付件章节。
+6. 如果当前检查点没有候选问题，也必须创建或刷新 `process/clarification-session.json`，并在运行状态中声明 `无待确认候选`。
 7. 全流程不调用用户交互能力，不暂停主流程，不向用户发起中途确认。
 
 ## 预期结果兜底规则
@@ -105,11 +105,11 @@ description: 在多个测试分析检查点使用。用于收集、去重、分�
 
 ## 过程记录
 
-创建或更新 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/clarification-session.md`。该文件是固定 process 产物，即使无候选也必须生成。记录：
+创建或更新 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/clarification-session.json`。该文件是固定 process 事实源，即使无候选也必须生成；`process/clarification-session.md` 由 `bin/render-run-markdown.py` 渲染。记录：
 
 - 当前检查点。
 - 治理结论，取值为 `无待确认候选` 或 `存在待确认候选`。
-- 候选问题队列，使用 `templates/clarification-template.md` 中的中文简表；不要把内部候选 schema 的所有英文控制字段原样铺到过程记录中。
+- 候选问题队列，使用 JSON 字段保存结构化候选；渲染 Markdown 时使用 `templates/clarification-template.md` 中的中文简表，不把内部候选 schema 的所有英文控制字段原样铺到过程记录中。
 - 候选问题详情，记录为什么需要确认、可选处理方向、关联需求依据和 memory 冲突。
 - 去重和排序结果。
 - 未进入主交付件的原因。
@@ -126,7 +126,7 @@ description: 在多个测试分析检查点使用。用于收集、去重、分�
 - 需要过程保留的问题列表。
 - 需要让测试点明细预期结果写 `待人工分析确认` 的问题列表。
 - 被移除的问题和移除原因。
-- 已刷新 `process/clarification-session.md` 的证据路径。
+- 已刷新 `process/clarification-session.json` 的证据路径。
 
 ## 约束
 
@@ -136,5 +136,5 @@ description: 在多个测试分析检查点使用。用于收集、去重、分�
 - 不调用用户交互能力。
 - 不在分析过程中向用户提问或暂停主流程。
 - 不把任何候选问题伪装成用户已确认事实。
-- 不向 `deliverables/test-analysis-solution.md` 写待确认信息章节。
+- 不向 `deliverables/test-analysis-solution.json` 写待确认信息章节。
 - 不把用户本次后续反馈自动写入 `memory/project-memory.md`、`memory/projects/<project-key>/**/*.md` 或 `memory/testing-experience-memory.md`。

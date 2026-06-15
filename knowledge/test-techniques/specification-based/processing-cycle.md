@@ -93,9 +93,9 @@ PCT 适合账期、结算、批处理、定时任务、重试轮次等场景。�
 
 ### 示例：日终结算任务处理周期
 
-**测试场景**：系统每天执行日终结算任务，将成功交易归属到对应账期。
+- 测试场景：系统每天执行日终结算任务，将成功交易归属到对应账期。
 
-**规格摘要**：
+- 规格摘要：
 
 - 日终结算任务每天 `23:30` 执行。
 - 交易账期归属按交易完成时间判定。
@@ -103,21 +103,19 @@ PCT 适合账期、结算、批处理、定时任务、重试轮次等场景。�
 - 结算依赖失败时交易进入待重试，并记录失败原因。
 - 跨日交易按完成时间分别归属当日或次日账期。
 
-**测试点**：验证日终结算的周期边界、跨周期归属、重复执行和失败重试。
+- 测试点：验证日终结算的周期边界、跨周期归属、重复执行和失败重试。
 
-| 测试设计项 ID | 条件/数据/状态/组合 |
-|---|---|
-| TDI-001 | cycleDate=2026-06-02；pendingSettlementCount=0；taskType=日终结算 |
-| TDI-002 | cycleDate=2026-06-02；transactionId=TXN_SUCCESS_001；transactionTime=2026-06-02 12:00:00；settlementStatus=未结算 |
-| TDI-003 | cycleDate=2026-06-02；transactionId=TXN_EDGE_001；transactionTime=2026-06-02 23:59:59 |
-| TDI-004 | cycleDate=2026-06-02；transactionId=TXN_EDGE_002；transactionTime=2026-06-03 00:00:00 |
-| TDI-005 | cycleDate=2026-06-02；transactionId=TXN_SETTLED_001；settlementStatus=已结算；taskRun=重复执行 |
-| TDI-006 | cycleDate=2026-06-02；dependencyStatus=首次失败后恢复；retryCount=1 |
-| TDI-007 | cycleDate=2026-06-02；查询返回count=1；payment_status=SUCCESS；compensationAction=关闭补偿 |
-| TDI-008 | cycleDate=2026-06-02；查询返回count=0；payment_status=FAILED；compensationAction=标记失败 |
-| TDI-009 | cycleDate=2026-06-02；查询超时；payment_status=TIMEOUT；retryCount=达到上限 |
+- TDI-001 cycleDate=2026-06-02；pendingSettlementCount=0；taskType=日终结算
+- TDI-002 cycleDate=2026-06-02；transactionId=TXN_SUCCESS_001；transactionTime=2026-06-02 12:00:00；settlementStatus=未结算
+- TDI-003 cycleDate=2026-06-02；transactionId=TXN_EDGE_001；transactionTime=2026-06-02 23:59:59
+- TDI-004 cycleDate=2026-06-02；transactionId=TXN_EDGE_002；transactionTime=2026-06-03 00:00:00
+- TDI-005 cycleDate=2026-06-02；transactionId=TXN_SETTLED_001；settlementStatus=已结算；taskRun=重复执行
+- TDI-006 cycleDate=2026-06-02；dependencyStatus=首次失败后恢复；retryCount=1
+- TDI-007 cycleDate=2026-06-02；查询返回count=1；payment_status=SUCCESS；compensationAction=关闭补偿
+- TDI-008 cycleDate=2026-06-02；查询返回count=0；payment_status=FAILED；compensationAction=标记失败
+- TDI-009 cycleDate=2026-06-02；查询超时；payment_status=TIMEOUT；retryCount=达到上限
 
-**设计要点**：
+- 设计要点：
 
 - 周期技术要把开始、边界、跨周期、重复执行和失败恢复分开表达。
 - 时间边界要使用能代表归属差异的具体点，不只写“跨天场景”。

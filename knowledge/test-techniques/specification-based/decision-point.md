@@ -90,23 +90,21 @@ DPT 比判定表更轻量，适合条件较少、动作结果明确、不需要�
 
 ### 示例：订单提交库存判定
 
-**测试场景**：用户提交订单时，系统判断商品库存是否足够。
+- 测试场景：用户提交订单时，系统判断商品库存是否足够。
 
-**规格摘要**：
+- 规格摘要：
 
 - 提交数量小于等于可售库存时，允许提交订单。
 - 提交数量大于可售库存时，拒绝提交，返回 `INSUFFICIENT_STOCK`。
 - 拒绝提交时不生成订单，不扣减库存。
 
-**测试点**：验证订单提交时库存是否充足的判定分支。
+- 测试点：验证订单提交时库存是否充足的判定分支。
 
-| 测试设计项 ID | 条件/数据/状态/组合 |
-|---|---|
-| TDI-001 | availableStock=10；submitQuantity=9 |
-| TDI-002 | availableStock=10；submitQuantity=10 |
-| TDI-003 | availableStock=10；submitQuantity=11 |
+- TDI-001 availableStock=10；submitQuantity=9
+- TDI-002 availableStock=10；submitQuantity=10
+- TDI-003 availableStock=10；submitQuantity=11
 
-**设计要点**：
+- 设计要点：
 
 - 这是单判定点，不需要构造复杂判定表。
 - `TDI-002` 是关键边界，通过分支不能只测“小于库存”。

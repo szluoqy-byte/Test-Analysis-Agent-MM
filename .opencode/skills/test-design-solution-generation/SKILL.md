@@ -14,7 +14,7 @@ description: 当需要把已评审测试分析方案中的测试点明细扩展�
 - 本 skill 中所有 `knowledge/...`、`templates/...`、`quality-gates/...` 路径均为仓库根目录相对路径。
 - 读取测试技术时，先读取 `knowledge/test-techniques/README.md`，再按 README 路由读取同目录下的具体技术文件。
 - 工作流边界读取 `knowledge/test-workflow-boundaries.md`；分析方案承接和设计方案粒度细则读取 `knowledge/test-analysis-solution-standard.md` 和 `knowledge/test-design-solution-standard.md`。
-- 输出结构读取 `templates/test-design-solution-template.md`。
+- 输出 JSON 结构读取 `templates/test-design-solution-json-template.json`；Markdown 模板仅作为渲染样式参考。
 
 ## 职责边界
 
@@ -28,12 +28,12 @@ description: 当需要把已评审测试分析方案中的测试点明细扩展�
 
 ## 输入
 
-- 已评审测试分析方案，优先读取 `outputs/runs/<run-id>/deliverables/test-analysis-solution.md`。
+- 已评审测试分析方案，优先读取 `outputs/runs/<run-id>/deliverables/test-analysis-solution.json`；迁移期只有 Markdown 时先解析或转换成 JSON。
 - 输入事实模型或原始需求摘要。
 - 输入事实模型中的设计事实，尤其是接口、字段、状态、权限、数据依赖、配置开关、异常处理和非功能指标。
-- `process/context-pack.md` 中与本次相关的项目事实、历史缺陷、测试设计因子、项目测试设计模式、Oracle 和输出偏好。
-- `process/context-pack.md` 中绑定到 `test-design-solution-generation` 的 project knowledge 文件。
-- `process/clarification-session.md` 中已收口的过程缺口候选。
+- `process/context-pack.json` 中与本次相关的项目事实、历史缺陷、测试设计因子、项目测试设计模式、Oracle 和输出偏好。
+- `process/context-pack.json` 中绑定到 `test-design-solution-generation` 的 project knowledge 文件。
+- `process/clarification-session.json` 中已收口的过程缺口候选。
 
 ## 生成步骤
 
@@ -78,11 +78,11 @@ description: 当需要把已评审测试分析方案中的测试点明细扩展�
    - 不得为了让预期结果看起来完整而编造错误码、提示文案、状态枚举、接口响应结构或数据库字段。
 14. 去重：如果两个测试设计项的条件、数据、状态和组合相同，只保留一个；如果只是措辞不同，不得重复输出；如果确实属于不同业务流，必须补充场景、渠道、操作、接口或数据依赖等差异维度。
 15. 记录本阶段 project knowledge 应用状态。
-16. 按 `templates/test-design-solution-template.md` 写入主交付件，保持普通分支 `测试场景 -> 测试点 -> 测试点明细 -> 测试设计项` 层级；非成功分支保持 `测试场景 -> 测试点 -> 测试点明细 -> 失败类型明细 -> 测试设计项` 层级。
+16. 按 `templates/test-design-solution-json-template.json` 写入 `deliverables/test-design-solution.json`，保持普通分支 `测试场景 -> 测试点 -> 测试点明细 -> 测试设计项` 层级；非成功分支保持 `测试场景 -> 测试点 -> 测试点明细 -> 失败类型明细 -> 测试设计项` 层级。不要手工写 `test-design-solution.md`，由 `bin/render-run-markdown.py` 生成。
 
 ## 输出格式
 
-每个叶子分析节点下使用以下列表节点，不使用测试设计项表格：
+每个叶子分析节点下在 JSON 中使用 `designItems` 数组表达 `TDI-*`，渲染后的 Markdown 使用以下列表节点，不使用测试设计项表格：
 
 ```markdown
 - 预期结果：<明确预期结果或待人工分析确认>
@@ -94,7 +94,7 @@ description: 当需要把已评审测试分析方案中的测试点明细扩展�
 
 接口、消息、定时任务或批处理测试点仍使用 `TP-*` 测试点编号和 `TDI-*` 测试设计项全局连续编号，不另起 `ITP-*` 或 `ITDI-*`。如果分析方案中已按接口或集成点组织 `TP-*`，设计方案必须保持该组织方式，让每个 `TDI-*` 能明确追溯到目标接口或通用接口范围。主交付件只使用中文术语和缩写，不展开英文全名。
 
-如本阶段绑定了 project knowledge，过程报告追加应用记录：
+如本阶段绑定了 project knowledge，必须在结构化过程记录、主交付件 JSON 的来源/应用字段或后续 review/coverage JSON 中追加应用记录：
 
 | 来源文件 | 当前阶段 | 应用状态 | 应用位置 | 说明 |
 |---|---|---|---|---|

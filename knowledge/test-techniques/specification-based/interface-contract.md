@@ -136,9 +136,9 @@
 
 ### 示例：创建交易接口的订单 ID 字段契约
 
-**测试场景**：第三方系统调用创建交易接口并传入 `orderId`。
+- 测试场景：第三方系统调用创建交易接口并传入 `orderId`。
 
-**规格摘要**：
+- 规格摘要：
 
 - 请求字段 `orderId` 必填，总长度为 13 位。
 - `orderId` 格式为 3 位业务前缀 + 10 位数字流水号。
@@ -147,17 +147,15 @@
 - `orderId` 缺失返回 `ORDER_ID_REQUIRED`；格式非法返回 `ORDER_ID_INVALID`。
 - 相同 `requestId` 重复提交不重复创建交易记录。
 
-**测试点**：验证创建交易接口的订单 ID 字段契约和幂等契约。
+- 测试点：验证创建交易接口的订单 ID 字段契约和幂等契约。
 
-| 测试设计项 ID | 条件/数据/状态/组合 |
-|---|---|
-| TDI-001 | orderId=ABC1234567890；requestId=REQ-20260602-0001；requestId唯一 |
-| TDI-002 | requestId=REQ-20260602-0002；请求体不包含orderId字段 |
-| TDI-003 | orderId=AB1234567890；总长度=12位；requestId=REQ-20260602-0003 |
-| TDI-004 | orderId=A#C1234567890；前3位包含特殊字符；requestId=REQ-20260602-0004 |
-| TDI-005 | requestId=REQ-20260602-0001；orderId=ABC1234567890；重复提交相同业务内容 |
+- TDI-001 orderId=ABC1234567890；requestId=REQ-20260602-0001；requestId唯一
+- TDI-002 requestId=REQ-20260602-0002；请求体不包含orderId字段
+- TDI-003 orderId=AB1234567890；总长度=12位；requestId=REQ-20260602-0003
+- TDI-004 orderId=A#C1234567890；前3位包含特殊字符；requestId=REQ-20260602-0004
+- TDI-005 requestId=REQ-20260602-0001；orderId=ABC1234567890；重复提交相同业务内容
 
-**设计要点**：
+- 设计要点：
 
 - 字段契约测试设计项必须说明关键字段和契约规则。
 - 失败契约必须验证副作用：不落库、不产生状态变化或不重复创建。
@@ -167,9 +165,9 @@
 
 ### 示例：添加支付接口的金额与枚举契约
 
-**测试场景**：钱包系统通过添加支付接口创建支付请求。
+- 测试场景：钱包系统通过添加支付接口创建支付请求。
 
-**规格摘要**：
+- 规格摘要：
 
 - 接口为 `POST /payments/`。
 - `amount` 必填，要求数字且保留两位小数。
@@ -177,20 +175,18 @@
 - `customer_id` 必填，必须能匹配已存在客户。
 - 合法请求创建支付请求；非法字段的错误码、错误提示或状态变化如果规格未说明，预期结果写 `待人工分析确认`。
 
-**测试点**：验证添加支付接口的字段契约。
+- 测试点：验证添加支付接口的字段契约。
 
-| 测试设计项 ID | 条件/数据/状态/组合 |
-|---|---|
-| TDI-001 | 接口=POST /payments/；amount=1000.00；category=PAY；customer_id=AGT_CUSTOMER_001 |
-| TDI-002 | 接口=POST /payments/；amount=1000；缺少两位小数；category=PAY；customer_id=AGT_CUSTOMER_001 |
-| TDI-003 | 接口=POST /payments/；amount=1000.0；仅一位小数；category=PAY；customer_id=AGT_CUSTOMER_001 |
-| TDI-004 | 接口=POST /payments/；amount=1000.001；超过两位小数；category=PAY；customer_id=AGT_CUSTOMER_001 |
-| TDI-005 | 接口=POST /payments/；amount=abc；非数字；category=PAY；customer_id=AGT_CUSTOMER_001 |
-| TDI-006 | 接口=POST /payments/；amount=1000.00；category=REFUND；枚举值非PAY；customer_id=AGT_CUSTOMER_001 |
-| TDI-007 | 接口=POST /payments/；amount=1000.00；category=PAY；请求体不包含customer_id |
-| TDI-008 | 接口=POST /payments/；amount=1000.00；category=PAY；customer_id=AGT_CUSTOMER_NOT_FOUND |
+- TDI-001 接口=POST /payments/；amount=1000.00；category=PAY；customer_id=AGT_CUSTOMER_001
+- TDI-002 接口=POST /payments/；amount=1000；缺少两位小数；category=PAY；customer_id=AGT_CUSTOMER_001
+- TDI-003 接口=POST /payments/；amount=1000.0；仅一位小数；category=PAY；customer_id=AGT_CUSTOMER_001
+- TDI-004 接口=POST /payments/；amount=1000.001；超过两位小数；category=PAY；customer_id=AGT_CUSTOMER_001
+- TDI-005 接口=POST /payments/；amount=abc；非数字；category=PAY；customer_id=AGT_CUSTOMER_001
+- TDI-006 接口=POST /payments/；amount=1000.00；category=REFUND；枚举值非PAY；customer_id=AGT_CUSTOMER_001
+- TDI-007 接口=POST /payments/；amount=1000.00；category=PAY；请求体不包含customer_id
+- TDI-008 接口=POST /payments/；amount=1000.00；category=PAY；customer_id=AGT_CUSTOMER_NOT_FOUND
 
-**设计要点**：
+- 设计要点：
 
 - 正向有效组合只是一条基准；字段契约必须覆盖不同错误类型，而不是把所有非法值合并成“金额格式错误”。
 - `接口=POST /payments/` 作为差异维度保留在每条设计项中，便于下游脑图或用例生成追溯目标接口。

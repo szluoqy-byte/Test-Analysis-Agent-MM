@@ -13,7 +13,7 @@
 - 接口相关需求片段。
 - 输入事实模型。
 - `knowledge/test-techniques/experience-based/error-guessing-checklist.md`。
-- `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.md`。
+- `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.json`。
 
 ## 分析步骤
 

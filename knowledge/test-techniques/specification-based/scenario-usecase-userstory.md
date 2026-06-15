@@ -91,25 +91,23 @@
 
 ### 示例：用户取消待支付订单
 
-**测试场景**：用户在订单详情中取消尚未支付的订单，并重新查看订单结果。
+- 测试场景：用户在订单详情中取消尚未支付的订单，并重新查看订单结果。
 
-**规格摘要**：
+- 规格摘要：
 
 - 用户可以取消本人名下的 `待支付` 订单。
 - 取消成功后订单状态为 `已取消`，库存或占用资源释放，并记录操作日志。
 - `已支付` 订单不允许用户自助取消。
 - 取消后用户重新进入订单详情，应看到最新订单状态和取消时间。
 
-**测试点**：验证用户取消订单的主路径、异常路径和重新进入后的可观察结果。
+- 测试点：验证用户取消订单的主路径、异常路径和重新进入后的可观察结果。
 
-| 测试设计项 ID | 条件/数据/状态/组合 |
-|---|---|
-| TDI-001 | userId=USER_OWN_001；orderId=ORDER_PENDING_001；orderOwner=本人；orderStatus=待支付；action=发起取消 |
-| TDI-002 | userId=USER_OWN_001；orderId=ORDER_PAID_001；orderOwner=本人；orderStatus=已支付；action=发起取消 |
-| TDI-003 | userId=USER_OWN_001；orderId=ORDER_CANCELED_001；orderStatus=已取消；action=重新进入订单详情 |
-| TDI-004 | userId=USER_OWN_001；orderId=ORDER_PENDING_002；action=提交取消后中断页面并重新进入订单详情 |
+- TDI-001 userId=USER_OWN_001；orderId=ORDER_PENDING_001；orderOwner=本人；orderStatus=待支付；action=发起取消
+- TDI-002 userId=USER_OWN_001；orderId=ORDER_PAID_001；orderOwner=本人；orderStatus=已支付；action=发起取消
+- TDI-003 userId=USER_OWN_001；orderId=ORDER_CANCELED_001；orderStatus=已取消；action=重新进入订单详情
+- TDI-004 userId=USER_OWN_001；orderId=ORDER_PENDING_002；action=提交取消后中断页面并重新进入订单详情
 
-**设计要点**：
+- 设计要点：
 
 - 场景测试设计项围绕用户目标和业务结束状态，不写成完整操作步骤。
 - 主路径、异常路径和中断后重新进入应分成不同设计项。

@@ -1,0 +1,42 @@
+{
+  "artifactType": "test-design-solution",
+  "schemaVersion": "1.0",
+  "title": "<需求名称> 测试设计方案",
+  "inputs": [
+    {"field": "测试分析方案来源", "content": ""},
+    {"field": "需求来源", "content": ""},
+    {"field": "设计方案来源", "content": ""},
+    {"field": "设计范围", "content": ""},
+    {"field": "不覆盖内容", "content": ""}
+  ],
+  "scenarios": [
+    {
+      "id": "SC-001",
+      "title": "<测试场景名称>",
+      "fields": [
+        {"field": "场景目标", "content": ""},
+        {"field": "场景入口/触发方式", "content": ""},
+        {"field": "执行用户/角色", "content": ""},
+        {"field": "业务与设计约束", "content": ""}
+      ],
+      "testPoints": [
+        {
+          "id": "TP-001",
+          "title": "E2E场景测试",
+          "details": [
+            {
+              "id": "TP-001-001",
+              "title": "<端到端主流程测试点明细>",
+              "description": "<来自测试分析方案的测试点详情。>",
+              "expectedResult": "<来自测试分析方案的预期结果，依据不足时为待人工分析确认>",
+              "failureDetails": [],
+              "designItems": [
+                {"id": "TDI-001", "content": "<覆盖端到端主流程的代表性条件、数据、状态或组合>"}
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

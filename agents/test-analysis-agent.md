@@ -47,6 +47,7 @@ description: 测试分析方案门面 Agent；当用户希望生成测试分析�
 - 设计方案是落地依据，补充接口、字段、状态、数据依赖、异常处理、配置和非功能指标。
 - 需求与设计冲突时，记录为过程缺口，不静默二选一。
 - 主交付件术语与缩写固定为测试场景 `SC-*`、测试点 `TP-*`、测试点明细 `TP-*-*`、失败类型明细 `TP-*-*-*`，不展开英文全名。
+- 主交付件事实源固定为 `outputs/runs/<run-id>/deliverables/test-analysis-solution.json`；`test-analysis-solution.md` 是脚本渲染的人读版，不手工维护。
 - 测试点属于测试分析层；测试点明细是测试点下的分析分支。
 - 每个测试场景必须包含 `E2E场景测试` 测试点。
 - `E2E场景测试` 是独立同级测试点，只维护端到端主流程成功闭环明细；其他规则、异常、接口、权限、状态、回滚或补偿分支必须拆为同级 `TP-*`。
@@ -62,5 +63,6 @@ description: 测试分析方案门面 Agent；当用户希望生成测试分析�
 - 修改 `skills/*/SKILL.md` 或 `agents/*.md` 后，运行 `python bin/sync-opencode-skills.py`。
 - 修改运行时 wiring 后，运行 `python bin/validate-agent-runtime.py`。
 - 单次测试分析方案 review 只运行当前 run 相关的 lint、consistency 和必要语义检查。
+- 当前 run 相关 lint 包括 `bin/lint-run-json.py`、`bin/render-run-markdown.py --check`、派生 Markdown lint 和 `bin/check-artifact-consistency.py`。
 - 修改 Agent、skill、knowledge、template、quality gate、bin 脚本或示例 fixture 后，再运行 `python bin/sync-opencode-skills.py --check`、`python bin/smoke-test-analysis.py` 和必要 lint。
 - 不直接编辑 `.opencode/skills/` 或 `.opencode/agents/`；它们由同步脚本生成。

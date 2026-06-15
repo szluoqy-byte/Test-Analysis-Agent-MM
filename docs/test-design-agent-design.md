@@ -11,7 +11,7 @@
 固定路径：
 
 ```text
-outputs/runs/<run-id>/deliverables/test-design-solution.md
+outputs/runs/<run-id>/deliverables/test-design-solution.json
 ```
 
 测试设计阶段优先复用上游测试分析方案所在 run；需要新建 run 时，`run-id` 固定使用 `python bin/generate-run-id.py` 生成，格式为 `<YYYYMMDD-HHMMSS>`。
@@ -88,16 +88,18 @@ flowchart TD
   main --> normalize["normalize-input-documents<br/>Office 输入转 Markdown<br/>复用 input-cache 并绑定 run inputs"]
   normalize --> hasAnalysis{"是否已有已评审分析方案"}
   hasAnalysis -- 否 --> analysis["test-analysis-workflow<br/>先生成测试分析方案"]
-  analysis --> analysisCheck["bin/lint-test-analysis-solution.py"]
+  analysis --> analysisCheck["bin/lint-run-json.py<br/>bin/render-run-markdown.py --check"]
   hasAnalysis -- 是 --> analysisCheck
   analysisCheck --> ctx["memory-context-builder<br/>读取或生成 context-pack<br/>确认适用 rules"]
   ctx --> basis["补读需求与设计依据<br/>只补充判定依据"]
   basis --> generation["test-design-solution-generation<br/>在叶子分析节点生成 TDI-*"]
-  generation --> lint["bin/lint-test-design-solution.py<br/>确定性结构校验"]
+  generation --> jsonLint["bin/lint-run-json.py<br/>JSON canonical 校验"]
+  jsonLint --> render["bin/render-run-markdown.py<br/>渲染派生 Markdown"]
+  render --> lint["bin/lint-test-design-solution.py<br/>派生 Markdown 校验"]
   lint --> review["test-design-solution-review<br/>语义评审<br/>承接/数据化粒度/预期结果依据"]
   review --> coverage["coverage-review<br/>覆盖与项目知识应用检查"]
   coverage --> consistency["bin/check-artifact-consistency.py<br/>最终一致性校验"]
-  consistency --> output["deliverables/test-design-solution.md"]
+  consistency --> output["deliverables/test-design-solution.json"]
   output --> finish(["完成"])
 ```
 
@@ -109,7 +111,7 @@ flowchart TD
 | 输入归一化 | `normalize-input-documents` | 将 `.docx` / `.xlsx` 需求、设计依据或外部分析方案转换到全局 cache，并绑定为 run-local Markdown，后续流程只读取 `outputs/runs/<run-id>/inputs/` |
 | 主入口 | `test-design-workflow` | 固定根目录、复用或创建 run、编排设计链路、输出主交付件 |
 | 设计生成 | `test-design-solution-generation` | 在普通 `TP-*-*` 或失败类型 `TP-*-*-*` 下保留预期结果，并生成数据化 `TDI-*` |
-| 确定性校验 | `bin/lint-test-design-solution.py` | 检查结构、编号、字段、Markdown 语法和禁用术语；失败时不进入模型评审 |
+| 确定性校验 | `bin/lint-run-json.py`、`bin/render-run-markdown.py --check`、`bin/lint-test-design-solution.py` | 先检查 JSON canonical 结构、编号和字段，再检查派生 Markdown 渲染一致性与人读格式；失败时修正 JSON，不手工改 Markdown |
 | 独立评审 | `test-design-solution-review` | 检查承接关系、设计项数据化粒度、叶子节点预期结果依据和非完整用例化语义 |
 | 覆盖审查 | `coverage-review` | 检查需求覆盖、分析方案承接、rules 应用、项目知识应用和质量门禁；不重复 lint 已覆盖的结构规则 |
 | 输出收口 | `bin/check-artifact-consistency.py` | 检查 run 目录、三个固定 process 产物、任务清单状态和主交付件基础一致性 |
@@ -118,7 +120,7 @@ flowchart TD
 
 测试设计阶段以已评审测试分析方案为主账本，不重新生成或静默改写分析层级。
 
-- 如果输入分析方案未通过 `bin/lint-test-analysis-solution.py`，不进入测试设计生成。
+- 如果输入分析方案 JSON 未通过 `bin/lint-run-json.py` 或渲染后的分析方案未通过 `bin/render-run-markdown.py --check` / `bin/lint-test-analysis-solution.py`，不进入测试设计生成；迁移期只提供旧 Markdown 时，先转换为临时 JSON 再校验。
 - 如果设计阶段发现分析方案缺少接口归属、E2E 误挂分支、第四层拆分不合理或测试点明细已经下钻成具体数据值，记录为输入质量问题。
 - 能在设计层纠偏的内容只限于把已存在叶子分析节点扩展为 `TDI-*`；需要新增、删除、合并或改写 `SC-*`、`TP-*`、`TP-*-*`、`TP-*-*-*` 时，应回到 `@test-analysis-agent` 修正。
 - 单一弱结果分支如果在分析方案中停留在 `TP-*-*`，设计阶段直接在该明细下生成 `TDI-*`，不机械要求新增第四层。
@@ -142,7 +144,7 @@ flowchart TD
 | `rules/projects/<project-key>/**/*.md` | 项目级强制规则，确定 `project-key` 后读取 |
 | `rules/user/**/*.md` | 个人本地强制规则，不得覆盖 core/project rules |
 
-设计阶段必须复用或生成 `process/context-pack.md`，确认适用 rules 和 Rules 与输入冲突记录；被登记的 rules 必须在 TDI 生成、评审或覆盖审查中应用或解释。
+设计阶段必须复用或生成 `process/context-pack.json`，确认适用 rules 和 Rules 与输入冲突记录；被登记的 rules 必须在 TDI 生成、评审或覆盖审查中应用或解释。
 
 ## Project Knowledge 应用
 
@@ -180,6 +182,8 @@ flowchart TD
 ```bash
 python bin/sync-opencode-skills.py --check
 python bin/validate-agent-runtime.py
+python bin/lint-run-json.py outputs/runs/<run-id>
+python bin/render-run-markdown.py outputs/runs/<run-id> --check
 python bin/lint-test-design-solution.py outputs/runs/<run-id>/deliverables/test-design-solution.md
 python bin/check-artifact-consistency.py outputs/runs/<run-id>
 ```

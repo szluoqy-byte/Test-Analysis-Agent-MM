@@ -205,9 +205,9 @@ DOCX 图片抽取和占位可以一次完成，但图片理解、Mermaid 转换�
 
 - `test-analysis-workflow` 和 `test-design-workflow` 必须先固定 `<run-id>` 并创建 run 目录，再执行本 skill。
 - 若存在 Office 输入，主流程使用 `python skills/normalize-input-documents/scripts/normalize-office-input.py --run-dir outputs/runs/<run-id> ...`；无 Office 输入时该阶段置为 `skipped`。
-- `process/task-list.md` 中的“输入文档归一化”阶段在触发时置为 `done`，证据路径写 `outputs/runs/<run-id>/inputs/input-normalization-manifest.json`；无 Office 输入时置为 `skipped`。
-- `process/context-pack.md` 应记录源文件、全局缓存路径、run-local Markdown、metadata 和图片/图形补充合并状态，便于后续追踪源文件。
-- 只有在“完成判定”全部满足后，`process/task-list.md` 才能把“输入文档归一化”阶段置为 `done`；仍有图片、图形、复杂 Excel 或 warning 未收口时，阶段状态应保持 `pending`、`blocked` 或记录 `需补充处理`。
+- `process/task-list.json` 中的“输入文档归一化”阶段在触发时置为 `done`，证据路径写 `outputs/runs/<run-id>/inputs/input-normalization-manifest.json`；无 Office 输入时置为 `skipped`。
+- `process/context-pack.json` 应记录源文件、全局缓存路径、run-local Markdown、metadata 和图片/图形补充合并状态，便于后续追踪源文件。
+- 只有在“完成判定”全部满足后，`process/task-list.json` 才能把“输入文档归一化”阶段置为 `done`；仍有图片、图形、复杂 Excel 或 warning 未收口时，阶段状态应保持 `pending`、`blocked` 或记录 `需补充处理`。
 
 ## 约束
 

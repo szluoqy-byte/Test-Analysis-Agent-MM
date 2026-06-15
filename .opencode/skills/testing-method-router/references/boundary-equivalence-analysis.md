@@ -13,7 +13,7 @@
 - 结构化需求片段。
 - 需求依据。
 - `knowledge/test-techniques/experience-based/error-guessing-checklist.md`。
-- `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.md`。
+- `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.json`。
 
 ## 分析步骤
 

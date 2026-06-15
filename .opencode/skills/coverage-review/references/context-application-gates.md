@@ -1,17 +1,17 @@
 # 上下文应用门禁
 
-本文件是 `coverage-review` 的私有参考，用于检查 `process/context-pack.md` 中发现的 rules、project knowledge 和附加门禁是否被后续阶段正确读取、应用或解释跳过。
+本文件是 `coverage-review` 的私有参考，用于检查 `process/context-pack.json` 中发现的 rules、project knowledge 和附加门禁是否被后续阶段正确读取、应用或解释跳过。
 
 ## 1. Rules 应用检查
 
 ### 目的
 
-确保 `process/context-pack.md` 中登记的 applicable rules 被后续流程实际遵守。Rules 的优先级低于当前用户明确指令，高于当前输入文档、memory 和 knowledge。
+确保 `process/context-pack.json` 中登记的 applicable rules 被后续流程实际遵守。Rules 的优先级低于当前用户明确指令，高于当前输入文档、memory 和 knowledge。
 
 ### 必需输入
 
-- `process/context-pack.md` 中的“适用强制规则”表。
-- 过程报告中的 Rules 应用记录。
+- `process/context-pack.json` 中的“适用强制规则”结构。
+- 结构化过程记录、review JSON 或 coverage JSON 中的 Rules 应用记录。
 - 测试分析方案或测试设计方案。
 - 当前用户明确指令摘要。
 - 当前输入文档摘要。
@@ -41,12 +41,12 @@
 
 ### 目的
 
-确保 `process/context-pack.md` 中登记的项目知识阶段绑定被对应流程环节实际读取、应用或解释跳过，避免 project knowledge 只被发现但未参与测试分析设计。
+确保 `process/context-pack.json` 中登记的项目知识阶段绑定被对应流程环节实际读取、应用或解释跳过，避免 project knowledge 只被发现但未参与测试分析设计。
 
 ### 必需输入
 
-- `process/context-pack.md` 中的“项目知识阶段绑定”表。
-- 过程报告中的 Project Knowledge 与附加门禁应用记录。
+- `process/context-pack.json` 中的“项目知识阶段绑定”结构。
+- 结构化过程记录、review JSON 或 coverage JSON 中的 Project Knowledge 与附加门禁应用记录。
 - 测试技术路由、测试点明细、测试分析方案、测试设计方案、独立评审和覆盖审查结果。
 
 ### 通过条件
@@ -58,7 +58,7 @@
 
 ### 失败条件
 
-- context pack 绑定了 project knowledge 到某个阶段，但过程报告或对应阶段输出没有应用记录。
+- context pack 绑定了 project knowledge 到某个阶段，但结构化过程记录或对应阶段输出没有应用记录。
 - 应用状态不是 `applied`、`not_applicable`、`insufficient_evidence`、`conflict_with_requirement` 或 `deferred_to_review`。
 - 绑定到 `coverage-review` 的 checklist 未被读取；如果 context pack 明确把 checklist 额外绑定到 `test-analysis-solution-review` 或 `test-design-solution-review`，对应独立评审也必须读取并留痕。
 - checklist 明确指出核心漏覆盖，但输出既未补充测试点、测试点明细或测试设计项，也未给出不适用或依据不足说明。

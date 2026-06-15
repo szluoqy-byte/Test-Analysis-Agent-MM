@@ -94,25 +94,23 @@
 
 ### 示例：外部支付依赖超时与恢复
 
-**测试场景**：用户提交支付请求，系统调用外部支付依赖；依赖可能超时、恢复或重复回调。
+- 测试场景：用户提交支付请求，系统调用外部支付依赖；依赖可能超时、恢复或重复回调。
 
-**规格摘要**：
+- 规格摘要：
 
 - 外部支付依赖超时时，系统最多重试 `3` 次。
 - 重试全部失败后，订单保持 `待支付`，不扣减余额，并记录失败原因。
 - 依赖恢复后，补偿任务继续处理待确认支付请求。
 - 同一支付成功回调重复到达时必须幂等处理。
 
-**测试点**：验证支付依赖失败、重试、恢复和重复回调下系统保持安全状态。
+- 测试点：验证支付依赖失败、重试、恢复和重复回调下系统保持安全状态。
 
-| 测试设计项 ID | 条件/数据/状态/组合 |
-|---|---|
-| TDI-001 | dependency=外部支付；firstAttempt=超时；retryAttempt=成功；retryCount=1 |
-| TDI-002 | dependency=外部支付；timeoutCount=3；retryLimit=3 |
-| TDI-003 | dependency=外部支付；recoveryStatus=已恢复；compensationTarget=待确认支付请求 |
-| TDI-004 | callbackType=支付成功；paymentId=PAY_20260602_0001；duplicateArrivalCount=2 |
+- TDI-001 dependency=外部支付；firstAttempt=超时；retryAttempt=成功；retryCount=1
+- TDI-002 dependency=外部支付；timeoutCount=3；retryLimit=3
+- TDI-003 dependency=外部支付；recoveryStatus=已恢复；compensationTarget=待确认支付请求
+- TDI-004 callbackType=支付成功；paymentId=PAY_20260602_0001；duplicateArrivalCount=2
 
-**设计要点**：
+- 设计要点：
 
 - 可靠性设计项要覆盖“失败时安全”和“恢复后最终一致”两个方向。
 - 重试和重复请求不是同一类设计项，分别验证重试策略和幂等保护。
