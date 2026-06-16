@@ -2,7 +2,7 @@
 
 ## 目标
 
-本 Agent 面向 Markdown 需求文档和可选设计方案文档，输出 `测试分析方案`；如果输入是 `.docx` 或 `.xlsx`，先创建 run，再归一化为 Markdown 并绑定到该 run 的 `inputs/` 目录后进入分析链路。它是独立项目，所有运行入口、Agent 门面、知识库、模板、质量门禁和校验脚本都在本仓库内维护，不依赖其他 Agent 项目或外部仓库结构。
+本 Agent 面向 Markdown 需求文档和可选设计方案文档，输出 `测试分析方案`；如果输入是 `.docx` 或 `.xlsx`，先由 `@file-normalization-agent` 归一化为 Markdown，再把归一化 Markdown 路径交给分析链路。它是独立项目，所有运行入口、Agent 门面、知识库、模板、质量门禁和校验脚本都在本仓库内维护，不依赖其他 Agent 项目或外部仓库结构。
 
 主交付件回答 what to test，输出粒度为：
 
@@ -13,13 +13,14 @@
 
 `测试点明细` 是测试分析层的规则分支、路径分支、状态分支、权限分支、接口契约分支或风险分支。只有明确非成功聚合测试点明细强制新增 `TP-*-*-*` 失败类型明细继续拆分失败来源；单一弱结果分支可停留在 `TP-*-*`。它不是 `TDI-*` 测试设计项，不表达具体代表性条件、数据、状态或组合。`@test-design-agent` 可在人工评审后的测试分析方案上继续补充 TDI。
 
-## 双 Agent 边界
+## Agent 边界
 
-本仓库维护两个子 Agent：
+本仓库维护三个子 Agent：
 
 | Agent | 主问题 | 主输入 | 主输出 |
 |---|---|---|---|
-| `@test-analysis-agent` | what to test | 需求文档、可选设计方案；Office 输入先绑定为 run-local Markdown | `test-analysis-solution.json`，输出 `SC-* / TP-* / TP-*-*`，非成功明细可到 `TP-*-*-*` |
+| `@file-normalization-agent` | input readiness | `.docx` / `.xlsx` / `.md` 输入文件 | 归一化 Markdown、conversion metadata、可选 run-local manifest |
+| `@test-analysis-agent` | what to test | 已归一化 Markdown 需求文档、可选设计方案 | `test-analysis-solution.json`，输出 `SC-* / TP-* / TP-*-*`，非成功明细可到 `TP-*-*-*` |
 | `@test-design-agent` | how to test | 已评审测试分析方案、可选需求/设计依据 | `test-design-solution.json`，在普通 `TP-*-*` 或失败类型 `TP-*-*-*` 下补充 `TDI-*` |
 
 分析 Agent 不输出 `TDI-*`；设计 Agent 不擅自新增分析层级。若设计阶段发现分析方案缺口，应记录过程问题，必要时回到分析 Agent 修正。
@@ -82,8 +83,12 @@ outputs/runs/<run-id>/deliverables/test-analysis-solution.json
 flowchart TD
   request([用户请求])
   request --> intent{用户目标}
+  intent -- 文件归一化 --> fileAgent[file-normalization-agent]
+  fileAgent --> normalized[归一化 Markdown]
   intent -- 生成测试分析方案 --> analysisAgent[test-analysis-agent]
   intent -- 生成测试设计方案 --> designAgent[test-design-agent]
+  normalized --> analysisAgent
+  normalized --> designAgent
   analysisAgent --> analysisSkill[test-analysis-workflow]
   analysisSkill --> analysisOutput[deliverables/test-analysis-solution.json]
   designAgent --> hasAnalysis{是否已有已评审分析方案}
@@ -99,9 +104,12 @@ flowchart TD
 flowchart TD
   start([用户请求])
   start --> agent[test-analysis-agent<br/>识别意图与入口]
-  agent --> main["test-analysis-workflow<br/>创建 run、inputs 与任务清单"]
-  main --> normalize["normalize-input-documents<br/>Office 输入转 Markdown<br/>复用 input-cache 并绑定 run inputs"]
-  normalize --> ctx["memory-context-builder<br/>加载适用 rules<br/>生成 context-pack 与项目知识阶段绑定"]
+  agent --> office{"是否为 Office 输入"}
+  office -- 是 --> fileAgent["file-normalization-agent<br/>先归一化为 Markdown"]
+  fileAgent --> restart["把归一化 Markdown 作为输入<br/>重新进入分析 workflow"]
+  office -- 否 --> main["test-analysis-workflow<br/>创建 run 与任务清单"]
+  restart --> main
+  main --> ctx["memory-context-builder<br/>加载适用 rules<br/>生成 context-pack 与项目知识阶段绑定"]
   ctx --> facts[input-fact-modeling<br/>建立输入事实模型<br/>事实清单/需求-设计映射/待确认事项]
   facts --> cpInput[clarification-gate CP-INPUT<br/>收口输入冲突与缺失]
   cpInput --> route[testing-method-router<br/>选择测试技术与专项方法参考]
@@ -126,7 +134,7 @@ flowchart TD
 | 层级 | Skill | 职责 |
 |---|---|---|
 | Agent 门面 | `test-analysis-agent` | 识别用户意图，路由生成、记录、咨询和框架维护任务 |
-| 输入归一化 | `normalize-input-documents` | 将 `.docx` / `.xlsx` 需求或设计方案转换到全局 cache，并绑定为 run-local Markdown，后续流程只读取 `outputs/runs/<run-id>/inputs/` |
+| 文件归一化入口 | `file-normalization-agent` | 将 `.docx` / `.xlsx` 输入归一化为 Markdown；不进入测试分析主流程 |
 | 主入口 | `test-analysis-workflow` | 固定根目录、创建 run、编排全链路、输出主交付件 |
 | 上下文 | `memory-context-builder` | 发现适用 rules、core/project/personal 上下文和项目知识阶段绑定 |
 | 输入事实建模 | `input-fact-modeling` | 建立输入事实模型，记录事实清单、需求-设计映射、待确认事项和来源应用说明 |

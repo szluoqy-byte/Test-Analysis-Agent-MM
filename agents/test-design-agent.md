@@ -22,7 +22,7 @@ description: 测试设计方案门面 Agent；当用户希望基于已评审测�
 | 用户意图 | 处理方式 |
 |---|---|
 | 基于已评审测试分析方案生成测试设计方案 | 使用 `test-design-workflow` 主流程 |
-| 输入需求、设计依据或外部分析方案是 `.docx` / `.xlsx` | 先使用 `normalize-input-documents` 转换并缓存为 Markdown，再进入设计主流程 |
+| 输入需求、设计依据或外部分析方案是 `.docx` / `.xlsx` | 先切换到 `@file-normalization-agent` 归一化为 Markdown；本 Agent 只消费归一化后的 Markdown 或 JSON 路径 |
 | 只有需求/设计方案但要求直接生成测试设计方案 | 先通过 `test-analysis-workflow` 生成分析方案，再由 `test-design-workflow` 扩展设计项 |
 | 评审测试设计项粒度、预期结果或非用例化问题 | 使用 `test-design-solution-review`，以 `knowledge/test-design-solution-standard.md` 和 lint 结果为准 |
 | 只咨询测试设计方法、测试技术或设计项粒度 | 读取相关 `knowledge/`、`docs/` 或 skill，先给分析建议；除非用户要求，不改文件 |
@@ -48,6 +48,7 @@ description: 测试设计方案门面 Agent；当用户希望基于已评审测�
 - 如果 `process/context-pack.json` 绑定了 project knowledge 到设计生成、设计评审或覆盖审查阶段，该阶段必须读取相关章节并记录应用状态。
 - 主交付件不得使用 Markdown 加粗语法，例如 `**文本**` 或 `__文本__`。
 - 如果需求和设计方案没有说明错误提示、状态变化、错误码、接口返回或数据记录变化，相关设计项的预期结果写 `待人工分析确认`。
+- 本 Agent 不直接处理 `.docx` / `.xlsx`；Office 输入必须先由 `@file-normalization-agent` 输出 Markdown 输入事实源。
 
 ## 执行约束
 

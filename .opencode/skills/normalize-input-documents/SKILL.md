@@ -1,20 +1,20 @@
 ---
 name: normalize-input-documents
-description: 当需求文档、设计方案文档或已评审分析方案输入包含 .docx 或 .xlsx Office 文件时使用；先统一转换到全局 cache，并在完整 run 中绑定为 run-local Markdown，再交给测试分析或测试设计主流程。
+description: 当用户通过 file-normalization-agent 或独立命令要求处理 .docx / .xlsx / .md 输入时使用；统一转换到全局 cache，可选绑定到既有 run，并收口图片图形和复杂 Excel warning。
 ---
 
 # 输入文档归一化
 
-本 skill 负责在测试分析或测试设计正式开始前，把 Office 输入文档归一化为 Markdown。最终产物必须是一个 Markdown 输入事实源：正文文本、表格内容以及被判定为相关的图片/图形补充事实都合并在同一个 `.md` 文件中。它解决三个问题：
+本 skill 是 `@file-normalization-agent` 的核心能力，负责把 Office 输入文档归一化为 Markdown。最终产物必须是一个 Markdown 输入事实源：正文文本、表格内容以及被判定为相关的图片/图形补充事实都合并在同一个 `.md` 文件中。它解决三个问题：
 
-- 主流程只消费 Markdown，避免 `input-fact-modeling` 和设计依据补读重复处理 Office 文件。
+- 分析和设计主流程只消费 Markdown 或 JSON，避免 `input-fact-modeling` 和设计依据补读重复处理 Office 文件。
 - 转换结果按源文件内容哈希归档，源文件未变化时复用缓存，避免重复解析。
-- 完整 run 在 `outputs/runs/<run-id>/inputs/` 下保存本次实际使用的归一化输入副本和 manifest，保证单次交付自包含可追踪。
+- 在用户明确提供 `--run-dir` 或已有 run 绑定需求时，可在 `outputs/runs/<run-id>/inputs/` 下保存本次实际使用的归一化输入副本和 manifest。
 - DOCX 中相关图片、流程图、架构图、状态图、截图或 EMF/Visio 图形被解析后，必须追加到同一个归一化 Markdown 中；不得只维护单独的图片补充文件、过程记录或 context-pack。
 
 ## 触发条件
 
-当 `$ARGUMENTS`、用户消息或过程输入中出现以下文件时，先执行本 skill：
+当 `$ARGUMENTS`、用户消息或 `@file-normalization-agent` 过程输入中出现以下文件时，执行本 skill：
 
 - 需求文档：`.docx`、`.xlsx`。
 - 系统设计方案文档：`.docx`、`.xlsx`。
@@ -38,7 +38,7 @@ outputs/input-cache/<sha256-12>/<source-stem>.conversion.json
 - 源文件内容不变时，输出路径稳定，可直接复用。
 - 源文件内容变化时，哈希变化，生成新的缓存目录，不覆盖旧转换结果。
 
-完整测试分析或测试设计 run 创建后，还必须把本次使用的归一化输入绑定到 run 目录：
+如果用户明确提供 `--run-dir`，或正在为既有 run 补绑定归一化输入，可以把本次使用的归一化输入绑定到 run 目录：
 
 ```text
 outputs/runs/<run-id>/inputs/<sha256-12>-<source-stem>.md
@@ -46,9 +46,9 @@ outputs/runs/<run-id>/inputs/<sha256-12>-<source-stem>.conversion.json
 outputs/runs/<run-id>/inputs/input-normalization-manifest.json
 ```
 
-- run-local Markdown 是后续主流程读取的输入事实源；如果存在图片/图形补充，补充内容必须已经合并到该 Markdown 文件中。
+- run-local Markdown 是后续主流程可读取的输入事实源；如果存在图片/图形补充，补充内容必须已经合并到该 Markdown 文件中。
 - `input-normalization-manifest.json` 记录源文件、全局缓存、run-local 输入、metadata 和转换警告之间的映射。
-- 独立 `/normalize-input-documents` 命令不创建 run 时，可以只写全局缓存。
+- 未提供 `--run-dir` 时，只写全局缓存。
 
 ## 执行命令
 
@@ -60,13 +60,13 @@ python skills/normalize-input-documents/scripts/normalize-office-input.py "<inpu
 
 输出会使用中文列出每个输入的归一化结果。路径包含空格、中文或特殊字符时必须使用引号包裹。
 
-完整测试分析或测试设计主流程必须在创建 run 目录后执行：
+如需绑定到既有 run，可显式传入：
 
 ```bash
 python skills/normalize-input-documents/scripts/normalize-office-input.py --run-dir outputs/runs/<run-id> "<input1.docx>" "<input2.xlsx>"
 ```
 
-下游主流程必须使用 `outputs/runs/<run-id>/inputs/*.md` 路径作为需求文档、设计方案文档或外部分析方案路径。
+下游分析或设计流程应使用本 skill 最终摘要中给出的 Markdown 路径作为需求文档、设计方案文档或外部分析方案路径。
 
 如果需要机器可读结果：
 
@@ -84,7 +84,7 @@ python skills/normalize-input-documents/scripts/normalize-office-input.py --json
 
 ## 稳定执行要求
 
-- 一次完整分析或设计 run 中，优先把需求、设计方案和外部分析方案等 Office 输入一次性传给脚本，减少上下文遗漏。
+- 一次文件归一化请求中，优先把需求、设计方案和外部分析方案等输入一次性传给脚本，减少下游路径遗漏。
 - 如果后续补充输入再次执行脚本，`input-normalization-manifest.json` 必须保留前序输入映射，并追加或更新本次输入映射。
 - 脚本对用户可见的状态、错误和警告使用中文输出；JSON schema 字段名保持稳定，不因中文化改名。
 - `.xlsx` 转换会裁剪每行尾部空单元格，避免 Excel 样式污染造成 Markdown 表格异常变宽。
@@ -97,7 +97,7 @@ python skills/normalize-input-documents/scripts/normalize-office-input.py --json
 
 1. `$ARGUMENTS` 中所有 `.md`、`.docx`、`.xlsx` 输入都已识别并逐项给出处理状态。
 2. 每个 Office 输入都有全局缓存 Markdown 和 `.conversion.json`；Markdown 输入明确标记为 `无需转换`。
-3. 如果处于完整 run，`outputs/runs/<run-id>/inputs/input-normalization-manifest.json` 已存在，且包含本次所有输入映射；下游输入路径必须切换为 run-local Markdown。
+3. 如果传入 `--run-dir` 或 `--run-input-dir`，`outputs/runs/<run-id>/inputs/input-normalization-manifest.json` 已存在，且包含本次所有输入映射；下游输入路径优先使用 run-local Markdown。
 4. 所有 metadata warnings 都已处理或记录收口状态：
    - `已处理`：例如已补充图片/图形事实并合并回归一化 Markdown、已人工确认复杂 Excel 表头、已增强测试因子库归档。
    - `无需处理`：例如图片仅为 logo、页眉页脚装饰图，或 Excel 合并单元格不影响可读性。
@@ -118,13 +118,13 @@ python skills/normalize-input-documents/scripts/normalize-office-input.py --json
 - 多行单元格转换为 `<br>`。
 - 表格中的 `|` 会转义。
 
-如果 DOCX 中包含架构图、流程图、截图、EMF、Visio 或其他图片内容，脚本会在 metadata 中记录图片数量和转换警告，并尽量在 Markdown 中按原始图片位置插入 `DOCX_IMAGE_START` / `DOCX_IMAGE_END` 占位块。此时应按本 skill 内置参考 `references/docx-image-and-diagram-workflow.md` 补充图片描述或 Mermaid，并把补充内容替换到对应占位块所在位置，再进入分析/设计主流程；不得静默忽略设计图中承载的接口、流程、状态或依赖信息。
+如果 DOCX 中包含架构图、流程图、截图、EMF、Visio 或其他图片内容，脚本会在 metadata 中记录图片数量和转换警告，并尽量在 Markdown 中按原始图片位置插入 `DOCX_IMAGE_START` / `DOCX_IMAGE_END` 占位块。此时应按本 skill 内置参考 `references/docx-image-and-diagram-workflow.md` 补充图片描述或 Mermaid，并把补充内容替换到对应占位块所在位置，再把 Markdown 交给分析/设计主流程；不得静默忽略设计图中承载的接口、流程、状态或依赖信息。
 
 ## 图片与图形合并规则
 
-- 最终只交给下游一个 Markdown 输入事实源：`outputs/input-cache/<sha256-12>/<source-stem>.md`，或完整 run 中的 `outputs/runs/<run-id>/inputs/<sha256-12>-<source-stem>.md`。
+- 最终只交给下游一个 Markdown 输入事实源：`outputs/input-cache/<sha256-12>/<source-stem>.md`，或显式绑定 run 时的 `outputs/runs/<run-id>/inputs/<sha256-12>-<source-stem>.md`。
 - 独立命令未创建 run 时，图片/图形补充合并到全局缓存 Markdown 的原始图片占位位置。
-- 完整 run 中，图片/图形补充必须合并到 run-local Markdown 的原始图片占位位置；如需复用全局缓存，也可以同步合并到全局缓存 Markdown，但下游只读取 run-local Markdown。
+- 显式绑定 run 时，图片/图形补充必须合并到 run-local Markdown 的原始图片占位位置；如需复用全局缓存，也可以同步合并到全局缓存 Markdown。
 - 脚本生成的占位块形如：
 
 ````markdown
@@ -201,19 +201,18 @@ DOCX 图片抽取和占位可以一次完成，但图片理解、Mermaid 转换�
 - `references/xlsx-to-markdown.md`：XLSX 多 sheet、多行单元格、管道符、多级表头、空行空列的 Markdown 转换规则。
 - `references/xlsx-to-ai-knowledge-base.md`：测试设计因子库、checklist 或项目知识类 Excel 的结构化归档规则。
 
-## 主流程集成
+## Agent 集成
 
-- `test-analysis-workflow` 和 `test-design-workflow` 必须先固定 `<run-id>` 并创建 run 目录，再执行本 skill。
-- 若存在 Office 输入，主流程使用 `python skills/normalize-input-documents/scripts/normalize-office-input.py --run-dir outputs/runs/<run-id> ...`；无 Office 输入时该阶段置为 `skipped`。
-- `process/task-list.json` 中的“输入文档归一化”阶段在触发时置为 `done`，证据路径写 `outputs/runs/<run-id>/inputs/input-normalization-manifest.json`；无 Office 输入时置为 `skipped`。
-- `process/context-pack.json` 应记录源文件、全局缓存路径、run-local Markdown、metadata 和图片/图形补充合并状态，便于后续追踪源文件。
-- 只有在“完成判定”全部满足后，`process/task-list.json` 才能把“输入文档归一化”阶段置为 `done`；仍有图片、图形、复杂 Excel 或 warning 未收口时，阶段状态应保持 `pending`、`blocked` 或记录 `需补充处理`。
+- `@file-normalization-agent` 是本 skill 的用户入口。
+- `@test-analysis-agent` 和 `@test-design-agent` 不直接调用本 skill；它们只消费已经归一化好的 Markdown 或 JSON canonical 输入。
+- 如果用户把 `.docx` / `.xlsx` 直接交给分析或设计 Agent，应先切换到 `@file-normalization-agent`，完成归一化后再把 Markdown 路径传给分析或设计 Agent。
+- 本 skill 不维护分析/设计 run 的 `process/task-list.json` 阶段状态。若用户显式传入 `--run-dir`，只维护 `inputs/input-normalization-manifest.json` 和归一化 Markdown/metadata。
 
 ## 约束
 
 - 不从输入文件路径反推 `PROJECT_ROOT`；所有缓存路径从仓库根目录解析。
 - 不把缓存 Markdown 写到输入文件所在目录。
-- 完整 run 的后续流程不得直接读取全局 `outputs/input-cache/`；必须读取 `outputs/runs/<run-id>/inputs/` 下的 run-local 输入。
+- 未绑定 run 时，下游可以读取最终摘要给出的全局缓存 Markdown；已绑定 run 时，优先读取 `outputs/runs/<run-id>/inputs/` 下的 run-local 输入。
 - 不把 Office 原文全量写入 memory、knowledge 或 rules。
 - 不把转换警告写入测试分析或测试设计主交付件；需要留痕时写入归一化 Markdown 的对应图片占位块、process 或 reports。
 - 转换后的 Markdown 是下游分析/设计的输入事实源；如果转换存在图片缺失或表格异常风险，必须在归一化 Markdown 或过程产物中记录，且下游不需要再读取单独图片补充文件才能理解输入。

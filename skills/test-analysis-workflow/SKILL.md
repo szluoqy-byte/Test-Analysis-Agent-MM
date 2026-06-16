@@ -21,9 +21,9 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 
 ## 必需输入
 
-- `$ARGUMENTS`：至少包含一份 `.md`、`.docx` 或 `.xlsx` 需求文档路径。
-- `$ARGUMENTS` 可额外包含一份或多份 `.md`、`.docx` 或 `.xlsx` 设计方案文档路径，或使用 `--design <path>`、`design=<path>`、`设计方案：<path>` 指定。
-- 如果输入包含 `.docx` 或 `.xlsx`，必须先固定 `<run-id>` 并创建 run 目录，再使用 `normalize-input-documents` 转换到全局 cache 并绑定到 `outputs/runs/<run-id>/inputs/`；后续需求分析和设计提取阶段只读取 run-local Markdown 路径。
+- `$ARGUMENTS`：至少包含一份 `.md` 或 `.markdown` 需求文档路径。
+- `$ARGUMENTS` 可额外包含一份或多份 `.md` 或 `.markdown` 设计方案文档路径，或使用 `--design <path>`、`design=<path>`、`设计方案：<path>` 指定。
+- 如果输入包含 `.docx` 或 `.xlsx`，不得在本 workflow 中转换；必须先由 `@file-normalization-agent` 归一化为 Markdown，再把归一化 Markdown 路径作为本 workflow 输入。
 - 可选项目绑定参数：`--project <project-key>`、`project=<project-key>` 或 `项目：<project-key>`。如果出现该参数，必须原样传递给 `memory-context-builder`，并要求 `process/context-pack.json` 记录 project-key、已扫描 project 来源、未采用 project 来源和项目知识阶段绑定。
 - 可选个人绑定参数：`--personal <personal-key>`、`personal=<personal-key>` 或 `个人：<personal-key>`。如果出现该参数，必须原样传递给 `memory-context-builder`，并要求 `process/context-pack.json` 记录 personal-key、使用路径和 personal 来源使用摘要。
 
@@ -72,29 +72,27 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 
 ## 执行流程
 
-1. 校验输入至少包含一份需求文档；识别可选设计方案文档，但此时不读取 Office 正文。
+1. 校验输入至少包含一份 Markdown 需求文档；识别可选 Markdown 设计方案文档。若发现 `.docx` 或 `.xlsx` 输入，输出需先使用 `@file-normalization-agent` 的阻断说明，不创建测试分析 run。
 2. 将当前 agent 会话工作目录固定为 `PROJECT_ROOT`，运行 `python bin/generate-run-id.py` 生成本次运行 ID，并创建 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/`、`process/`、`reports/` 和 `inputs/`。
 3. 使用 `templates/process-artifacts-json-template.json` 创建 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/task-list.json`，并按阶段维护状态；需要人读版时由渲染脚本生成 `process/task-list.md`。
-4. 若输入包含 `.docx` 或 `.xlsx`，调用 `normalize-input-documents`，使用 `python skills/normalize-input-documents/scripts/normalize-office-input.py --run-dir outputs/runs/<run-id> ...` 将 Office 输入转换到全局 cache，并绑定到 `${PROJECT_ROOT}/outputs/runs/<run-id>/inputs/`；必须按该 skill 的“完成判定”处理或记录所有图片、图形、复杂 Excel 和转换 warning 后，才能把“输入文档归一化”阶段标记为 `done`；后续步骤只使用 run-local Markdown 路径。若无 Office 输入，该阶段在 `process/task-list.json` 中标记为 `skipped`。
-5. 解析可选 `project-key` 和 `personal-key`，使用 `memory-context-builder` 扫描 core、project 和 personal 三层配置，生成 `process/context-pack.json`，登记适用 rules、Rules 与输入冲突记录和 project knowledge 阶段绑定。
-6. 使用 `input-fact-modeling` 读取需求文档和可选设计方案文档，生成 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/input-fact-model.json`，其中包含事实清单、需求-设计映射、待确认事项和来源应用说明；如果未提供设计方案，在事实模型中记录未提供设计依据，而不是单独跳过设计提取阶段。
-7. 使用 `clarification-gate` 执行 `CP-INPUT`，合并 memory、需求与设计方案之间的冲突、缺失和歧义，不向用户提问。
-8. 使用 `testing-method-router` 对输入事实模型中的需求事实、设计事实和待确认事项进行测试技术路由，选择适用测试技术和专项方法参考；如果 context pack 绑定了本阶段 project knowledge，必须先读取并记录应用状态。
-9. 使用路由选中的专项方法参考产出 `ME-*` 方法证据、测试点候选、技术缺口候选和按源补读记录。
-10. 使用 `clarification-gate` 执行 `CP-ANALYSIS`，收口会导致测试点、方法覆盖或预期结果失真的信息缺口；如果没有任何候选，也必须刷新 `process/clarification-session.json` 并声明 `无待确认候选`。
-11. 使用 `test-analysis-solution-generation` 基于输入事实模型、测试技术路由、专项方法参考、方法证据和项目知识生成并写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.json`；如果 context pack 绑定了本阶段 project knowledge，必须先读取并记录应用状态。
-12. 执行确定性 JSON 校验：运行 `bin/lint-run-json.py ${PROJECT_ROOT}/outputs/runs/<run-id>`。如果失败，先按脚本失败项修正 JSON，不进入独立评审和覆盖审查。
-13. 执行 Markdown 渲染和派生 Markdown 校验：运行 `bin/render-run-markdown.py ${PROJECT_ROOT}/outputs/runs/<run-id>`，再运行 `bin/lint-test-analysis-solution.py ${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.md`。如果失败，修正 JSON 后重新渲染，不手工改 Markdown。
-14. 使用 `test-analysis-solution-review` 独立语义评审测试分析方案 JSON，重点检查测试点明细粒度、失败类型拆分充分性、预期结果依据、事实溯源、非用例化语义和本阶段绑定的 project review knowledge；不得重复执行 lint 已覆盖的结构、编号、字段和 Markdown 语法检查。评审结果写入 `reports/test-analysis-solution-review.json`。
-15. 使用 `coverage-review` 执行覆盖、追踪、方法应用、rules 应用、project knowledge 应用和过程门禁收口；如果 context pack 绑定了本阶段 project knowledge，必须读取并检查前序阶段应用状态。专家评分和深度语义检查仅在用户明确要求或高风险场景下执行。覆盖结果写入 `reports/coverage-review.json`。
-16. 不再新建自由格式过程分析 Markdown 作为机器证据；测试技术路由、专项分析、review 和 coverage 的机器可读结论应沉淀到 `process/*.json`、`deliverables/test-analysis-solution.json`、`reports/test-analysis-solution-review.json` 或 `reports/coverage-review.json`。迁移旧 run 时才允许保留 `reports/test-analysis-report.md` 作为兼容性人读证据。
-17. 最终输出前刷新 `process/task-list.json`：所有必选阶段必须为 `done`，未触发的可选阶段为 `skipped` 并说明原因；运行 `bin/render-run-markdown.py ${PROJECT_ROOT}/outputs/runs/<run-id>` 生成派生 Markdown；运行 `bin/check-artifact-consistency.py ${PROJECT_ROOT}/outputs/runs/<run-id>` 做最终一致性检查；如果存在 `blocked`，必须在 `process/task-list.json`、`process/clarification-session.json` 或 review/coverage JSON 中说明。
+4. 解析可选 `project-key` 和 `personal-key`，使用 `memory-context-builder` 扫描 core、project 和 personal 三层配置，生成 `process/context-pack.json`，登记适用 rules、Rules 与输入冲突记录和 project knowledge 阶段绑定。
+5. 使用 `input-fact-modeling` 读取需求文档和可选设计方案文档，生成 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/input-fact-model.json`，其中包含事实清单、需求-设计映射、待确认事项和来源应用说明；如果未提供设计方案，在事实模型中记录未提供设计依据，而不是单独跳过设计提取阶段。
+6. 使用 `clarification-gate` 执行 `CP-INPUT`，合并 memory、需求与设计方案之间的冲突、缺失和歧义，不向用户提问。
+7. 使用 `testing-method-router` 对输入事实模型中的需求事实、设计事实和待确认事项进行测试技术路由，选择适用测试技术和专项方法参考；如果 context pack 绑定了本阶段 project knowledge，必须先读取并记录应用状态。
+8. 使用路由选中的专项方法参考产出 `ME-*` 方法证据、测试点候选、技术缺口候选和按源补读记录。
+9. 使用 `clarification-gate` 执行 `CP-ANALYSIS`，收口会导致测试点、方法覆盖或预期结果失真的信息缺口；如果没有任何候选，也必须刷新 `process/clarification-session.json` 并声明 `无待确认候选`。
+10. 使用 `test-analysis-solution-generation` 基于输入事实模型、测试技术路由、专项方法参考、方法证据和项目知识生成并写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.json`；如果 context pack 绑定了本阶段 project knowledge，必须先读取并记录应用状态。
+11. 执行确定性 JSON 校验：运行 `bin/lint-run-json.py ${PROJECT_ROOT}/outputs/runs/<run-id>`。如果失败，先按脚本失败项修正 JSON，不进入独立评审和覆盖审查。
+12. 执行 Markdown 渲染和派生 Markdown 校验：运行 `bin/render-run-markdown.py ${PROJECT_ROOT}/outputs/runs/<run-id>`，再运行 `bin/lint-test-analysis-solution.py ${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.md`。如果失败，修正 JSON 后重新渲染，不手工改 Markdown。
+13. 使用 `test-analysis-solution-review` 独立语义评审测试分析方案 JSON，重点检查测试点明细粒度、失败类型拆分充分性、预期结果依据、事实溯源、非用例化语义和本阶段绑定的 project review knowledge；不得重复执行 lint 已覆盖的结构、编号、字段和 Markdown 语法检查。评审结果写入 `reports/test-analysis-solution-review.json`。
+14. 使用 `coverage-review` 执行覆盖、追踪、方法应用、rules 应用、project knowledge 应用和过程门禁收口；如果 context pack 绑定了本阶段 project knowledge，必须读取并检查前序阶段应用状态。专家评分和深度语义检查仅在用户明确要求或高风险场景下执行。覆盖结果写入 `reports/coverage-review.json`。
+15. 不再新建自由格式过程分析 Markdown 作为机器证据；测试技术路由、专项分析、review 和 coverage 的机器可读结论应沉淀到 `process/*.json`、`deliverables/test-analysis-solution.json`、`reports/test-analysis-solution-review.json` 或 `reports/coverage-review.json`。迁移旧 run 时才允许保留 `reports/test-analysis-report.md` 作为兼容性人读证据。
+16. 最终输出前刷新 `process/task-list.json`：所有必选阶段必须为 `done`，未触发的可选阶段为 `skipped` 并说明原因；运行 `bin/render-run-markdown.py ${PROJECT_ROOT}/outputs/runs/<run-id>` 生成派生 Markdown；运行 `bin/check-artifact-consistency.py ${PROJECT_ROOT}/outputs/runs/<run-id>` 做最终一致性检查；如果存在 `blocked`，必须在 `process/task-list.json`、`process/clarification-session.json` 或 review/coverage JSON 中说明。
 
 ## 阶段产物契约
 
 | 阶段 | 必须产出 | 交给下一阶段 |
 |---|---|---|
-| `normalize-input-documents` | Office 输入全局 cache、run-local Markdown、conversion metadata、`inputs/input-normalization-manifest.json`、warning 收口记录；无 Office 输入时记录 skipped | 需求与设计方案分析 |
 | `task-list` | `process/task-list.json`、派生 `process/task-list.md` | 全流程阶段顺序与状态追踪 |
 | `memory-context-builder` | `process/context-pack.json`、适用强制规则、Rules 与输入冲突记录、project/personal 来源使用摘要、项目知识阶段绑定 | 需求与设计方案分析 |
 | `input-fact-modeling` | `process/input-fact-model.json`、事实清单、需求-设计映射、待确认事项、来源应用说明 | 待确认治理、测试技术路由、测试分析方案生成 |

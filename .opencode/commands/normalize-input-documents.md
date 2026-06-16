@@ -3,7 +3,7 @@ description: 将 Office 输入文档归一化为缓存 Markdown
 agent: build
 ---
 
-使用仓库内置 skill `normalize-input-documents`。
+使用仓库内置 skill `normalize-input-documents`。该命令是 `@file-normalization-agent` 的轻量命令入口，只做文件归一化，不进入测试分析或测试设计主流程。
 
 将下面的命令参数视为该 skill 的 `$ARGUMENTS`：
 
@@ -27,7 +27,7 @@ $ARGUMENTS
 python skills/normalize-input-documents/scripts/normalize-office-input.py <arguments>
 ```
 
-固定使用 `outputs/input-cache/<sha256-12>/` 作为全局缓存位置。输出时说明归一化 Markdown 路径、转换 metadata 路径、缓存复用状态和转换警告。完整测试分析或测试设计 run 后续会用同一脚本追加 `--run-dir outputs/runs/<run-id>`，把缓存 Markdown 绑定到 `outputs/runs/<run-id>/inputs/`；本独立命令不得执行 run-local 绑定。
+固定使用 `outputs/input-cache/<sha256-12>/` 作为全局缓存位置。输出时说明归一化 Markdown 路径、转换 metadata 路径、缓存复用状态和转换警告。测试分析或测试设计 workflow 后续直接读取本命令输出的归一化 Markdown 路径；本独立命令不得创建或修改 run-local 绑定。
 
 如果转换 metadata 报告图片或转换警告，读取 `skills/normalize-input-documents/references/docx-image-and-diagram-workflow.md`。当当前模型支持多模态图片理解时，在下游分析或设计使用归一化输入前，补充图片、图形、流程图、架构图、截图、EMF 或 Visio 中承载的事实。补充事实必须替换归一化 Markdown 中对应的 `DOCX_IMAGE_START` / `DOCX_IMAGE_END` 原位占位块，不能只保存在单独文件、文末章节、过程记录或最终回复中；如果当前模型不支持多模态，必须在对应占位块记录未执行原因。
 

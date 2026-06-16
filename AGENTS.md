@@ -24,7 +24,8 @@
 
 - Claude Code 使用 `.claude-plugin/plugin.json`、根目录 `agents/` 和根目录 `skills/`。
 - OpenCode 使用 `opencode.json`、`AGENTS.md`、`.opencode/agents/`、`.opencode/commands/` 和 `.opencode/skills/`。
-- 用户主入口 Agent 包括 `@test-analysis-agent` 和 `@test-design-agent`，源文件分别是 `agents/test-analysis-agent.md` 和 `agents/test-design-agent.md`。
+- 用户主入口 Agent 包括 `@file-normalization-agent`、`@test-analysis-agent` 和 `@test-design-agent`，源文件分别是 `agents/file-normalization-agent.md`、`agents/test-analysis-agent.md` 和 `agents/test-design-agent.md`。
+- 文件归一化入口是 `agents/file-normalization-agent.md`，用于把 `.docx` / `.xlsx` / `.md` 输入整理为后续分析或设计可读取的 Markdown 输入事实源。
 - 测试分析主流程 skill 入口是 `skills/test-analysis-workflow/SKILL.md`。
 - 测试设计主流程 skill 入口是 `skills/test-design-workflow/SKILL.md`。
 - OpenCode 独立文档归一化命令入口是 `.opencode/commands/normalize-input-documents.md`，用于在切换到多模态模型后单独执行 `.docx` / `.xlsx` 转 Markdown 与可选图片/图形补充，不进入测试分析或测试设计主流程。
@@ -44,7 +45,7 @@
 - 所有 `skills/...`、`rules/...`、`knowledge/...`、`templates/...`、`quality-gates/...`、`memory/...`、`bin/...` 和 `outputs/...` 路径都从仓库根目录解析。
 - 不要基于 skill 目录、`.claude-plugin/`、`.opencode/` 或输入文件目录解析路径。
 - 运行产物写入 `outputs/runs/<run-id>/`。
-- Office 输入归一化采用两层路径：全局复用缓存写入 `outputs/input-cache/<sha256-12>/`；完整 run 的本次输入绑定写入 `outputs/runs/<run-id>/inputs/`。
+- Office 输入归一化采用两层路径：全局复用缓存写入 `outputs/input-cache/<sha256-12>/`；用户明确提供 `--run-dir` 或为既有 run 补绑定时，本次输入绑定写入 `outputs/runs/<run-id>/inputs/`。
 - DOCX 图片、流程图、架构图、状态图、截图或 EMF/Visio 图形解析后的 Mermaid/结构化事实必须合并回同一个归一化 Markdown，并放在原 DOCX 图片对应的 Markdown 占位位置；不得只维护独立补充文件、文末章节、process、context-pack 或最终回复。
 - DOCX 图片理解和 Mermaid 转换必须按原文顺序分批处理：普通图片每批最多 3-5 张，复杂流程图/架构图/状态图每批 1-2 张；每批完成后立即回写对应 Markdown 占位块，避免模型上下文超限或结果丢失。
 - 新建完整 run 时，`run-id` 固定使用 `python bin/generate-run-id.py` 生成，格式为 `<YYYYMMDD-HHMMSS>`。
@@ -68,12 +69,12 @@
 
 ## 主流程
 
-- 当用户要求基于需求和设计方案生成测试场景、测试点、测试点明细粒度的方案时，使用 `test-analysis-workflow`。
-- 如果需求文档、系统设计方案或外部分析方案输入是 `.docx` 或 `.xlsx`，先固定 `<run-id>` 并创建 run 目录，再使用 `normalize-input-documents` 调用 `python skills/normalize-input-documents/scripts/normalize-office-input.py --run-dir outputs/runs/<run-id> ...` 转换到全局 cache 并绑定为 run-local Markdown；后续流程只读取 `outputs/runs/<run-id>/inputs/` 下的归一化 Markdown 路径。
-- `normalize-input-documents` 不能只以脚本执行成功作为完成标准；必须处理或记录 DOCX 图片/图形、复杂 Excel 和 metadata warnings 的收口状态，并确认图片/图形补充已合并到归一化 Markdown 的正确原文位置后，才能把“输入文档归一化”阶段标记为 `done`。
-- 阶段性动作依次使用 `normalize-input-documents`（仅 Office 输入时触发）、`memory-context-builder`、`input-fact-modeling`、`clarification-gate`、`testing-method-router`、路由选中的专项方法参考、`test-analysis-solution-generation`、JSON lint、Markdown render、派生 Markdown lint、`test-analysis-solution-review` 和 `coverage-review`。
+- 当用户要求把 `.docx` / `.xlsx` / `.md` 输入整理为可供下游读取的 Markdown 输入事实源时，使用 `@file-normalization-agent`。它调用 `normalize-input-documents`，负责缓存复用、可选 run-local 绑定、DOCX 图片/图形补充和复杂 Excel warning 收口。
+- 当用户要求基于需求和设计方案生成测试场景、测试点、测试点明细粒度的方案时，使用 `test-analysis-workflow`。该 workflow 只接受 Markdown 输入；如果用户直接提供 `.docx` 或 `.xlsx`，先切换到 `@file-normalization-agent` 归一化，不在分析 workflow 内转换。
+- `normalize-input-documents` 不能只以脚本执行成功作为完成标准；必须处理或记录 DOCX 图片/图形、复杂 Excel 和 metadata warnings 的收口状态，并确认图片/图形补充已合并到归一化 Markdown 的正确原文位置后，才能向下游交付 Markdown 输入事实源。
+- 测试分析阶段性动作依次使用 `memory-context-builder`、`input-fact-modeling`、`clarification-gate`、`testing-method-router`、路由选中的专项方法参考、`test-analysis-solution-generation`、JSON lint、Markdown render、派生 Markdown lint、`test-analysis-solution-review` 和 `coverage-review`。
 - 设计方案输入用于补充接口、字段、状态、权限、数据依赖、配置开关、异常处理和非功能指标；没有设计方案时继续生成，并把缺口沉淀到过程澄清记录或单条预期结果的 `待人工分析确认`。
-- 当用户要求基于已评审测试分析方案生成测试设计项时，使用 `test-design-workflow`。
+- 当用户要求基于已评审测试分析方案生成测试设计项时，使用 `test-design-workflow`。该 workflow 只接受 JSON canonical、Markdown 分析方案迁移输入或已归一化 Markdown 依据；如果用户直接提供 `.docx` 或 `.xlsx`，先切换到 `@file-normalization-agent` 归一化。
 - 测试设计阶段使用 `test-design-solution-generation`、确定性 lint 和 `test-design-solution-review`，在每个 `TP-*-*` 下生成 `TDI-*`；如果用户只提供需求/设计方案且要求测试设计，必须先生成或取得测试分析方案，再进入测试设计。
 - 不编造业务事实、状态、角色、接口契约、阈值、错误码、错误提示或状态变化；测试设计阶段可使用由规则推导的代表值或稳定数据槽位，但不得伪造真实生产数据或需求未说明的业务事实。
 - 如果需求和设计方案没有说明错误提示、状态变化、错误码或其他判定依据，相关测试点明细或失败类型明细的 `预期结果` 写 `待人工分析确认`。

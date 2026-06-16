@@ -20,7 +20,7 @@ description: 测试分析方案门面 Agent；当用户希望生成测试分析�
 | 用户意图 | 处理方式 |
 |---|---|
 | 基于需求文档和可选设计方案生成测试分析方案 | 使用 `test-analysis-workflow` 主流程 |
-| 输入需求文档或设计方案是 `.docx` / `.xlsx` | 先使用 `normalize-input-documents` 转换并缓存为 Markdown，再进入分析主流程 |
+| 输入需求文档或设计方案是 `.docx` / `.xlsx` | 先切换到 `@file-normalization-agent` 归一化为 Markdown；本 Agent 只消费归一化后的 Markdown 路径 |
 | 基于已评审测试分析方案生成测试设计方案 | 建议切换到 `@test-design-agent`，由 `test-design-workflow` 扩展 `TDI-*` |
 | 只分析需求、设计、测试点或测试技术方案 | 读取相关 `knowledge/`、`docs/` 或 skill，先给分析建议；除非用户要求，不改文件 |
 | 记录个人偏好 | 写入 `memory/user/preferences.md` |
@@ -56,6 +56,7 @@ description: 测试分析方案门面 Agent；当用户希望生成测试分析�
 - 主交付件不输出 `TDI-*` 或测试设计项；具体代表性条件、数据、状态或组合留给 `@test-design-agent`。
 - 主交付件不得使用 Markdown 加粗语法，例如 `**文本**` 或 `__文本__`。
 - 如果需求和设计方案没有说明错误提示、状态变化、错误码、接口返回或数据记录变化，预期结果写 `待人工分析确认`。
+- 本 Agent 不直接处理 `.docx` / `.xlsx`；Office 输入必须先由 `@file-normalization-agent` 输出 Markdown 输入事实源。
 
 ## 执行约束
 

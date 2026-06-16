@@ -25,6 +25,7 @@ Rules 是高优先级约束源：优先级低于当前用户明确指令，高�
 
 | 内容类型 | 放置位置 | 原因 |
 |---|---|---|
+| 用户入口、意图识别、`@file-normalization-agent` 路由 | `agents/file-normalization-agent.md` | 文件归一化 Agent 门面，只做输入文件转换、缓存复用和 warning 收口路由 |
 | 用户入口、意图识别、`@test-analysis-agent` 路由 | `agents/test-analysis-agent.md` | 测试分析 Agent 门面，只做入口和路由，不沉淀方法论正文 |
 | 用户入口、意图识别、`@test-design-agent` 路由 | `agents/test-design-agent.md` | 测试设计 Agent 门面，只做入口和路由，不沉淀方法论正文 |
 | 全局强制规则 | `rules/*.md` | 优先级高于输入文档的全局约束 |
@@ -47,7 +48,7 @@ Rules 是高优先级约束源：优先级低于当前用户明确指令，高�
 | 项目风险画像、覆盖策略、术语映射、路由说明、测试 oracle、测试设计因子、测试设计模式和 checklist 补充 | `knowledge/projects/<project-key>/**/*.md` | 项目级测试知识补充，确定 `project-key` 后按需扫描并登记阶段绑定 |
 | 个人测试启发、检查清单和本地关注点 | `knowledge/user/**/*.md` | personal 层知识补充，按需扫描 |
 | 记住、记录、归档类请求的写入分类流程 | `skills/context-capture/SKILL.md` | 判断写入 memory/knowledge 与 personal/project 层级 |
-| `.docx` / `.xlsx` 输入转 Markdown 与缓存复用流程 | `skills/normalize-input-documents/SKILL.md` | 输入归一化流程；转换结果写入全局 `outputs/input-cache/` 并在完整 run 中绑定到 `outputs/runs/<run-id>/inputs/`，不沉淀为 knowledge 或 memory |
+| `.docx` / `.xlsx` 输入转 Markdown 与缓存复用流程 | `agents/file-normalization-agent.md`、`skills/normalize-input-documents/SKILL.md` | 输入归一化流程；转换结果写入全局 `outputs/input-cache/`，仅在显式 `--run-dir` 或既有 run 补绑定时写入 `outputs/runs/<run-id>/inputs/`，不沉淀为 knowledge 或 memory |
 | 某个测试技术的执行步骤 | `skills/*/SKILL.md` | 过程性动作，不是事实库 |
 | 输入、输出、约束、质量门禁调用顺序 | `skills/*/SKILL.md` | 插件运行流程 |
 | 指定项目的事实、历史经验、团队反馈和输出偏好 | `memory/projects/<project-key>/**/*.md` | 项目级长期 memory，确定 `project-key` 后自动扫描 |

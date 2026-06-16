@@ -4,7 +4,7 @@
 
 本文分析 `skills/` 的职责分层、调用链、输入输出契约、质量门禁闭环和后续优化方向。分析基于当前仓库文件，不依赖历史项目假设。
 
-核心目标是判断当前 skill 架构是否能稳定支撑两个子 Agent：
+核心目标是判断当前 skill 架构是否能稳定支撑三个子 Agent：
 
 ```text
 需求文档 + 可选设计方案 -> 测试场景 -> 测试点 -> 测试点明细
@@ -16,9 +16,10 @@
 
 | 层级 | Skill | 当前职责 | 主要输出 |
 |---|---|---|---|
+| Agent 门面 | `agents/file-normalization-agent.md` | 支持 `@file-normalization-agent`，识别文件归一化、缓存复用、图片图形补充和复杂 Excel warning 收口意图 | 归一化 Markdown、conversion metadata、可选 run-local manifest |
 | Agent 门面 | `agents/test-analysis-agent.md` | 支持 `@test-analysis-agent`，识别测试分析、上下文归档或框架维护意图 | 用户入口、路由决策 |
 | Agent 门面 | `agents/test-design-agent.md` | 支持 `@test-design-agent`，识别测试设计、设计评审或框架维护意图 | 用户入口、路由决策 |
-| 输入归一化层 | `normalize-input-documents` | 将 `.docx` / `.xlsx` 需求、设计依据或外部分析方案转换到全局 cache，并绑定为 run-local Markdown | `outputs/input-cache/<sha256-12>/`、`outputs/runs/<run-id>/inputs/` |
+| 输入归一化层 | `normalize-input-documents` | 将 `.docx` / `.xlsx` 需求、设计依据或外部分析方案转换到全局 cache，可选绑定既有 run；由 `file-normalization-agent` 调用，不嵌入分析/设计 workflow | `outputs/input-cache/<sha256-12>/`、可选 `outputs/runs/<run-id>/inputs/` |
 | 分析编排入口 | `test-analysis-workflow` | 固定项目根目录、创建 run、编排分析链路、写出测试分析方案 | `deliverables/test-analysis-solution.json` |
 | 设计编排入口 | `test-design-workflow` | 复用或创建 run，承接已评审测试分析方案，写出测试设计方案 | `deliverables/test-design-solution.json` |
 | 上下文归档 | `context-capture` | 处理“记住/记录/收录/归档”类请求，判断写入 memory 或 knowledge | 长期 personal/project 上下文 |
@@ -69,7 +70,7 @@ SC-* 测试场景
 
 ### F3. Agent 门面与执行 skill 分离
 
-当前架构使用 `test-analysis-agent` 作为用户可 `@` 调用的门面。它负责识别“生成测试分析方案、记录偏好/知识、维护框架、咨询方法”等用户意图；具体执行仍由 skills、knowledge、templates、quality gates 和 bin 脚本完成。
+当前架构使用 `file-normalization-agent`、`test-analysis-agent` 和 `test-design-agent` 作为用户可 `@` 调用的门面。它们分别负责文件归一化、测试分析和测试设计意图识别；具体执行仍由 skills、knowledge、templates、quality gates 和 bin 脚本完成。
 
 ### F4. Project Knowledge 阶段绑定
 

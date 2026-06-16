@@ -26,8 +26,9 @@ REQUIRED_SKILLS = {
     "test-design-solution-review",
 }
 REQUIRED_AGENTS = {
-    "test-analysis-agent": ("test-analysis-workflow", "normalize-input-documents", "context-capture"),
-    "test-design-agent": ("test-design-workflow", "normalize-input-documents", "test-design-solution-generation", "context-capture"),
+    "file-normalization-agent": ("normalize-input-documents", "outputs/input-cache", "file-normalization-agent"),
+    "test-analysis-agent": ("test-analysis-workflow", "file-normalization-agent", "context-capture"),
+    "test-design-agent": ("test-design-workflow", "file-normalization-agent", "test-design-solution-generation", "context-capture"),
 }
 OPENCODE_COMMANDS = {
     ".opencode/commands/test-analysis-workflow.md": "test-analysis-workflow",

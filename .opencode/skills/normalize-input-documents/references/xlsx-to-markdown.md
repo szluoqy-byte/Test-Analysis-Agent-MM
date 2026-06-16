@@ -1,6 +1,6 @@
 # XLSX 转 Markdown 参考
 
-本文件是 `normalize-input-documents` 的内置参考，用于说明 `.xlsx` 输入如何稳定转换为可被测试分析和测试设计流程读取的 Markdown。主流程默认使用 `python skills/normalize-input-documents/scripts/normalize-office-input.py`，复杂 Excel 可按本参考做人工增强或脚本扩展。
+本文件是 `normalize-input-documents` 的内置参考，用于说明 `.xlsx` 输入如何稳定转换为可被测试分析和测试设计流程读取的 Markdown。文件归一化入口默认使用 `python skills/normalize-input-documents/scripts/normalize-office-input.py`，复杂 Excel 可按本参考做人工增强或脚本扩展。
 
 ## 转换目标
 
