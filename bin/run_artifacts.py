@@ -20,7 +20,7 @@ APPLICATION_STATUS_VALUES = {
 EXPECTED_FALLBACK = "待人工分析确认"
 ARTIFACT_TITLES = {
     "task-list": "测试分析方案任务清单",
-    "context-pack": "上下文包",
+    "context-pack": "上下文来源索引",
     "input-fact-model": "输入事实模型",
     "clarification-session": "待确认治理记录",
     "test-analysis-solution": "测试分析方案",
@@ -32,7 +32,7 @@ ARTIFACT_TITLES = {
 GENERIC_METADATA_KEYS = {"artifactType", "alternateArtifactTypes", "schemaVersion", "title", "sections"}
 ANALYSIS_REQUIRED_STAGES = [
     "固定 PROJECT_ROOT 与运行目录",
-    "构建上下文包",
+    "上下文来源索引",
     "输入事实建模",
     "待确认治理",
     "测试技术路由",
@@ -47,7 +47,7 @@ ANALYSIS_REQUIRED_STAGES = [
 DESIGN_REQUIRED_STAGES = [
     "固定 PROJECT_ROOT 与运行目录",
     "测试分析方案校验",
-    "构建上下文包",
+    "上下文来源索引",
     "设计依据补读",
     "测试设计方案生成",
     "确定性校验",
@@ -57,6 +57,8 @@ DESIGN_REQUIRED_STAGES = [
 ]
 OPTIONAL_STAGES = {"按源补读", "设计依据补读"}
 STAGE_ALIASES = {
+    "构建上下文包": "上下文来源索引",
+    "记忆上下文构建": "上下文来源索引",
     "方法路由": "测试技术路由",
     "专项方法分析": "专项分析",
     "场景化测试点生成": "测试分析方案生成",
@@ -268,64 +270,82 @@ def render_generic_document(data: dict[str, Any], fallback_title: str | None = N
 
 
 def render_context_pack(data: dict[str, Any]) -> str:
-    return render_structured_sections(
-        data,
-        "上下文包",
-        [
-            "requirement",
-            "requirementIdentity",
-            "project",
-            "projectIdentity",
-            "personal",
-            "personalIdentity",
-            "scannedSources",
-            "hitSummaries",
-            "projectPersonalSummary",
-            "mandatoryRules",
-            "ruleConflicts",
-            "projectKnowledgeBindings",
-            "additionalGateBindings",
-            "projectFacts",
-            "domainTerms",
-            "projectKnowledge",
-            "personalSupplements",
-            "historicalDefects",
-            "testExperience",
-            "outputPreferences",
-            "constraints",
-            "outOfScope",
-            "unadoptedSources",
-            "supplementalReads",
-            "clarificationCandidates",
-        ],
-        {
-            "requirement": "本次需求标识",
-            "requirementIdentity": "本次需求标识",
-            "project": "项目标识",
-            "projectIdentity": "项目标识",
-            "personal": "个人配置标识",
-            "personalIdentity": "个人配置标识",
-            "scannedSources": "已扫描来源",
-            "hitSummaries": "命中摘要",
-            "projectPersonalSummary": "Project/Personal 使用摘要",
-            "mandatoryRules": "适用强制规则",
-            "ruleConflicts": "Rules 与输入冲突记录",
-            "projectKnowledgeBindings": "项目知识阶段绑定",
-            "additionalGateBindings": "附加门禁绑定",
-            "projectFacts": "相关项目事实",
-            "domainTerms": "相关领域术语",
-            "projectKnowledge": "相关项目知识补充",
-            "personalSupplements": "相关个人补充",
-            "historicalDefects": "相关历史缺陷和风险模式",
-            "testExperience": "相关项目测试经验",
-            "outputPreferences": "输出偏好",
-            "constraints": "约束和非范围",
-            "outOfScope": "非范围",
-            "unadoptedSources": "已检索但未注入的来源",
-            "supplementalReads": "后续补读建议",
-            "clarificationCandidates": "待确认候选",
-        },
+    if data.get("sections"):
+        return render_generic_document(data, "上下文来源索引")
+
+    lines = [f"# {artifact_title(data, '上下文来源索引')}", ""]
+
+    requirement = data.get("requirement") if isinstance(data.get("requirement"), dict) else {}
+    lines.extend(["## 本次需求", ""])
+    lines.extend(
+        markdown_table(
+            ["字段", "值"],
+            [
+                ["path", requirement.get("path", "")],
+                ["title", requirement.get("title", "")],
+                ["keywords", "、".join(requirement.get("keywords", [])) if isinstance(requirement.get("keywords"), list) else requirement.get("keywords", "")],
+            ],
+        )
     )
+    lines.append("")
+
+    project_binding = data.get("projectBinding") if isinstance(data.get("projectBinding"), dict) else {}
+    personal_binding = data.get("personalBinding") if isinstance(data.get("personalBinding"), dict) else {}
+    lines.extend(["## 绑定结果", ""])
+    lines.extend(
+        markdown_table(
+            ["绑定", "状态", "标识", "说明"],
+            [
+                ["projectBinding", project_binding.get("status", ""), project_binding.get("projectKey", ""), project_binding.get("reason", "")],
+                ["personalBinding", personal_binding.get("status", ""), personal_binding.get("personalKey", ""), personal_binding.get("reason", "")],
+            ],
+        )
+    )
+    lines.append("")
+
+    source_rows: list[list[str]] = []
+    for source in data.get("sources", []):
+        if not isinstance(source, dict):
+            continue
+        stages = source.get("availableStages", [])
+        stage_text = "、".join(stages) if isinstance(stages, list) else normalize_text(stages)
+        source_rows.append(
+            [
+                source.get("path", ""),
+                source.get("name", ""),
+                source.get("description", ""),
+                stage_text,
+                source.get("availability", ""),
+            ]
+        )
+    lines.extend(["## 动态来源索引", ""])
+    if source_rows:
+        lines.extend(markdown_table(["路径", "名称", "描述", "可用阶段", "可见性"], source_rows))
+    else:
+        lines.append("无动态 project/personal 来源。")
+    lines.append("")
+
+    unscanned_rows: list[list[str]] = []
+    for item in data.get("unscannedProjectSources", []):
+        if isinstance(item, dict):
+            unscanned_rows.append([item.get("path", ""), item.get("reason", "")])
+        else:
+            unscanned_rows.append([normalize_text(item), ""])
+    lines.extend(["## 未扫描项目来源", ""])
+    if unscanned_rows:
+        lines.extend(markdown_table(["路径", "原因"], unscanned_rows))
+    else:
+        lines.append("无未扫描项目来源。")
+    lines.append("")
+
+    warning_rows = [[normalize_text(item)] for item in data.get("warnings", [])]
+    lines.extend(["## 告警", ""])
+    if warning_rows:
+        lines.extend(markdown_table(["说明"], warning_rows))
+    else:
+        lines.append("无告警。")
+
+    return "\n".join(lines).rstrip() + "\n"
 
 
 def render_input_fact_model(data: dict[str, Any]) -> str:
@@ -501,7 +521,7 @@ def render_coverage_report(data: dict[str, Any]) -> str:
     render_report_collection(lines, "## 5. Evidence Refs", data, "evidenceRefs", ["source", "location", "description"])
     render_report_collection(lines, "## 6. Quality Gates", data, "qualityGates", ["gate", "result", "description", "recommendation"])
     render_report_collection(lines, "## 7. Rules Applications", data, "rulesApplications", ["ruleId", "sourceFile", "stage", "status", "location", "note"])
-    render_report_collection(lines, "## 8. Project Knowledge Applications", data, "projectKnowledgeApplications", ["sourceType", "sourceFile", "stage", "status", "location", "note"])
+    render_report_collection(lines, "## 8. Dynamic Source Applications", data, "projectKnowledgeApplications", ["sourceType", "sourceFile", "stage", "status", "location", "note"])
     render_report_collection(lines, "## 9. Coverage Gaps", data, "coverageGaps", ["id", "requirementRef", "artifactLocation", "description", "suggestedFix"])
     return "\n".join(lines).rstrip() + "\n"
 
@@ -610,9 +630,7 @@ def validate_generic_document(data: dict[str, Any], artifact_type: str) -> tuple
         errors.append(f"{artifact_type}.json 缺少 sections 或可渲染结构化字段")
     rendered = RENDERERS.get(artifact_type, render_generic_document)(data)
     if artifact_type == "context-pack":
-        for marker in ("project-key", "personal-key", "项目知识阶段绑定", "补读"):
-            if marker not in rendered:
-                warnings.append(f"context-pack.json 未显式记录: {marker}")
+        errors.extend(validate_context_pack_json(data))
     if artifact_type == "clarification-session":
         for marker in ("候选问题总表", "候选问题详情", "去重与降级结果", "预期结果兜底清单"):
             if marker not in rendered:
@@ -620,6 +638,37 @@ def validate_generic_document(data: dict[str, Any], artifact_type: str) -> tuple
         if "无待确认候选" not in rendered and "CQ-" not in rendered:
             warnings.append("clarification-session.json 未记录候选问题，也未声明无待确认候选")
     return errors, warnings
+
+
+def validate_context_pack_json(data: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    for key in ("projectBinding", "personalBinding"):
+        if not isinstance(data.get(key), dict):
+            errors.append(f"context-pack.json 缺少对象字段: {key}")
+
+    sources = data.get("sources")
+    if not isinstance(sources, list):
+        errors.append("context-pack.json 缺少数组字段: sources")
+        return errors
+
+    for index, source in enumerate(sources, start=1):
+        if not isinstance(source, dict):
+            errors.append(f"context-pack.json sources[{index}] 必须是对象")
+            continue
+        for key in ("path", "name", "description", "availableStages"):
+            if is_empty_value(source.get(key)):
+                errors.append(f"context-pack.json sources[{index}] 缺少字段: {key}")
+        if any(key in source for key in ("sourceType", "layer", "projectKey")):
+            errors.append(f"context-pack.json sources[{index}] 不应写入 sourceType/layer/projectKey；这些信息由 path 推断")
+        stages = source.get("availableStages")
+        if not isinstance(stages, list) or not all(isinstance(stage, str) and stage for stage in stages):
+            errors.append(f"context-pack.json sources[{index}].availableStages 必须是非空字符串数组")
+
+    if "unscannedProjectSources" in data and not isinstance(data.get("unscannedProjectSources"), list):
+        errors.append("context-pack.json unscannedProjectSources 必须是数组")
+    if "warnings" in data and not isinstance(data.get("warnings"), list):
+        errors.append("context-pack.json warnings 必须是数组")
+    return errors
 
 
 def validate_solution_ids(data: dict[str, Any], is_design: bool) -> tuple[list[str], list[str]]:

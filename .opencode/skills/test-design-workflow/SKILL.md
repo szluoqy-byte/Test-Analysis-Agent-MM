@@ -58,11 +58,11 @@ description: 当用户提供已评审测试分析方案，或要求从需求先�
 
 ## Project/Personal 上下文发现
 
-如果当前 run 已存在 `process/context-pack.json`，优先复用并检查其中的适用强制规则、Rules 与输入冲突记录和项目知识阶段绑定。若不存在，则使用 `memory-context-builder` 生成 context pack。
+如果当前 run 已存在 `process/context-pack.json`，优先复用并检查其中的 `projectBinding`、`personalBinding` 和动态 `sources[]`。若不存在，则使用 `context-source-indexing` 生成 context pack。
 
-`rules/` 是强制规则源：core rules 为 `rules/*.md`，project rules 为 `rules/projects/<project-key>/**/*.md`，personal rules 为 `rules/user/**/*.md`。rules 必须进入 `process/context-pack.json` 的“适用强制规则”结构，并在设计生成、评审或覆盖审查阶段应用或解释不适用。
+core rules、core knowledge、根目录质量门禁和 skill 私有参考由 workflow 或对应 skill 固定读取，不进入动态索引。project/personal 扩展来源只通过 `context-source-indexing` 的 `sources[]` 暴露给后续阶段。
 
-project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<project-key>/` 下存在自由格式 Markdown，`memory-context-builder` 必须基于文件名、frontmatter、标题、章节和摘要自理解识别文件用途，并在 `context-pack.json` 生成“项目知识阶段绑定”。被绑定到 `test-design-solution-generation`、`test-design-solution-review` 或 `coverage-review` 的文件必须在对应阶段读取并输出应用状态。
+动态来源文件名没有硬性要求，但必须声明 frontmatter：`name`、`description`，可选 `stages`。后续阶段只读取 `sources[]` 中对当前阶段可见的文件正文，并输出应用状态。
 
 ## 执行流程
 
@@ -71,13 +71,13 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 3. 固定 `PROJECT_ROOT` 和 `<run-id>`；如果输入分析方案位于 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.json` 或同名 `.md`，优先复用该 run，否则运行 `python bin/generate-run-id.py` 新建 run。创建或复用 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/`、`process/`、`reports/` 和 `inputs/`。
 4. 创建或刷新 `process/task-list.json`，记录当前进入测试设计阶段；需要人读版时由渲染脚本生成 `process/task-list.md`。
 5. 优先读取并校验 `deliverables/test-analysis-solution.json`；若只有 Markdown 输入，先转换或解析为临时 JSON，再运行 `bin/lint-run-json.py` 和 `bin/lint-test-analysis-solution.py`。
-6. 读取或生成 `process/context-pack.json`，确认适用 rules、Rules 与输入冲突记录、project/personal 来源和项目知识阶段绑定。
+6. 读取或生成 `process/context-pack.json`，确认 `projectBinding`、`personalBinding` 和对设计阶段可见的动态来源索引。
 7. 创建或刷新 `process/clarification-session.json`；如果设计阶段没有新增待确认候选，声明 `无待确认候选`。
 8. 受控补读归一化后的原始需求 Markdown、设计方案 Markdown、`design-facts` 或结构化过程记录中与当前分析方案相关的依据；不得要求后续读者回看这些文件才能理解主交付件。
-9. 使用 `test-design-solution-generation` 在普通 `TP-*-*` 或失败类型 `TP-*-*-*` 下生成 1-N 个 `TDI-*`，写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.json`，并记录项目知识应用状态。
+9. 使用 `test-design-solution-generation` 在普通 `TP-*-*` 或失败类型 `TP-*-*-*` 下生成 1-N 个 `TDI-*`，写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.json`，并记录动态来源应用状态。
 10. 运行 `bin/lint-run-json.py ${PROJECT_ROOT}/outputs/runs/<run-id>` 做 JSON 结构校验；随后运行 `bin/render-run-markdown.py ${PROJECT_ROOT}/outputs/runs/<run-id>` 和 `bin/lint-test-design-solution.py ${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.md` 校验派生 Markdown；失败时先修正 JSON，不手工改 Markdown。
 11. 使用 `test-design-solution-review` 独立评审测试设计方案 JSON，重点检查分析方案承接、失败类型明细继承、设计项数据化粒度、叶子节点预期结果依据和非完整用例化语义。评审结果写入 `reports/test-design-solution-review.json`。
-12. 使用 `coverage-review` 或设计级覆盖审查记录检查需求覆盖、分析方案承接关系、项目知识应用状态和过程门禁，不重复 lint 已覆盖的结构规则。覆盖结果写入 `reports/coverage-review.json`。
+12. 使用 `coverage-review` 或设计级覆盖审查记录检查需求覆盖、分析方案承接关系、core rules 与动态来源应用状态和过程门禁，不重复 lint 已覆盖的结构规则。覆盖结果写入 `reports/coverage-review.json`。
 13. 如需保留人读过程审查信息，优先由 `reports/test-design-solution-review.json` 或 `reports/coverage-review.json` 渲染派生 Markdown，不再维护独立设计报告模板。
 14. 最终输出前刷新 `process/task-list.json`：设计阶段必选项必须为 `done`，未触发的可选项为 `skipped` 并说明原因；运行 `bin/render-run-markdown.py ${PROJECT_ROOT}/outputs/runs/<run-id>` 生成派生 Markdown；运行 `bin/check-artifact-consistency.py ${PROJECT_ROOT}/outputs/runs/<run-id>` 做最终一致性检查；如果存在 `blocked`，必须在 `process/task-list.json`、`process/clarification-session.json` 或 review/coverage JSON 中说明。
 
@@ -86,21 +86,21 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 | 阶段 | 必须产出 | 交给下一阶段 |
 |---|---|---|
 | `analysis-solution-check` | 已校验 `test-analysis-solution.json`、承接关系检查 | 测试设计项生成 |
-| `memory-context-builder` | `process/context-pack.json` 或复用记录、适用强制规则、Rules 与输入冲突记录、项目知识阶段绑定 | 测试设计项生成和评审 |
+| `context-source-indexing` | `process/context-pack.json` 或复用记录、`projectBinding`、`personalBinding`、动态 `sources[]`、未扫描 project 来源和告警 | 测试设计项生成和评审 |
 | `clarification-session` | `process/clarification-session.json`，无候选时声明 `无待确认候选` | 测试设计项生成和评审 |
 | `test-design-solution-generation` | `deliverables/test-design-solution.json`、`TDI-*` 测试设计项、叶子节点预期结果、项目知识应用状态 | 确定性校验 |
 | 确定性校验 | `lint-run-json.py`、`render-run-markdown.py --check`、`lint-test-design-solution.py` 结果 | 独立评审；失败时回到 JSON 修正 |
 | `test-design-solution-review` | `reports/test-design-solution-review.json` | 覆盖审查与输出收口 |
 | `coverage-review` | `reports/coverage-review.json` | 主交付件、结构化过程记录和覆盖结论收口 |
 
-## Project Knowledge 应用留痕
+## 动态来源应用留痕
 
-如果 `process/context-pack.json` 的“项目知识阶段绑定”中存在绑定到当前阶段的 project knowledge，当前阶段必须输出应用记录：
+如果 `process/context-pack.json` 的 `sources[]` 中存在对当前阶段可见的动态 project/personal 来源，当前阶段必须输出应用记录：
 
 | 来源文件 | 当前阶段 | 应用状态 | 应用位置 | 说明 |
 |---|---|---|---|---|
 
-应用状态只能使用 `applied`、`not_applicable`、`insufficient_evidence`、`conflict_with_requirement` 或 `deferred_to_review`。覆盖审查必须检查所有已绑定文件是否被对应阶段读取并留痕；未读取或无状态说明时，按质量问题处理。
+应用状态只能使用 `applied`、`not_applicable`、`insufficient_evidence`、`conflict_with_requirement` 或 `deferred_to_review`。覆盖审查必须检查可见动态来源是否被对应阶段读取、应用或解释跳过；未读取或无状态说明时，按质量问题处理。
 
 ## 输出要求
 
@@ -121,7 +121,7 @@ project knowledge 文件名没有硬性要求；如果 `knowledge/projects/<proj
 - 多个场景、渠道、操作或接口复用同类条件时，`TDI-*` 必须补充差异维度，例如 `场景=Add Payment`、`渠道=APP`、`操作=Delete Favorite`、`接口=POST /payments/`、`数据依赖=预验证已失败`，不得输出无差异的重复设计项。
 - 接口契约叶子节点必须结合输入已明确的字段约束生成代表性有效、无效、边界和异常返回组合；例如金额精度、枚举值、必填字段、鉴权、幂等、状态码、错误码、超时和重试。
 - 超时、回滚、补偿或外部依赖恢复类叶子节点必须把分支写成可观察组合，例如 `查询返回count=1；payment_status=SUCCESS`、`查询返回count=0；payment_status=FAILED`、`查询超时；payment_status=TIMEOUT`，不得只写抽象“接口超时”或“补偿成功”。
-- `预期结果` 只能来自当前用户明确指令、适用 rules、需求、设计方案、测试分析方案、context pack 中明确事实或可直接推出的业务不变量。
+- `预期结果` 只能来自当前用户明确指令、core rules、对当前阶段可见且已读取的动态来源、需求、设计方案、测试分析方案或可直接推出的业务不变量。
 - 如果需求和设计方案没有明确错误提示、状态变化、错误码、返回内容、数据记录变化或其他判定依据，`预期结果` 写 `待人工分析确认`。
 - 主输出不得包含 `覆盖意图`、`级别`、`待确认信息`、`判定关注`、`输入条件与数据依赖` 等旧字段。
 - 主输出不得使用 Markdown 加粗语法，例如 `**文本**` 或 `__文本__`。

@@ -12,9 +12,8 @@ description: 在需求结构化之后使用，用于根据需求片段的分析�
 ## 输入
 
 - 输入事实模型。
-- 记忆上下文包。
-- 记忆上下文包中命中的 project/personal 覆盖策略、风险画像、个人关注点和路由补充。
-- `process/context-pack.json` 中绑定到 `testing-method-router` 的 project knowledge 文件，例如测试设计因子库、测试设计模式库、风险画像、覆盖策略或路由说明。
+- 上下文来源索引。
+- `process/context-pack.json` 中 `sources[]` 对 `testing-method-router` 可见的 project/personal 覆盖策略、风险画像、个人关注点和路由补充。
 - `knowledge/test-workflow-boundaries.md`。
 - `skills/testing-method-router/references/test-method-routing-matrix.md`。
 - `skills/testing-method-router/references/*.md` 中的专项方法参考。
@@ -22,16 +21,16 @@ description: 在需求结构化之后使用，用于根据需求片段的分析�
 
 ## 分析步骤
 
-1. 读取 context pack 的“项目知识阶段绑定”。如果存在绑定到 `testing-method-router` 的 project knowledge，先按来源文件、相关章节、关键词或标题读取，不全量复制大文件。
+1. 读取 `process/context-pack.json`，筛选 `availableStages` 包含 `testing-method-router` 或 `"*"` 的动态来源；如需使用，按来源文件、相关章节、关键词或标题读取正文，不全量复制大文件。
 2. 逐条扫描输入事实模型中的事实、约束/条件、可观察结果和缺口/冲突，先识别分析维度：需求可测性、风险、业务场景、数据域、规则组合、状态、权限、接口、数据一致性、组合兼容、非功能质量属性和经验缺陷模式。
 3. 识别每个分析维度下的触发信号。
-4. 结合 context pack 中的 project/personal knowledge 和本阶段绑定文件，补充识别项目特有风险、覆盖要求或测试技术倾向；补充只能提高关注度，不能覆盖根目录 knowledge 的路由矩阵和核心标准。
+4. 结合本阶段可见的 project/personal 动态来源，补充识别项目特有风险、覆盖要求或测试技术倾向；补充只能提高关注度，不能覆盖根目录 knowledge 的路由矩阵和核心标准。
 5. 将触发信号映射到一个或多个测试技术和专项方法参考。
 6. 将方法标记为 `必选`、`可选` 或 `不适用`。
 7. 根据需求明确程度标记置信度：`高`、`中`、`低`。
 8. 说明选择或跳过某个维度/方法的原因。
 9. 对影响方法必要性的范围不确定项登记待确认候选。
-10. 记录本阶段 project knowledge 应用状态，并将分析维度和测试技术路由结果传递给测试分析方案生成阶段。
+10. 记录本阶段动态来源应用状态，并将分析维度和测试技术路由结果传递给测试分析方案生成阶段。
 
 ## 路由判定细则
 
@@ -57,7 +56,7 @@ description: 在需求结构化之后使用，用于根据需求片段的分析�
 | 问题ID | checkpoint | sourceStage | header | question | why | impact | options | blockingLevel | priority | askPolicy | mustAsk | relatedRequirement | memoryConflict |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 
-如本阶段绑定了 project knowledge，追加应用记录：
+如本阶段读取了动态来源，追加应用记录：
 
 | 来源文件 | 当前阶段 | 应用状态 | 应用位置 | 说明 |
 |---|---|---|---|---|
@@ -67,8 +66,8 @@ description: 在需求结构化之后使用，用于根据需求片段的分析�
 - 工作流术语和分析/设计边界以 `knowledge/test-workflow-boundaries.md` 为准。
 - 分析维度和路由矩阵以 `skills/testing-method-router/references/test-method-routing-matrix.md` 为准。
 - 覆盖要求以 `quality-gates/coverage-check.md` 为准。
-- project/personal knowledge 补充以当前 run 的 `process/context-pack.json` 为准，只能补充关注点和原因；personal 层不能覆盖 project 层或 core 层约束。
-- 绑定到本阶段的 project knowledge 必须读取并留痕；如果未应用，必须使用 `not_applicable`、`insufficient_evidence`、`conflict_with_requirement` 或 `deferred_to_review` 解释。
+- project/personal 动态来源补充以当前 run 的 `process/context-pack.json` `sources[]` 为准，只能补充关注点和原因；personal 层不能覆盖 project 层或 core 层约束。
+- 对本阶段可见且被读取的动态来源必须留痕；如果未应用，必须使用 `not_applicable`、`insufficient_evidence`、`conflict_with_requirement` 或 `deferred_to_review` 解释。
 - 本 skill 只负责把当前需求片段映射到测试技术和专项方法参考，并说明选择或跳过原因。
 - 同一需求片段可路由到多个测试技术；后续由 `test-analysis-solution-generation` 合并重复测试点。
 - 测试点明细阶段如何应用测试技术由 `test-analysis-solution-generation` 统一选择，本 skill 不提前映射或替代。

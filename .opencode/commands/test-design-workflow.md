@@ -21,7 +21,7 @@ Supported argument hints:
 
 This command only accepts JSON canonical, reviewed Markdown analysis, or normalized Markdown evidence inputs. If the user provides `.docx` or `.xlsx`, stop and ask them to run `@file-normalization-agent` or `/normalize-input-documents` first, then pass the normalized Markdown path back to this command.
 
-When `project=<project-key>` is present, pass it through explicitly to `memory-context-builder`; the generated or reused `process/context-pack.json` must record the project-key, scanned project sources, unused project sources, and project knowledge stage bindings.
+When `project=<project-key>` is present, pass it through explicitly to `context-source-indexing`; the generated or reused `process/context-pack.json` must record `projectBinding`, `personalBinding`, dynamic `sources[]`, unscanned project sources, and warnings.
 
 Example:
 

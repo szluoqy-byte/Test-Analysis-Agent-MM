@@ -12,7 +12,7 @@ description: 在多个测试分析检查点使用。用于收集、去重、分�
 ## 输入
 
 - 当前检查点名称。
-- 当前阶段产物，例如记忆上下文包、输入事实模型、测试技术路由表、方法证据、测试分析方案草稿或覆盖审查结果。
+- 当前阶段产物，例如上下文来源索引、输入事实模型、测试技术路由表、方法证据、测试分析方案草稿或覆盖审查结果。
 - 已累计的待确认候选问题。
 - `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.json`。
 - `templates/clarification-session-json-template.json` 和 `templates/clarification-template.md`。前者定义 JSON 事实源形态，后者仅作为渲染后 Markdown 样式参考。
@@ -23,7 +23,7 @@ description: 在多个测试分析检查点使用。用于收集、去重、分�
 
 | 检查点 | 位置 | 典型候选问题 | 默认处理 |
 |---|---|---|---|
-| `CP-INPUT` | `memory-context-builder` 和 `input-fact-modeling` 后 | 业务域命中冲突、memory 与需求冲突、需求与设计冲突、业务规则/状态/权限/边界/接口契约/字段/数据依赖缺失 | 进入过程候选队列；影响预期结果时标记为预期兜底依据 |
+| `CP-INPUT` | `context-source-indexing` 和 `input-fact-modeling` 后 | 业务域命中冲突、memory 与需求冲突、需求与设计冲突、业务规则/状态/权限/边界/接口契约/字段/数据依赖缺失 | 进入过程候选队列；影响预期结果时标记为预期兜底依据 |
 | `CP-ANALYSIS` | `testing-method-router` 和专项技术分析后 | 技术必要性范围、性能/安全/兼容是否展开、决策表条件、状态终态、幂等补偿、权限矩阵缺口 | 进入过程候选队列；影响测试点或测试点明细时写明影响范围 |
 | `CP-REVIEW` | `test-analysis-solution-review` 和 `coverage-review` 后 | 核心需求缺失、覆盖无法关闭、主交付件可用性风险 | 作为过程审查问题收口；不得新增主交付件待确认章节 |
 
@@ -33,7 +33,7 @@ description: 在多个测试分析检查点使用。用于收集、去重、分�
 
 | 来源阶段 | 允许产出候选 | 不允许做什么 |
 |---|---|---|
-| `memory-context-builder` | memory 冲突、业务域归属不清 | 不要求用户选择所有可能业务域 |
+| `context-source-indexing` | memory 冲突、业务域归属不清 | 不要求用户选择所有可能业务域 |
 | `input-fact-modeling` | 影响输入事实模型、需求事实、设计事实、映射关系或可观察结果的关键缺口 | 不为每个模糊词都生成问题，不补造设计方案没有给出的规则 |
 | `testing-method-router` | 影响方法必要性的范围问题 | 不为了可选方法制造待确认项 |
 | 专项方法参考 | 影响决策表、状态图、权限矩阵、接口契约的关键缺口 | 不追问可作为过程风险处理的细枝末节 |
@@ -82,7 +82,7 @@ description: 在多个测试分析检查点使用。用于收集、去重、分�
 每次调用本 skill 时必须先处理候选队列：
 
 1. 合并同一业务对象、同一规则或同一状态缺口的问题。
-2. 删除已被当前需求、设计方案、memory、上下文包或已有场景条件明确覆盖的问题。
+2. 删除已被当前需求、设计方案、memory、上下文来源索引或已有场景条件明确覆盖的问题。
 3. 按 `priority`、`blockingLevel`、影响范围和需求依据清晰度排序。
 4. 将仍未解决且会影响预期结果的问题标记 `expectedResultFallback = 是`。
 5. 将只影响过程说明或后续人工补充的问题保留在 `process/clarification-session.json`，不得写入主交付件章节。

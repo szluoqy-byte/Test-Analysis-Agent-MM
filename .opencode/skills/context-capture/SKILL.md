@@ -53,7 +53,7 @@ description: 当用户要求记住、记录、收录、归档或沉淀个人偏�
 - rules 优先级低于当前用户明确指令，但高于输入文档、memory 和 knowledge。
 - personal rules 不能覆盖 project rules 或 core rules。
 - personal 不能覆盖 project 或 core。
-- project knowledge 不能覆盖根目录 `knowledge/` 的核心标准、字段、输出契约和质量门禁。
+- project/personal 动态来源不能覆盖根目录 `knowledge/` 的核心标准、字段、输出契约和质量门禁。
 - memory 或 knowledge 与当前输入文档冲突时，当前输入文档优先；长期记录只能作为风险、偏好或待确认来源。
 - rules 与当前输入文档冲突时，默认遵守 rules 并记录覆盖原因；只有当前用户明确指令可以覆盖 rules。
 - 未确认业务事实不得写成项目事实；应写为待确认或暂不归档。

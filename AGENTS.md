@@ -53,18 +53,19 @@
 - 测试设计主交付件固定为 `outputs/runs/<run-id>/deliverables/test-design-solution.json`，并由 `bin/render-run-markdown.py` 渲染同名 `.md` 人读版；优先复用上游测试分析方案所在 run。
 - JSON 是 run 过程产物、主交付件、review 和 coverage 的事实源；Markdown 是脚本派生产物，不手工维护。若二者不一致，以 JSON 为准并重新渲染 Markdown。
 - 创建 run 目录后必须维护四组固定 process 产物：`process/task-list.json/.md`、`process/context-pack.json/.md`、`process/input-fact-model.json/.md` 和 `process/clarification-session.json/.md`。
-- `process/task-list.json` 是阶段顺序和状态的流程事实源；`process/context-pack.json` 是本次上下文绑定事实源；`process/input-fact-model.json` 是输入事实模型事实源；`process/clarification-session.json` 是待确认治理事实源。
+- `process/task-list.json` 是阶段顺序和状态的流程事实源；`process/context-pack.json` 是本次 project/personal 动态来源索引事实源；`process/input-fact-model.json` 是输入事实模型事实源；`process/clarification-session.json` 是待确认治理事实源。
 - 即使没有 project/personal 命中或没有待确认候选，也必须生成对应 process 产物，并在文件内写明无命中或 `无待确认候选`。
 
 ## Project/Personal 上下文
 
 - 支持可选 `project-key`：确定后可扫描 `*/projects/<project-key>/**/*.md`；未唯一确定时不得读取所有项目目录正文。
-- `project` 和 `personal` 是当前 run 的一等输入源：必须在 `process/context-pack.json` 中记录绑定结果、命中来源、未采用来源和补读建议，并渲染到 `process/context-pack.md`。
+- `project` 和 `personal` 是当前 run 的一等输入源：必须由 `context-source-indexing` 在 `process/context-pack.json` 中记录绑定结果和动态来源索引，并渲染到 `process/context-pack.md`。
 - `rules/` 是强制规则源，按 `core / project / personal` 三层加载：`rules/*.md`、`rules/projects/<project-key>/**/*.md`、`rules/user/**/*.md`。
 - rules 优先级低于当前用户明确指令，但高于当前输入文档、memory 和 knowledge；与输入冲突时默认遵守 rules，并在过程产物中记录覆盖原因。
 - rules 内部按 `core > project > personal` 处理，低层只能细化高层规则，不能放宽或违反高层强制约束。
 - `knowledge/projects/<project-key>/` 和 `knowledge/user/` 只能作为测试知识补充，不得覆盖根目录 `knowledge/` 的核心标准、字段、类型和质量门禁。
-- `knowledge/projects/<project-key>/` 下的文件名没有硬性要求；`memory-context-builder` 必须自理解识别文件用途并在 `context-pack.json` 记录项目知识阶段绑定。被绑定到某阶段的文件，该阶段必须读取并输出应用状态。
+- `rules/projects/<project-key>/`、`knowledge/projects/<project-key>/`、`memory/projects/<project-key>/`、`quality-gates/projects/<project-key>/` 和对应 `*/user/**/*.md` 动态来源必须声明 `name`、`description`，可选 `stages`；未配置 `stages` 时默认全部阶段可用。
+- `context-source-indexing` 只读取动态来源 frontmatter 生成 `sources[]`，不扫描 core 层，不摘录正文，也不替后续阶段判断具体命中。后续 skill 只读取 `sources[]` 中对本阶段可见的文件正文，并输出应用状态。
 - personal 层只能补充个人偏好和本地检查关注点，不得作为项目事实或团队共识。
 
 ## 主流程
@@ -72,7 +73,7 @@
 - 当用户要求把 `.docx` / `.xlsx` / `.md` 输入整理为可供下游读取的 Markdown 输入事实源时，使用 `@file-normalization-agent`。它调用 `normalize-input-documents`，负责缓存复用、可选 run-local 绑定、DOCX 图片/图形补充和复杂 Excel warning 收口。
 - 当用户要求基于需求和设计方案生成测试场景、测试点、测试点明细粒度的方案时，使用 `test-analysis-workflow`。该 workflow 只接受 Markdown 输入；如果用户直接提供 `.docx` 或 `.xlsx`，先切换到 `@file-normalization-agent` 归一化，不在分析 workflow 内转换。
 - `normalize-input-documents` 不能只以脚本执行成功作为完成标准；必须处理或记录 DOCX 图片/图形、复杂 Excel 和 metadata warnings 的收口状态，并确认图片/图形补充已合并到归一化 Markdown 的正确原文位置后，才能向下游交付 Markdown 输入事实源。
-- 测试分析阶段性动作依次使用 `memory-context-builder`、`input-fact-modeling`、`clarification-gate`、`testing-method-router`、路由选中的专项方法参考、`test-analysis-solution-generation`、JSON lint、Markdown render、派生 Markdown lint、`test-analysis-solution-review` 和 `coverage-review`。
+- 测试分析阶段性动作依次使用 `context-source-indexing`、`input-fact-modeling`、`clarification-gate`、`testing-method-router`、路由选中的专项方法参考、`test-analysis-solution-generation`、JSON lint、Markdown render、派生 Markdown lint、`test-analysis-solution-review` 和 `coverage-review`。
 - 设计方案输入用于补充接口、字段、状态、权限、数据依赖、配置开关、异常处理和非功能指标；没有设计方案时继续生成，并把缺口沉淀到过程澄清记录或单条预期结果的 `待人工分析确认`。
 - 当用户要求基于已评审测试分析方案生成测试设计项时，使用 `test-design-workflow`。该 workflow 只接受 JSON canonical、Markdown 分析方案迁移输入或已归一化 Markdown 依据；如果用户直接提供 `.docx` 或 `.xlsx`，先切换到 `@file-normalization-agent` 归一化。
 - 测试设计阶段使用 `test-design-solution-generation`、确定性 lint 和 `test-design-solution-review`，在每个 `TP-*-*` 下生成 `TDI-*`；如果用户只提供需求/设计方案且要求测试设计，必须先生成或取得测试分析方案，再进入测试设计。
@@ -91,7 +92,7 @@
 - 同类条件在不同场景、渠道、操作或接口下复用时，`TDI-*` 必须补充差异维度，例如 `场景=`、`渠道=`、`操作=`、`接口=` 或 `数据依赖=`；无差异重复项应合并。
 - 接口契约叶子节点应基于输入已明确字段约束覆盖代表性有效、无效、边界、枚举、必填、鉴权、幂等、超时或异常返回组合，不只生成正向有效组合。
 - 超时、回滚、补偿或外部依赖恢复类叶子节点应写成可观察条件组合，例如查询返回数量、状态值、依赖返回或超时状态，不只写“接口超时”或“补偿成功”。
-- 确定性结构、编号、字段、JSON 结构、Markdown 语法和固定产物一致性问题以 Python 脚本为事实源；`test-analysis-solution-review` 和 `coverage-review` 不重复执行脚本已覆盖的检查，只处理语义质量、覆盖、追踪、方法应用、rules/project knowledge 应用和过程门禁。
+- 确定性结构、编号、字段、JSON 结构、Markdown 语法和固定产物一致性问题以 Python 脚本为事实源；`test-analysis-solution-review` 和 `coverage-review` 不重复执行脚本已覆盖的检查，只处理语义质量、覆盖、追踪、方法应用、core rules/动态来源应用和过程门禁。
 - 在认为单次报告完成前，只运行当前 run 相关的确定性检查，例如 `bin/lint-run-json.py`、`bin/render-run-markdown.py --check`、对应派生 Markdown lint 和 `bin/check-artifact-consistency.py`；不要在 review 阶段运行示例 smoke。
 
 ## 校验命令

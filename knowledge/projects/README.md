@@ -2,7 +2,7 @@
 
 本目录按 `project-key` 保存项目级测试知识补充。它用于让分析过程理解某个项目特有的测试策略，而不是保存业务事实本身。
 
-本目录属于 `project` 层，默认不提交 Git；`.gitignore` 只保留本 README。团队如果确实希望共享某个项目配置，可以显式强制添加对应文件。project 层是当前 run 的一等输入源，命中和未采用情况必须记录到 `outputs/runs/<run-id>/process/context-pack.json`；同名 Markdown 只是派生阅读版。
+本目录属于 `project` 层，默认不提交 Git；`.gitignore` 只保留本 README。团队如果确实希望共享某个项目配置，可以显式强制添加对应文件。project 层是当前 run 的一等输入源，动态来源索引必须记录到 `outputs/runs/<run-id>/process/context-pack.json`；同名 Markdown 只是派生阅读版。
 
 ## 建议结构
 
@@ -18,7 +18,17 @@ knowledge/projects/<project-key>/
   oracle-heuristics.md
 ```
 
-文件名不是硬性要求。Agent 会基于文件名、frontmatter、一级/二级标题、章节标题和开头摘要自理解识别用途，并在 `process/context-pack.json` 中登记“项目知识阶段绑定”。推荐命名只是为了降低误判概率。
+文件名不是硬性要求。每个动态来源文件必须声明 frontmatter：`name`、`description`，可选 `stages`。推荐命名只是为了降低误判概率。
+
+```yaml
+---
+name: payment-risk-profile
+description: 支付项目风险画像，补充支付状态、幂等、补偿和对账类覆盖关注点。
+stages:
+  - testing-method-router
+  - coverage-review
+---
+```
 
 ## 适合放入的内容
 
@@ -39,9 +49,9 @@ knowledge/projects/<project-key>/
 
 ## 发现规则
 
-`memory-context-builder` 只有在唯一确定 `project-key` 后才扫描对应项目目录。每个文件最好包含清晰标题、适用范围和关键词，便于按当前需求裁剪相关片段。
+`context-source-indexing` 只有在唯一确定 `project-key` 后才索引对应项目目录。未确定 `project-key` 时，不读取所有项目目录正文。
 
-context pack 阶段只判断文件应强制进入哪些环节，不提前判断具体测试点或测试设计项命中。后续被绑定的阶段必须读取对应文件并输出应用状态：
+context pack 阶段只读取 frontmatter，不摘录正文，也不判断具体测试点或测试设计项命中。后续阶段只读取 `sources[]` 中对本阶段可见的文件正文，并输出应用状态：
 
 - `applied`
 - `not_applicable`

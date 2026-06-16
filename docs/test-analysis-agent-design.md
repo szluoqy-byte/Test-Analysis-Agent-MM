@@ -109,7 +109,7 @@ flowchart TD
   fileAgent --> restart["把归一化 Markdown 作为输入<br/>重新进入分析 workflow"]
   office -- 否 --> main["test-analysis-workflow<br/>创建 run 与任务清单"]
   restart --> main
-  main --> ctx["memory-context-builder<br/>加载适用 rules<br/>生成 context-pack 与项目知识阶段绑定"]
+  main --> ctx["context-source-indexing<br/>索引动态来源<br/>生成 context-pack"]
   ctx --> facts[input-fact-modeling<br/>建立输入事实模型<br/>事实清单/需求-设计映射/待确认事项]
   facts --> cpInput[clarification-gate CP-INPUT<br/>收口输入冲突与缺失]
   cpInput --> route[testing-method-router<br/>选择测试技术与专项方法参考]
@@ -123,7 +123,7 @@ flowchart TD
   lintDecision -- 否 --> fix[修正 JSON 事实源<br/>重新渲染，不手工改 Markdown]
   fix --> jsonLint
   lintDecision -- 是 --> review[test-analysis-solution-review<br/>语义评审<br/>粒度/依据/事实/非用例化]
-  review --> coverage[coverage-review<br/>覆盖/追踪/方法/rules/project knowledge]
+  review --> coverage[coverage-review<br/>覆盖/追踪/方法/core rules/动态来源]
   coverage --> consistency[bin/check-artifact-consistency.py<br/>最终一致性校验]
   consistency --> output[deliverables/test-analysis-solution.json]
   output --> finish([完成])
@@ -136,7 +136,7 @@ flowchart TD
 | Agent 门面 | `test-analysis-agent` | 识别用户意图，路由生成、记录、咨询和框架维护任务 |
 | 文件归一化入口 | `file-normalization-agent` | 将 `.docx` / `.xlsx` 输入归一化为 Markdown；不进入测试分析主流程 |
 | 主入口 | `test-analysis-workflow` | 固定根目录、创建 run、编排全链路、输出主交付件 |
-| 上下文 | `memory-context-builder` | 发现适用 rules、core/project/personal 上下文和项目知识阶段绑定 |
+| 上下文 | `context-source-indexing` | 索引 project/personal 动态来源 frontmatter，记录绑定状态和阶段可见性 |
 | 输入事实建模 | `input-fact-modeling` | 建立输入事实模型，记录事实清单、需求-设计映射、待确认事项和来源应用说明 |
 | 缺口治理 | `clarification-gate` | 合并过程缺口，不向主交付件写独立待确认章节 |
 | 方法路由 | `testing-method-router` | 选择适用测试技术和专项方法参考 |
@@ -168,15 +168,15 @@ flowchart TD
 | `rules/projects/<project-key>/**/*.md` | 项目级强制规则，确定 `project-key` 后读取 |
 | `rules/user/**/*.md` | 个人本地强制规则，不得覆盖 core/project rules |
 
-适用 rules 必须进入 `process/context-pack.json` 的“适用强制规则”表；与输入冲突时默认遵守 rules，并在“Rules 与输入冲突记录”中留痕。
+core rules 由 workflow 或对应 skill 固定读取；与输入冲突时默认遵守 rules，并在结构化过程记录或 review/coverage JSON 中留痕。
 
-## Project Knowledge 应用
+## 动态来源应用
 
-`knowledge/projects/<project-key>/` 下的文件名没有硬性要求。context pack 阶段只判断文件用途和强制应用环节，不提前判断具体测试点或测试点明细命中。
+project/personal 动态来源文件名没有硬性要求，但必须声明 `name`、`description`，可选 `stages`。context pack 阶段只索引 frontmatter，不读取正文，不提前判断具体测试点或测试点明细命中。
 
-- 测试设计因子库、业务测试设计模式库可绑定到 `testing-method-router`、`test-analysis-solution-generation`、`test-analysis-solution-generation` 和 `test-design-solution-generation`。
-- 测试设计 checklist 默认绑定到 `coverage-review` 统一查漏；只有文件或用户指令明确要求产物语义评审时，才额外绑定到 `test-analysis-solution-review` 或 `test-design-solution-review`。
-- 被绑定到某阶段的 project knowledge，该阶段必须读取相关章节并输出应用状态。
+- 测试设计因子库、业务测试设计模式库可通过 `stages` 对 `testing-method-router`、`test-analysis-solution-generation` 或 `test-design-solution-generation` 可见。
+- 测试设计 checklist 通常配置为 `coverage-review` 可见，统一查漏。
+- 阶段读取动态来源后必须输出应用状态。
 - 应用状态只能使用 `applied`、`not_applicable`、`insufficient_evidence`、`conflict_with_requirement` 或 `deferred_to_review`。
 
 ## 质量门禁

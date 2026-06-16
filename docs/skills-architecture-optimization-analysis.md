@@ -23,7 +23,7 @@
 | 分析编排入口 | `test-analysis-workflow` | 固定项目根目录、创建 run、编排分析链路、写出测试分析方案 | `deliverables/test-analysis-solution.json` |
 | 设计编排入口 | `test-design-workflow` | 复用或创建 run，承接已评审测试分析方案，写出测试设计方案 | `deliverables/test-design-solution.json` |
 | 上下文归档 | `context-capture` | 处理“记住/记录/收录/归档”类请求，判断写入 memory 或 knowledge | 长期 personal/project 上下文 |
-| 上下文层 | `memory-context-builder` | 发现并裁剪 core/project/personal 上下文，登记 project knowledge 阶段绑定 | `process/context-pack.json` |
+| 上下文层 | `context-source-indexing` | 索引 project/personal 动态来源 frontmatter，记录绑定状态和阶段可见性；core 来源由 workflow/skill 固定引用 | `process/context-pack.json` |
 | 输入事实建模层 | `input-fact-modeling` | 从需求文档和可选设计方案建立事实清单、需求-设计映射、待确认事项和来源应用说明 | `process/input-fact-model.json` |
 | 待确认治理层 | `clarification-gate` | 在 `CP-INPUT`、`CP-ANALYSIS`、`CP-REVIEW` 三个检查点治理候选缺口 | `process/clarification-session.json`、预期结果兜底清单 |
 | 路由层 | `testing-method-router` | 根据分析维度和触发信号选择测试技术和专项方法参考 | 测试技术路由表、技术范围缺口候选 |
@@ -33,7 +33,7 @@
 | 独立评审层 | `test-analysis-solution-review` | 在 lint 通过后评审测试点明细粒度、失败类型拆分充分性、预期结果依据、事实溯源和非用例化语义 | 独立语义评审结论 |
 | 测试设计方案生成层 | `test-design-solution-generation` | 把普通测试点明细或失败类型明细扩展为代表性条件、具体数据值、数据槽位、状态、接口返回或组合 | `TDI-*` 测试设计项 |
 | 测试设计评审层 | `test-design-solution-review` | 在 lint 通过后评审设计项数据化粒度、叶子节点预期结果依据、分析方案承接和非用例化语义 | 独立语义评审结论 |
-| 审查层 | `coverage-review` | 执行覆盖、追踪、方法应用、rules/project knowledge 应用和过程门禁；专家评分仅深度评估时执行 | 覆盖审查结果、修正建议、阻断项 |
+| 审查层 | `coverage-review` | 执行覆盖、追踪、方法应用、core rules/动态来源应用和过程门禁；专家评分仅深度评估时执行 | 覆盖审查结果、修正建议、阻断项 |
 
 当前架构是清晰的流水线：入口编排，context/requirement/router/specialist/generator/reviewer 各层职责基本成立。
 
@@ -72,15 +72,15 @@ SC-* 测试场景
 
 当前架构使用 `file-normalization-agent`、`test-analysis-agent` 和 `test-design-agent` 作为用户可 `@` 调用的门面。它们分别负责文件归一化、测试分析和测试设计意图识别；具体执行仍由 skills、knowledge、templates、quality gates 和 bin 脚本完成。
 
-### F4. Project Knowledge 阶段绑定
+### F4. 动态来源索引
 
-project knowledge 文件不要求固定命名或固定结构。`memory-context-builder` 只在 context pack 中识别文件用途和强制应用环节，不提前判断具体测试点或测试点明细命中。
+project/personal 动态来源文件不要求固定命名，但必须声明 `name`、`description`，可选 `stages`。`context-source-indexing` 只索引 frontmatter，不读取正文，不提前判断具体测试点或测试点明细命中。
 
 影响：
 
-- 测试设计因子库、业务测试设计模式库可以绑定到测试技术路由和测试分析方案生成。
-- 测试设计 checklist 默认绑定到覆盖审查统一查漏；只有明确声明产物语义评审用途时，才额外绑定到独立评审。
-- 后续阶段必须读取绑定文件并输出应用状态，避免“读过但没有用”的假强应用。
+- 测试设计因子库、业务测试设计模式库可以通过 `stages` 对测试技术路由和测试分析方案生成可见。
+- 测试设计 checklist 通常通过 `stages: [coverage-review]` 交给覆盖审查统一查漏。
+- 后续阶段只读取对当前阶段可见的来源，并输出应用状态，避免“读过但没有用”的假强应用。
 
 ## 4. 推荐目标架构
 
@@ -88,14 +88,14 @@ project knowledge 文件不要求固定命名或固定结构。`memory-context-b
 |---|---|---|
 | Agent 门面 | 保持轻量 | 只做意图识别、路由和用户体验收口，不沉淀测试理论或复杂流程 |
 | 编排入口 | 保持单入口 | 只负责调度、run 目录、任务清单和最终落盘 |
-| 上下文层 | 保持独立 | 将 project/personal 发现策略和 project knowledge 阶段绑定沉淀在 context pack，不下放给后续 skill 自行搜索 |
+| 上下文层 | 保持独立 | 将 project/personal 发现策略和动态来源阶段可见性沉淀在 context pack，不下放给后续 skill 自行搜索 |
 | 需求与设计层 | 统一输入事实模型 | `input-fact-modeling` 负责需求事实、设计事实、映射关系、缺口冲突和待确认事项 |
 | 路由层 | 保持独立 | 明确输出只到测试技术路由，不提前选择测试点明细 |
 | 专项方法参考层 | 统一输出骨架 | 所有专项方法参考使用同一方法证据表、候选测试点表和缺口候选表 |
 | 测试分析方案生成层 | 保持独立 | 统一生成 `SC-*`、`TP-*`、`TP-*-*`、非成功 `TP-*-*-*` 失败类型明细和预期结果 |
 | 确定性校验层 | 前置执行 | 先跑 lint，结构失败时不进入模型评审 |
 | 独立评审层 | 保持独立但收窄职责 | 只审粒度、预期结果依据、事实溯源、失败类型充分性和非用例化语义 |
-| 覆盖审查层 | 拆分判断类型 | 覆盖、追踪、方法应用、rules/project knowledge、过程一致性和可选专家评分分别列明结果 |
+| 覆盖审查层 | 拆分判断类型 | 覆盖、追踪、方法应用、core rules/动态来源、过程一致性和可选专家评分分别列明结果 |
 
 ## 5. 后续优化路线
 

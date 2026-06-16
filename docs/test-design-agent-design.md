@@ -83,7 +83,7 @@ flowchart TD
   hasAnalysis -- 否 --> analysis["test-analysis-workflow<br/>先生成测试分析方案"]
   analysis --> analysisCheck["bin/lint-run-json.py<br/>bin/render-run-markdown.py --check"]
   hasAnalysis -- 是 --> analysisCheck
-  analysisCheck --> ctx["memory-context-builder<br/>读取或生成 context-pack<br/>确认适用 rules"]
+  analysisCheck --> ctx["context-source-indexing<br/>读取或生成 context-pack<br/>确认适用 rules"]
   ctx --> basis["补读需求与设计依据<br/>只补充判定依据"]
   basis --> generation["test-design-solution-generation<br/>在叶子分析节点生成 TDI-*"]
   generation --> jsonLint["bin/lint-run-json.py<br/>JSON canonical 校验"]
@@ -137,15 +137,15 @@ flowchart TD
 | `rules/projects/<project-key>/**/*.md` | 项目级强制规则，确定 `project-key` 后读取 |
 | `rules/user/**/*.md` | 个人本地强制规则，不得覆盖 core/project rules |
 
-设计阶段必须复用或生成 `process/context-pack.json`，确认适用 rules 和 Rules 与输入冲突记录；被登记的 rules 必须在 TDI 生成、评审或覆盖审查中应用或解释。
+设计阶段必须复用或生成 `process/context-pack.json`，确认 `projectBinding`、`personalBinding` 和对设计阶段可见的动态来源。core rules 由 workflow 或对应 skill 固定读取，并在 TDI 生成、评审或覆盖审查中应用或解释。
 
-## Project Knowledge 应用
+## 动态来源应用
 
-`knowledge/projects/<project-key>/` 下的文件名没有硬性要求。context pack 阶段只判断文件用途和强制应用环节，不提前判断具体测试设计项命中。
+project/personal 动态来源文件名没有硬性要求，但必须声明 `name`、`description`，可选 `stages`。context pack 阶段只索引 frontmatter，不提前判断具体测试设计项命中。
 
-- 测试设计因子库、业务测试设计模式库和测试 Oracle 可绑定到 `test-design-solution-generation`，用于生成代表性条件、具体数据值、数据槽位、状态、组合和预期结果依据。
-- 测试设计 checklist 默认绑定到 `coverage-review` 统一查漏；只有文件或用户指令明确要求产物语义评审时，才额外绑定到 `test-design-solution-review`。
-- 被绑定到某阶段的 project knowledge，该阶段必须读取相关章节并输出应用状态。
+- 测试设计因子库、业务测试设计模式库和测试 Oracle 可通过 `stages` 对 `test-design-solution-generation` 可见，用于生成代表性条件、具体数据值、数据槽位、状态、组合和预期结果依据。
+- 测试设计 checklist 通常配置为 `coverage-review` 可见，统一查漏。
+- 阶段读取动态来源后必须输出应用状态。
 - 应用状态只能使用 `applied`、`not_applicable`、`insufficient_evidence`、`conflict_with_requirement` 或 `deferred_to_review`。
 
 ## 质量门禁

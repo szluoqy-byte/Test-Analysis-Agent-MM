@@ -11,9 +11,8 @@
 ## 输入
 
 - 输入事实模型。
-- 记忆上下文包。
-- 记忆上下文包中命中的 project/personal 风险画像、个人关注点和 oracle 补充。
-- `process/context-pack.json` 中绑定到 `testing-method-router` 的 project knowledge 文件，例如风险画像、历史高风险策略或风险类 checklist。
+- 上下文来源索引。
+- `process/context-pack.json` 中 `sources[]` 对 `testing-method-router` 可见的 project/personal 风险画像、个人关注点、oracle 补充和风险类 checklist。
 - `knowledge/testpoint-standard.md`。
 - `knowledge/test-techniques/README.md`。
 - `knowledge/test-techniques/risk-based/risk-based-testing.md`。
@@ -23,9 +22,9 @@
 
 - 使用 `knowledge/test-techniques/README.md` 中的专家审视顺序和 Oracle 规则判断风险覆盖方向。
 - 使用 `knowledge/test-techniques/experience-based/error-guessing-checklist.md` 匹配通用缺陷模式。
-- 使用 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.json` 中的项目历史缺陷和项目风险模式修正关注点。
-- 使用 context pack 中的 project/personal knowledge 补充识别项目级风险画像、个人关注点、覆盖策略和判定依据启发；补充不得写成已确认业务事实。
-- 如果 context pack 的“项目知识阶段绑定”存在绑定到 `testing-method-router` 的风险类 project knowledge，必须读取相关章节并输出应用状态。
+- 使用 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.json` 中对本阶段可见的动态来源修正风险关注点。
+- 使用已读取的 project/personal 动态来源补充识别项目级风险画像、个人关注点、覆盖策略和判定依据启发；补充不得写成已确认业务事实。
+- 对本阶段可见且被读取的风险类动态来源，必须输出应用状态。
 - 使用 `knowledge/test-techniques/risk-based/risk-based-testing.md` 判断建议级别，级别定义仍以 `knowledge/testpoint-standard.md` 为准。
 
 风险识别必须区分三类来源：
@@ -57,7 +56,7 @@
 | 问题ID | checkpoint | sourceStage | header | question | why | impact | options | blockingLevel | priority | askPolicy | mustAsk | relatedRequirement | memoryConflict |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 
-如本阶段绑定了 project knowledge，追加应用记录：
+如本阶段读取了动态来源，追加应用记录：
 
 | 来源文件 | 当前阶段 | 应用状态 | 应用位置 | 说明 |
 |---|---|---|---|---|
@@ -70,4 +69,4 @@
 - 不把风险等级当作测试点数量的唯一依据；高风险需要更强证据或更明确覆盖对象。
 - 最终主交付件中只保留可追踪到需求、memory 或风险确认点的风险备注；不把通用风险推断写成已确认业务规则。
 - 如果 context pack 中的 project/personal 风险画像不足，只能按 context pack 记录的来源或当前需求明确指向的文件补读相关章节，并在方法证据中记录来源；不得全目录搜索或全量复制大文件。
-- 绑定到本阶段的 project knowledge 必须读取并留痕；如果未应用，必须使用 `not_applicable`、`insufficient_evidence` 或 `conflict_with_requirement` 解释。
+- 对本阶段可见且被读取的动态来源必须留痕；如果未应用，必须使用 `not_applicable`、`insufficient_evidence` 或 `conflict_with_requirement` 解释。

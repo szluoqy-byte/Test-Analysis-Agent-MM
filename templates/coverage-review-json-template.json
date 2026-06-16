@@ -44,10 +44,10 @@
   ],
   "projectKnowledgeApplications": [
     {
-      "sourceType": "project knowledge/additional gate",
+      "sourceType": "project/personal source",
       "sourceFile": "",
       "stage": "coverage-review",
-      "status": "applied/not_applicable/insufficient_evidence/conflict_with_requirement/overridden_by_user",
+      "status": "applied/not_applicable/insufficient_evidence/conflict_with_requirement/deferred_to_review",
       "location": "",
       "note": ""
     }

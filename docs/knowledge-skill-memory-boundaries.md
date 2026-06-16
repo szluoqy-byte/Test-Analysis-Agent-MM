@@ -17,7 +17,7 @@ Rules = 优先于输入文档的强制规则
 | project | `rules/projects/<project-key>/**/*.md`、`knowledge/projects/<project-key>/**/*.md`、`memory/projects/<project-key>/**/*.md`、`quality-gates/projects/<project-key>/**/*.md` | 否 | 当前项目的强制规则、事实、经验、策略和附加门禁 |
 | personal | `rules/user/**/*.md`、`knowledge/user/**/*.md`、`memory/user/**/*.md`、`quality-gates/user/**/*.md` | 否 | 当前使用者的个人强制规则、偏好、本地检查清单和补充启发 |
 
-project 和 personal 是当前 run 的一等输入源：必须由 `memory-context-builder` 统一发现、裁剪和记录到 `process/context-pack.json`，后续 skill 只能消费 context pack JSON 或按其来源记录受控补读。project knowledge 文件名没有硬性要求，但 context pack 必须记录其自理解类型和项目知识阶段绑定。
+project 和 personal 是当前 run 的一等输入源：必须由 `context-source-indexing` 统一索引 frontmatter 并记录到 `process/context-pack.json`，后续 skill 只能读取 `sources[]` 中对当前阶段可见的文件正文。project/personal 动态来源文件名没有硬性要求，但必须声明 `name`、`description`，可选 `stages`。
 
 Rules 是高优先级约束源：优先级低于当前用户明确指令，高于当前输入文档、memory 和 knowledge。rules 与输入文档冲突时，默认遵守 rules，并在过程产物记录覆盖原因。rules 内部按 `core > project > personal` 处理，低层只能细化高层规则，不能放宽或违反高层强制约束。
 
@@ -41,19 +41,19 @@ Rules 是高优先级约束源：优先级低于当前用户明确指令，高�
 | 测试类型大类和子类 | `skills/coverage-review/references/basic-test-types.md` | 本项目内置测试类型体系 |
 | 风险优先、异常优先、状态优先等专家原则 | `knowledge/test-techniques/README.md`、`knowledge/test-techniques/risk-based/risk-based-testing.md` | 测试技术的通用审视规则，分析层识别风险和测试点明细，设计层控制设计项深度 |
 | 空值、重复提交、越权、幂等等通用缺陷模式 | `knowledge/test-techniques/experience-based/error-guessing-checklist.md` | 经验型测试技术补充，分析层识别缺陷风险，设计层补充高价值设计项 |
-| 需求文档、需求依据、方法证据、记忆上下文包等框架术语 | `knowledge/test-workflow-boundaries.md` | 稳定分析术语，所有 skill 共用 |
+| 需求文档、需求依据、方法证据、上下文来源索引等框架术语 | `knowledge/test-workflow-boundaries.md` | 稳定分析术语，所有 skill 共用 |
 | 分析维度、需求信号到测试技术的映射 | `skills/testing-method-router/references/test-method-routing-matrix.md` | 稳定路由知识 |
 | 方法分析证据字段和质量要求 | `skills/testing-method-router/references/method-evidence-standard.md` | 证明测试理论被实际应用的统一标准 |
 | 输入事实模型字段 | `templates/input-fact-model-template.md` | 输入事实模型是运行期结构化产物，模板定义事实清单、需求-设计映射、待确认事项和来源说明 |
-| 项目风险画像、覆盖策略、术语映射、路由说明、测试 oracle、测试设计因子、测试设计模式和 checklist 补充 | `knowledge/projects/<project-key>/**/*.md` | 项目级测试知识补充，确定 `project-key` 后按需扫描并登记阶段绑定 |
-| 个人测试启发、检查清单和本地关注点 | `knowledge/user/**/*.md` | personal 层知识补充，按需扫描 |
+| 项目风险画像、覆盖策略、术语映射、路由说明、测试 oracle、测试设计因子、测试设计模式和 checklist 补充 | `knowledge/projects/<project-key>/**/*.md` | 项目级测试知识补充，确定 `project-key` 后索引 frontmatter，后续阶段按 `sources[]` 可见性读取 |
+| 个人测试启发、检查清单和本地关注点 | `knowledge/user/**/*.md` | personal 层知识补充，索引 frontmatter 后按阶段可见性读取 |
 | 记住、记录、归档类请求的写入分类流程 | `skills/context-capture/SKILL.md` | 判断写入 memory/knowledge 与 personal/project 层级 |
 | `.docx` / `.xlsx` 输入转 Markdown 与缓存复用流程 | `agents/file-normalization-agent.md`、`skills/normalize-input-documents/SKILL.md` | 输入归一化流程；转换结果写入全局 `outputs/input-cache/`，仅在显式 `--run-dir` 或既有 run 补绑定时写入 `outputs/runs/<run-id>/inputs/`，不沉淀为 knowledge 或 memory |
 | 某个测试技术的执行步骤 | `skills/*/SKILL.md` | 过程性动作，不是事实库 |
 | 输入、输出、约束、质量门禁调用顺序 | `skills/*/SKILL.md` | 插件运行流程 |
-| 指定项目的事实、历史经验、团队反馈和输出偏好 | `memory/projects/<project-key>/**/*.md` | 项目级长期 memory，确定 `project-key` 后自动扫描 |
-| 个人输出偏好、检查习惯和本地记忆 | `memory/user/**/*.md` | personal 层 memory，按需扫描 |
-| 本次运行筛选出的少量上下文 | `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.json` | 运行产物事实源，不是长期事实源；同名 Markdown 为派生阅读版 |
+| 指定项目的事实、历史经验、团队反馈和输出偏好 | `memory/projects/<project-key>/**/*.md` | 项目级长期 memory，确定 `project-key` 后索引 frontmatter |
+| 个人输出偏好、检查习惯和本地记忆 | `memory/user/**/*.md` | personal 层 memory，索引 frontmatter 后按阶段可见性读取 |
+| 本次运行可见的动态来源索引 | `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.json` | 运行产物事实源，不是长期事实源；同名 Markdown 为派生阅读版 |
 | 本次运行缺口治理结果 | `${PROJECT_ROOT}/outputs/runs/<run-id>/process/clarification-session.json` | 运行产物事实源，用于解释 `待人工分析确认` 的来源 |
 | 本次运行阶段顺序、状态和证据路径 | `${PROJECT_ROOT}/outputs/runs/<run-id>/process/task-list.json` | 运行产物，是流程事实源，不是长期配置 |
 | 运行产物分类、固定文件名和下游消费约定 | `docs/output-artifact-contract.md` | 输出契约，防止 skill、模板和脚本各自发散 |
@@ -74,14 +74,14 @@ Rules 是高优先级约束源：优先级低于当前用户明确指令，高�
 - `knowledge/` 不保存项目事实、用户临时偏好、单次运行结果和未确认假设。
 - `knowledge/projects/<project-key>/` 只能保存项目级测试知识补充，不保存未确认业务事实、真实缺陷复盘或输出偏好。
 - `knowledge/projects/<project-key>/` 不覆盖根目录 `knowledge/` 的测试点字段、类型、方法、输出契约和质量门禁。
-- `knowledge/projects/<project-key>/` 下的文件名不作硬性要求；如果无法从文件名、标题、frontmatter 或摘要自理解识别用途，context pack 只能记录为 `unclassified` 和后续补读建议，不得强行套用。
+- `knowledge/projects/<project-key>/` 下的文件名不作硬性要求，但动态来源文件必须声明 `name`、`description`，可选 `stages`。
 - 未唯一确定 `project-key` 时，不读取所有项目目录正文，避免跨项目知识和 memory 污染。
 - project 和 personal 层默认不提交 Git；仓库只保留对应 README 和发现规则。
 - `rules/projects/<project-key>/` 和 `rules/user/` 默认不提交 Git；仓库只保留对应 README 和发现规则。
 - `templates/` 只保留 core 模板，不提供 project/personal 分层模板补充；项目或个人输出偏好应归入 memory，强制格式要求应归入 rules。
-- `context-pack.json` 只摘录与本次需求相关的 memory 和 project/personal 补充，不复制整份长期文件，也不放在 `memory/` 下；`context-pack.md` 只是派生阅读版。
-- `context-pack.json` 的“项目知识阶段绑定”只判断文件应进入哪些环节；具体命中和应用由对应 skill 在阶段内读取后判断，并记录应用状态。
-- `task-list.json`、`context-pack.json`、`input-fact-model.json` 和 `clarification-session.json` 必须随 run 目录生成，分别记录固定阶段顺序、上下文绑定、输入事实模型和待确认治理结果；同名 Markdown 由脚本渲染，即使无 project/personal 命中或无待确认候选，也必须在 JSON 中说明原因。
+- `context-pack.json` 只记录 project/personal 动态来源路径、名称、描述和阶段可见性，不摘录正文，不复制整份长期文件，也不放在 `memory/` 下；`context-pack.md` 只是派生阅读版。
+- 后续 skill 按 `sources[]` 阶段可见性读取正文；具体命中和应用由对应 skill 在阶段内判断，并记录应用状态。
+- `task-list.json`、`context-pack.json`、`input-fact-model.json` 和 `clarification-session.json` 必须随 run 目录生成，分别记录固定阶段顺序、动态来源索引、输入事实模型和待确认治理结果；同名 Markdown 由脚本渲染，即使无 project/personal 命中或无待确认候选，也必须在 JSON 中说明原因。
 - `task-list.json` 不替代运行时 todo 工具，但比运行时 UI 更适合作为可校验流程事实源；`task-list.md` 只用于人工查看。
 - `templates/` 只列出字段、占位和最小示例，不直接维护或长篇引用背景知识；字段含义、类型、方法等标准由调用模板的 `skills/` 和 `quality-gates/` 按需引用 `knowledge/`。
 - `quality-gates/` 可以重复列出允许值用于校验，但必须以 `knowledge/` 的标准为来源，不维护独立定义。

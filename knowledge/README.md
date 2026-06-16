@@ -40,6 +40,6 @@ Knowledge 保存本 Agent 稳定、可复用的测试分析与测试设计知识
 
 ## 发现规则
 
-`memory-context-builder` 确定 `project-key` 后，会按需扫描 `knowledge/projects/<project-key>/**/*.md`；同时会扫描 `knowledge/user/**/*.md`。只有与当前需求直接相关的片段会写入 `process/context-pack.json`，再由渲染脚本生成 `process/context-pack.md` 人读版。未确定 `project-key` 时，不读取所有项目目录正文。
+`context-source-indexing` 确定 `project-key` 后，只索引 `knowledge/projects/<project-key>/**/*.md` 的 frontmatter；同时索引 `knowledge/user/**/*.md`。未确定 `project-key` 时，不读取所有项目目录正文。
 
-Project knowledge 文件名没有硬性要求。context pack 阶段会自理解识别文件用途并登记“项目知识阶段绑定”；被绑定到 `testing-method-router`、`test-analysis-solution-generation`、`test-design-solution-generation` 或 `coverage-review` 等环节的文件，必须由对应 skill 读取并记录应用状态。Checklist 类文件默认绑定到 `coverage-review` 统一查漏；只有文件或用户指令明确要求产物语义评审时，才额外绑定到独立评审环节。
+Project/User knowledge 文件名没有硬性要求，但动态来源文件必须声明 frontmatter：`name`、`description`，可选 `stages`。`stages` 未配置时默认所有阶段可用；配置后仅对应阶段读取正文并记录应用状态。

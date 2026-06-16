@@ -15,7 +15,7 @@ TASK_LIST_HEADER = "| 序号 | 阶段 | 负责 skill | 必须产物/检查点 | 
 TASK_STATUS_VALUES = {"pending", "in_progress", "done", "blocked", "skipped"}
 ANALYSIS_REQUIRED_TASK_STAGES = [
     "固定 PROJECT_ROOT 与运行目录",
-    "构建上下文包",
+    "上下文来源索引",
     "输入事实建模",
     "待确认治理",
     "测试技术路由",
@@ -30,7 +30,7 @@ ANALYSIS_REQUIRED_TASK_STAGES = [
 DESIGN_REQUIRED_TASK_STAGES = [
     "固定 PROJECT_ROOT 与运行目录",
     "测试分析方案校验",
-    "构建上下文包",
+    "上下文来源索引",
     "设计依据补读",
     "测试设计方案生成",
     "确定性校验",
@@ -40,6 +40,8 @@ DESIGN_REQUIRED_TASK_STAGES = [
 ]
 OPTIONAL_TASK_STAGES = {"按源补读", "设计依据补读"}
 TASK_STAGE_ALIASES = {
+    "构建上下文包": "上下文来源索引",
+    "记忆上下文构建": "上下文来源索引",
     "方法路由": "测试技术路由",
     "专项方法分析": "专项分析",
     "场景化测试点生成": "测试分析方案生成",
@@ -188,13 +190,9 @@ def validate_context_pack(path: Path) -> tuple[list[str], list[str]]:
     if not text.strip():
         errors.append("context-pack 为空")
         return errors, warnings
-    for marker in ["project-key", "personal-key"]:
+    for marker in ["上下文来源索引", "## 绑定结果", "projectBinding", "personalBinding", "## 动态来源索引"]:
         if marker not in text:
-            warnings.append(f"context-pack 未显式记录绑定字段: {marker}")
-    if "项目知识阶段绑定" not in text:
-        warnings.append("context-pack 未记录项目知识阶段绑定")
-    if "补读" not in text:
-        warnings.append("context-pack 未记录后续补读建议或无需补读原因")
+            errors.append(f"context-pack 缺少固定渲染标记: {marker}")
 
     return errors, warnings
 

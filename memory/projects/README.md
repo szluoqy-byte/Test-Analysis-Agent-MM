@@ -2,7 +2,7 @@
 
 本目录按 `project-key` 隔离不同项目的长期 memory。项目化 memory 只保存经确认、会影响后续测试分析的项目事实、业务约定、历史缺陷、输出偏好和团队反馈。
 
-本目录属于 `project` 层，默认不提交 Git；`.gitignore` 只保留本 README。团队如果确实希望共享某个项目配置，可以显式强制添加对应文件。project 层是当前 run 的一等输入源，命中和未采用情况必须记录到 `outputs/runs/<run-id>/process/context-pack.json`；同名 Markdown 只是派生阅读版。
+本目录属于 `project` 层，默认不提交 Git；`.gitignore` 只保留本 README。团队如果确实希望共享某个项目配置，可以显式强制添加对应文件。project 层是当前 run 的一等输入源，动态来源索引必须记录到 `outputs/runs/<run-id>/process/context-pack.json`；同名 Markdown 只是派生阅读版。
 
 ## 目录结构
 
@@ -17,10 +17,10 @@ memory/projects/<project-key>/
 
 ## 发现规则
 
-- `memory-context-builder` 先确定 `project-key`，再扫描 `memory/projects/<project-key>/**/*.md`。
+- `context-source-indexing` 先确定 `project-key`，再索引 `memory/projects/<project-key>/**/*.md` 的 frontmatter。
 - 未确定 `project-key` 时，不读取所有项目目录正文，避免跨项目 memory 污染。
 - 项目化 memory 不需要登记到全局 memory 文件。
-- 每个项目文件应包含清晰标题、适用范围、关键词、来源或确认记录，便于自动匹配和裁剪。
+- 每个项目文件必须包含 frontmatter：`name`、`description`，可选 `stages`；正文应包含清晰标题、适用范围、关键词、来源或确认记录，便于后续阶段按需读取。
 
 ## 写入边界
 

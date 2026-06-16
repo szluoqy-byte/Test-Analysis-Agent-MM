@@ -63,7 +63,7 @@
 
 - 如果测试分析或测试设计生成阶段传入过设计方案文档，Eval 阶段也应传入同一设计方案文档，或传入能等价承接设计事实的报告证据。
 - 如果 Eval 阶段缺少生成时使用过的设计方案，只能做降级评估：不得断言设计依据遗漏，只能标记为“设计依据未输入导致无法确认”。
-- 如果生成阶段使用了 `project-key`、rules、project knowledge 或 personal 上下文，Eval 阶段应传入对应 `process/context-pack.json`，否则 rules/project knowledge 应用检查只能标记为未评估。
+- 如果生成阶段使用了 `project-key`、core rules、project/personal 动态来源，Eval 阶段应传入对应 `process/context-pack.json`，否则动态来源应用检查只能标记为未评估。
 
 ## 输出定位
 
@@ -110,7 +110,7 @@ Markdown 报告只作为渲染样式，不由模型直接维护；如果 JSON �
 
 ### 1. 评估证据索引
 
-`test-eval-agent` 不重新生成一份“标准测试分析方案”，也不把自己的分析结果当作标准答案。它先从需求、设计、rules、project knowledge、context pack 和可选报告证据中抽取可追踪的评估证据索引，再检查当前测试分析/测试设计产物是否显式承接、弱承接、冲突承接或未承接这些证据线索。
+`test-eval-agent` 不重新生成一份“标准测试分析方案”，也不把自己的分析结果当作标准答案。它先从需求、设计、core rules、已读取动态来源、context pack 和可选报告证据中抽取可追踪的评估证据索引，再检查当前测试分析/测试设计产物是否显式承接、弱承接、冲突承接或未承接这些证据线索。
 
 评估证据索引可以包括：
 
@@ -153,7 +153,7 @@ Markdown 报告只作为渲染样式，不由模型直接维护；如果 JSON �
 - `TDI-*` 是否挂错 `TP-*-*` 或 `TP-*-*-*`。
 - 预期结果是否与需求、设计、rules 或分析方案冲突。
 - 同一术语、状态、角色、错误码、字段名是否前后不一致。
-- `process/context-pack.json` 登记的 rules、project knowledge、checklist 是否被实际应用。
+- `process/context-pack.json` 登记的动态来源、checklist 是否被实际应用；core rules 是否被固定读取并应用。
 
 典型一致性问题：
 
@@ -163,7 +163,7 @@ Markdown 报告只作为渲染样式，不由模型直接维护；如果 JSON �
 | 设计与分析错位 | 分析方案是权限拒绝，设计项却给了状态非法条件 |
 | 预期结果冲突 | 需求说不重复扣减，设计项预期写为重新扣减 |
 | 层级承接错误 | 非成功失败类型明细被设计方案合并回父级 `TP-*-*` |
-| project knowledge 应用不一致 | context pack 绑定了项目 checklist，但评审报告没有应用状态 |
+| 动态来源应用不一致 | context pack 中可见项目 checklist 被读取，但评审报告没有应用状态 |
 
 ### 4. 质量诊断
 

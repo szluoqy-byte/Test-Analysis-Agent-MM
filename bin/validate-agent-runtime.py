@@ -18,6 +18,7 @@ MAIN_SKILLS = {
 }
 REQUIRED_SKILLS = {
     *MAIN_SKILLS.values(),
+    "context-source-indexing",
     "input-fact-modeling",
     "normalize-input-documents",
     "test-analysis-solution-generation",
@@ -202,6 +203,70 @@ def validate_markdown_files(root: Path, files: list[Path], issues: list[str]) ->
             fail(f"{markdown_file.relative_to(root)} must not be empty", issues)
 
 
+def validate_context_source_metadata(root: Path, files: list[Path], issues: list[str]) -> None:
+    allowed_stages = {
+        "*",
+        "input-fact-modeling",
+        "clarification-gate",
+        "testing-method-router",
+        "test-analysis-solution-generation",
+        "test-analysis-solution-review",
+        "test-design-solution-generation",
+        "test-design-solution-review",
+        "coverage-review",
+    }
+
+    for markdown_file in files:
+        try:
+            text = markdown_file.read_text(encoding="utf-8")
+        except UnicodeDecodeError as exc:
+            fail(f"{markdown_file.relative_to(root)} is not valid UTF-8: {exc}", issues)
+            continue
+
+        lines = text.splitlines()
+        if not lines or lines[0].strip() != "---":
+            fail(f"{markdown_file.relative_to(root)} must declare frontmatter with name and description", issues)
+            continue
+
+        frontmatter: list[str] = []
+        for line in lines[1:]:
+            if line.strip() == "---":
+                break
+            frontmatter.append(line)
+        else:
+            fail(f"{markdown_file.relative_to(root)} has unterminated frontmatter", issues)
+            continue
+
+        values: dict[str, str] = {}
+        stages: list[str] = []
+        in_stages = False
+        for line in frontmatter:
+            stripped = line.strip()
+            if not stripped:
+                continue
+            if in_stages and stripped.startswith("- "):
+                stages.append(stripped[2:].strip())
+                continue
+            in_stages = False
+            key, sep, value = line.partition(":")
+            if not sep:
+                continue
+            key = key.strip()
+            value = value.strip()
+            values[key] = value
+            if key == "stages":
+                in_stages = True
+                if value.startswith("[") and value.endswith("]"):
+                    stages.extend(item.strip().strip("\"'") for item in value[1:-1].split(",") if item.strip())
+
+        for required in ("name", "description"):
+            if not values.get(required):
+                fail(f"{markdown_file.relative_to(root)} frontmatter missing {required}", issues)
+        for stage in stages:
+            if stage not in allowed_stages:
+                fail(f"{markdown_file.relative_to(root)} frontmatter has unsupported stage: {stage}", issues)
+
+
 def validate_rules_module(root: Path, issues: list[str]) -> None:
     for relative in ("rules/README.md", "rules/projects/README.md", "rules/user/README.md"):
         path = root / relative
@@ -247,6 +312,7 @@ def validate_project_extension_dirs(root: Path, issues: list[str]) -> None:
                 continue
 
             validate_markdown_files(root, markdown_files, issues)
+            validate_context_source_metadata(root, markdown_files, issues)
 
 
 def validate_user_extension_dirs(root: Path, issues: list[str]) -> None:
@@ -264,6 +330,7 @@ def validate_user_extension_dirs(root: Path, issues: list[str]) -> None:
             if path.is_file() and path.name != "README.md"
         )
         validate_markdown_files(root, markdown_files, issues)
+        validate_context_source_metadata(root, markdown_files, issues)
 
 
 def main() -> int:

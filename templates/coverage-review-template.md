@@ -22,9 +22,9 @@
 | 设计项粒度 | 通过/警告/失败 |  |  |
 | 预期结果依据 | 通过/警告/失败 |  |  |
 | 非用例化 | 通过/警告/失败 |  |  |
-| Rules 强制规则应用 | 通过/警告/失败 | 适用 rules 是否已遵守、解释或被当前用户明确指令覆盖 |  |
-| 项目知识阶段绑定 | 通过/警告/失败 | 绑定文件是否已被对应阶段读取并留痕 |  |
-| 项目 Checklist 覆盖 | 通过/警告/失败 | 默认绑定到覆盖审查的 project checklist 是否已处理 |  |
+| Core Rules 应用 | 通过/警告/失败 | core rules 是否已遵守、解释或被当前用户明确指令覆盖 |  |
+| 动态来源应用 | 通过/警告/失败 | `sources[]` 可见动态来源是否已被对应阶段读取、应用或解释跳过 |  |
+| 动态 Checklist 覆盖 | 通过/警告/失败 | 对覆盖审查可见的 project/personal checklist 是否已处理 |  |
 | 任务清单 | 通过/警告/失败 | 固定阶段顺序、最终状态和证据路径 |  |
 
 ## 质量门禁结果
@@ -37,13 +37,13 @@
 | 维度 | 结果 | 说明 | 修正建议 |
 |---|---|---|---|
 
-## Project Knowledge 与附加门禁应用记录
+## 动态来源应用记录
 
 | 来源类型 | 来源文件 | 阶段 | 应用状态 | 应用位置 | 说明 |
 |---|---|---|---|---|---|
-| project knowledge / additional gate |  |  | applied/not_applicable/insufficient_evidence/conflict_with_requirement/overridden_by_user |  |  |
+| project/personal source |  |  | applied/not_applicable/insufficient_evidence/conflict_with_requirement/deferred_to_review |  |  |
 
-## Rules 应用记录
+## Core Rules 应用记录
 
 | 规则 ID | 来源文件 | 阶段 | 应用状态 | 应用位置 | 说明 |
 |---|---|---|---|---|---|

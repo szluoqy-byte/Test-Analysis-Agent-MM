@@ -1,250 +1,50 @@
 {
   "artifactType": "context-pack",
   "schemaVersion": "1.0",
-  "title": "记忆上下文包",
-  "sections": [
+  "title": "上下文来源索引",
+  "requirement": {
+    "path": "",
+    "title": "",
+    "keywords": []
+  },
+  "projectBinding": {
+    "status": "unresolved",
+    "projectKey": "",
+    "reason": "未提供 project-key，且无法从输入唯一识别"
+  },
+  "personalBinding": {
+    "status": "default",
+    "personalKey": "default",
+    "reason": "使用默认 personal 扩展路径"
+  },
+  "sources": [
     {
-      "heading": "本次需求标识",
-      "level": 2,
-      "content": [
-        {
-          "type": "items",
-          "items": [
-            {
-              "label": "需求文档",
-              "value": ""
-            },
-            {
-              "label": "需求标题",
-              "value": ""
-            },
-            {
-              "label": "运行 ID",
-              "value": "<run-id>"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "heading": "项目标识",
-      "level": 2,
-      "content": [
-        {
-          "type": "items",
-          "items": [
-            {
-              "label": "project-key",
-              "value": "未确定"
-            },
-            {
-              "label": "确定依据",
-              "value": ""
-            },
-            {
-              "label": "未确定原因",
-              "value": ""
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "heading": "个人配置标识",
-      "level": 2,
-      "content": [
-        {
-          "type": "items",
-          "items": [
-            {
-              "label": "personal-key",
-              "value": "default"
-            },
-            {
-              "label": "确定依据",
-              "value": ""
-            },
-            {
-              "label": "默认 personal 说明",
-              "value": ""
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "heading": "已扫描来源",
-      "level": 2,
-      "content": [
-        {
-          "type": "table",
-          "columns": [
-            "来源层级",
-            "路径",
-            "扫描状态",
-            "说明"
-          ],
-          "rows": [
-            [
-              "core rules",
-              "rules/*.md",
-              "scanned",
-              ""
-            ],
-            [
-              "project",
-              "*/projects/<project-key>/**/*.md",
-              "not_scanned/scanned",
-              ""
-            ],
-            [
-              "personal",
-              "*/user/**/*.md",
-              "not_scanned/scanned",
-              ""
-            ]
-          ]
-        }
-      ]
-    },
-    {
-      "heading": "命中摘要",
-      "level": 2,
-      "content": [
-        {
-          "type": "table",
-          "columns": [
-            "来源",
-            "片段",
-            "命中原因",
-            "使用方式"
-          ],
-          "rows": []
-        }
-      ]
-    },
-    {
-      "heading": "Project/Personal 使用摘要",
-      "level": 2,
-      "content": [
-        {
-          "type": "table",
-          "columns": [
-            "层级",
-            "绑定结果",
-            "命中来源",
-            "未采用来源",
-            "冲突处理",
-            "后续补读建议"
-          ],
-          "rows": [
-            [
-              "project",
-              "",
-              "",
-              "",
-              "",
-              ""
-            ],
-            [
-              "personal",
-              "",
-              "",
-              "",
-              "",
-              ""
-            ]
-          ]
-        }
-      ]
-    },
-    {
-      "heading": "适用强制规则",
-      "level": 2,
-      "content": [
-        {
-          "type": "table",
-          "columns": [
-            "规则 ID",
-            "来源文件",
-            "层级",
-            "适用阶段",
-            "规则摘要",
-            "应用要求"
-          ],
-          "rows": []
-        }
-      ]
-    },
-    {
-      "heading": "Rules 与输入冲突记录",
-      "level": 2,
-      "content": [
-        {
-          "type": "table",
-          "columns": [
-            "规则 ID",
-            "冲突输入来源",
-            "冲突内容摘要",
-            "处理结果",
-            "说明"
-          ],
-          "rows": []
-        }
-      ]
-    },
-    {
-      "heading": "项目知识阶段绑定",
-      "level": 2,
-      "content": [
-        {
-          "type": "table",
-          "columns": [
-            "来源文件",
-            "自理解类型",
-            "判断依据",
-            "强制应用环节",
-            "读取策略",
-            "应用留痕要求"
-          ],
-          "rows": []
-        }
-      ]
-    },
-    {
-      "heading": "附加门禁绑定",
-      "level": 2,
-      "content": [
-        {
-          "type": "table",
-          "columns": [
-            "来源文件",
-            "层级",
-            "判断依据",
-            "适用阶段",
-            "检查摘要",
-            "读取策略",
-            "应用留痕要求"
-          ],
-          "rows": []
-        }
-      ]
-    },
-    {
-      "heading": "后续补读建议",
-      "level": 2,
-      "content": [
-        {
-          "type": "table",
-          "columns": [
-            "来源文件",
-            "命中原因",
-            "建议章节/关键词",
-            "未注入原因"
-          ],
-          "rows": []
-        }
-      ]
+      "path": "knowledge/projects/<project-key>/example.md",
+      "name": "example-context-source",
+      "description": "示例动态来源说明。实际生成时只保留本次可见的 project/personal 来源。",
+      "availableStages": [
+        "*"
+      ],
+      "availability": "all"
     }
-  ]
+  ],
+  "unscannedProjectSources": [
+    {
+      "path": "rules/projects/",
+      "reason": "project-key 未唯一确定时不扫描 project 目录"
+    },
+    {
+      "path": "knowledge/projects/",
+      "reason": "project-key 未唯一确定时不扫描 project 目录"
+    },
+    {
+      "path": "memory/projects/",
+      "reason": "project-key 未唯一确定时不扫描 project 目录"
+    },
+    {
+      "path": "quality-gates/projects/",
+      "reason": "project-key 未唯一确定时不扫描 project 目录"
+    }
+  ],
+  "warnings": []
 }

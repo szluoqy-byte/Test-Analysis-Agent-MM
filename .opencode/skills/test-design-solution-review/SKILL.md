@@ -17,7 +17,7 @@ description: 在测试设计方案 JSON 通过确定性 lint 且 Markdown 已渲
 - 需求文档和可选设计方案文档摘要。
 - `process/context-pack.json`。
 - `process/clarification-session.json`。
-- `process/context-pack.json` 中绑定到 `test-design-solution-review` 的评审类 project knowledge；默认 checklist 类项目知识优先由 `coverage-review` 统一处理，避免重复读取。
+- `process/context-pack.json` 中 `sources[]` 对 `test-design-solution-review` 可见的评审类动态来源；默认 checklist 类来源优先由 `coverage-review` 统一处理，避免重复读取。
 - `knowledge/test-design-solution-standard.md`。
 - `templates/review-report-json-template.json`，作为语义评审 JSON 输出结构参考。
 
@@ -49,12 +49,12 @@ description: 在测试设计方案 JSON 通过确定性 lint 且 Markdown 已渲
 | 事实完整性 | 不编造错误码、状态、提示文案、接口字段、阈值或角色；代表值和数据槽位不得伪装成真实生产数据 |
 | 非用例化语义 | 虽然脚本已过滤明显步骤字段，但评审仍需识别隐性的执行流程、断言步骤或完整用例倾向 |
 | 自包含性 | 后续完整用例细化只读取主交付件即可理解场景、测试点明细、叶子节点预期结果和设计项数据组合 |
-| 项目评审知识 | 若 context pack 明确绑定本阶段 project knowledge，必须读取相关章节并记录应用状态 |
+| 动态评审来源 | 若 `sources[]` 存在本阶段可见的评审类动态来源，必须按需读取相关章节并记录应用状态 |
 
 ## 评审步骤
 
 1. 确认 `bin/lint-run-json.py`、`bin/render-run-markdown.py --check` 和 `bin/lint-test-design-solution.py` 已通过；若未通过，输出 `需修正`，只列脚本失败项和修正方向，不继续做语义评审。
-2. 读取 `process/context-pack.json` 的“项目知识阶段绑定”。如果存在绑定到 `test-design-solution-review` 的 project knowledge，按来源文件、相关章节、关键词或标题读取，不全量复制大文件。
+2. 读取 `process/context-pack.json`，筛选 `availableStages` 包含 `test-design-solution-review` 或 `"*"` 的动态来源；如需使用，按来源文件、相关章节、关键词或标题读取正文，不全量复制大文件。
 3. 对照测试分析方案，检查设计方案是否忠实承接所有叶子分析节点，且没有改写分析层结论。
 4. 检查 E2E 和接口组织继承是否保持分析方案语义：E2E 不混入其他分支，接口设计项不混入无法定位目标接口的泛化测试点。
 5. 检查第四层继承是否正确：已有失败类型明细不合并回父级；单一弱结果分支不因评审偏好被机械要求新增第四层。
@@ -66,8 +66,8 @@ description: 在测试设计方案 JSON 通过确定性 lint 且 Markdown 已渲
 11. 检查设计项代表性是否充分；如果一个叶子分析节点明显需要有效、无效、边界、状态、权限、接口返回或组合覆盖但设计项过少，提出补充建议。
 12. 检查普通测试点明细或失败类型明细层的 `预期结果` 是否有可追溯依据；无法溯源的具体错误码、状态变化、提示文案、接口字段或阈值必须改为 `待人工分析确认`。
 13. 检查是否存在 TDI 下重复写 `预期结果` 的旧格式；如出现，要求上收到叶子分析节点层。
-14. 按本阶段绑定的 project review knowledge 检查项目级设计漏覆盖；无法直接判断的检查项记录为 `insufficient_evidence`，不得编造成已确认缺陷。
-15. 记录本阶段 project knowledge 应用状态，输出语义评审结论和逐项修正建议。
+14. 按本阶段可见的动态评审来源检查项目级设计漏覆盖；无法直接判断的检查项记录为 `insufficient_evidence`，不得编造成已确认缺陷。
+15. 记录本阶段动态来源应用状态，输出语义评审结论和逐项修正建议。
 
 ## 输出
 
@@ -76,11 +76,11 @@ description: 在测试设计方案 JSON 通过确定性 lint 且 Markdown 已渲
 - `artifactType` 固定为 `test-design-solution-review`，`schemaVersion` 固定为 `1.0`。
 - `result` 使用 `通过` 或 `需修正`。
 - `summary` 记录整体评审结论。
-- `findings[]` 记录确定性 lint 前置、分析方案承接、E2E 与接口继承、第四层继承、设计项粒度、设计项数据化语义、重复项区分维度、接口契约代表性、补偿分支可观察性、覆盖代表性、预期结果依据、事实完整性、非用例化语义、自包含性和项目评审知识等维度的语义发现。
+- `findings[]` 记录确定性 lint 前置、分析方案承接、E2E 与接口继承、第四层继承、设计项粒度、设计项数据化语义、重复项区分维度、接口契约代表性、补偿分支可观察性、覆盖代表性、预期结果依据、事实完整性、非用例化语义、自包含性和动态评审来源等维度的语义发现。
 - `blockingIssues[]` 只记录必须修正后才能进入覆盖审查的问题。
 - `recommendations[]` 记录非阻断修正建议。
-- `evidenceRefs[]` 记录需求、设计方案、分析方案、主交付件、过程产物、rules 或 project knowledge 的证据来源。
-- `knowledgeApplications[]` 记录本阶段绑定 project knowledge 的应用状态、应用位置和说明。
+- `evidenceRefs[]` 记录需求、设计方案、分析方案、主交付件、过程产物、core rules 或动态来源的证据来源。
+- `knowledgeApplications[]` 记录本阶段动态来源的应用状态、应用位置和说明。
 
 结论必须明确为：
 
@@ -95,4 +95,4 @@ description: 在测试设计方案 JSON 通过确定性 lint 且 Markdown 已渲
 - 不把过程缺口写回主交付件章节。
 - 不用 `待确认`、`TBD`、`见设计方案` 替代 `待人工分析确认`。
 - 不要求每条 `TDI-*` 单独写预期结果；预期结果只在普通测试点明细或失败类型明细层评审。
-- 绑定到本阶段的 project knowledge 必须读取并留痕；如果未应用，必须使用 `not_applicable`、`insufficient_evidence` 或 `conflict_with_requirement` 解释。
+- 对本阶段可见且被读取的动态来源必须留痕；如果未应用，必须使用 `not_applicable`、`insufficient_evidence` 或 `conflict_with_requirement` 解释。

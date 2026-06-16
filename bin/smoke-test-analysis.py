@@ -57,6 +57,8 @@ REQUIRED_FILES = [
     "templates/coverage-review-json-template.json",
     "templates/process-artifacts-json-template.json",
     "skills/input-fact-modeling/SKILL.md",
+    "skills/context-source-indexing/SKILL.md",
+    "skills/context-source-indexing/scripts/build-context-source-index.py",
     "skills/context-capture/SKILL.md",
     "skills/test-analysis-workflow/SKILL.md",
     "skills/test-design-workflow/SKILL.md",

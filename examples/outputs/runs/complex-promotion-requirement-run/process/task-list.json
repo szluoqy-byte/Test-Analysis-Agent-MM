@@ -19,9 +19,9 @@
     },
     {
       "order": 2,
-      "stage": "构建上下文包",
-      "owner": "memory-context-builder",
-      "checkpoint": "process/context-pack.json、项目知识阶段绑定",
+      "stage": "上下文来源索引",
+      "owner": "context-source-indexing",
+      "checkpoint": "process/context-pack.json、动态 project/personal 来源索引",
       "status": "done",
       "evidence": "process/context-pack.json"
     },
@@ -45,7 +45,7 @@
       "order": 5,
       "stage": "测试技术路由",
       "owner": "testing-method-router",
-      "checkpoint": "分析维度覆盖表、测试技术路由表、project knowledge 应用记录",
+      "checkpoint": "分析维度覆盖表、测试技术路由表、动态来源应用记录",
       "status": "done",
       "evidence": "process/input-fact-model.json；process/context-pack.json"
     },
@@ -69,7 +69,7 @@
       "order": 8,
       "stage": "测试分析方案生成",
       "owner": "test-analysis-solution-generation",
-      "checkpoint": "deliverables/test-analysis-solution.json、project knowledge 应用记录",
+      "checkpoint": "deliverables/test-analysis-solution.json、动态来源应用记录",
       "status": "done",
       "evidence": "deliverables/test-analysis-solution.json"
     },
@@ -93,7 +93,7 @@
       "order": 11,
       "stage": "覆盖审查",
       "owner": "coverage-review",
-      "checkpoint": "需求/方法/rules/project knowledge 应用检查、阻断项；专家评分仅深度评估时执行",
+      "checkpoint": "需求/方法/rules/动态来源应用检查、阻断项；专家评分仅深度评估时执行",
       "status": "done",
       "evidence": "reports/coverage-review.json"
     },

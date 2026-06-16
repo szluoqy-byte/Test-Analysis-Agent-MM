@@ -23,21 +23,24 @@
   "genericProcessDocument": {
     "artifactType": "context-pack",
     "schemaVersion": "1.0",
-    "title": "上下文包",
-    "sections": [
-      {
-        "heading": "本次需求标识",
-        "level": 2,
-        "content": [
-          {
-            "type": "items",
-            "items": [
-              {"label": "需求文档", "value": ""},
-              {"label": "运行 ID", "value": "<run-id>"}
-            ]
-          }
-        ]
-      }
-    ]
+    "title": "上下文来源索引",
+    "requirement": {
+      "path": "",
+      "title": "",
+      "keywords": []
+    },
+    "projectBinding": {
+      "status": "unresolved",
+      "projectKey": "",
+      "reason": ""
+    },
+    "personalBinding": {
+      "status": "default",
+      "personalKey": "default",
+      "reason": ""
+    },
+    "sources": [],
+    "unscannedProjectSources": [],
+    "warnings": []
   }
 }
