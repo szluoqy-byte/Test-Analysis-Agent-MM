@@ -18,6 +18,18 @@ APPLICATION_STATUS_VALUES = {
     "deferred_to_review",
 }
 EXPECTED_FALLBACK = "待人工分析确认"
+ARTIFACT_TITLES = {
+    "task-list": "测试分析方案任务清单",
+    "context-pack": "上下文包",
+    "input-fact-model": "输入事实模型",
+    "clarification-session": "待确认治理记录",
+    "test-analysis-solution": "测试分析方案",
+    "test-design-solution": "测试设计方案",
+    "test-analysis-solution-review": "测试分析方案语义评审结果",
+    "test-design-solution-review": "测试设计方案语义评审结果",
+    "coverage-review": "覆盖审查结果",
+}
+GENERIC_METADATA_KEYS = {"artifactType", "alternateArtifactTypes", "schemaVersion", "title", "sections"}
 ANALYSIS_REQUIRED_STAGES = [
     "固定 PROJECT_ROOT 与运行目录",
     "构建上下文包",
@@ -68,12 +80,13 @@ def split_row(line: str) -> list[str]:
 
 
 def markdown_table(columns: list[str], rows: list[list[str]]) -> list[str]:
+    safe_columns = [format_table_cell(column) for column in columns]
     lines = [
-        "| " + " | ".join(columns) + " |",
-        "|" + "|".join("---" for _ in columns) + "|",
+        "| " + " | ".join(safe_columns) + " |",
+        "|" + "|".join("---" for _ in safe_columns) + "|",
     ]
     for row in rows:
-        padded = [str(row[index]) if index < len(row) else "" for index in range(len(columns))]
+        padded = [format_table_cell(row[index]) if index < len(row) else "" for index in range(len(columns))]
         lines.append("| " + " | ".join(padded) + " |")
     return lines
 
@@ -82,6 +95,115 @@ def normalize_text(value: Any) -> str:
     if value is None:
         return ""
     return str(value)
+
+
+def format_table_cell(value: Any) -> str:
+    return normalize_text(value).replace("\n", "<br>").replace("|", "\\|")
+
+
+def artifact_title(data: dict[str, Any], fallback: str | None = None) -> str:
+    artifact_type = normalize_text(data.get("artifactType"))
+    return normalize_text(data.get("title") or fallback or ARTIFACT_TITLES.get(artifact_type) or artifact_type or "运行产物")
+
+
+def is_empty_value(value: Any) -> bool:
+    return value is None or value == "" or value == [] or value == {}
+
+
+def labelize_key(key: str) -> str:
+    labels = {
+        "id": "ID",
+        "project-key": "project-key",
+        "personal-key": "personal-key",
+        "projectKey": "project-key",
+        "personalKey": "personal-key",
+        "runId": "运行 ID",
+        "reason": "原因",
+        "result": "结论",
+        "summary": "摘要",
+        "severity": "级别",
+        "dimension": "维度",
+        "gate": "门禁",
+        "location": "位置",
+        "description": "说明",
+        "detail": "详情",
+        "evidence": "证据",
+        "recommendation": "建议",
+        "source": "来源",
+        "sourceFile": "来源文件",
+        "sourceType": "来源类型",
+        "stage": "阶段",
+        "status": "状态",
+        "note": "说明",
+        "ruleId": "规则 ID",
+        "requirementRef": "需求引用",
+        "artifactLocation": "产物位置",
+        "suggestedFix": "修复建议",
+    }
+    if key in labels:
+        return labels[key]
+    words = re.sub(r"(?<!^)([A-Z])", r" \1", key).replace("_", " ").replace("-", " ")
+    return words[:1].upper() + words[1:] if words else key
+
+
+def inline_value(value: Any) -> str:
+    if isinstance(value, dict):
+        parts = [f"{labelize_key(str(key))}={inline_value(item)}" for key, item in value.items() if not is_empty_value(item)]
+        return "；".join(parts)
+    if isinstance(value, list):
+        return "；".join(inline_value(item) for item in value if not is_empty_value(item))
+    return normalize_text(value)
+
+
+def preferred_columns(items: list[dict[str, Any]], preferred_keys: list[str] | None = None) -> list[str]:
+    columns: list[str] = []
+    for key in preferred_keys or []:
+        if any(key in item for item in items):
+            columns.append(key)
+    for item in items:
+        for key in item:
+            if key not in columns:
+                columns.append(key)
+    return columns
+
+
+def render_value(value: Any, preferred_keys: list[str] | None = None, empty_text: str = "无记录") -> list[str]:
+    if is_empty_value(value):
+        return [f"- {empty_text}"]
+    if isinstance(value, list):
+        dict_items = [item for item in value if isinstance(item, dict)]
+        if dict_items and len(dict_items) == len(value):
+            columns = preferred_columns(dict_items, preferred_keys)
+            return markdown_table([labelize_key(column) for column in columns], [[inline_value(item.get(column)) for column in columns] for item in dict_items])
+        lines: list[str] = []
+        for item in value:
+            if isinstance(item, dict):
+                lines.append(f"- {inline_value(item)}")
+            else:
+                lines.append(f"- {normalize_text(item)}")
+        return lines or [f"- {empty_text}"]
+    if isinstance(value, dict):
+        rows = [[labelize_key(str(key)), inline_value(item)] for key, item in value.items()]
+        return markdown_table(["字段", "内容"], rows) if rows else [f"- {empty_text}"]
+    return [normalize_text(value)]
+
+
+def render_structured_sections(data: dict[str, Any], fallback_title: str, ordered_keys: list[str], key_labels: dict[str, str]) -> str:
+    if data.get("sections"):
+        return render_generic_document(data, fallback_title)
+    lines = [f"# {artifact_title(data, fallback_title)}", ""]
+    keys = [key for key in ordered_keys if key in data]
+    keys.extend(key for key in data if key not in GENERIC_METADATA_KEYS and key not in keys)
+    for key in keys:
+        value = data.get(key)
+        if is_empty_value(value):
+            continue
+        lines.extend([f"## {key_labels.get(key, labelize_key(key))}", ""])
+        lines.extend(render_value(value))
+        lines.append("")
+    if len(lines) == 2:
+        lines.append("- 无记录")
+    return "\n".join(lines).rstrip() + "\n"
 
 
 def expected_json_path_for_markdown(markdown_path: Path) -> Path:
@@ -116,8 +238,8 @@ def render_task_list(data: dict[str, Any]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
-def render_generic_document(data: dict[str, Any]) -> str:
-    lines = [f"# {data.get('title', '未命名产物')}", ""]
+def render_generic_document(data: dict[str, Any], fallback_title: str | None = None) -> str:
+    lines = [f"# {artifact_title(data, fallback_title)}", ""]
     for section in data.get("sections", []):
         level = int(section.get("level", 2))
         heading = normalize_text(section.get("heading"))
@@ -143,6 +265,129 @@ def render_generic_document(data: dict[str, Any]) -> str:
                     lines.append(text)
                     lines.append("")
     return "\n".join(lines).rstrip() + "\n"
+
+
+def render_context_pack(data: dict[str, Any]) -> str:
+    return render_structured_sections(
+        data,
+        "上下文包",
+        [
+            "requirement",
+            "requirementIdentity",
+            "project",
+            "projectIdentity",
+            "personal",
+            "personalIdentity",
+            "scannedSources",
+            "hitSummaries",
+            "projectPersonalSummary",
+            "mandatoryRules",
+            "ruleConflicts",
+            "projectKnowledgeBindings",
+            "additionalGateBindings",
+            "projectFacts",
+            "domainTerms",
+            "projectKnowledge",
+            "personalSupplements",
+            "historicalDefects",
+            "testExperience",
+            "outputPreferences",
+            "constraints",
+            "outOfScope",
+            "unadoptedSources",
+            "supplementalReads",
+            "clarificationCandidates",
+        ],
+        {
+            "requirement": "本次需求标识",
+            "requirementIdentity": "本次需求标识",
+            "project": "项目标识",
+            "projectIdentity": "项目标识",
+            "personal": "个人配置标识",
+            "personalIdentity": "个人配置标识",
+            "scannedSources": "已扫描来源",
+            "hitSummaries": "命中摘要",
+            "projectPersonalSummary": "Project/Personal 使用摘要",
+            "mandatoryRules": "适用强制规则",
+            "ruleConflicts": "Rules 与输入冲突记录",
+            "projectKnowledgeBindings": "项目知识阶段绑定",
+            "additionalGateBindings": "附加门禁绑定",
+            "projectFacts": "相关项目事实",
+            "domainTerms": "相关领域术语",
+            "projectKnowledge": "相关项目知识补充",
+            "personalSupplements": "相关个人补充",
+            "historicalDefects": "相关历史缺陷和风险模式",
+            "testExperience": "相关项目测试经验",
+            "outputPreferences": "输出偏好",
+            "constraints": "约束和非范围",
+            "outOfScope": "非范围",
+            "unadoptedSources": "已检索但未注入的来源",
+            "supplementalReads": "后续补读建议",
+            "clarificationCandidates": "待确认候选",
+        },
+    )
+
+
+def render_input_fact_model(data: dict[str, Any]) -> str:
+    return render_structured_sections(
+        data,
+        "输入事实模型",
+        [
+            "inputSources",
+            "sources",
+            "facts",
+            "factList",
+            "requirementDesignMappings",
+            "mappings",
+            "clarificationItems",
+            "clarifications",
+            "sourceApplications",
+            "applications",
+        ],
+        {
+            "inputSources": "输入来源",
+            "sources": "输入来源",
+            "facts": "事实清单",
+            "factList": "事实清单",
+            "requirementDesignMappings": "需求-设计映射",
+            "mappings": "需求-设计映射",
+            "clarificationItems": "待确认事项",
+            "clarifications": "待确认事项",
+            "sourceApplications": "来源与应用说明",
+            "applications": "来源与应用说明",
+        },
+    )
+
+
+def render_clarification_session(data: dict[str, Any]) -> str:
+    return render_structured_sections(
+        data,
+        "待确认治理记录",
+        [
+            "status",
+            "runStatus",
+            "candidates",
+            "candidateSummary",
+            "candidateDetails",
+            "deduplicationResults",
+            "deduplication",
+            "expectedResultFallbacks",
+            "fallbacks",
+            "rules",
+        ],
+        {
+            "status": "运行状态",
+            "runStatus": "运行状态",
+            "candidates": "候选问题总表",
+            "candidateSummary": "候选问题总表",
+            "candidateDetails": "候选问题详情",
+            "deduplicationResults": "去重与降级结果",
+            "deduplication": "去重与降级结果",
+            "expectedResultFallbacks": "预期结果兜底清单",
+            "fallbacks": "预期结果兜底清单",
+            "rules": "治理规则",
+        },
+    )
 
 
 def render_solution_fields(fields: list[dict[str, Any]]) -> list[str]:
@@ -214,6 +459,18 @@ def render_design_solution(data: dict[str, Any]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+def render_report_collection(
+    lines: list[str],
+    heading: str,
+    data: dict[str, Any],
+    key: str,
+    preferred_keys: list[str] | None = None,
+) -> None:
+    lines.extend([heading, ""])
+    lines.extend(render_value(data.get(key, []), preferred_keys))
+    lines.append("")
+
+
 def render_review_report(data: dict[str, Any]) -> str:
     title = data.get("title") or data.get("artifactType", "review-report")
     lines = [f"# {title}", "", "## 1. 结论", ""]
@@ -222,38 +479,43 @@ def render_review_report(data: dict[str, Any]) -> str:
     if summary:
         lines.append(f"- summary：{summary}")
     lines.append("")
-    for heading, key in [
-        ("## 2. Findings", "findings"),
-        ("## 3. Blocking Issues", "blockingIssues"),
-        ("## 4. Recommendations", "recommendations"),
-        ("## 5. Evidence Refs", "evidenceRefs"),
-    ]:
-        lines.extend([heading, ""])
-        values = data.get(key, [])
-        if not values:
-            lines.append("- 无")
-        else:
-            for value in values:
-                if isinstance(value, dict):
-                    label = value.get("id") or value.get("title") or value.get("location") or "item"
-                    detail = value.get("description") or value.get("detail") or value.get("evidence") or value
-                    lines.append(f"- {label}：{detail}")
-                else:
-                    lines.append(f"- {value}")
-        lines.append("")
+    render_report_collection(lines, "## 2. Findings", data, "findings", ["id", "severity", "dimension", "location", "description", "evidence", "recommendation"])
+    render_report_collection(lines, "## 3. Blocking Issues", data, "blockingIssues", ["id", "severity", "location", "description", "evidence", "recommendation"])
+    render_report_collection(lines, "## 4. Recommendations", data, "recommendations", ["id", "location", "description", "recommendation"])
+    render_report_collection(lines, "## 5. Evidence Refs", data, "evidenceRefs", ["source", "location", "description"])
+    render_report_collection(lines, "## 6. Knowledge Applications", data, "knowledgeApplications", ["sourceFile", "stage", "status", "location", "note"])
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def render_coverage_report(data: dict[str, Any]) -> str:
+    title = data.get("title") or "覆盖审查结果"
+    lines = [f"# {title}", "", "## 1. 结论", ""]
+    lines.append(f"- result：{data.get('result', '未记录')}")
+    summary = data.get("summary")
+    if summary:
+        lines.append(f"- summary：{summary}")
+    lines.append("")
+    render_report_collection(lines, "## 2. Findings", data, "findings", ["id", "severity", "gate", "location", "description", "evidence", "recommendation"])
+    render_report_collection(lines, "## 3. Blocking Issues", data, "blockingIssues", ["id", "severity", "gate", "location", "description", "evidence", "recommendation"])
+    render_report_collection(lines, "## 4. Recommendations", data, "recommendations", ["id", "gate", "location", "description", "recommendation"])
+    render_report_collection(lines, "## 5. Evidence Refs", data, "evidenceRefs", ["source", "location", "description"])
+    render_report_collection(lines, "## 6. Quality Gates", data, "qualityGates", ["gate", "result", "description", "recommendation"])
+    render_report_collection(lines, "## 7. Rules Applications", data, "rulesApplications", ["ruleId", "sourceFile", "stage", "status", "location", "note"])
+    render_report_collection(lines, "## 8. Project Knowledge Applications", data, "projectKnowledgeApplications", ["sourceType", "sourceFile", "stage", "status", "location", "note"])
+    render_report_collection(lines, "## 9. Coverage Gaps", data, "coverageGaps", ["id", "requirementRef", "artifactLocation", "description", "suggestedFix"])
     return "\n".join(lines).rstrip() + "\n"
 
 
 RENDERERS = {
     "task-list": render_task_list,
-    "context-pack": render_generic_document,
-    "input-fact-model": render_generic_document,
-    "clarification-session": render_generic_document,
+    "context-pack": render_context_pack,
+    "input-fact-model": render_input_fact_model,
+    "clarification-session": render_clarification_session,
     "test-analysis-solution": render_analysis_solution,
     "test-design-solution": render_design_solution,
     "test-analysis-solution-review": render_review_report,
     "test-design-solution-review": render_review_report,
-    "coverage-review": render_review_report,
+    "coverage-review": render_coverage_report,
 }
 
 
@@ -338,10 +600,15 @@ def validate_generic_document(data: dict[str, Any], artifact_type: str) -> tuple
     errors: list[str] = []
     warnings: list[str] = []
     if not data.get("title"):
-        errors.append(f"{artifact_type}.json 缺少 title")
-    if not data.get("sections"):
-        errors.append(f"{artifact_type}.json 缺少 sections")
-    rendered = render_generic_document(data)
+        warnings.append(f"{artifact_type}.json 缺少 title，渲染时将使用 artifactType 默认标题")
+    has_sections = bool(data.get("sections"))
+    has_structured_fields = any(
+        key not in GENERIC_METADATA_KEYS and not is_empty_value(value)
+        for key, value in data.items()
+    )
+    if not has_sections and not has_structured_fields:
+        errors.append(f"{artifact_type}.json 缺少 sections 或可渲染结构化字段")
+    rendered = RENDERERS.get(artifact_type, render_generic_document)(data)
     if artifact_type == "context-pack":
         for marker in ("project-key", "personal-key", "项目知识阶段绑定", "补读"):
             if marker not in rendered:
