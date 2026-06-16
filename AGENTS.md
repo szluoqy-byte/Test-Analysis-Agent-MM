@@ -29,7 +29,7 @@
 - 测试分析主流程 skill 入口是 `skills/test-analysis-workflow/SKILL.md`。
 - 测试设计主流程 skill 入口是 `skills/test-design-workflow/SKILL.md`。
 - OpenCode 独立文档归一化命令入口是 `.opencode/commands/normalize-input-documents.md`，用于在切换到多模态模型后单独执行 `.docx` / `.xlsx` 转 Markdown 与可选图片/图形补充，不进入测试分析或测试设计主流程。
-- Agent 门面负责用户意图识别和路由；具体流程动作仍放在 skills、knowledge 文件、templates 或 quality gates 中。
+- Agent 门面负责用户意图识别和路由；具体流程动作仍放在 skills、knowledge 文件、templates 或对应 skill 私有参考中。
 
 ## Agent 与 Skill 事实源
 
@@ -42,7 +42,7 @@
 
 ## 路径规则
 
-- 所有 `skills/...`、`rules/...`、`knowledge/...`、`templates/...`、`quality-gates/...`、`memory/...`、`bin/...` 和 `outputs/...` 路径都从仓库根目录解析。
+- 所有 `skills/...`、`rules/...`、`knowledge/...`、`templates/...`、`memory/...`、`bin/...` 和 `outputs/...` 路径都从仓库根目录解析。
 - 不要基于 skill 目录、`.claude-plugin/`、`.opencode/` 或输入文件目录解析路径。
 - 运行产物写入 `outputs/runs/<run-id>/`。
 - Office 输入归一化采用两层路径：全局复用缓存写入 `outputs/input-cache/<sha256-12>/`；用户明确提供 `--run-dir` 或为既有 run 补绑定时，本次输入绑定写入 `outputs/runs/<run-id>/inputs/`。
@@ -64,7 +64,7 @@
 - rules 优先级低于当前用户明确指令，但高于当前输入文档、memory 和 knowledge；与输入冲突时默认遵守 rules，并在过程产物中记录覆盖原因。
 - rules 内部按 `core > project > personal` 处理，低层只能细化高层规则，不能放宽或违反高层强制约束。
 - `knowledge/projects/<project-key>/` 和 `knowledge/user/` 只能作为测试知识补充，不得覆盖根目录 `knowledge/` 的核心标准、字段、类型和质量门禁。
-- `rules/projects/<project-key>/`、`knowledge/projects/<project-key>/`、`memory/projects/<project-key>/`、`quality-gates/projects/<project-key>/` 和对应 `*/user/**/*.md` 动态来源必须声明 `name`、`description`，可选 `stages`；未配置 `stages` 时默认全部阶段可用。
+- `rules/projects/<project-key>/`、`knowledge/projects/<project-key>/`、`memory/projects/<project-key>/` 和对应 `*/user/**/*.md` 动态来源必须声明 `name`、`description`，可选 `stages`；未配置 `stages` 时默认全部阶段可用。
 - `context-source-indexing` 只读取动态来源 frontmatter 生成 `sources[]`，不扫描 core 层，不摘录正文，也不替后续阶段判断具体命中。后续 skill 只读取 `sources[]` 中对本阶段可见的文件正文，并输出应用状态。
 - personal 层只能补充个人偏好和本地检查关注点，不得作为项目事实或团队共识。
 
@@ -104,4 +104,4 @@
 - 测试分析方案结构：`python bin/lint-test-analysis-solution.py <solution.md>`
 - 测试设计方案结构：`python bin/lint-test-design-solution.py <solution.md>`
 - 单次 run 一致性：`python bin/check-artifact-consistency.py outputs/runs/<run-id>`
-- 框架回归/示例 fixture smoke：`python bin/smoke-test-analysis.py`，仅在修改 Agent、skill、knowledge、template、quality gate、bin 脚本或示例 fixture 时运行，不属于单次方案 review 阶段。
+- 框架回归/示例 fixture smoke：`python bin/smoke-test-analysis.py`，仅在修改 Agent、skill、knowledge、template、coverage-review reference、bin 脚本或示例 fixture 时运行，不属于单次方案 review 阶段。

@@ -13,9 +13,9 @@ Rules = 优先于输入文档的强制规则
 
 | 层级 | 路径 | 默认提交 Git | 作用 |
 |---|---|---|---|
-| core | `rules/*.md`、`knowledge/*.md`、`templates/*.md`、`quality-gates/*.md` | 是 | Agent 包随附的强制规则、稳定标准、模板和基础规则 |
-| project | `rules/projects/<project-key>/**/*.md`、`knowledge/projects/<project-key>/**/*.md`、`memory/projects/<project-key>/**/*.md`、`quality-gates/projects/<project-key>/**/*.md` | 否 | 当前项目的强制规则、事实、经验、策略和附加门禁 |
-| personal | `rules/user/**/*.md`、`knowledge/user/**/*.md`、`memory/user/**/*.md`、`quality-gates/user/**/*.md` | 否 | 当前使用者的个人强制规则、偏好、本地检查清单和补充启发 |
+| core | `rules/*.md`、`knowledge/*.md`、`templates/*.md`、`skills/*/references/*.md` | 是 | Agent 包随附的强制规则、稳定标准、模板和 skill 私有参考 |
+| project | `rules/projects/<project-key>/**/*.md`、`knowledge/projects/<project-key>/**/*.md`、`memory/projects/<project-key>/**/*.md` | 否 | 当前项目的强制规则、事实、经验、策略、覆盖补充和检查清单 |
+| personal | `rules/user/**/*.md`、`knowledge/user/**/*.md`、`memory/user/**/*.md` | 否 | 当前使用者的个人强制规则、偏好、本地检查清单和补充启发 |
 
 project 和 personal 是当前 run 的一等输入源：必须由 `context-source-indexing` 统一索引 frontmatter 并记录到 `process/context-pack.json`，后续 skill 只能读取 `sources[]` 中对当前阶段可见的文件正文。project/personal 动态来源文件名没有硬性要求，但必须声明 `name`、`description`，可选 `stages`。
 
@@ -50,7 +50,7 @@ Rules 是高优先级约束源：优先级低于当前用户明确指令，高�
 | 记住、记录、归档类请求的写入分类流程 | `skills/context-capture/SKILL.md` | 判断写入 memory/knowledge 与 personal/project 层级 |
 | `.docx` / `.xlsx` 输入转 Markdown 与缓存复用流程 | `agents/file-normalization-agent.md`、`skills/normalize-input-documents/SKILL.md` | 输入归一化流程；转换结果写入全局 `outputs/input-cache/`，仅在显式 `--run-dir` 或既有 run 补绑定时写入 `outputs/runs/<run-id>/inputs/`，不沉淀为 knowledge 或 memory |
 | 某个测试技术的执行步骤 | `skills/*/SKILL.md` | 过程性动作，不是事实库 |
-| 输入、输出、约束、质量门禁调用顺序 | `skills/*/SKILL.md` | 插件运行流程 |
+| 输入、输出、约束、校验与审查门禁调用顺序 | `skills/*/SKILL.md` | 插件运行流程 |
 | 指定项目的事实、历史经验、团队反馈和输出偏好 | `memory/projects/<project-key>/**/*.md` | 项目级长期 memory，确定 `project-key` 后索引 frontmatter |
 | 个人输出偏好、检查习惯和本地记忆 | `memory/user/**/*.md` | personal 层 memory，索引 frontmatter 后按阶段可见性读取 |
 | 本次运行可见的动态来源索引 | `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.json` | 运行产物事实源，不是长期事实源；同名 Markdown 为派生阅读版 |
@@ -59,8 +59,7 @@ Rules 是高优先级约束源：优先级低于当前用户明确指令，高�
 | 运行产物分类、固定文件名和下游消费约定 | `docs/output-artifact-contract.md` | 输出契约，防止 skill、模板和脚本各自发散 |
 | 测试设计 Agent 架构、流程和边界 | `docs/test-design-agent-design.md` | 设计层架构文档，说明如何承接测试分析方案 |
 | 报告、中间产物和运行产物的 Markdown 结构 | `templates/*.md` | 模板层只定义形状和占位，不维护另一套标准 |
-| 公共覆盖门禁和 project/personal 附加门禁入口 | `quality-gates/*.md`、`quality-gates/projects/`、`quality-gates/user/` | 跨阶段或本地附加门禁，不产生新知识 |
-| coverage-review 私有审查清单 | `skills/coverage-review/references/*.md` | 仅供覆盖审查执行，不放在公共 quality-gates 根目录 |
+| 覆盖门禁和 coverage-review 私有审查清单 | `skills/coverage-review/references/*.md` | 仅供覆盖审查执行；project/personal 补充通过 `rules/`、`knowledge/` 或 `memory/` 动态来源进入 |
 | 可机械执行的结构、一致性、启发式语义和回归检查 | `bin/*.py` | 脚本层只做可重复检查；模型 review 不重复脚本已覆盖的确定性项 |
 
 ## 禁止重复
@@ -73,7 +72,7 @@ Rules 是高优先级约束源：优先级低于当前用户明确指令，高�
 - `memory/` 不重复维护框架术语定义；框架术语归属 `knowledge/test-workflow-boundaries.md`，memory 只记录项目专属术语或覆盖。
 - `knowledge/` 不保存项目事实、用户临时偏好、单次运行结果和未确认假设。
 - `knowledge/projects/<project-key>/` 只能保存项目级测试知识补充，不保存未确认业务事实、真实缺陷复盘或输出偏好。
-- `knowledge/projects/<project-key>/` 不覆盖根目录 `knowledge/` 的测试点字段、类型、方法、输出契约和质量门禁。
+- `knowledge/projects/<project-key>/` 不覆盖根目录 `knowledge/` 的测试点字段、类型、方法、输出契约和覆盖门禁。
 - `knowledge/projects/<project-key>/` 下的文件名不作硬性要求，但动态来源文件必须声明 `name`、`description`，可选 `stages`。
 - 未唯一确定 `project-key` 时，不读取所有项目目录正文，避免跨项目知识和 memory 污染。
 - project 和 personal 层默认不提交 Git；仓库只保留对应 README 和发现规则。
@@ -83,9 +82,9 @@ Rules 是高优先级约束源：优先级低于当前用户明确指令，高�
 - 后续 skill 按 `sources[]` 阶段可见性读取正文；具体命中和应用由对应 skill 在阶段内判断，并记录应用状态。
 - `task-list.json`、`context-pack.json`、`input-fact-model.json` 和 `clarification-session.json` 必须随 run 目录生成，分别记录固定阶段顺序、动态来源索引、输入事实模型和待确认治理结果；同名 Markdown 由脚本渲染，即使无 project/personal 命中或无待确认候选，也必须在 JSON 中说明原因。
 - `task-list.json` 不替代运行时 todo 工具，但比运行时 UI 更适合作为可校验流程事实源；`task-list.md` 只用于人工查看。
-- `templates/` 只列出字段、占位和最小示例，不直接维护或长篇引用背景知识；字段含义、类型、方法等标准由调用模板的 `skills/` 和 `quality-gates/` 按需引用 `knowledge/`。
-- `quality-gates/` 可以重复列出允许值用于校验，但必须以 `knowledge/` 的标准为来源，不维护独立定义。
-- `bin/` 中的枚举和章节列表必须服务于机械校验；如果标准变化，应同步来自 `knowledge/`、`templates/` 或 `quality-gates/` 的权威来源。
+- `templates/` 只列出字段、占位和最小示例，不直接维护或长篇引用背景知识；字段含义、类型、方法等标准由调用模板的 `skills/` 和 `skills/*/references/` 按需引用 `knowledge/`。
+- 覆盖门禁作为 `coverage-review` 的私有参考维护在 `skills/coverage-review/references/`，不再维护独立顶层质量门禁目录。
+- `bin/` 中的枚举和章节列表必须服务于机械校验；如果标准变化，应同步来自 `knowledge/`、`templates/` 或对应 skill 私有参考的权威来源。
 
 ## 冲突处理
 

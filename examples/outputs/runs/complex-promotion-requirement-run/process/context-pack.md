@@ -26,7 +26,6 @@
 | rules/projects/ | project-key 未唯一确定 |
 | knowledge/projects/ | project-key 未唯一确定 |
 | memory/projects/ | project-key 未唯一确定 |
-| quality-gates/projects/ | project-key 未唯一确定 |
 
 ## 告警
 

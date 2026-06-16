@@ -60,7 +60,7 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 
 ## Project/Personal 上下文发现
 
-core 层是随 Agent 包发布的根目录文件：`rules/*.md`、`knowledge/*.md`、根目录 `quality-gates/*.md`、templates 和各 skill 私有参考。core 层不进入动态索引，由 workflow 或对应 skill 固定读取。
+core 层是随 Agent 包发布的根目录文件：`rules/*.md`、`knowledge/*.md`、templates 和各 skill 私有参考。core 层不进入动态索引，由 workflow 或对应 skill 固定读取。
 
 project 和 personal 是当前 run 的动态扩展输入源，不是后续阶段随意搜索的资料目录。主入口必须让 `context-source-indexing` 只读取 frontmatter，写入 `process/context-pack.json` 的 `sources[]`。后续 skill 只能读取 `sources[]` 中对当前阶段可见的来源正文，并记录应用状态。
 

@@ -2,7 +2,7 @@
 
 ## 1. 分析范围
 
-本文分析 `skills/` 的职责分层、调用链、输入输出契约、质量门禁闭环和后续优化方向。分析基于当前仓库文件，不依赖历史项目假设。
+本文分析 `skills/` 的职责分层、调用链、输入输出契约、校验与审查门禁闭环和后续优化方向。分析基于当前仓库文件，不依赖历史项目假设。
 
 核心目标是判断当前 skill 架构是否能稳定支撑三个子 Agent：
 
@@ -23,17 +23,17 @@
 | 分析编排入口 | `test-analysis-workflow` | 固定项目根目录、创建 run、编排分析链路、写出测试分析方案 | `deliverables/test-analysis-solution.json` |
 | 设计编排入口 | `test-design-workflow` | 复用或创建 run，承接已评审测试分析方案，写出测试设计方案 | `deliverables/test-design-solution.json` |
 | 上下文归档 | `context-capture` | 处理“记住/记录/收录/归档”类请求，判断写入 memory 或 knowledge | 长期 personal/project 上下文 |
-| 上下文层 | `context-source-indexing` | 索引 project/personal 动态来源 frontmatter，记录绑定状态和阶段可见性；core 来源由 workflow/skill 固定引用 | `process/context-pack.json` |
+| 上下文层 | `context-source-indexing` | 索引 rules/knowledge/memory 下 project/personal 动态来源 frontmatter，记录绑定状态和阶段可见性；core 来源由 workflow/skill 固定引用 | `process/context-pack.json` |
 | 输入事实建模层 | `input-fact-modeling` | 从需求文档和可选设计方案建立事实清单、需求-设计映射、待确认事项和来源应用说明 | `process/input-fact-model.json` |
 | 待确认治理层 | `clarification-gate` | 在 `CP-INPUT`、`CP-ANALYSIS`、`CP-REVIEW` 三个检查点治理候选缺口 | `process/clarification-session.json`、预期结果兜底清单 |
 | 路由层 | `testing-method-router` | 根据分析维度和触发信号选择测试技术和专项方法参考 | 测试技术路由表、技术范围缺口候选 |
 | 专项方法参考层 | `skills/testing-method-router/references/*.md` | 为路由阶段提供专项分析步骤，产出 `ME-*` 方法证据和测试点候选 | 方法证据、测试点候选、技术缺口候选 |
 | 测试分析方案生成层 | `test-analysis-solution-generation` | 把方法证据和候选归并为场景、测试点、测试点明细和预期结果；非成功测试点明细继续拆分失败类型明细 | `SC-*`、`TP-*`、`TP-*-*` 测试点明细、`TP-*-*-*` 失败类型明细 |
-| 确定性校验层 | `bin/lint-test-analysis-solution.py` / `bin/lint-test-design-solution.py` | 检查结构、编号、字段、禁用术语、Markdown 语法和固定交付件格式 | lint 结果 |
+| 确定性校验层 | `bin/lint-run-json.py` / `bin/render-run-markdown.py --check` / 主交付件 Markdown lint | 检查 JSON canonical 结构、编号、字段、Markdown 渲染漂移、禁用术语和固定交付件格式 | lint 结果 |
 | 独立评审层 | `test-analysis-solution-review` | 在 lint 通过后评审测试点明细粒度、失败类型拆分充分性、预期结果依据、事实溯源和非用例化语义 | 独立语义评审结论 |
 | 测试设计方案生成层 | `test-design-solution-generation` | 把普通测试点明细或失败类型明细扩展为代表性条件、具体数据值、数据槽位、状态、接口返回或组合 | `TDI-*` 测试设计项 |
 | 测试设计评审层 | `test-design-solution-review` | 在 lint 通过后评审设计项数据化粒度、叶子节点预期结果依据、分析方案承接和非用例化语义 | 独立语义评审结论 |
-| 审查层 | `coverage-review` | 执行覆盖、追踪、方法应用、core rules/动态来源应用和过程门禁；专家评分仅深度评估时执行 | 覆盖审查结果、修正建议、阻断项 |
+| 审查层 | `coverage-review` | 执行覆盖、追踪、方法应用、core rules/动态来源应用和覆盖门禁；覆盖检查维护在 `skills/coverage-review/references/coverage-check.md`，专家评分仅深度评估时执行 | 覆盖审查结果、修正建议、阻断项 |
 
 当前架构是清晰的流水线：入口编排，context/requirement/router/specialist/generator/reviewer 各层职责基本成立。
 
@@ -70,16 +70,17 @@ SC-* 测试场景
 
 ### F3. Agent 门面与执行 skill 分离
 
-当前架构使用 `file-normalization-agent`、`test-analysis-agent` 和 `test-design-agent` 作为用户可 `@` 调用的门面。它们分别负责文件归一化、测试分析和测试设计意图识别；具体执行仍由 skills、knowledge、templates、quality gates 和 bin 脚本完成。
+当前架构使用 `file-normalization-agent`、`test-analysis-agent` 和 `test-design-agent` 作为用户可 `@` 调用的门面。它们分别负责文件归一化、测试分析和测试设计意图识别；具体执行仍由 skills、knowledge、templates、skill 私有参考和 bin 脚本完成。
 
 ### F4. 动态来源索引
 
-project/personal 动态来源文件不要求固定命名，但必须声明 `name`、`description`，可选 `stages`。`context-source-indexing` 只索引 frontmatter，不读取正文，不提前判断具体测试点或测试点明细命中。
+project/personal 动态来源文件不要求固定命名，但必须声明 `name`、`description`，可选 `stages`。`context-source-indexing` 只索引 `rules/projects/<project-key>/`、`rules/user/`、`knowledge/projects/<project-key>/`、`knowledge/user/`、`memory/projects/<project-key>/` 和 `memory/user/` 下的 frontmatter，不读取正文，不提前判断具体测试点或测试点明细命中。
 
 影响：
 
-- 测试设计因子库、业务测试设计模式库可以通过 `stages` 对测试技术路由和测试分析方案生成可见。
-- 测试设计 checklist 通常通过 `stages: [coverage-review]` 交给覆盖审查统一查漏。
+- 项目风险画像、覆盖策略、术语映射、测试 oracle、测试设计因子库和业务测试设计模式库可以通过 `stages` 对对应阶段可见。
+- 项目/个人 checklist 通常通过 `stages: [coverage-review]` 交给覆盖审查统一查漏。
+- 覆盖门禁本身是 `coverage-review` 的私有参考，不再维护独立顶层质量门禁目录；project/personal 附加要求应归入 rules、knowledge 或 memory。
 - 后续阶段只读取对当前阶段可见的来源，并输出应用状态，避免“读过但没有用”的假强应用。
 
 ## 4. 推荐目标架构
@@ -95,7 +96,7 @@ project/personal 动态来源文件不要求固定命名，但必须声明 `name
 | 测试分析方案生成层 | 保持独立 | 统一生成 `SC-*`、`TP-*`、`TP-*-*`、非成功 `TP-*-*-*` 失败类型明细和预期结果 |
 | 确定性校验层 | 前置执行 | 先跑 lint，结构失败时不进入模型评审 |
 | 独立评审层 | 保持独立但收窄职责 | 只审粒度、预期结果依据、事实溯源、失败类型充分性和非用例化语义 |
-| 覆盖审查层 | 拆分判断类型 | 覆盖、追踪、方法应用、core rules/动态来源、过程一致性和可选专家评分分别列明结果 |
+| 覆盖审查层 | 拆分判断类型 | 覆盖、追踪、方法应用、core rules/动态来源、覆盖门禁、过程一致性和可选专家评分分别列明结果 |
 
 ## 5. 后续优化路线
 
@@ -106,6 +107,6 @@ project/personal 动态来源文件不要求固定命名，但必须声明 `name
 
 ## 6. 当前结论
 
-当前 skills 架构已经具备独立 Agent 的基本闭环：入口清楚、专项测试技术齐全、生成链路完整、独立评审和质量门禁可运行。
+当前 skills 架构已经具备独立 Agent 的基本闭环：入口清楚、专项测试技术齐全、JSON canonical 生成链路完整、独立评审和覆盖审查门禁可运行。
 
 最关键的架构原则是：`test-analysis-agent` 输出测试场景、测试点和测试点明细；`test-design-agent` 再输出 `TDI-*` 测试设计项；测试技术库同时支持两层，但不直接决定分析主交付件字段。

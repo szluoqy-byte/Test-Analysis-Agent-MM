@@ -44,7 +44,7 @@ bin/check-artifact-consistency.py ${PROJECT_ROOT}/outputs/runs/<run-id>
 skills/coverage-review/scripts/semantic-testpoint-check.py ${PROJECT_ROOT}/outputs/runs/<run-id>/reports/test-analysis-report.md
 ```
 
-`bin/smoke-test-analysis.py` 是框架回归和示例 fixture smoke 检查，不属于单次测试分析/测试设计方案的 review 阶段；只有修改 Agent、skill、knowledge、template、quality gate、bin 脚本或示例 fixture 时才需要运行。
+`bin/smoke-test-analysis.py` 是框架回归和示例 fixture smoke 检查，不属于单次测试分析/测试设计方案的 review 阶段；只有修改 Agent、skill、knowledge、template、coverage-review reference、bin 脚本或示例 fixture 时才需要运行。
 
 上述命令只提供确定性结果。模型型语义检查不得再次逐条复核脚本已经输出通过的结构项。
 

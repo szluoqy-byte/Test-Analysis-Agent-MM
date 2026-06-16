@@ -18,7 +18,7 @@ Knowledge 保存本 Agent 稳定、可复用的测试分析与测试设计知识
 | 标准层 | `testpoint-standard.md`、`test-analysis-solution-standard.md`、`test-design-solution-standard.md` | 定义测试点字段、测试点明细字段、测试设计项字段、预期结果兜底和非用例化标准 |
 | 测试技术层 | `test-techniques/` | 同时支持测试分析和测试设计：分析层识别测试条件、覆盖项和风险；设计层把测试点扩展成代表性条件、数据、状态或组合 |
 
-覆盖检查、专家评分和追踪检查不作为 `knowledge/` 根节点知识维护。公共覆盖入口保留在 `quality-gates/coverage-check.md`，coverage-review 私有 rubric 和深度检查标准归档到 `skills/coverage-review/references/`；确定性结构、编号、JSON/Markdown 一致性检查由 `bin/` 脚本负责。
+覆盖检查、专家评分和追踪检查不作为 `knowledge/` 根节点知识维护。覆盖检查、rubric 和深度检查标准统一归档到 `skills/coverage-review/references/`；确定性结构、编号、JSON/Markdown 一致性检查由 `bin/` 脚本负责。
 
 只被单个 skill 使用的参考材料归档到对应 skill：
 
@@ -27,6 +27,7 @@ Knowledge 保存本 Agent 稳定、可复用的测试分析与测试设计知识
 | `testing-method-router` | `skills/testing-method-router/references/test-method-routing-matrix.md` | 测试技术路由矩阵 |
 | `testing-method-router` | `skills/testing-method-router/references/method-evidence-standard.md` | 方法证据字段和质量要求 |
 | `coverage-review` | `skills/coverage-review/references/basic-test-types.md` | 覆盖审查使用的测试类型分类速查 |
+| `coverage-review` | `skills/coverage-review/references/coverage-check.md` | 覆盖审查使用的覆盖门禁检查 |
 
 ## Project / User 边界
 

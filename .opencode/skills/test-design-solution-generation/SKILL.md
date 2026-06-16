@@ -11,7 +11,7 @@ description: 当需要把已评审测试分析方案中的测试点明细扩展�
 
 ## 路径解析规则
 
-- 本 skill 中所有 `knowledge/...`、`templates/...`、`quality-gates/...` 路径均为仓库根目录相对路径。
+- 本 skill 中所有 `knowledge/...`、`templates/...` 和 `skills/.../references/...` 路径均为仓库根目录相对路径。
 - 读取测试技术时，先读取 `knowledge/test-techniques/README.md`，再按 README 路由读取同目录下的具体技术文件。
 - 工作流边界读取 `knowledge/test-workflow-boundaries.md`；分析方案承接和设计方案粒度细则读取 `knowledge/test-analysis-solution-standard.md` 和 `knowledge/test-design-solution-standard.md`。
 - 输出 JSON 结构读取 `templates/test-design-solution-json-template.json`；Markdown 模板仅作为渲染样式参考。

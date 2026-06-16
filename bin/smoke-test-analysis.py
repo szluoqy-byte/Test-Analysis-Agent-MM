@@ -66,7 +66,7 @@ REQUIRED_FILES = [
     "skills/test-analysis-solution-review/SKILL.md",
     "skills/test-design-solution-generation/SKILL.md",
     "skills/test-design-solution-review/SKILL.md",
-    "quality-gates/coverage-check.md",
+    "skills/coverage-review/references/coverage-check.md",
     "skills/coverage-review/references/review-gates.md",
     "skills/coverage-review/references/context-application-gates.md",
     "skills/coverage-review/references/deep-review-rubric.md",

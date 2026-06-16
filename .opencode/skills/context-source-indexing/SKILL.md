@@ -1,6 +1,6 @@
 ---
 name: context-source-indexing
-description: 在测试分析或测试设计开始前使用，仅索引 project/personal 扩展来源的元数据，生成 process/context-pack.json；core rules、knowledge、templates 和质量门禁由对应 workflow/skill 固定引用，不进入动态索引。
+description: 在测试分析或测试设计开始前使用，仅索引 project/personal 扩展来源的元数据，生成 process/context-pack.json；core rules、knowledge、templates 和 skill 私有参考由对应 workflow/skill 固定引用，不进入动态索引。
 ---
 
 # 上下文来源索引
@@ -25,10 +25,10 @@ python skills/context-source-indexing/scripts/build-context-source-index.py \
 ## 职责边界
 
 - 只索引 `project` 和 `personal` 扩展来源的元数据。
-- 不扫描、不摘录、不动态索引 core 层文件：根目录 `rules/*.md`、`knowledge/*.md`、`templates/`、根目录 `quality-gates/*.md` 和各 skill 私有参考文件由 workflow 或对应 skill 固定引用。
+- 不扫描、不摘录、不动态索引 core 层文件：根目录 `rules/*.md`、`knowledge/*.md`、`templates/` 和各 skill 私有参考文件由 workflow 或对应 skill 固定引用。
 - 不读取动态来源正文来判断具体测试点、测试设计项、覆盖缺口或专项方法命中。
 - 不把来源内容复制到 context pack；context pack 只记录路径、名称、描述、阶段可见性、绑定状态和告警。
-- 不修改 `rules/`、`knowledge/`、`memory/` 或 `quality-gates/` 下的长期来源文件。
+- 不修改 `rules/`、`knowledge/` 或 `memory/` 下的长期来源文件。
 
 ## 输入
 
@@ -73,7 +73,6 @@ python skills/context-source-indexing/scripts/build-context-source-index.py \
 - `rules/projects/<project-key>/**/*.md`
 - `knowledge/projects/<project-key>/**/*.md`
 - `memory/projects/<project-key>/**/*.md`
-- `quality-gates/projects/<project-key>/**/*.md`
 
 无唯一 `project-key` 时，不扫描任何 project 目录正文，也不把所有项目目录加载进索引；只在 `projectBinding` 和 `unscannedProjectSources` 中记录未扫描原因。
 
@@ -82,7 +81,6 @@ personal 层扫描：
 - `rules/user/**/*.md`
 - `knowledge/user/**/*.md`
 - `memory/user/**/*.md`
-- `quality-gates/user/**/*.md`
 
 扫描时跳过 `README.md` 的正文。README 只作为目录说明，不进入 `sources[]`。
 

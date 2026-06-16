@@ -103,11 +103,12 @@ flowchart TD
 | Agent 门面 | `test-design-agent` | 识别用户意图，路由设计生成、评审、记录和框架维护任务 |
 | 文件归一化入口 | `file-normalization-agent` | 将 `.docx` / `.xlsx` 输入归一化为 Markdown；不进入测试设计主流程 |
 | 主入口 | `test-design-workflow` | 固定根目录、复用或创建 run、编排设计链路、输出主交付件 |
+| 上下文 | `context-source-indexing` | 索引 project/personal 动态来源 frontmatter，记录绑定状态和阶段可见性 |
 | 设计生成 | `test-design-solution-generation` | 在普通 `TP-*-*` 或失败类型 `TP-*-*-*` 下保留预期结果，并生成数据化 `TDI-*` |
 | 确定性校验 | `bin/lint-run-json.py`、`bin/render-run-markdown.py --check`、`bin/lint-test-design-solution.py` | 先检查 JSON canonical 结构、编号和字段，再检查派生 Markdown 渲染一致性与人读格式；失败时修正 JSON，不手工改 Markdown |
 | 独立评审 | `test-design-solution-review` | 检查承接关系、设计项数据化粒度、叶子节点预期结果依据和非完整用例化语义 |
-| 覆盖审查 | `coverage-review` | 检查需求覆盖、分析方案承接、rules 应用、项目知识应用和质量门禁；不重复 lint 已覆盖的结构规则 |
-| 输出收口 | `bin/check-artifact-consistency.py` | 检查 run 目录、三个固定 process 产物、任务清单状态和主交付件基础一致性 |
+| 覆盖审查 | `coverage-review` | 检查需求覆盖、分析方案承接、rules 应用、动态来源应用和覆盖门禁；不重复 lint 已覆盖的结构规则 |
+| 输出收口 | `bin/check-artifact-consistency.py` | 检查 run 目录、四组固定 process 产物、任务清单状态和主交付件基础一致性 |
 
 ## 分析输入质量处理
 
@@ -126,6 +127,7 @@ flowchart TD
 | `knowledge/test-analysis-solution-standard.md` | 定义上游分析方案结构和设计承接边界 |
 | `knowledge/test-design-solution-standard.md` | 定义设计方案结构、字段、粒度和兜底规则 |
 | `knowledge/test-techniques/` | 测试技术库，支持把测试点明细扩展为代表性条件、数据、状态或组合 |
+| `skills/coverage-review/references/coverage-check.md` | coverage-review 私有覆盖门禁参考 |
 
 ## Rules 分工
 
@@ -141,14 +143,17 @@ flowchart TD
 
 ## 动态来源应用
 
-project/personal 动态来源文件名没有硬性要求，但必须声明 `name`、`description`，可选 `stages`。context pack 阶段只索引 frontmatter，不提前判断具体测试设计项命中。
+project/personal 动态来源只来自 `rules/projects/<project-key>/`、`rules/user/`、`knowledge/projects/<project-key>/`、`knowledge/user/`、`memory/projects/<project-key>/` 和 `memory/user/`。文件名没有硬性要求，但必须声明 `name`、`description`，可选 `stages`。context pack 阶段只索引 frontmatter，不提前判断具体测试设计项命中。
 
 - 测试设计因子库、业务测试设计模式库和测试 Oracle 可通过 `stages` 对 `test-design-solution-generation` 可见，用于生成代表性条件、具体数据值、数据槽位、状态、组合和预期结果依据。
 - 测试设计 checklist 通常配置为 `coverage-review` 可见，统一查漏。
+- 覆盖门禁本身维护在 `skills/coverage-review/references/coverage-check.md`，不再维护独立顶层质量门禁目录；project/personal 附加要求应按语义进入 rules、knowledge 或 memory。
 - 阶段读取动态来源后必须输出应用状态。
 - 应用状态只能使用 `applied`、`not_applicable`、`insufficient_evidence`、`conflict_with_requirement` 或 `deferred_to_review`。
 
-## 质量门禁
+## 校验与审查门禁
+
+确定性结构、编号、字段、JSON canonical 结构、Markdown 渲染一致性和固定章节问题以 `bin/lint-run-json.py`、`bin/render-run-markdown.py --check`、`bin/lint-test-design-solution.py` 和 `bin/check-artifact-consistency.py` 为事实源；模型型 review 不重复逐项检查，只消费脚本结果并继续做语义和覆盖判断。覆盖审查使用 `skills/coverage-review/references/coverage-check.md` 和 coverage-review 私有 references，不读取独立顶层质量门禁目录。
 
 - 主输出普通分支必须按 `测试场景 -> 测试点 -> 测试点明细 -> 测试设计项` 组织；非成功分支必须按 `测试场景 -> 测试点 -> 测试点明细 -> 失败类型明细 -> 测试设计项` 组织。
 - 每个普通测试点明细或失败类型明细至少有一个 `TDI-*`。

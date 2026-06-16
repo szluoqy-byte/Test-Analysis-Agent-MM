@@ -5,7 +5,7 @@ description: 在测试分析方案 JSON 通过确定性 lint 且 Markdown 已渲
 
 # 测试分析方案语义评审
 
-本 skill 是 `test-analysis-agent` 的产物级语义评审环节。它只处理 Python 脚本无法稳定判断的质量问题；结构、编号、禁用字段、固定章节、JSON schema、Markdown 加粗、`TDI-*` 泄漏、E2E 是否存在、第四层格式等确定性问题，以 `bin/lint-run-json.py`、`bin/render-run-markdown.py --check`、`bin/lint-test-analysis-solution.py` 和 `bin/check-artifact-consistency.py` 的结果为准。
+本 skill 是 `test-analysis-agent` 的产物级语义评审环节。它只处理 Python 脚本无法稳定判断的质量问题；结构、编号、禁用字段、固定章节、JSON canonical 结构、Markdown 加粗、`TDI-*` 泄漏、E2E 是否存在、第四层格式等确定性问题，以 `bin/lint-run-json.py`、`bin/render-run-markdown.py --check`、`bin/lint-test-analysis-solution.py` 和 `bin/check-artifact-consistency.py` 的结果为准。
 
 如果确定性 lint 未通过，本 skill 不进入语义评审，只引用脚本失败项给出修正方向。
 

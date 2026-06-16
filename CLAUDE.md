@@ -44,4 +44,4 @@
 - 主交付件不设置 `未明确规则` 章节，不输出独立待确认信息清单。
 - 主交付件不得使用 Markdown 加粗语法，例如 `**文本**` 或 `__文本__`。
 - 不生成完整测试用例、前置步骤、测试步骤、自动化脚本或执行数据清单。
-- Agent 门面只负责用户意图识别和路由；具体流程动作仍放在 skills、knowledge 文件、templates 或 quality gates 中。
+- Agent 门面只负责用户意图识别和路由；具体流程动作仍放在 skills、knowledge 文件、templates 或对应 skill 私有参考中。

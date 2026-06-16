@@ -284,7 +284,6 @@ def validate_project_extension_dirs(root: Path, issues: list[str]) -> None:
         "rules/projects",
         "memory/projects",
         "knowledge/projects",
-        "quality-gates/projects",
     ):
         projects_dir = root / relative
         if not projects_dir.exists():
@@ -316,7 +315,7 @@ def validate_project_extension_dirs(root: Path, issues: list[str]) -> None:
 
 
 def validate_user_extension_dirs(root: Path, issues: list[str]) -> None:
-    for relative in ("rules/user", "memory/user", "knowledge/user", "quality-gates/user"):
+    for relative in ("rules/user", "memory/user", "knowledge/user"):
         user_dir = root / relative
         if not user_dir.exists():
             continue

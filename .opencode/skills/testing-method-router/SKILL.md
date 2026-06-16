@@ -17,7 +17,7 @@ description: 在需求结构化之后使用，用于根据需求片段的分析�
 - `knowledge/test-workflow-boundaries.md`。
 - `skills/testing-method-router/references/test-method-routing-matrix.md`。
 - `skills/testing-method-router/references/*.md` 中的专项方法参考。
-- `quality-gates/coverage-check.md`。
+- `skills/coverage-review/references/coverage-check.md`。
 
 ## 分析步骤
 
@@ -65,7 +65,7 @@ description: 在需求结构化之后使用，用于根据需求片段的分析�
 
 - 工作流术语和分析/设计边界以 `knowledge/test-workflow-boundaries.md` 为准。
 - 分析维度和路由矩阵以 `skills/testing-method-router/references/test-method-routing-matrix.md` 为准。
-- 覆盖要求以 `quality-gates/coverage-check.md` 为准。
+- 覆盖要求以 `skills/coverage-review/references/coverage-check.md` 为准。
 - project/personal 动态来源补充以当前 run 的 `process/context-pack.json` `sources[]` 为准，只能补充关注点和原因；personal 层不能覆盖 project 层或 core 层约束。
 - 对本阶段可见且被读取的动态来源必须留痕；如果未应用，必须使用 `not_applicable`、`insufficient_evidence`、`conflict_with_requirement` 或 `deferred_to_review` 解释。
 - 本 skill 只负责把当前需求片段映射到测试技术和专项方法参考，并说明选择或跳过原因。
@@ -80,4 +80,4 @@ description: 在需求结构化之后使用，用于根据需求片段的分析�
 - 性能、安全、兼容等范围不确定时，默认登记为 `Important` 待确认候选。
 - 本 skill 不直接向用户提问。
 - 不直接生成最终测试点，只输出测试技术路由和待确认候选。
-- 如果 context pack 中的 project/personal 覆盖策略不足，只能按 context pack 记录的来源或当前需求明确指向的文件补读相关章节，并在路由说明中记录来源；不得全目录搜索或全量复制大文件。
+- 如果可见动态来源中的 project/personal 覆盖策略不足，只能按 `sources[]` 记录的可见来源或当前需求明确指向的文件补读相关章节，并在路由说明中记录来源；不得全目录搜索或全量复制大文件。

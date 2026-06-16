@@ -28,19 +28,16 @@ PROJECT_ROOT_PATTERNS = (
     "rules/projects/{project_key}",
     "knowledge/projects/{project_key}",
     "memory/projects/{project_key}",
-    "quality-gates/projects/{project_key}",
 )
 PROJECT_UNSCANNED_ROOTS = (
     "rules/projects/",
     "knowledge/projects/",
     "memory/projects/",
-    "quality-gates/projects/",
 )
 PERSONAL_ROOTS = (
     "rules/user",
     "knowledge/user",
     "memory/user",
-    "quality-gates/user",
 )
 
 

@@ -27,7 +27,7 @@ description: 在测试分析方案或测试设计方案 JSON 生成后使用，�
 - 测试分析维度与测试技术路由表。
 - 方法分析证据摘要。
 - 输入事实模型。
-- `quality-gates/coverage-check.md`。
+- `skills/coverage-review/references/coverage-check.md`。
 - `skills/coverage-review/references/review-gates.md`。
 - `skills/coverage-review/references/context-application-gates.md`。
 - 可选深度评估时读取 `skills/coverage-review/references/deep-review-rubric.md`。
@@ -115,5 +115,5 @@ description: 在测试分析方案或测试设计方案 JSON 生成后使用，�
 - 确定性 lint 失败视为阻断性输出质量问题。
 - 本 skill 不直接向用户提问；覆盖建议默认不进入主交付件。
 - 不把普通覆盖建议升级成阻断项，除非它会影响核心测试结论或报告可交付性。
-- 如需核对 project/personal 附加门禁，只能按 `sources[]` 中对本阶段可见的来源或当前需求明确指向的文件补读相关章节，并在审查输出中记录来源；不得全目录搜索或全量复制大文件。
+- 如需核对 project/personal 附加检查要求，只能按 `sources[]` 中对本阶段可见的来源或当前需求明确指向的文件补读相关章节，并在审查输出中记录来源；不得全目录搜索或全量复制大文件。
 - 对本阶段可见且被读取的动态来源必须留痕；前序阶段缺少已读取来源应用记录时，不得静默通过。

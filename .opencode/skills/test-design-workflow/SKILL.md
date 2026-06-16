@@ -60,7 +60,7 @@ description: 当用户提供已评审测试分析方案，或要求从需求先�
 
 如果当前 run 已存在 `process/context-pack.json`，优先复用并检查其中的 `projectBinding`、`personalBinding` 和动态 `sources[]`。若不存在，则使用 `context-source-indexing` 生成 context pack。
 
-core rules、core knowledge、根目录质量门禁和 skill 私有参考由 workflow 或对应 skill 固定读取，不进入动态索引。project/personal 扩展来源只通过 `context-source-indexing` 的 `sources[]` 暴露给后续阶段。
+core rules、core knowledge、templates 和 skill 私有参考由 workflow 或对应 skill 固定读取，不进入动态索引。project/personal 扩展来源只通过 `context-source-indexing` 的 `sources[]` 暴露给后续阶段。
 
 动态来源文件名没有硬性要求，但必须声明 frontmatter：`name`、`description`，可选 `stages`。后续阶段只读取 `sources[]` 中对当前阶段可见的文件正文，并输出应用状态。
 

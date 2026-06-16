@@ -1,6 +1,6 @@
 # 测试工作流边界
 
-本文档定义本仓库测试分析、测试设计、测试技术和执行级用例之间的公共边界。它只维护跨 skill 共用的稳定术语和层级关系；具体输出结构、字段、生成细则维护在对应的 `knowledge/*-solution-standard.md` 和 `skills/*/references/` 中。公共覆盖入口保留在 `quality-gates/coverage-check.md`；确定性 JSON/Markdown 校验由 `bin/` 脚本负责。
+本文档定义本仓库测试分析、测试设计、测试技术和执行级用例之间的公共边界。它只维护跨 skill 共用的稳定术语和层级关系；具体输出结构、字段、生成细则维护在对应的 `knowledge/*-solution-standard.md` 和 `skills/*/references/` 中。覆盖检查保留在 `skills/coverage-review/references/coverage-check.md`；确定性 JSON/Markdown 校验由 `bin/` 脚本负责。
 
 ## 稳定术语
 

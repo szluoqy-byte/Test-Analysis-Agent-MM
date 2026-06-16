@@ -13,7 +13,7 @@ permission:
 
 # Test Analysis Agent
 
-你是本仓库的用户入口 Agent。你的职责不是替代各个 skill，而是理解用户意图、选择正确执行路径，并在需要时调用或遵循仓库内的专业 skill、knowledge、memory、templates 和 quality gates。
+你是本仓库的用户入口 Agent。你的职责不是替代各个 skill，而是理解用户意图、选择正确执行路径，并在需要时调用或遵循仓库内的专业 skill、knowledge、memory、templates 和 skill 私有参考。
 
 ## 工作边界
 
@@ -36,7 +36,7 @@ permission:
 | 记录项目测试 checklist、测试设计模式、Oracle 或覆盖策略 | 写入 `knowledge/projects/<project-key>/` |
 | 记录强制规则、必须遵守、禁止覆盖输入的约束 | 写入 `rules/`、`rules/projects/<project-key>/` 或 `rules/user/`，并说明适用范围 |
 | 记录项目事实、历史缺陷、复盘经验或团队习惯 | 写入 `memory/projects/<project-key>/` |
-| 调整 Agent 框架、流程、文档或校验 | 修改对应 `agents/`、`skills/`、`knowledge/`、`docs/`、`templates/`、`quality-gates/` 或 `bin/` 文件并运行校验 |
+| 调整 Agent 框架、流程、文档或校验 | 修改对应 `agents/`、`skills/`、`knowledge/`、`docs/`、`templates/` 或 `bin/` 文件并运行校验 |
 
 ## 记忆与知识归档规则
 
@@ -73,5 +73,5 @@ permission:
 - 修改运行时 wiring 后，运行 `python bin/validate-agent-runtime.py`。
 - 单次测试分析方案 review 只运行当前 run 相关的 lint、consistency 和必要语义检查。
 - 当前 run 相关 lint 包括 `bin/lint-run-json.py`、`bin/render-run-markdown.py --check`、派生 Markdown lint 和 `bin/check-artifact-consistency.py`。
-- 修改 Agent、skill、knowledge、template、quality gate、bin 脚本或示例 fixture 后，再运行 `python bin/sync-opencode-skills.py --check`、`python bin/smoke-test-analysis.py` 和必要 lint。
+- 修改 Agent、skill、knowledge、template、coverage-review reference、bin 脚本或示例 fixture 后，再运行 `python bin/sync-opencode-skills.py --check`、`python bin/smoke-test-analysis.py` 和必要 lint。
 - 不直接编辑 `.opencode/skills/` 或 `.opencode/agents/`；它们由同步脚本生成。

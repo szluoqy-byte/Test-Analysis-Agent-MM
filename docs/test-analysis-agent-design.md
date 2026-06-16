@@ -2,7 +2,7 @@
 
 ## 目标
 
-本 Agent 面向 Markdown 需求文档和可选设计方案文档，输出 `测试分析方案`；如果输入是 `.docx` 或 `.xlsx`，先由 `@file-normalization-agent` 归一化为 Markdown，再把归一化 Markdown 路径交给分析链路。它是独立项目，所有运行入口、Agent 门面、知识库、模板、质量门禁和校验脚本都在本仓库内维护，不依赖其他 Agent 项目或外部仓库结构。
+本 Agent 面向已归一化 Markdown 需求文档和可选设计方案文档，输出 `测试分析方案`；如果输入是 `.docx` 或 `.xlsx`，先由 `@file-normalization-agent` 归一化为 Markdown，再把归一化 Markdown 路径交给分析链路。它是独立项目，所有运行入口、Agent 门面、知识库、模板、skill 私有参考和校验脚本都在本仓库内维护，不依赖其他 Agent 项目或外部仓库结构。
 
 主交付件回答 what to test，输出粒度为：
 
@@ -156,6 +156,7 @@ flowchart TD
 | `knowledge/test-techniques/` | 测试技术库，支持分析阶段识别覆盖分支，也可供 `@test-design-agent` 复用 |
 | `skills/testing-method-router/references/test-method-routing-matrix.md` | 测试技术与专项方法参考路由矩阵 |
 | `skills/coverage-review/references/basic-test-types.md` | 基础测试类型参考 |
+| `skills/coverage-review/references/coverage-check.md` | coverage-review 私有覆盖门禁参考 |
 | `skills/testing-method-router/references/method-evidence-standard.md` | 方法证据 `ME-*` 记录标准 |
 
 ## Rules 分工
@@ -172,16 +173,17 @@ core rules 由 workflow 或对应 skill 固定读取；与输入冲突时默认�
 
 ## 动态来源应用
 
-project/personal 动态来源文件名没有硬性要求，但必须声明 `name`、`description`，可选 `stages`。context pack 阶段只索引 frontmatter，不读取正文，不提前判断具体测试点或测试点明细命中。
+project/personal 动态来源只来自 `rules/projects/<project-key>/`、`rules/user/`、`knowledge/projects/<project-key>/`、`knowledge/user/`、`memory/projects/<project-key>/` 和 `memory/user/`。文件名没有硬性要求，但必须声明 `name`、`description`，可选 `stages`。context pack 阶段只索引 frontmatter，不读取正文，不提前判断具体测试点或测试点明细命中。
 
-- 测试设计因子库、业务测试设计模式库可通过 `stages` 对 `testing-method-router`、`test-analysis-solution-generation` 或 `test-design-solution-generation` 可见。
-- 测试设计 checklist 通常配置为 `coverage-review` 可见，统一查漏。
+- 项目风险画像、覆盖策略、术语映射、测试 oracle、测试设计因子库或业务测试设计模式库可通过 `stages` 对对应阶段可见。
+- 项目/个人 checklist 通常配置为 `coverage-review` 可见，统一查漏。
+- 覆盖门禁本身维护在 `skills/coverage-review/references/coverage-check.md`，不再维护独立顶层质量门禁目录；project/personal 附加要求应按语义进入 rules、knowledge 或 memory。
 - 阶段读取动态来源后必须输出应用状态。
 - 应用状态只能使用 `applied`、`not_applicable`、`insufficient_evidence`、`conflict_with_requirement` 或 `deferred_to_review`。
 
-## 质量门禁
+## 校验与审查门禁
 
-确定性结构、编号、字段、JSON schema、Markdown 渲染一致性和固定章节问题以 `bin/lint-run-json.py`、`bin/render-run-markdown.py --check`、`bin/lint-test-analysis-solution.py` 和 `bin/check-artifact-consistency.py` 为事实源；模型型 review 不重复逐项检查，只消费脚本结果并继续做语义和覆盖判断。
+确定性结构、编号、字段、JSON canonical 结构、Markdown 渲染一致性和固定章节问题以 `bin/lint-run-json.py`、`bin/render-run-markdown.py --check`、`bin/lint-test-analysis-solution.py` 和 `bin/check-artifact-consistency.py` 为事实源；模型型 review 不重复逐项检查，只消费脚本结果并继续做语义和覆盖判断。覆盖审查使用 `skills/coverage-review/references/coverage-check.md` 和 coverage-review 私有 references，不读取独立顶层质量门禁目录。
 
 - 主输出必须按 `测试场景 -> 测试点 -> 测试点明细` 组织。
 - 每个测试场景必须包含 `E2E场景测试` 测试点。

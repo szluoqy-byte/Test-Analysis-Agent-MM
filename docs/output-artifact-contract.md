@@ -40,7 +40,7 @@ outputs/
         test-analysis-report.md  # legacy optional only
 ```
 
-新建完整 run 时，`run-id` 固定使用 `python bin/generate-run-id.py` 生成，格式为 `<YYYYMMDD-HHMMSS>`。同一轮分析、修正、质量门禁重跑和报告刷新必须复用已创建的 run 目录；测试设计阶段优先复用上游测试分析方案所在 run。
+新建完整 run 时，`run-id` 固定使用 `python bin/generate-run-id.py` 生成，格式为 `<YYYYMMDD-HHMMSS>`。同一轮分析、修正、覆盖审查重跑和报告刷新必须复用已创建的 run 目录；测试设计阶段优先复用上游测试分析方案所在 run。
 
 当需求文档、系统设计方案或外部分析方案输入为 `.docx` 或 `.xlsx` 时，必须先通过 `@file-normalization-agent` 归一化为 Markdown。归一化结果按源文件内容哈希写入 `outputs/input-cache/<sha256-12>/`，源文件内容不变时复用缓存；如果用户明确提供 `--run-dir` 或需要为既有 run 补绑定输入，才把本次实际使用的 Markdown 和 metadata 绑定到 `outputs/runs/<run-id>/inputs/`。测试分析和测试设计 workflow 本身只消费已归一化 Markdown 或 JSON canonical 输入，不在主流程内执行 Office 转换。
 
@@ -66,7 +66,7 @@ DOCX 图片理解和 Mermaid 转换必须按原文顺序分批处理：普通图
 | 待确认治理记录 Markdown | `process/clarification-session.md` | 是 | 由 `clarification-session.json` 渲染的人读版；不写入主交付件章节 |
 | 分析语义评审 JSON | `reports/test-analysis-solution-review.json` | 分析评审时是 | 记录 LLM 语义评审结论、阻断项、建议和证据引用 |
 | 设计语义评审 JSON | `reports/test-design-solution-review.json` | 设计评审时是 | 记录 LLM 语义评审结论、阻断项、建议和证据引用 |
-| 覆盖审查 JSON | `reports/coverage-review.json` | 是 | 记录覆盖、追踪、core rules/动态来源应用和质量门禁结论 |
+| 覆盖审查 JSON | `reports/coverage-review.json` | 是 | 记录覆盖、追踪、core rules/动态来源应用和覆盖门禁结论 |
 | 遗留过程分析报告 | `reports/test-analysis-report.md` | 迁移旧 run 时可选 | 兼容性人读证据；新 run 不以该 Markdown 作为机器事实源，优先使用结构化 process/review/coverage JSON |
 | 全局归一化输入缓存 | `outputs/input-cache/<sha256-12>/<source-stem>.md` | Office 输入时是 | `.docx` / `.xlsx` 转换后的 Markdown 复用缓存，不属于单次 run 目录，可跨 run 复用 |
 | 全局归一化输入 metadata | `outputs/input-cache/<sha256-12>/<source-stem>.conversion.json` | Office 输入时是 | 记录源路径、源大小、mtime、SHA-256、转换时间、输出路径和转换警告 |

@@ -31,7 +31,7 @@
 
 ## 与现有 Review 的区别
 
-现有 `test-analysis-solution-review` 和 `test-design-solution-review` 是生成链路内部的独立语义评审步骤，重点保证粒度、事实依据、承接关系和非用例化语义不跑偏。产物结构、编号、字段、JSON schema 和派生 Markdown 语法由确定性 lint 脚本前置检查，不再交给模型评审重复判断。
+现有 `test-analysis-solution-review` 和 `test-design-solution-review` 是生成链路内部的独立语义评审步骤，重点保证粒度、事实依据、承接关系和非用例化语义不跑偏。产物结构、编号、字段、JSON canonical 结构和派生 Markdown 语法由确定性 lint 脚本前置检查，不再交给模型评审重复判断。
 
 `test-eval-agent` 是生成链路外部的质量诊断入口，重点发现疑似遗漏、弱覆盖、冲突、错位和系统性改进机会。它不声称自己产出的分析结论比生成 Agent 更正确，只输出基于证据索引和检查清单的风险提示。
 
@@ -54,7 +54,7 @@
 | 设计方案文档 | 可选 | 补充接口、字段、状态、权限、数据依赖、异常处理和非功能指标 |
 | `deliverables/test-analysis-solution.json` | 分析评估必需 | 评估 `SC-* / TP-* / TP-*-* / TP-*-*-*` 质量 |
 | `deliverables/test-design-solution.json` | 设计评估必需 | 评估 `TDI-*` 的代表性条件、数据、状态或组合 |
-| `process/context-pack.json` | 推荐 | 检查 rules、project/personal 和项目知识是否被正确应用 |
+| `process/context-pack.json` | 推荐 | 检查 rules、knowledge、memory 中的 project/personal 动态来源是否被正确应用 |
 | `reports/*.json` | 可选 | 补充方法证据、评审结论和覆盖审查结果；同名 Markdown 仅作为人读版 |
 
 缺少某类输入时，不阻断评估；评估报告应明确“未评估范围”和“不确定性”。
@@ -64,6 +64,7 @@
 - 如果测试分析或测试设计生成阶段传入过设计方案文档，Eval 阶段也应传入同一设计方案文档，或传入能等价承接设计事实的报告证据。
 - 如果 Eval 阶段缺少生成时使用过的设计方案，只能做降级评估：不得断言设计依据遗漏，只能标记为“设计依据未输入导致无法确认”。
 - 如果生成阶段使用了 `project-key`、core rules、project/personal 动态来源，Eval 阶段应传入对应 `process/context-pack.json`，否则动态来源应用检查只能标记为未评估。
+- Eval 阶段不得绕过 `context-pack.json` 全目录搜索 project/personal 内容；只评估 `sources[]` 中对相关阶段可见并被读取或应读取的动态来源。
 
 ## 输出定位
 
@@ -110,7 +111,7 @@ Markdown 报告只作为渲染样式，不由模型直接维护；如果 JSON �
 
 ### 1. 评估证据索引
 
-`test-eval-agent` 不重新生成一份“标准测试分析方案”，也不把自己的分析结果当作标准答案。它先从需求、设计、core rules、已读取动态来源、context pack 和可选报告证据中抽取可追踪的评估证据索引，再检查当前测试分析/测试设计产物是否显式承接、弱承接、冲突承接或未承接这些证据线索。
+`test-eval-agent` 不重新生成一份“标准测试分析方案”，也不把自己的分析结果当作标准答案。它先从需求、设计、core rules、`process/context-pack.json` 中可见且被读取或应读取的动态来源，以及可选报告证据中抽取可追踪的评估证据索引，再检查当前测试分析/测试设计产物是否显式承接、弱承接、冲突承接或未承接这些证据线索。
 
 评估证据索引可以包括：
 
@@ -163,7 +164,7 @@ Markdown 报告只作为渲染样式，不由模型直接维护；如果 JSON �
 | 设计与分析错位 | 分析方案是权限拒绝，设计项却给了状态非法条件 |
 | 预期结果冲突 | 需求说不重复扣减，设计项预期写为重新扣减 |
 | 层级承接错误 | 非成功失败类型明细被设计方案合并回父级 `TP-*-*` |
-| 动态来源应用不一致 | context pack 中可见项目 checklist 被读取，但评审报告没有应用状态 |
+| 动态来源应用不一致 | `context-pack.json` 中可见项目 checklist 被读取，但评审报告没有应用状态 |
 
 ### 4. 质量诊断
 
@@ -248,7 +249,7 @@ knowledge/test-artifact-quality-standard.md
 可选增强：
 
 ```text
-quality-gates/evaluation-quality-check.md
+skills/evaluate-test-artifact-quality/references/evaluation-quality-check.md
 bin/lint-test-evaluation-report.py
 examples/outputs/runs/*/reports/test-evaluation-report.json
 examples/outputs/runs/*/reports/test-evaluation-report.md

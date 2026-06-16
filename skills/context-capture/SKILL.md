@@ -31,7 +31,7 @@ description: 当用户要求记住、记录、收录、归档或沉淀个人偏�
 | 项目事实、项目约束、团队输出偏好、项目术语事实 | `memory/projects/<project-key>/project-memory.md` |
 | 项目历史缺陷、复盘经验、团队测试习惯 | `memory/projects/<project-key>/testing-experience.md` |
 | 项目测试设计 checklist、测试设计模式、测试 Oracle、覆盖策略、路由补充 | `knowledge/projects/<project-key>/` 下语义清晰的 Markdown 文件 |
-| Agent 框架方法论、通用测试技术、主流程规则 | 仅在用户明确要求修改框架时写入根目录 `knowledge/`、`skills/`、`docs/` 或 `quality-gates/` |
+| Agent 框架方法论、通用测试技术、主流程规则 | 仅在用户明确要求修改框架时写入根目录 `knowledge/`、`skills/` 或 `docs/` |
 
 ## 写入流程
 

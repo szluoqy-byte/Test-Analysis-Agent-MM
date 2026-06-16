@@ -5,7 +5,7 @@ description: 在测试设计方案 JSON 通过确定性 lint 且 Markdown 已渲
 
 # 测试设计方案语义评审
 
-本 skill 是 `test-design-agent` 的产物级语义评审环节。结构、编号、固定章节、JSON schema、Markdown 加粗、禁用字段、测试设计项表格禁用和 `TDI-*` 连续性等确定性问题，以 `bin/lint-run-json.py`、`bin/render-run-markdown.py --check`、`bin/lint-test-design-solution.py` 和 `bin/check-artifact-consistency.py` 的结果为准。
+本 skill 是 `test-design-agent` 的产物级语义评审环节。结构、编号、固定章节、JSON canonical 结构、Markdown 加粗、禁用字段、测试设计项表格禁用和 `TDI-*` 连续性等确定性问题，以 `bin/lint-run-json.py`、`bin/render-run-markdown.py --check`、`bin/lint-test-design-solution.py` 和 `bin/check-artifact-consistency.py` 的结果为准。
 
 如果确定性 lint 未通过，本 skill 不进入语义评审，只引用脚本失败项给出修正方向。
 

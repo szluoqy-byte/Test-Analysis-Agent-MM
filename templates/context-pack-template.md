@@ -40,7 +40,7 @@
 ## 生成原则
 
 - `context-pack.json` 只记录动态 project/personal 来源索引，不摘录正文。
-- core 层 `rules/*.md`、`knowledge/*.md`、根目录 `quality-gates/*.md`、templates 和 skill 私有参考由 workflow 或对应 skill 固定引用，不进入 `sources[]`。
+- core 层 `rules/*.md`、`knowledge/*.md`、templates 和 skill 私有参考由 workflow 或对应 skill 固定引用，不进入 `sources[]`。
 - 只有唯一确定 `project-key` 时才扫描 `*/projects/<project-key>/**/*.md`；未确定时不得读取所有 project 目录正文。
 - personal 层扫描 `*/user/**/*.md`，但跳过 `README.md` 正文。
 - 动态来源文件必须声明 frontmatter：`name`、`description`，可选 `stages`。
