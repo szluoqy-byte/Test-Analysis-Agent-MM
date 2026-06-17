@@ -14,4 +14,4 @@
 - 测试点字段、类型、方法、级别、输出结构和质量门禁覆盖规则。
 - 会削弱 core 或 project 层约束的规则。
 
-`context-source-indexing` 会在运行时索引本目录的动态来源 frontmatter，并在 `process/context-pack.json` 中记录 `personalBinding` 和 `sources[]`；同名 Markdown 只作为派生阅读版。每个动态来源文件必须声明 `name`、`description`，可选 `stages`；未配置 `stages` 时默认所有阶段可用。
+`context-source-indexing` 会在运行时索引本目录的动态来源 frontmatter，并在 `process/context-pack.json` 中记录到 `sources[]`；同名 Markdown 只作为派生阅读版。personal 来源不需要 binding 或 key，只通过 `knowledge/user/**` 路径表达。每个动态来源文件必须声明 `name`、`description`，可选 `stages`；未配置 `stages` 时默认所有阶段可用。

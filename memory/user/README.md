@@ -17,4 +17,4 @@ memory/user/
 - 不保存项目事实、团队共识、真实缺陷复盘或未确认业务规则。
 - 不覆盖当前用户明确指令、需求文档、project memory、核心输出契约和质量门禁。
 - `context-source-indexing` 只把本目录动态来源的 frontmatter 写入 `outputs/runs/<run-id>/process/context-pack.json`；同名 Markdown 只是派生阅读版。
-- 即使没有动态来源，也需要记录 `personalBinding` 和空 `sources[]`。
+- 即使没有动态来源，也需要记录空 `sources[]`；personal 来源不需要 binding 或 key。

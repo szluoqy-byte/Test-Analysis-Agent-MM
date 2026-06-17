@@ -42,14 +42,14 @@ knowledge/user/<自定义文件名>.md
 
 - 适用阶段：testing-method-router / test-analysis-solution-generation / test-design-solution-generation / coverage-review
 - 适用范围：<业务域、接口域、产品域>
-- 使用方式：<生成测试点、生成测试设计项或校验遗漏时如何引用>
+- 使用方式：<生成测试点、生成测试用例或校验遗漏时如何引用>
 
 ## 字段说明
 
 | 字段 | 含义 | Agent 应用方式 |
 | --- | --- | --- |
 | 场景 | 业务场景或规则域 | 用于匹配 SC 或 TP |
-| 测试因子 | 代表性条件、输入、状态、组合或操作 | 用于生成 TP 明细或 TDI |
+| 测试因子 | 代表性条件、输入、状态、组合或操作 | 用于生成 TP 或 TC |
 | 说明 | 验证目标或预期关注点 | 用于补充预期结果或 review |
 
 ## 1. <业务场景>
@@ -169,5 +169,6 @@ context pack 阶段不需要提前判断具体命中哪个测试点，只需要�
 
 - 测试设计因子库：`testing-method-router`、`test-analysis-solution-generation`、`test-design-solution-generation`。
 - 业务测试设计模式库：`testing-method-router`、`test-analysis-solution-generation`、`test-design-solution-generation`。
+- 测试用例写作风格、平台字段映射或导入约束：`test-case-writing`。
 - checklist：默认绑定 `coverage-review`；只有明确用于语义评审时才绑定 review skill。
 - Oracle 或预期结果依据：`test-analysis-solution-generation`、`test-design-solution-generation`、review skill。

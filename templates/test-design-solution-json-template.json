@@ -1,9 +1,9 @@
 {
   "artifactType": "test-design-solution",
-  "schemaVersion": "1.0",
+  "schemaVersion": "2.0",
   "title": "<需求名称> 测试设计方案",
   "inputs": [
-    {"field": "测试分析方案来源", "content": ""},
+    {"field": "测试分析方案来源", "content": "deliverables/test-analysis-solution.json"},
     {"field": "需求来源", "content": ""},
     {"field": "设计方案来源", "content": ""},
     {"field": "设计范围", "content": ""},
@@ -12,26 +12,44 @@
   "scenarios": [
     {
       "id": "SC-001",
-      "title": "<测试场景名称>",
+      "title": "<一级测试场景>",
       "fields": [
         {"field": "场景目标", "content": ""},
         {"field": "场景入口/触发方式", "content": ""},
         {"field": "执行用户/角色", "content": ""},
         {"field": "业务与设计约束", "content": ""}
       ],
-      "testPoints": [
+      "children": [
         {
-          "id": "TP-001",
-          "title": "E2E场景测试",
-          "details": [
+          "id": "SC-001-001",
+          "title": "<叶子测试场景>",
+          "fields": [
+            {"field": "场景目标", "content": ""},
+            {"field": "场景入口/触发方式", "content": ""},
+            {"field": "执行用户/角色", "content": ""},
+            {"field": "业务与设计约束", "content": ""}
+          ],
+          "testPoints": [
             {
-              "id": "TP-001-001",
-              "title": "<端到端主流程测试点明细>",
-              "description": "<来自测试分析方案的测试点详情。>",
-              "expectedResult": "<来自测试分析方案的预期结果；依据不足时保留输入可支撑的保守预期>",
-              "failureDetails": [],
-              "designItems": [
-                {"id": "TDI-001", "content": "<覆盖端到端主流程的代表性条件、数据、状态或组合>"}
+              "id": "TP-001",
+              "title": "E2E场景测试",
+              "objective": "<继承测试分析方案>",
+              "basisRefs": [{"source": "<需求/设计/规则>", "location": "<位置>", "description": "<依据摘要>"}],
+              "methodRefs": [{"method": "scenario-flow", "evidenceId": "<ME-*>"}],
+              "testCases": [
+                {
+                  "id": "TC-001",
+                  "title": "<完整测试用例标题>",
+                  "preconditions": ["<前置条件>"],
+                  "testData": [
+                    {"name": "<字段/数据槽位>", "value": "<具体值>", "description": "<数据说明>"}
+                  ],
+                  "steps": [
+                    {"stepNo": 1, "action": "<操作步骤>", "expected": "<步骤预期>"}
+                  ],
+                  "expectedResult": "<最终预期结果>",
+                  "sourceRefs": [{"source": "<需求/设计/分析方案>", "location": "<位置>", "description": "<依据摘要>"}]
+                }
               ]
             }
           ]

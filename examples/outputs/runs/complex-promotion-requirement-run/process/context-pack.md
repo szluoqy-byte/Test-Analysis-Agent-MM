@@ -13,7 +13,6 @@
 | 绑定 | 状态 | 标识 | 说明 |
 |---|---|---|---|
 | projectBinding | unresolved |  | 示例 fixture 未绑定具体项目，且需求未提供可唯一识别的 project-key |
-| personalBinding | default | default | 示例 fixture 使用默认 personal 扩展路径，未命中动态来源文件 |
 
 ## 动态来源索引
 

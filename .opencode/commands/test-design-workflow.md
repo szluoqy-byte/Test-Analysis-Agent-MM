@@ -17,11 +17,10 @@ Supported argument hints:
 - Optional requirement document: `--requirement <path>` or `requirement=<path>`.
 - Optional design document: `--design <path>`, `design=<path>`, or `设计方案：<path>`.
 - Optional project binding: `--project <project-key>`, `project=<project-key>`, or `项目：<project-key>`.
-- Optional personal binding: `--personal <personal-key>`, `personal=<personal-key>`, or `个人：<personal-key>`.
 
 This command only accepts JSON canonical, reviewed Markdown analysis, or normalized Markdown evidence inputs. If the user provides `.docx` or `.xlsx`, stop and ask them to run `@file-normalization-agent` or `/normalize-input-documents` first, then pass the normalized Markdown path back to this command.
 
-When `project=<project-key>` is present, pass it through explicitly to `context-source-indexing`; the generated or reused `process/context-pack.json` must record `projectBinding`, `personalBinding`, dynamic `sources[]`, unscanned project sources, and warnings.
+When `project=<project-key>` is present, pass it through explicitly to `context-source-indexing`; the generated or reused `process/context-pack.json` must record `projectBinding`, dynamic `sources[]`, unscanned project sources, and warnings. Personal sources are represented only by `rules/user/**`, `knowledge/user/**`, or `memory/user/**` paths in `sources[]`.
 
 Example:
 

@@ -51,7 +51,7 @@ stages:
 
 `context-source-indexing` 只有在唯一确定 `project-key` 后才索引对应项目目录。未确定 `project-key` 时，不读取所有项目目录正文。
 
-context pack 阶段只读取 frontmatter，不摘录正文，也不判断具体测试点或测试设计项命中。后续阶段只读取 `sources[]` 中对本阶段可见的文件正文，并输出应用状态：
+context pack 阶段只读取 frontmatter，不摘录正文，也不判断具体测试点或测试用例命中。后续阶段只读取 `sources[]` 中对本阶段可见的文件正文，并输出应用状态：
 
 - `applied`
 - `not_applicable`

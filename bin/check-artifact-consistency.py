@@ -93,19 +93,14 @@ def collect_solution_details(path: Path) -> set[str]:
     return details
 
 
-def collect_design_items(path: Path) -> set[str]:
+def collect_test_cases(path: Path) -> set[str]:
     lines = path.read_text(encoding="utf-8").splitlines()
-    items: set[str] = set()
+    cases: set[str] = set()
     for line in lines:
-        list_match = re.match(r"^\s*-\s+(TDI-\d{3})\s+", line)
-        if list_match:
-            items.add(list_match.group(1))
-            continue
-        if line.startswith("|"):
-            cells = split_row(line)
-            if cells and re.fullmatch(r"TDI-\d{3}", cells[0]):
-                items.add(cells[0])
-    return items
+        match = re.match(r"^##### (TC-\d{3})\s+", line)
+        if match:
+            cases.add(match.group(1))
+    return cases
 
 
 def collect_task_rows(path: Path) -> list[tuple[int, list[str]]]:
@@ -189,7 +184,7 @@ def validate_context_pack(path: Path) -> tuple[list[str], list[str]]:
     if not text.strip():
         errors.append("context-pack 为空")
         return errors, warnings
-    for marker in ["上下文来源索引", "## 绑定结果", "projectBinding", "personalBinding", "## 动态来源索引"]:
+    for marker in ["上下文来源索引", "## 绑定结果", "projectBinding", "## 动态来源索引"]:
         if marker not in text:
             errors.append(f"context-pack 缺少固定渲染标记: {marker}")
 
@@ -286,22 +281,16 @@ def main() -> int:
 
     if solution_path.exists():
         points = collect_solution_points(solution_path)
-        details = collect_solution_details(solution_path)
         if not points:
             errors.append("测试分析方案未找到 TP-* 测试点标题")
-        if not details:
-            errors.append("测试分析方案未找到 TP-*-* 测试点明细")
 
     if design_solution_path.exists():
         points = collect_solution_points(design_solution_path)
-        details = collect_solution_details(design_solution_path)
-        design_items = collect_design_items(design_solution_path)
+        cases = collect_test_cases(design_solution_path)
         if not points:
             errors.append("测试设计方案未找到 TP-* 测试点标题")
-        if not details:
-            errors.append("测试设计方案未找到 TP-*-* 测试点明细")
-        if not design_items:
-            errors.append("测试设计方案未找到 TDI-* 测试设计项")
+        if not cases:
+            errors.append("测试设计方案未找到 TC-* 测试用例")
 
     for warning in warnings:
         print(f"警告: {warning}")

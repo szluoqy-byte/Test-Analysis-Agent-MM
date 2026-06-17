@@ -23,13 +23,14 @@ REQUIRED_SKILLS = {
     "normalize-input-documents",
     "test-analysis-solution-generation",
     "test-analysis-solution-review",
+    "test-case-writing",
     "test-design-solution-generation",
     "test-design-solution-review",
 }
 REQUIRED_AGENTS = {
     "file-normalization-agent": ("normalize-input-documents", "outputs/input-cache", "file-normalization-agent"),
     "test-analysis-agent": ("test-analysis-workflow", "file-normalization-agent", "context-capture"),
-    "test-design-agent": ("test-design-workflow", "file-normalization-agent", "test-design-solution-generation", "context-capture"),
+    "test-design-agent": ("test-design-workflow", "file-normalization-agent", "test-design-solution-generation", "test-case-writing", "context-capture"),
 }
 OPENCODE_COMMANDS = {
     ".opencode/commands/test-analysis-workflow.md": "test-analysis-workflow",
@@ -231,6 +232,7 @@ def validate_context_source_metadata(root: Path, files: list[Path], issues: list
         "testing-method-router",
         "test-analysis-solution-generation",
         "test-analysis-solution-review",
+        "test-case-writing",
         "test-design-solution-generation",
         "test-design-solution-review",
         "coverage-review",

@@ -62,6 +62,7 @@ REQUIRED_FILES = [
     "skills/test-design-workflow/SKILL.md",
     "skills/test-analysis-solution-generation/SKILL.md",
     "skills/test-analysis-solution-review/SKILL.md",
+    "skills/test-case-writing/SKILL.md",
     "skills/test-design-solution-generation/SKILL.md",
     "skills/test-design-solution-review/SKILL.md",
     "skills/coverage-review/references/coverage-check.md",
@@ -74,7 +75,6 @@ REQUIRED_FILES = [
     "bin/lint-test-design-solution.py",
     "bin/lint-run-json.py",
     "bin/render-run-markdown.py",
-    "bin/convert-legacy-run-to-json.py",
     "bin/run_artifacts.py",
     "skills/normalize-input-documents/scripts/normalize-office-input.py",
     "bin/sync-opencode-skills.py",
@@ -123,6 +123,7 @@ def check_one_requirement(repo_root: Path, requirement: Path) -> bool:
     run_dir = example_run_dir(repo_root, stem)
     solution = run_dir / "deliverables" / "test-analysis-solution.md"
     solution_json = run_dir / "deliverables" / "test-analysis-solution.json"
+    design_solution = run_dir / "deliverables" / "test-design-solution.md"
 
     print(f"\n== {requirement} ==")
     if not run_dir.is_dir():
@@ -138,6 +139,8 @@ def check_one_requirement(repo_root: Path, requirement: Path) -> bool:
     ok = run_command([sys.executable, "bin/lint-run-json.py", str(run_dir)], repo_root)
     ok &= run_command([sys.executable, "bin/render-run-markdown.py", str(run_dir), "--check"], repo_root)
     ok &= run_command([sys.executable, "bin/lint-test-analysis-solution.py", str(solution)], repo_root)
+    if design_solution.exists():
+        ok &= run_command([sys.executable, "bin/lint-test-design-solution.py", str(design_solution)], repo_root)
     ok &= run_command([sys.executable, "bin/check-artifact-consistency.py", str(run_dir)], repo_root)
     return ok
 

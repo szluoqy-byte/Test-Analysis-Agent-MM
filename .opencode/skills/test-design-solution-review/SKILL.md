@@ -1,97 +1,34 @@
 ---
 name: test-design-solution-review
-description: 在测试设计方案 JSON 通过确定性 lint 且 Markdown 已渲染后使用，作为产物级语义评审环节，检查分析方案承接、设计项数据化粒度、叶子节点预期结果依据、事实溯源和非完整用例化倾向；不重复执行 Python 脚本可确定性检查的结构、编号、字段和 Markdown 语法规则。
+description: 在确定性 lint 通过后，评审 schema 2.0 测试设计方案的 TC 粒度、步骤可执行性、测试数据明确性、预期依据和分析方案承接。
 ---
 
 # 测试设计方案语义评审
 
-本 skill 是 `test-design-agent` 的产物级语义评审环节。结构、编号、固定章节、JSON canonical 结构、Markdown 加粗、禁用字段、测试设计项表格禁用和 `TDI-*` 连续性等确定性问题，以 `bin/lint-run-json.py`、`bin/render-run-markdown.py --check`、`bin/lint-test-design-solution.py` 和 `bin/check-artifact-consistency.py` 的结果为准。
-
-如果确定性 lint 未通过，本 skill 不进入语义评审，只引用脚本失败项给出修正方向。
+本 skill 是 `test-design-agent` 的产物级语义评审环节。结构、编号、JSON canonical 结构和 Markdown 语法以确定性脚本为准；本 skill 只评审语义质量。
 
 ## 输入
 
-- `outputs/runs/<run-id>/deliverables/test-design-solution.json`，必要时参考派生 `test-design-solution.md`。
-- `bin/lint-run-json.py`、`bin/render-run-markdown.py --check` 和 `bin/lint-test-design-solution.py` 的执行结果。
-- `outputs/runs/<run-id>/deliverables/test-analysis-solution.json` 或外部测试分析方案。
-- 需求文档和可选设计方案文档摘要。
-- `process/context-pack.json`。
-- `process/context-pack.json` 中 `sources[]` 对 `test-design-solution-review` 可见的评审类动态来源；默认 checklist 类来源优先由 `coverage-review` 统一处理，避免重复读取。
-- `knowledge/test-design-solution-standard.md`。
-- `templates/review-report-json-template.json`，作为语义评审 JSON 输出结构参考。
+- `outputs/runs/<run-id>/deliverables/test-design-solution.json`
+- `outputs/runs/<run-id>/deliverables/test-analysis-solution.json`
+- `bin/lint-run-json.py`、`bin/render-run-markdown.py --check` 和 `bin/lint-test-design-solution.py` 的执行结果
+- 归一化后的需求 Markdown 和可选设计方案 Markdown
+- `process/context-pack.json`
+- `knowledge/test-design-solution-standard.md`
 
-## 不再重复检查
+## 评审重点
 
-以下内容由确定性脚本负责，本 skill 不逐项复查：
-
-- 主标题、必需章节、禁止章节和固定路径。
-- `SC-*`、`TP-*`、`TP-*-*`、`TP-*-*-*`、`TDI-*` 的格式、挂载位置和连续编号。
-- 测试设计项是否使用 `designItems[]` 而非表格或手写 Markdown 列表。
-- `TDI-*` 是否保持同一物理行，以及是否包含 `http://` 或 `https://` 裸链接。
-- 每个叶子分析节点是否至少有一个 `TDI-*`。
-- 禁用字段、Markdown 加粗、完整测试用例字段和旧编号泄漏。
-
-## 评审维度
-
-| 维度 | 通过标准 |
+| 维度 | 检查内容 |
 |---|---|
-| 分析方案承接 | 设计方案忠实继承已评审分析方案的分析层级和语义，不擅自新增、删除或改写分析结论 |
-| E2E 与接口继承 | E2E 只承载端到端主流程成功闭环设计项；接口测试或集成覆盖场景中的 `TDI-*` 能追溯到具体接口、端点、集成点或通用接口范围 |
-| 第四层继承 | 已有 `TP-*-*-*` 时设计项挂第四层；单一弱结果分支停留在 `TP-*-*` 时设计项直接挂该明细；评审不推动弱结果分支机械升级第四层 |
-| 设计项粒度 | `TDI-*` 表达代表性条件、具体数据值、数据槽位、状态、接口返回或组合，不写成抽象标签、操作步骤、执行脚本或完整用例 |
-| 设计项数据化语义 | `TDI-*` 不写结果或动作表达；“发送通知”“显示提示”“自动填充”“接口调用正确”“处理成功”“删除成功”等语义应归入测试点详情或预期结果，不作为设计项正文 |
-| 重复项区分维度 | 同类条件在不同场景、渠道、操作或接口下复用时，设计项包含 `场景=`、`渠道=`、`操作=`、`接口=`、`数据依赖=` 等差异维度；无差异重复项应合并 |
-| 接口契约代表性 | 接口契约叶子节点基于已明确字段约束覆盖有效、无效、边界、枚举、必填、鉴权、幂等、超时或异常返回组合，而不是只给正向有效组合 |
-| 补偿分支可观察性 | 超时、回滚、补偿或外部依赖恢复类叶子节点把查询返回、状态值、依赖返回、超时状态等分支条件数据化 |
-| 覆盖代表性 | 每个叶子分析节点下的设计项能覆盖关键有效、无效、边界、状态、权限或组合条件 |
-| 预期结果依据 | 普通测试点明细或失败类型明细层的预期结果能追溯到需求、设计方案、分析方案、适用 rules 或明确业务不变量；依据不足时降级为输入可支撑的保守预期，不补写未说明具体值 |
-| 事实完整性 | 不编造错误码、状态、提示文案、接口字段、阈值或角色；代表值和数据槽位不得伪装成真实生产数据 |
-| 非用例化语义 | 虽然脚本已过滤明显步骤字段，但评审仍需识别隐性的执行流程、断言步骤或完整用例倾向 |
-| 自包含性 | 后续完整用例细化只读取主交付件即可理解场景、测试点明细、叶子节点预期结果和设计项数据组合 |
-| 动态评审来源 | 若 `sources[]` 存在本阶段可见的评审类动态来源，必须按需读取相关章节并记录应用状态 |
-
-## 评审步骤
-
-1. 确认 `bin/lint-run-json.py`、`bin/render-run-markdown.py --check` 和 `bin/lint-test-design-solution.py` 已通过；若未通过，输出 `需修正`，只列脚本失败项和修正方向，不继续做语义评审。
-2. 读取 `process/context-pack.json`，筛选 `availableStages` 包含 `test-design-solution-review` 或 `"*"` 的动态来源；如需使用，按来源文件、相关章节、关键词或标题读取正文，不全量复制大文件。
-3. 对照测试分析方案，检查设计方案是否忠实承接所有叶子分析节点，且没有改写分析层结论。
-4. 检查 E2E 和接口组织继承是否保持分析方案语义：E2E 不混入其他分支，接口设计项不混入无法定位目标接口的泛化测试点。
-5. 检查第四层继承是否正确：已有失败类型明细不合并回父级；单一弱结果分支不因评审偏好被机械要求新增第四层。
-6. 检查每个 `TDI-*` 是否停留在测试设计项粒度：表达代表性条件、具体数据值、数据槽位、状态、接口返回或组合，不写步骤、脚本、接口调用过程或完整用例；不得只写“有效金额”“错误PIN”“接口超时”等抽象标签。
-7. 检查 `TDI-*` 是否出现结果或动作式表达，例如“发送通知”“显示提示”“自动填充”“接口调用正确”“处理成功”“删除成功”；出现时要求改写为条件、数据、状态、接口返回或依赖组合。
-8. 检查重复设计项：如果多个 `TDI-*` 正文相同或只有措辞差异，判断是否应合并；若确实属于不同业务流，要求补充 `场景=`、`渠道=`、`操作=`、`接口=` 或 `数据依赖=` 等差异维度。
-9. 检查接口契约叶子节点是否基于已明确字段约束覆盖有效、无效、边界、枚举、必填、鉴权、幂等、状态码、错误码、超时或依赖返回组合；不得只保留正向有效组合。
-10. 检查超时、回滚、补偿或外部依赖恢复类叶子节点是否把查询返回、状态值、依赖返回和超时状态写成可观察组合；不得只写“接口超时”“补偿成功/失败”。
-11. 检查设计项代表性是否充分；如果一个叶子分析节点明显需要有效、无效、边界、状态、权限、接口返回或组合覆盖但设计项过少，提出补充建议。
-12. 检查普通测试点明细或失败类型明细层的 `预期结果` 是否有可追溯依据；无法溯源的具体错误码、状态变化、提示文案、接口字段或阈值必须删除或降级为输入可支撑的保守预期。
-13. 检查是否存在 TDI 下重复写 `预期结果` 的旧格式；如出现，要求上收到叶子分析节点层。
-14. 按本阶段可见的动态评审来源检查项目级设计漏覆盖；无法直接判断的检查项记录为 `insufficient_evidence`，不得编造成已确认缺陷。
-15. 记录本阶段动态来源应用状态，输出语义评审结论和逐项修正建议。
+| 分析承接 | 设计方案是否完整继承 SC/TP，不新增、删除、合并或改写分析层级 |
+| 用例覆盖 | 每个 TP 是否至少有一个 TC，关键规则是否有代表性 TC |
+| 用例粒度 | TC 是否具体到可执行实例，而不是抽象条件标签 |
+| 测试数据 | `testData[]` 是否给出具体值或稳定数据槽位，并说明含义 |
+| 步骤可执行性 | `steps[]` 是否按顺序表达动作和步骤预期 |
+| 最终预期 | `expectedResult` 是否有需求、设计、规则或分析方案依据 |
+| 接口表达 | 接口类用例是否拆成字段片段，避免完整裸 URL |
+| 动态来源 | 可见 project/personal 来源是否被读取、应用或解释不适用 |
 
 ## 输出
 
-评审输出写入 `reports/test-design-solution-review.json`，结构以 `templates/review-report-json-template.json` 为准；如需人读版，由 `bin/render-run-markdown.py` 渲染。JSON 至少包含：
-
-- `artifactType` 固定为 `test-design-solution-review`，`schemaVersion` 固定为 `1.0`。
-- `result` 使用 `通过` 或 `需修正`。
-- `summary` 记录整体评审结论。
-- `findings[]` 记录确定性 lint 前置、分析方案承接、E2E 与接口继承、第四层继承、设计项粒度、设计项数据化语义、重复项区分维度、接口契约代表性、补偿分支可观察性、覆盖代表性、预期结果依据、事实完整性、非用例化语义、自包含性和动态评审来源等维度的语义发现。
-- `blockingIssues[]` 只记录必须修正后才能进入覆盖审查的问题。
-- `recommendations[]` 记录非阻断修正建议。
-- `evidenceRefs[]` 记录需求、设计方案、分析方案、主交付件、过程产物、core rules 或动态来源的证据来源。
-- `knowledgeApplications[]` 记录本阶段动态来源的应用状态、应用位置和说明。
-
-结论必须明确为：
-
-- `通过`：可以进入覆盖审查。
-- `需修正`：必须先修正主交付件再进入覆盖审查。
-
-## 约束
-
-- 不重复执行或改写确定性脚本已经覆盖的结构规则。
-- 不新增测试设计项，除非评审任务明确要求直接修复。
-- 不编造需求、设计方案或测试分析方案事实。
-- 不把输入不足或过程问题写回主交付件章节。
-- 不使用 `TBD`、`见设计方案` 或类似占位表达替代可追溯预期结果。
-- 不要求每条 `TDI-*` 单独写预期结果；预期结果只在普通测试点明细或失败类型明细层评审。
-- 对本阶段可见且被读取的动态来源必须留痕；如果未应用，必须使用 `not_applicable`、`insufficient_evidence` 或 `conflict_with_requirement` 解释。
+评审输出写入 `reports/test-design-solution-review.json`，结构以 `templates/review-report-json-template.json` 为准；如需人读版，由 `bin/render-run-markdown.py` 渲染。

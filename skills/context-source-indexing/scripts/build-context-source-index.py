@@ -20,6 +20,7 @@ ALLOWED_STAGES = {
     "test-analysis-solution-generation",
     "test-analysis-solution-review",
     "test-design-solution-generation",
+    "test-case-writing",
     "test-design-solution-review",
     "coverage-review",
 }
@@ -294,12 +295,6 @@ def build_index(args: argparse.Namespace, root: Path) -> dict[str, Any]:
             for path in PROJECT_UNSCANNED_ROOTS
         ]
 
-    personal_key = (args.personal or "default").strip() or "default"
-    personal_binding = {
-        "status": "default" if personal_key == "default" else "resolved",
-        "personalKey": personal_key,
-        "reason": args.personal_reason or ("使用默认 personal 扩展路径" if personal_key == "default" else "用户显式提供 personal-key"),
-    }
     for relative_root in PERSONAL_ROOTS:
         for path in iter_markdown_sources(root / relative_root):
             source = collect_source(path, root, warnings)
@@ -320,7 +315,6 @@ def build_index(args: argparse.Namespace, root: Path) -> dict[str, Any]:
             "keywords": split_keywords(args.keyword),
         },
         "projectBinding": project_binding,
-        "personalBinding": personal_binding,
         "sources": sources,
         "unscannedProjectSources": unscanned_project_sources,
         "warnings": warnings,
@@ -357,8 +351,6 @@ def main() -> int:
     parser.add_argument("--keyword", action="append", default=[], help="需求关键词，可重复或用逗号分隔")
     parser.add_argument("--project", default="", help="已唯一确定的 project-key")
     parser.add_argument("--project-reason", default="", help="project 绑定或未绑定原因")
-    parser.add_argument("--personal", default="default", help="personal-key，默认 default")
-    parser.add_argument("--personal-reason", default="", help="personal 绑定原因")
     parser.add_argument("--title", default="", help="context-pack 标题")
     parser.add_argument("--no-render", action="store_true", help="只写 JSON，不渲染 Markdown")
     args = parser.parse_args()

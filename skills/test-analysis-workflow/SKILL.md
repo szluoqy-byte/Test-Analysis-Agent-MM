@@ -1,141 +1,68 @@
 ---
 name: test-analysis-workflow
-description: 当用户提供需求文档和可选设计方案文档，并要求生成“测试场景 -> 测试点 -> 测试点明细”的测试分析方案时使用；非成功测试点明细需要继续拆分失败类型明细。该 skill 是主入口，负责编排上下文、需求与设计方案分析、测试技术路由、测试分析方案 JSON 生成、独立评审和 Markdown 渲染；入参来自 $ARGUMENTS。
+description: 当用户提供需求文档和可选设计方案文档，并要求生成“SC 场景树 -> TP 测试点”的测试分析方案时使用；该 skill 编排上下文、输入事实、测试技术路由、测试分析方案 JSON 生成、独立评审和 Markdown 渲染。
 ---
 
 # 需求到测试分析方案主入口
 
 本 skill 是 `test-analysis-agent` 的完整链路入口。目标是从 `$ARGUMENTS` 指定的需求文档和可选设计方案文档中，生成 `测试分析方案`。
 
-`测试分析方案` 回答 what to test：输出测试场景、测试点和测试点明细；当 `TP-*-*` 是非成功测试点明细时，继续输出失败类型明细，并给出需求或设计方案可支撑的简短预期结果。它不输出 `TDI-*` 测试设计项，不选择具体代表性条件/数据/状态/组合，不写完整测试用例、前置步骤、测试步骤、自动化脚本或执行数据清单。
-
-推荐术语：
-
-- 主交付件名称：`测试分析方案`。
-- 单条明细名称：`测试点明细`。
-- 固定缩写：测试场景 `SC-*`、测试点 `TP-*`、测试点明细 `TP-*-*`、失败类型明细 `TP-*-*-*`；主交付件不展开英文全名。
-- 测试点明细 ID：继承测试点 ID，例如 `TP-001-001`。
-- 失败类型明细 ID：继承测试点明细 ID，例如 `TP-001-002-001`，仅非成功测试点明细需要。
-- 预期结果：只能写需求或设计方案明确支持的结果；依据不足时写可由输入直接支持的保守结果，不输出占位确认文案。
-- `TDI-*` 和 `测试设计项` 留给 `test-design-agent`，当前主交付件禁止输出。
+测试分析方案回答 what to test：输出最多 3 层 `SC-*` 场景树和全局连续 `TP-*` 测试点。它不输出测试用例、测试数据、操作步骤或预期结果。
 
 ## 必需输入
 
 - `$ARGUMENTS`：至少包含一份 `.md` 或 `.markdown` 需求文档路径。
-- `$ARGUMENTS` 可额外包含一份或多份 `.md` 或 `.markdown` 设计方案文档路径，或使用 `--design <path>`、`design=<path>`、`设计方案：<path>` 指定。
-- 如果输入包含 `.docx` 或 `.xlsx`，不得在本 workflow 中转换；必须先由 `@file-normalization-agent` 归一化为 Markdown，再把归一化 Markdown 路径作为本 workflow 输入。
-- 可选项目绑定参数：`--project <project-key>`、`project=<project-key>` 或 `项目：<project-key>`。如果出现该参数，必须原样传递给 `context-source-indexing`，并要求 `process/context-pack.json` 记录 `projectBinding` 和动态 project 来源索引。
-- 可选个人绑定参数：`--personal <personal-key>`、`personal=<personal-key>` 或 `个人：<personal-key>`。如果出现该参数，必须原样传递给 `context-source-indexing`，并要求 `process/context-pack.json` 记录 `personalBinding` 和动态 personal 来源索引。
-
-如果只有需求文档，继续生成测试分析方案；不得编造设计方案中没有的接口、状态、字段、错误提示、错误码或处理规则。缺少具体判定依据时，只输出输入可支撑的保守预期，不写具体错误码、提示文案、状态值或阈值。
+- 可额外包含一份或多份 `.md` 或 `.markdown` 设计方案文档路径。
+- 如果输入包含 `.docx` 或 `.xlsx`，不得在本 workflow 中转换；必须先由 `@file-normalization-agent` 归一化为 Markdown。
+- 可选 `--project <project-key>`，必须传递给 `context-source-indexing`；personal 来源固定来自 `*/user/**/*.md`，无需额外参数。
 
 ## 职责边界
 
 - 本 skill 只负责编排完整分析链路和写出本次运行产物。
-- core 强制规则、通用知识和固定质量门禁由 workflow 或对应 skill 明确读取；project/personal 扩展来源来自 `context-source-indexing` 生成的 `sources[]` 索引。
-- 适用 rules 的优先级低于当前用户明确指令，但高于需求文档、设计方案、memory 和 knowledge；与输入冲突时遵守 rules 并记录覆盖原因。
-- 通用测试分析理论、测试类型、测试点标准、测试分析方案标准和测试技术来自 `knowledge/`。
-- 需求与设计方案的结构化结果用于支撑测试场景、测试点和测试点明细，不直接作为主交付件输出。
-- `input-fact-modeling` 负责建立统一输入事实模型，覆盖需求事实、可选设计事实、需求-设计映射和来源应用说明。
-- `test-analysis-solution-generation` 负责生成测试场景、测试点、测试点明细、失败类型明细和预期结果。
-- `test-analysis-solution-review` 负责在确定性 lint 通过后检查主交付件语义质量，不重复结构、编号、字段和 Markdown 语法检查。
-- `coverage-review` 负责覆盖、追踪、方法应用、core rules 和动态来源应用状态、过程一致性收口，不重复 lint 已覆盖的确定性规则。
-- 主交付件事实源是 `outputs/runs/<run-id>/deliverables/test-analysis-solution.json`；人读版 `test-analysis-solution.md` 必须由 `bin/render-run-markdown.py` 生成。
-- 本流程中 process、deliverables、review 和 coverage 的可编辑事实源均为 JSON；Markdown 只作为派生阅读版。
-
-## 项目根目录与输出路径
-
-在生成任何运行产物前，必须先固定 `PROJECT_ROOT`：
-
-1. `PROJECT_ROOT` 等于用户启动 Claude Code、OpenCode 或当前 agent 会话所在的工作目录。
-2. `$ARGUMENTS` 只用于定位输入文档；不得从输入文档路径向上反推 `PROJECT_ROOT`。
-3. 如果 `$ARGUMENTS` 是相对路径，只按 `PROJECT_ROOT` 解析为绝对路径。
-4. 禁止把 skill 文件所在目录、插件缓存目录、`.claude-plugin/`、`.opencode/` 或宿主内部 skill 工作目录当作 `PROJECT_ROOT`。
-5. 如果当前工作目录明显是上述禁止目录，必须先向用户确认正确工作目录，不得继续生成报告。
-
-所有运行产物必须写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/` 下的固定类别目录，具体契约见 `docs/output-artifact-contract.md`。报告中可以展示相对路径 `outputs/runs/<run-id>/...`，但实际写文件时必须使用基于 `PROJECT_ROOT` 的绝对路径。
-
-`run-id` 只在一次新的完整分析开始时生成一次，固定使用 `python bin/generate-run-id.py` 生成。格式为 `<YYYYMMDD-HHMMSS>`。同一轮分析内的后续修正、质量门禁重跑和报告刷新，必须复用已经创建的运行目录。
-
-## Project/Personal 上下文发现
-
-core 层是随 Agent 包发布的根目录文件：`rules/*.md`、`knowledge/*.md`、templates 和各 skill 私有参考。core 层不进入动态索引，由 workflow 或对应 skill 固定读取。
-
-project 和 personal 是当前 run 的动态扩展输入源，不是后续阶段随意搜索的资料目录。主入口必须让 `context-source-indexing` 只读取 frontmatter，写入 `process/context-pack.json` 的 `sources[]`。后续 skill 只能读取 `sources[]` 中对当前阶段可见的来源正文，并记录应用状态。
-
-project/personal 层只能补充项目风险画像、覆盖策略、术语映射、测试 oracle、个人关注点或附加门禁，不得覆盖 core 层中的核心标准、字段、输出契约和质量门禁。personal 层也不得覆盖需求文档、设计方案文档或 project 来源，不得作为项目事实或团队共识。
-
-动态来源文件名没有硬性要求，但必须声明 frontmatter：`name`、`description`，可选 `stages`。`context-source-indexing` 不读取正文，也不替后续阶段判断具体用途；阶段可见性由 `stages` 决定，缺省表示所有阶段可用。
+- core 强制规则、通用知识和固定质量门禁由 workflow 或对应 skill 明确读取。
+- project/personal 扩展来源来自 `context-source-indexing` 生成的 `sources[]` 索引。
+- `input-fact-modeling` 负责建立统一输入事实模型。
+- `test-analysis-solution-generation` 负责生成 `SC-*` 场景树和 `TP-*` 测试点。
+- `test-analysis-solution-review` 负责语义评审，不重复结构、编号、字段和 Markdown 语法检查。
+- `coverage-review` 负责覆盖、追踪、方法应用、core rules 和动态来源应用状态收口。
+- 主交付件事实源是 `outputs/runs/<run-id>/deliverables/test-analysis-solution.json`；人读版由 `bin/render-run-markdown.py` 生成。
 
 ## 执行流程
 
-1. 校验输入至少包含一份 Markdown 需求文档；识别可选 Markdown 设计方案文档。若发现 `.docx` 或 `.xlsx` 输入，输出需先使用 `@file-normalization-agent` 的阻断说明，不创建测试分析 run。
-2. 将当前 agent 会话工作目录固定为 `PROJECT_ROOT`，运行 `python bin/generate-run-id.py` 生成本次运行 ID，并创建 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/`、`process/`、`reports/` 和 `inputs/`。
-3. 使用 `templates/process-artifacts-json-template.json` 创建 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/task-list.json`，并按阶段维护状态；需要人读版时由渲染脚本生成 `process/task-list.md`。
-4. 解析可选 `project-key` 和 `personal-key`，必须调用 `python skills/context-source-indexing/scripts/build-context-source-index.py ...` 生成 `process/context-pack.json`；不得手工拼写或改写该 JSON。`sources[]` 只允许脚本索引 project/personal 动态来源 frontmatter，登记 `projectBinding`、`personalBinding`、`availableStages`、`availability`、未扫描 project 来源和告警；不得把 core rules、core knowledge、templates、skill 私有参考、绝对路径或应用状态写入 `sources[]`。
-5. 使用 `input-fact-modeling` 读取需求文档和可选设计方案文档，生成 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/input-fact-model.json`，其中包含事实清单、需求-设计映射和来源应用说明；如果未提供设计方案，在事实模型中记录未提供设计依据，而不是单独跳过设计提取阶段。
-6. 使用 `testing-method-router` 对输入事实模型中的需求事实和设计事实进行测试技术路由，选择适用测试技术和专项方法参考；如果 `sources[]` 中存在对本阶段可见的动态来源，必须按需读取并记录应用状态。
-7. 使用路由选中的专项方法参考产出 `ME-*` 方法证据、测试点候选和按源补读记录；范围不明时只做保守适用性判断，不创建问题队列。
-8. 使用 `test-analysis-solution-generation` 基于输入事实模型、测试技术路由、专项方法参考、方法证据和可见动态来源生成并写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.json`；如果 `sources[]` 中存在对本阶段可见的动态来源，必须按需读取并记录应用状态。
-9. 执行确定性 JSON 校验：运行 `bin/lint-run-json.py ${PROJECT_ROOT}/outputs/runs/<run-id>`。如果失败，先按脚本失败项修正 JSON，不进入独立评审和覆盖审查。
-10. 执行 Markdown 渲染和派生 Markdown 校验：运行 `bin/render-run-markdown.py ${PROJECT_ROOT}/outputs/runs/<run-id>`，再运行 `bin/lint-test-analysis-solution.py ${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.md`。如果失败，修正 JSON 后重新渲染，不手工改 Markdown。
-11. 使用 `test-analysis-solution-review` 独立语义评审测试分析方案 JSON，重点检查测试点明细粒度、失败类型拆分充分性、预期结果依据、事实溯源、非用例化语义和本阶段可见动态来源应用；不得重复执行 lint 已覆盖的结构、编号、字段和 Markdown 语法检查。评审结果写入 `reports/test-analysis-solution-review.json`。
-12. 使用 `coverage-review` 执行覆盖、追踪、方法应用、core rules 应用、动态来源应用状态和过程门禁收口；如果 `sources[]` 中存在对本阶段可见的动态来源，必须读取并检查前序阶段应用状态。专家评分和深度语义检查仅在用户明确要求或高风险场景下执行。覆盖结果写入 `reports/coverage-review.json`。
-13. 不再新建自由格式过程分析 Markdown 作为机器证据；测试技术路由、专项分析、review 和 coverage 的机器可读结论应沉淀到 `process/*.json`、`deliverables/test-analysis-solution.json`、`reports/test-analysis-solution-review.json` 或 `reports/coverage-review.json`。迁移旧 run 时才允许保留 `reports/test-analysis-report.md` 作为兼容性人读证据。
-14. 最终输出前刷新 `process/task-list.json`：所有必选阶段必须为 `done`，未触发的可选阶段为 `skipped` 并说明原因；运行 `bin/render-run-markdown.py ${PROJECT_ROOT}/outputs/runs/<run-id>` 生成派生 Markdown；运行 `bin/check-artifact-consistency.py ${PROJECT_ROOT}/outputs/runs/<run-id>` 做最终一致性检查；如果存在 `blocked`，必须在 `process/task-list.json` 或 review/coverage JSON 中说明。
+1. 校验输入至少包含一份 Markdown 需求文档；若发现 Office 输入，输出需先使用 `@file-normalization-agent` 的阻断说明，不创建测试分析 run。
+2. 固定 `PROJECT_ROOT`，运行 `python bin/generate-run-id.py` 生成本次运行 ID，并创建 `outputs/runs/<run-id>/deliverables/`、`process/`、`reports/` 和 `inputs/`。
+3. 使用 `templates/process-artifacts-json-template.json` 创建 `process/task-list.json`，并按阶段维护状态。
+4. 调用 `python skills/context-source-indexing/scripts/build-context-source-index.py ...` 生成 `process/context-pack.json`。
+5. 使用 `input-fact-modeling` 读取需求文档和可选设计方案文档，生成 `process/input-fact-model.json`。
+6. 使用 `testing-method-router` 对输入事实模型中的需求事实和设计事实进行测试技术路由。
+7. 使用路由选中的专项方法参考产出 `ME-*` 方法证据、测试点候选和按源补读记录。
+8. 使用 `test-analysis-solution-generation` 生成 `deliverables/test-analysis-solution.json`。主交付件使用 schema `2.0`，只包含 `SC-*` 和 `TP-*`。
+9. 运行 `bin/lint-run-json.py outputs/runs/<run-id>`。失败时先修正 JSON，不进入评审。
+10. 运行 `bin/render-run-markdown.py outputs/runs/<run-id>`，再运行 `bin/lint-test-analysis-solution.py outputs/runs/<run-id>/deliverables/test-analysis-solution.md`。
+11. 使用 `test-analysis-solution-review` 独立语义评审测试分析方案 JSON，评审结果写入 `reports/test-analysis-solution-review.json`。
+12. 使用 `coverage-review` 执行覆盖、追踪、方法应用和过程门禁收口，结果写入 `reports/coverage-review.json`。
+13. 最终输出前刷新 `process/task-list.json`，运行 `bin/render-run-markdown.py` 和 `bin/check-artifact-consistency.py`。
 
 ## 阶段产物契约
 
 | 阶段 | 必须产出 | 交给下一阶段 |
 |---|---|---|
 | `task-list` | `process/task-list.json`、派生 `process/task-list.md` | 全流程阶段顺序与状态追踪 |
-| `context-source-indexing` | `process/context-pack.json`、`projectBinding`、`personalBinding`、动态 `sources[]`、未扫描 project 来源和告警 | 后续阶段按阶段可见性读取动态来源 |
-| `input-fact-modeling` | `process/input-fact-model.json`、事实清单、需求-设计映射、来源应用说明 | 测试技术路由、测试分析方案生成 |
-| `testing-method-router` | 分析维度覆盖表、测试技术路由表 | 专项方法参考、测试分析方案生成 |
+| `context-source-indexing` | `process/context-pack.json` | 后续阶段按阶段可见性读取动态来源 |
+| `input-fact-modeling` | `process/input-fact-model.json` | 测试技术路由、测试分析方案生成 |
+| `testing-method-router` | 测试技术路由表 | 专项方法参考、测试分析方案生成 |
 | 专项方法参考 | `ME-*` 方法证据、测试点候选 | 测试分析方案生成 |
-| `test-analysis-solution-generation` | `deliverables/test-analysis-solution.json`、测试场景、测试点、测试点明细、失败类型明细、预期结果 | JSON 校验 |
-| 确定性校验 | `lint-run-json.py`、`render-run-markdown.py --check`、`lint-test-analysis-solution.py` 结果 | 独立语义评审；失败时回到 JSON 修正 |
-| `test-analysis-solution-review` | `reports/test-analysis-solution-review.json` | 覆盖审查与输出收口 |
-| `coverage-review` | `reports/coverage-review.json` | 主交付件、结构化过程记录和覆盖结论收口 |
-
-## 动态来源应用留痕
-
-如果 `process/context-pack.json` 的 `sources[]` 中存在对当前阶段可见的动态 project/personal 来源，当前阶段必须在过程 JSON、review JSON 或 coverage JSON 中输出应用记录：
-
-| 来源文件 | 当前阶段 | 应用状态 | 应用位置 | 说明 |
-|---|---|---|---|---|
-
-应用状态只能使用 `applied`、`not_applicable`、`insufficient_evidence`、`conflict_with_requirement` 或 `deferred_to_review`。覆盖审查必须检查可见动态来源是否被对应阶段读取、应用或解释跳过；未读取或无状态说明时，按质量问题处理。
+| `test-analysis-solution-generation` | `deliverables/test-analysis-solution.json`、场景树、测试点 | JSON 校验 |
+| 确定性校验 | JSON lint、Markdown render、Markdown lint | 独立语义评审 |
+| `test-analysis-solution-review` | `reports/test-analysis-solution-review.json` | 覆盖审查 |
+| `coverage-review` | `reports/coverage-review.json` | 输出收口 |
 
 ## 输出要求
 
-- 主输出使用 `templates/test-analysis-solution-json-template.json` 生成 JSON；`templates/test-analysis-solution-template.md` 仅作为渲染后 Markdown 样式参考。
-- 主输出只包含测试分析方案所需内容，不设置 `未明确规则` 章节，不设置独立待确认信息清单。
-- 渲染后的 Markdown 必须包含 `## 1. 需求范围` 和 `## 2. 测试场景与测试点`。
-- 主输出必须按 `测试场景 -> 测试点 -> 测试点明细` 组织；非成功测试点明细按 `测试场景 -> 测试点 -> 测试点明细 -> 失败类型明细` 组织；接口契约不使用接口专用编号体系。若当前任务或输入明确要求接口测试/API 契约覆盖，接口测试或集成覆盖场景下必须先按接口、端点、消息、回调或集成点组织同级 `TP-*`，再拆契约维度。
-- 主输出只使用中文术语和固定缩写 `SC`、`TP`、`TP-*-*`、`TP-*-*-*`，不得使用 `TDI-*`、`TD-*`、`TC-*`、`TCT-*`、`TI-*`、`ITP-*` 或 `ITDI-*`。
-- 每个测试场景下必须包含一个 `E2E场景测试` 测试点。
-- 每个测试点下至少有 1 个测试点明细。
-- 普通测试点明细必须包含 `description` 和 `expectedResult`；明确非成功聚合测试点明细必须新增 `TP-*-*-*` 失败类型明细，并由第四层承载 `description` 和 `expectedResult`。
-- 是否新增第四层由 `TP-*-*` 测试点明细决定，不由 `TP-*` 测试点主题决定；“未找到返回空结果”“列表为空”“count=0”等单一弱结果分支不强制新增第四层。
-- `测试点明细` 只写规则分支、路径分支、状态分支、权限分支、接口契约分支或风险分支，例如“下发订单 ID 满足长度要求”“下发订单 ID 不满足长度要求”。
-- 主输出不得把测试点明细拆成具体代表性条件、数据、状态或组合，例如不要输出“订单 ID 长度等于 13 位”“订单 ID 长度小于 13 位”；这些留给 `test-design-agent`。
-- `预期结果` 只能来自当前用户明确指令、core rules、对当前阶段可见且已读取的动态来源、需求、设计方案或可直接推出的业务不变量。
-- 如果需求和设计方案没有明确错误提示、状态变化、错误码、返回内容、数据记录变化或其他判定依据，`预期结果` 只写可由输入支持的保守结果，不写具体缺失值或占位确认文案。
-- 主输出不得包含 `覆盖意图`、`级别`、`待确认信息`、`判定关注`、`输入条件与数据依赖` 等旧字段。
-- 主输出不得使用 Markdown 加粗语法，例如 `**文本**` 或 `__文本__`。
-- 主输出不得包含操作步骤、前置步骤、有序测试步骤、自动化脚本、接口调用代码或执行数据表。
-- 测试技术路由、方法证据、覆盖审查、质量门禁、独立评审和 memory 更新建议优先写入结构化过程 JSON 或 review/coverage JSON；这些过程字段不得进入主交付件正文。
-
-## 硬性约束
-
-- 不生成完整测试用例。
-- 不生成操作步骤。
-- 不生成自动化脚本。
-- 不生成 `TDI-*` 或测试设计项。
-- 不编造当前用户明确指令、适用 rules、需求或设计方案中没有的业务规则、接口、字段、状态、角色、阈值、错误提示、错误码或测试数据。
-- 不把“回读原始需求、设计方案、结构化过程记录或 memory”作为后续理解测试分析方案的前提。
-- 不直接覆盖历史运行产物；所有本次运行产物必须写入同一个 `${PROJECT_ROOT}/outputs/runs/<run-id>/` 目录，并使用固定文件名。
-- 不允许在 `skills/`、`.claude-plugin/`、`.opencode/`、插件缓存目录或 skill 工作目录下创建 `outputs/runs/`。
+- 主输出使用 `templates/test-analysis-solution-json-template.json` 生成 JSON。
+- `scenarios[]` 是场景树，最多 3 层；非叶子场景只允许有 `children[]`，叶子场景必须有 `testPoints[]`。
+- `TP-*` 全局连续编号，每个叶子场景必须包含 `E2E场景测试`。
+- `TP-*` 必须包含 `id`、`title`、`objective`，建议包含 `basisRefs[]` 和 `methodRefs[]`。
+- 分析方案不得包含测试用例、测试数据、步骤、预期结果或 schemaVersion 2.0 之外的字段。
+- 主输出不得使用 Markdown 加粗语法。
 - 全流程不调用用户交互能力，不创建问题队列，不直接向用户提问，不暂停主流程。
-- 未经用户明确确认，不写入 memory 源文件。

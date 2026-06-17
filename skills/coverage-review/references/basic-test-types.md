@@ -65,6 +65,6 @@
 ## 使用规则
 
 - 主输出中优先使用上表子类，避免自造类型。
-- 一个测试点只选择一个最主要的大类和子类；其他关注点写入风险备注、测试点明细或预期结果依据。
+- 一个测试点只选择一个最主要的大类和子类；其他关注点写入风险备注、测试点或预期结果依据。
 - 如果需求只有弱信号，不强行扩大为性能、安全或兼容专项；在 review/coverage findings 中说明为可选风险即可。
 - 类型用于表达覆盖视角，不替代测试技术。测试技术仍以 `knowledge/test-techniques/README.md` 和 `skills/testing-method-router/references/test-method-routing-matrix.md` 为准。

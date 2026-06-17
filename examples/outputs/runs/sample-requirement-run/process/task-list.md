@@ -20,6 +20,6 @@
 | 6 | 按源补读 | selected method references | 按需补读记录、来源说明 | skipped | 示例未触发补读 |
 | 7 | 测试分析方案生成 | test-analysis-solution-generation | deliverables/test-analysis-solution.json、动态来源应用记录 | done | deliverables/test-analysis-solution.json |
 | 8 | 确定性校验 | bin | lint-run-json.py、render-run-markdown.py、lint-test-analysis-solution.py 结果；失败不进入评审 | done | bin/lint-run-json.py；bin/render-run-markdown.py；bin/lint-test-analysis-solution.py |
-| 9 | 独立评审 | test-analysis-solution-review | 语义覆盖、测试点明细粒度、预期结果依据、事实溯源和非用例化语义 | done | reports/test-analysis-solution-review.json |
+| 9 | 独立评审 | test-analysis-solution-review | 语义覆盖、测试点粒度、依据质量、事实溯源和分析边界 | done | reports/test-analysis-solution-review.json |
 | 10 | 覆盖审查 | coverage-review | 需求/方法/rules/动态来源应用检查、阻断项；专家评分仅深度评估时执行 | done | reports/coverage-review.json |
 | 11 | 输出收口 | test-analysis-workflow | 主交付件 JSON/Markdown 路径、review/coverage JSON 路径、check-artifact-consistency.py 结果 | done | deliverables/test-analysis-solution.json |

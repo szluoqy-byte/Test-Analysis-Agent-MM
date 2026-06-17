@@ -26,7 +26,7 @@ python skills/context-source-indexing/scripts/build-context-source-index.py \
 
 - 只索引 `project` 和 `personal` 扩展来源的元数据。
 - 不扫描、不摘录、不动态索引 core 层文件：根目录 `rules/*.md`、`knowledge/*.md`、`templates/` 和各 skill 私有参考文件由 workflow 或对应 skill 固定引用。
-- 不读取动态来源正文来判断具体测试点、测试设计项、覆盖缺口或专项方法命中。
+- 不读取动态来源正文来判断具体测试点、测试用例、覆盖缺口或专项方法命中。
 - 不把来源内容复制到 context pack；context pack 只记录路径、名称、描述、阶段可见性、绑定状态和告警。
 - 不把 `applied`、`not_applicable`、`conflict_with_requirement` 等应用状态写入 `sources[]`；应用状态只能写入后续阶段的过程 JSON、review JSON 或 coverage JSON。
 - 不把绝对路径写入 `sources[].path`；脚本输出统一使用仓库相对路径。
@@ -37,13 +37,13 @@ python skills/context-source-indexing/scripts/build-context-source-index.py \
 - 当前 run 目录：`${PROJECT_ROOT}/outputs/runs/<run-id>/`。
 - 已解析的需求文档路径、需求标题或关键词，用于记录本次索引背景。
 - 可选 `project-key`：显式提供时优先使用；未提供时，脚本只枚举 project 一级目录名，并用需求标题、路径和关键词做唯一匹配。只有唯一确定时才扫描 project 层路径。
-- 可选 `personal-key`：当前默认使用 `default`，扫描 `*/user/**/*.md`。
+- personal 层固定扫描 `*/user/**/*.md`，无需额外参数。
 - 脚本：`skills/context-source-indexing/scripts/build-context-source-index.py`。
 - 模板：`templates/context-pack-json-template.json` 和 `templates/context-pack-template.md`，仅作为结构和人读样式参考；实际生成以脚本输出为准。
 
 ## 执行方式
 
-1. 从用户参数或上游流程取得 `<run-id>`、需求 Markdown 路径、需求标题、关键词、可选 `project-key` 和可选 `personal-key`。
+1. 从用户参数或上游流程取得 `<run-id>`、需求 Markdown 路径、需求标题、关键词和可选 `project-key`。
 2. 调用 `skills/context-source-indexing/scripts/build-context-source-index.py` 生成 `process/context-pack.json`。
 3. 检查脚本输出的 `warnings[]`。frontmatter 缺失、非法 `stages` 或非法 `project-key` 都保留在 JSON 中，不静默忽略。
 4. 不手工编辑 `process/context-pack.md`；如果需要刷新人读版，重新运行脚本或 `python bin/render-run-markdown.py outputs/runs/<run-id>`。
@@ -64,8 +64,7 @@ python skills/context-source-indexing/scripts/build-context-source-index.py \
 python skills/context-source-indexing/scripts/build-context-source-index.py \
   --run-dir outputs/runs/<run-id> \
   --requirement <requirement.md> \
-  --project <project-key> \
-  --personal default
+  --project <project-key>
 ```
 
 ## 动态来源范围
@@ -107,7 +106,7 @@ stages:
 - `description`：必填，说明该来源提供什么补充价值。
 - `stages`：可选。缺省或空数组表示对所有阶段可见，渲染为 `["*"]`；显式配置时只对列出的阶段可见。
 
-`sources[]` 不写 `sourceType`、`layer`、`projectKey`、`stages` 或 `applied`。这些信息由路径和后续阶段应用记录推断：`rules/projects/<project-key>/...` 是 project rules，`knowledge/user/...` 是 personal knowledge。`project-key` 的绑定只写在顶层 `projectBinding`；阶段可见性只写为 `availableStages` 和 `availability`。
+`sources[]` 不写 `sourceType`、`layer`、`projectKey`、`stages`、`applied` 或 personal 专属字段。这些信息由路径和后续阶段应用记录推断：`rules/projects/<project-key>/...` 是 project rules，`knowledge/user/...` 是 personal knowledge。`project-key` 的绑定只写在顶层 `projectBinding`；personal 来源只通过 `rules/user/**`、`knowledge/user/**`、`memory/user/**` 路径表达；阶段可见性只写为 `availableStages` 和 `availability`。
 
 推荐阶段值：
 
@@ -116,6 +115,7 @@ stages:
 - `test-analysis-solution-generation`
 - `test-analysis-solution-review`
 - `test-design-solution-generation`
+- `test-case-writing`
 - `test-design-solution-review`
 - `coverage-review`
 
@@ -137,11 +137,6 @@ stages:
     "status": "unresolved",
     "projectKey": "",
     "reason": "未提供 project-key，且无法从输入唯一识别"
-  },
-  "personalBinding": {
-    "status": "default",
-    "personalKey": "default",
-    "reason": "使用默认 personal 扩展路径"
   },
   "sources": [
     {

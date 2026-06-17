@@ -2,7 +2,7 @@
 
 ## 方法定义
 
-数据组合测试技术用于处理多个输入因子共同影响结果的场景。它通过识别因子、取值和约束，选择合适的组合策略生成代表性测试设计项。组合策略可以是全组合、pairwise、正交组合或基于风险的裁剪组合。
+数据组合测试技术用于处理多个输入因子共同影响结果的场景。它通过识别因子、取值和约束，选择合适的组合策略生成代表性测试用例。组合策略可以是全组合、pairwise、正交组合或基于风险的裁剪组合。
 
 DCoT 的目标不是穷举所有可能，而是在成本可控的前提下覆盖关键因子交互。
 
@@ -41,17 +41,17 @@ DCoT 的目标不是穷举所有可能，而是在成本可控的前提下覆盖
    - 因子水平较规整：正交组合。
    - 存在明确高风险组合：风险裁剪组合。
 5. 强制加入历史缺陷组合、核心链路组合和边界组合。
-6. 为每个组合生成可落地测试设计项或把多个低风险组合合并为检查清单。
+6. 为每个组合生成可落地测试用例或把多个低风险组合合并为检查清单。
 
-## 测试设计项派生规则
+## 测试用例派生规则
 
 | 组合类型 | 派生方式 |
 |---|---|
-| 基准组合 | 一条主路径成功测试设计项 |
-| 高风险组合 | 独立测试设计项，等级不低于对应测试点 |
-| 历史缺陷组合 | 独立回归测试设计项 |
-| 非法组合 | 拦截或不允许配置测试设计项 |
-| 兼容组合 | 结果一致性或差异性验证测试设计项 |
+| 基准组合 | 一条主路径成功测试用例 |
+| 高风险组合 | 独立测试用例，等级不低于对应测试点 |
+| 历史缺陷组合 | 独立回归测试用例 |
+| 非法组合 | 拦截或不允许配置测试用例 |
+| 兼容组合 | 结果一致性或差异性验证测试用例 |
 | 多条件筛选组合 | 覆盖全部条件满足、仅部分条件满足、全部条件不满足，验证结果只包含命中组合的数据 |
 
 ## 数量控制
@@ -68,7 +68,7 @@ DCoT 的目标不是穷举所有可能，而是在成本可控的前提下覆盖
 - 对不可同时满足的组合提前标记为非法组合。
 - 准备基准数据，避免组合差异被无关数据干扰。
 
-## 测试设计项生成关注
+## 测试用例生成关注
 
 - 明确设置或选择每个因子的取值。
 - 组合验证动作应保持一致，便于比较结果。
@@ -85,13 +85,13 @@ DCoT 的目标不是穷举所有可能，而是在成本可控的前提下覆盖
 
 - 把无限数据值当成组合水平，导致无法收敛。
 - 只生成 pairwise，漏掉业务指定的高风险三元组合。
-- 不记录非法组合原因，导致测试设计项无法落地。
+- 不记录非法组合原因，导致测试用例无法落地。
 - 将组合测试与判定表混用，条件和动作关系不清。
 - 组合筛选只验证全部条件同时满足，遗漏部分条件满足或全部不满足时的排除效果。
 
-## 测试设计项示例
+## 测试用例示例
 
-以下示例展示多个因子如何用代表性组合覆盖，不穷举全部矩阵。示例中的 `TDI-*` 只用于展示编号方式；实际输出必须按主交付件全局连续编号。
+以下示例展示多个因子如何用代表性组合覆盖，不穷举全部矩阵。示例中的 `TC-*` 只用于展示编号方式；实际输出必须按主交付件全局连续编号。
 
 ### 示例：订单 ID 新规则的渠道与生成器组合
 
@@ -109,26 +109,26 @@ DCoT 的目标不是穷举所有可能，而是在成本可控的前提下覆盖
 
 ```json
 {
-  "designItems": [
+  "testCaseHints": [
     {
-      "id": "TDI-001",
-      "content": "channel=APP；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=AGT"
+      "id": "TC-001",
+      "condition": "channel=APP；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=AGT"
     },
     {
-      "id": "TDI-002",
-      "content": "channel=USSD；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=AGT"
+      "id": "TC-002",
+      "condition": "channel=USSD；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=AGT"
     },
     {
-      "id": "TDI-003",
-      "content": "channel=API；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=未配置；defaultPrefix=SYS"
+      "id": "TC-003",
+      "condition": "channel=API；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=未配置；defaultPrefix=SYS"
     },
     {
-      "id": "TDI-004",
-      "content": "channel=WEB；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=未配置；defaultPrefix=SYS"
+      "id": "TC-004",
+      "condition": "channel=WEB；orderIdGenerator=MaliOrderId13BitsGenerator；reasonTypePrefix=未配置；defaultPrefix=SYS"
     },
     {
-      "id": "TDI-005",
-      "content": "channel=APP；orderIdGenerator=OrderId22BitsGenerator；reasonTypePrefix=AGT"
+      "id": "TC-005",
+      "condition": "channel=APP；orderIdGenerator=OrderId22BitsGenerator；reasonTypePrefix=AGT"
     }
   ]
 }

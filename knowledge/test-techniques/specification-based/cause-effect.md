@@ -2,9 +2,9 @@
 
 ## 方法定义
 
-因果图测试技术用于分析输入原因和输出结果之间的逻辑关系。它先识别原因、结果和约束，再将逻辑关系转换为判定表或关键组合测试设计项。
+因果图测试技术用于分析输入原因和输出结果之间的逻辑关系。它先识别原因、结果和约束，再将逻辑关系转换为判定表或关键组合测试用例。
 
-因果图本身通常不是最终测试设计项，而是建模工具。最终测试设计项应落到判定表、数据组合或具体场景。
+因果图本身通常不是最终测试用例，而是建模工具。最终测试用例应落到判定表、数据组合或具体场景。
 
 ## 适用场景
 
@@ -41,9 +41,9 @@
    - 要求：某结果发生需要指定原因。
 5. 将因果图转换为判定表或关键组合。
 6. 删除不可能组合。
-7. 为每个结果和关键约束派生测试设计项。
+7. 为每个结果和关键约束派生测试用例。
 
-## 测试设计项派生规则
+## 测试用例派生规则
 
 | 关系类型 | 派生方式 |
 |---|---|
@@ -55,7 +55,7 @@
 
 ## 数量控制
 
-- 因果图复杂时，最终测试设计项不要覆盖所有布尔组合。
+- 因果图复杂时，最终测试用例不要覆盖所有布尔组合。
 - 优先覆盖每个结果至少一次。
 - 优先覆盖约束违反场景。
 - 高风险结果保留多个关键原因组合。
@@ -66,11 +66,11 @@
 - 对互斥或包含关系，明确如何构造违反约束的数据。
 - 确认结果可观察。
 
-## 测试设计项生成关注
+## 测试用例生成关注
 
 - 按原因组合构造输入。
 - 触发系统判断。
-- 不在同一测试设计项中验证多个结果。
+- 不在同一测试用例中验证多个结果。
 
 ## 预期结果依据
 
@@ -81,12 +81,12 @@
 
 ## 常见误区
 
-- 把因果图作为最终输出，不转换为可落地测试设计项。
+- 把因果图作为最终输出，不转换为可落地测试用例。
 - 原因不是原子条件，导致组合含糊。
 - 忽略互斥和包含约束。
-- 穷举所有组合，产生大量低价值测试设计项。
+- 穷举所有组合，产生大量低价值测试用例。
 
-## 测试设计项示例
+## 测试用例示例
 
 ### 示例：实名与风控原因共同决定转账放行
 
@@ -108,30 +108,30 @@
 
 ```json
 {
-  "designItems": [
+  "testCaseHints": [
     {
-      "id": "TDI-001",
-      "content": "payerKycStatus=已实名；payeeStatus=正常；amount=1000.00；singleLimit=5000.00；riskListHit=false"
+      "id": "TC-001",
+      "condition": "payerKycStatus=已实名；payeeStatus=正常；amount=1000.00；singleLimit=5000.00；riskListHit=false"
     },
     {
-      "id": "TDI-002",
-      "content": "payerKycStatus=未实名；payeeStatus=正常；amount=1000.00；singleLimit=5000.00；riskListHit=false"
+      "id": "TC-002",
+      "condition": "payerKycStatus=未实名；payeeStatus=正常；amount=1000.00；singleLimit=5000.00；riskListHit=false"
     },
     {
-      "id": "TDI-003",
-      "content": "payerKycStatus=已实名；payeeStatus=冻结；amount=1000.00；singleLimit=5000.00；riskListHit=false"
+      "id": "TC-003",
+      "condition": "payerKycStatus=已实名；payeeStatus=冻结；amount=1000.00；singleLimit=5000.00；riskListHit=false"
     },
     {
-      "id": "TDI-004",
-      "content": "payerKycStatus=已实名；payeeStatus=正常；amount=5000.01；singleLimit=5000.00；riskListHit=false"
+      "id": "TC-004",
+      "condition": "payerKycStatus=已实名；payeeStatus=正常；amount=5000.01；singleLimit=5000.00；riskListHit=false"
     },
     {
-      "id": "TDI-005",
-      "content": "payerKycStatus=已实名；payeeStatus=正常；amount=1000.00；singleLimit=5000.00；riskListHit=true"
+      "id": "TC-005",
+      "condition": "payerKycStatus=已实名；payeeStatus=正常；amount=1000.00；singleLimit=5000.00；riskListHit=true"
     },
     {
-      "id": "TDI-006",
-      "content": "payerKycStatus=未实名；payeeStatus=正常；amount=1000.00；riskListHit=true"
+      "id": "TC-006",
+      "condition": "payerKycStatus=未实名；payeeStatus=正常；amount=1000.00；riskListHit=true"
     }
   ]
 }
@@ -139,6 +139,6 @@
 
 - 设计要点：
 
-- 因果图示例要把原因、结果和优先级说清楚，再落成设计项。
-- 同一叶子节点下的设计项应共享同一个预期结果；如果不同组合对应不同拒绝原因，应在分析层拆分叶子节点。
+- 因果图示例要把原因、结果和优先级说清楚，再落成测试用例。
+- 同一叶子节点下的测试用例应共享同一个预期结果；如果不同组合对应不同拒绝原因，应在分析层拆分叶子节点。
 - 若需求未说明错误码或拒绝优先级，预期结果只写输入可支撑的保守拒绝结果。

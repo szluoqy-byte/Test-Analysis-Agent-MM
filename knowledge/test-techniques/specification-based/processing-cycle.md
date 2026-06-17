@@ -35,13 +35,13 @@ PCT 适合账期、结算、批处理、定时任务、重试轮次等场景。�
 
 1. 明确周期单位和周期边界。
 2. 明确处理触发方式和处理对象范围。
-3. 设计周期开始、周期中、周期结束、跨周期测试设计项。
-4. 设计重复执行和幂等测试设计项。
-5. 设计失败、重试、补偿和恢复测试设计项。
+3. 设计周期开始、周期中、周期结束、跨周期测试用例。
+4. 设计重复执行和幂等测试用例。
+5. 设计失败、重试、补偿和恢复测试用例。
 6. 对账务、库存、统计等数据类场景补充一致性验证。
 7. 对高风险周期任务补充日志、审计和告警验证。
 
-## 测试设计项派生规则
+## 测试用例派生规则
 
 | 场景类型 | 派生方式 |
 |---|---|
@@ -66,13 +66,13 @@ PCT 适合账期、结算、批处理、定时任务、重试轮次等场景。�
 - 准备已处理、未处理、处理失败的数据。
 - 如果需要模拟定时任务，应说明触发方式。
 
-## 测试设计项生成关注
+## 测试用例生成关注
 
 - 明确触发周期处理的动作。
 - 对重复执行场景，应连续触发两次或多次。
 - 对跨周期场景，应先构造旧周期数据，再切换到新周期。
-- 对失败、重试、补偿或轮询场景，`TDI-*` 必须写清可观察分支条件，例如查询返回数量、依赖返回状态、对象终态、重试次数或补偿状态，不只写“补偿成功”“接口超时”。
-- 如果同一补偿逻辑覆盖不同入口或渠道，应在设计项中补充 `场景=`、`渠道=`、`操作=` 或 `数据依赖=` 等差异维度。
+- 对失败、重试、补偿或轮询场景，`TC-*` 必须写清可观察分支条件，例如查询返回数量、依赖返回状态、对象终态、重试次数或补偿状态，不只写“补偿成功”“接口超时”。
+- 如果同一补偿逻辑覆盖不同入口或渠道，应在测试用例中补充 `场景=`、`渠道=`、`操作=` 或 `数据依赖=` 等差异维度。
 
 ## 预期结果依据
 
@@ -89,7 +89,7 @@ PCT 适合账期、结算、批处理、定时任务、重试轮次等场景。�
 - 把对象状态变化当作周期测试，遗漏时间边界。
 - 对失败补偿只看任务成功，不看数据最终一致。
 
-## 测试设计项示例
+## 测试用例示例
 
 ### 示例：日终结算任务处理周期
 
@@ -107,42 +107,42 @@ PCT 适合账期、结算、批处理、定时任务、重试轮次等场景。�
 
 ```json
 {
-  "designItems": [
+  "testCaseHints": [
     {
-      "id": "TDI-001",
-      "content": "cycleDate=2026-06-02；pendingSettlementCount=0；taskType=日终结算"
+      "id": "TC-001",
+      "condition": "cycleDate=2026-06-02；pendingSettlementCount=0；taskType=日终结算"
     },
     {
-      "id": "TDI-002",
-      "content": "cycleDate=2026-06-02；transactionId=TXN_SUCCESS_001；transactionTime=2026-06-02 12:00:00；settlementStatus=未结算"
+      "id": "TC-002",
+      "condition": "cycleDate=2026-06-02；transactionId=TXN_SUCCESS_001；transactionTime=2026-06-02 12:00:00；settlementStatus=未结算"
     },
     {
-      "id": "TDI-003",
-      "content": "cycleDate=2026-06-02；transactionId=TXN_EDGE_001；transactionTime=2026-06-02 23:59:59"
+      "id": "TC-003",
+      "condition": "cycleDate=2026-06-02；transactionId=TXN_EDGE_001；transactionTime=2026-06-02 23:59:59"
     },
     {
-      "id": "TDI-004",
-      "content": "cycleDate=2026-06-02；transactionId=TXN_EDGE_002；transactionTime=2026-06-03 00:00:00"
+      "id": "TC-004",
+      "condition": "cycleDate=2026-06-02；transactionId=TXN_EDGE_002；transactionTime=2026-06-03 00:00:00"
     },
     {
-      "id": "TDI-005",
-      "content": "cycleDate=2026-06-02；transactionId=TXN_SETTLED_001；settlementStatus=已结算；taskRun=重复执行"
+      "id": "TC-005",
+      "condition": "cycleDate=2026-06-02；transactionId=TXN_SETTLED_001；settlementStatus=已结算；taskRun=重复执行"
     },
     {
-      "id": "TDI-006",
-      "content": "cycleDate=2026-06-02；dependencyStatus=首次失败后恢复；retryCount=1"
+      "id": "TC-006",
+      "condition": "cycleDate=2026-06-02；dependencyStatus=首次失败后恢复；retryCount=1"
     },
     {
-      "id": "TDI-007",
-      "content": "cycleDate=2026-06-02；查询返回count=1；payment_status=SUCCESS；compensationAction=关闭补偿"
+      "id": "TC-007",
+      "condition": "cycleDate=2026-06-02；查询返回count=1；payment_status=SUCCESS；compensationAction=关闭补偿"
     },
     {
-      "id": "TDI-008",
-      "content": "cycleDate=2026-06-02；查询返回count=0；payment_status=FAILED；compensationAction=标记失败"
+      "id": "TC-008",
+      "condition": "cycleDate=2026-06-02；查询返回count=0；payment_status=FAILED；compensationAction=标记失败"
     },
     {
-      "id": "TDI-009",
-      "content": "cycleDate=2026-06-02；查询超时；payment_status=TIMEOUT；retryCount=达到上限"
+      "id": "TC-009",
+      "condition": "cycleDate=2026-06-02；查询超时；payment_status=TIMEOUT；retryCount=达到上限"
     }
   ]
 }
@@ -152,5 +152,5 @@ PCT 适合账期、结算、批处理、定时任务、重试轮次等场景。�
 
 - 周期技术要把开始、边界、跨周期、重复执行和失败恢复分开表达。
 - 时间边界要使用能代表归属差异的具体点，不只写“跨天场景”。
-- 失败补偿设计项应把依赖返回和对象终态写成可观察组合，不要只写“接口超时”或“补偿完成”。
+- 失败补偿测试用例应把依赖返回和对象终态写成可观察组合，不要只写“接口超时”或“补偿完成”。
 - 如果账期归属口径、执行时间或重试策略未说明，预期结果只写输入可支撑的保守预期，不补写具体口径、时间或策略。

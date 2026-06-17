@@ -113,9 +113,7 @@ def labelize_key(key: str) -> str:
     labels = {
         "id": "ID",
         "project-key": "project-key",
-        "personal-key": "personal-key",
         "projectKey": "project-key",
-        "personalKey": "personal-key",
         "runId": "运行 ID",
         "reason": "原因",
         "result": "结论",
@@ -287,14 +285,12 @@ def render_context_pack(data: dict[str, Any]) -> str:
     lines.append("")
 
     project_binding = data.get("projectBinding") if isinstance(data.get("projectBinding"), dict) else {}
-    personal_binding = data.get("personalBinding") if isinstance(data.get("personalBinding"), dict) else {}
     lines.extend(["## 绑定结果", ""])
     lines.extend(
         markdown_table(
             ["绑定", "状态", "标识", "说明"],
             [
                 ["projectBinding", project_binding.get("status", ""), project_binding.get("projectKey", ""), project_binding.get("reason", "")],
-                ["personalBinding", personal_binding.get("status", ""), personal_binding.get("personalKey", ""), personal_binding.get("reason", "")],
             ],
         )
     )
@@ -377,67 +373,113 @@ def render_solution_fields(fields: list[dict[str, Any]]) -> list[str]:
     return markdown_table(["字段", "内容"], rows)
 
 
+def render_source_refs(refs: Any) -> str:
+    if not isinstance(refs, list) or not refs:
+        return "无记录"
+    return "；".join(inline_value(ref) for ref in refs if not is_empty_value(ref)) or "无记录"
+
+
+def scenario_children(scenario: dict[str, Any]) -> list[dict[str, Any]]:
+    children = scenario.get("children", [])
+    return children if isinstance(children, list) else []
+
+
+def iter_scenarios(scenarios: list[dict[str, Any]], depth: int = 1) -> list[tuple[dict[str, Any], int]]:
+    items: list[tuple[dict[str, Any], int]] = []
+    for scenario in scenarios:
+        if not isinstance(scenario, dict):
+            continue
+        items.append((scenario, depth))
+        items.extend(iter_scenarios(scenario_children(scenario), depth + 1))
+    return items
+
+
+def render_test_point(point: dict[str, Any]) -> list[str]:
+    lines = [f"#### {point.get('id')} {point.get('title')}", ""]
+    rows = [
+        ["验证目标", point.get("objective", "")],
+        ["依据引用", render_source_refs(point.get("basisRefs", []))],
+        ["方法引用", render_source_refs(point.get("methodRefs", []))],
+    ]
+    note = normalize_text(point.get("note"))
+    if note:
+        rows.append(["说明", note])
+    lines.extend(markdown_table(["字段", "内容"], rows))
+    lines.append("")
+    return lines
+
+
 def render_analysis_solution(data: dict[str, Any]) -> str:
     lines = [f"# {data.get('title', '测试分析方案')}", "", "## 1. 需求范围", ""]
     lines.extend(render_solution_fields(data.get("scope", [])))
     lines.extend(["", "## 2. 测试场景与测试点", ""])
-    for scenario in data.get("scenarios", []):
+    for scenario, depth in iter_scenarios(data.get("scenarios", [])):
         lines.extend([f"### {scenario.get('id')} {scenario.get('title')}", ""])
+        if depth > 1:
+            lines.append(f"- 场景层级：{depth}")
+            lines.append("")
         lines.extend(render_solution_fields(scenario.get("fields", [])))
         lines.append("")
         for point in scenario.get("testPoints", []):
-            lines.extend([f"#### {point.get('id')} {point.get('title')}", ""])
-            for detail in point.get("details", []):
-                lines.append(f"##### {detail.get('id')} {detail.get('title')}")
-                failure_details = detail.get("failureDetails", [])
-                if failure_details:
-                    lines.append("")
-                    for failure in failure_details:
-                        lines.append(f"###### {failure.get('id')} {failure.get('title')}")
-                        lines.extend(["", f"- 测试点详情：{failure.get('description', '')}", ""])
-                        lines.append(f"- 预期结果：{failure.get('expectedResult', '')}")
-                        lines.append("")
-                else:
-                    lines.extend(["", f"- 测试点详情：{detail.get('description', '')}", ""])
-                    lines.append(f"- 预期结果：{detail.get('expectedResult', '')}")
-                    lines.append("")
+            lines.extend(render_test_point(point))
     return "\n".join(lines).rstrip() + "\n"
 
 
-def render_design_items(items: list[dict[str, Any]]) -> list[str]:
-    return [f"- {item.get('id')} {item.get('content', '')}" for item in items]
+def render_test_data(items: Any) -> list[str]:
+    if not isinstance(items, list) or not items:
+        return ["- 无记录"]
+    rows = []
+    for item in items:
+        if isinstance(item, dict):
+            rows.append([item.get("name", ""), item.get("value", ""), item.get("description", "")])
+    return markdown_table(["名称", "值", "说明"], rows) if rows else ["- 无记录"]
+
+
+def render_test_steps(items: Any) -> list[str]:
+    if not isinstance(items, list) or not items:
+        return ["- 无记录"]
+    rows = []
+    for item in items:
+        if isinstance(item, dict):
+            rows.append([normalize_text(item.get("stepNo")), item.get("action", ""), item.get("expected", "")])
+    return markdown_table(["步骤", "操作", "预期"], rows) if rows else ["- 无记录"]
+
+
+def render_test_case(case: dict[str, Any]) -> list[str]:
+    lines = [f"##### {case.get('id')} {case.get('title')}", ""]
+    preconditions = case.get("preconditions", [])
+    lines.extend(["- 前置条件："])
+    if isinstance(preconditions, list) and preconditions:
+        lines.extend(f"  - {normalize_text(item)}" for item in preconditions)
+    else:
+        lines.append("  - 无")
+    lines.extend(["", "- 测试数据："])
+    lines.extend(render_test_data(case.get("testData", [])))
+    lines.extend(["", "- 测试步骤："])
+    lines.extend(render_test_steps(case.get("steps", [])))
+    lines.extend(["", f"- 最终预期：{case.get('expectedResult', '')}"])
+    refs = render_source_refs(case.get("sourceRefs", []))
+    if refs != "无记录":
+        lines.append(f"- 来源引用：{refs}")
+    lines.append("")
+    return lines
 
 
 def render_design_solution(data: dict[str, Any]) -> str:
     lines = [f"# {data.get('title', '测试设计方案')}", "", "## 1. 设计输入", ""]
     lines.extend(render_solution_fields(data.get("inputs", [])))
     lines.extend(["", "## 2. 测试场景与测试设计", ""])
-    for scenario in data.get("scenarios", []):
+    for scenario, depth in iter_scenarios(data.get("scenarios", [])):
         lines.extend([f"### {scenario.get('id')} {scenario.get('title')}", ""])
+        if depth > 1:
+            lines.append(f"- 场景层级：{depth}")
+            lines.append("")
         lines.extend(render_solution_fields(scenario.get("fields", [])))
         lines.append("")
         for point in scenario.get("testPoints", []):
-            lines.extend([f"#### {point.get('id')} {point.get('title')}", ""])
-            for detail in point.get("details", []):
-                lines.append(f"##### {detail.get('id')} {detail.get('title')}")
-                failure_details = detail.get("failureDetails", [])
-                if failure_details:
-                    lines.append("")
-                    for failure in failure_details:
-                        lines.append(f"###### {failure.get('id')} {failure.get('title')}")
-                        lines.extend(["", f"- 测试点详情：{failure.get('description', '')}", ""])
-                        lines.append(f"- 预期结果：{failure.get('expectedResult', '')}")
-                        items = render_design_items(failure.get("designItems", []))
-                        if items:
-                            lines.extend(["", *items])
-                        lines.append("")
-                else:
-                    lines.extend(["", f"- 测试点详情：{detail.get('description', '')}", ""])
-                    lines.append(f"- 预期结果：{detail.get('expectedResult', '')}")
-                    items = render_design_items(detail.get("designItems", []))
-                    if items:
-                        lines.extend(["", *items])
-                    lines.append("")
+            lines.extend(render_test_point(point))
+            for case in point.get("testCases", []):
+                lines.extend(render_test_case(case))
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -597,15 +639,10 @@ def validate_generic_document(data: dict[str, Any], artifact_type: str) -> tuple
 def validate_context_pack_json(data: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     project_binding = data.get("projectBinding")
-    personal_binding = data.get("personalBinding")
     if not isinstance(project_binding, dict):
         errors.append("context-pack.json 缺少对象字段: projectBinding")
     elif project_binding.get("status") not in {"resolved", "unresolved"}:
         errors.append("context-pack.json projectBinding.status 必须为 resolved 或 unresolved")
-    if not isinstance(personal_binding, dict):
-        errors.append("context-pack.json 缺少对象字段: personalBinding")
-    elif personal_binding.get("status") not in {"default", "resolved"}:
-        errors.append("context-pack.json personalBinding.status 必须为 default 或 resolved")
 
     allowed_source_prefixes = (
         "rules/projects/",
@@ -674,73 +711,115 @@ def validate_solution_ids(data: dict[str, Any], is_design: bool) -> tuple[list[s
         return ["主交付件 JSON 缺少 scenarios"], warnings
 
     tp_index = 1
-    tdi_index = 1
-    for sc_index, scenario in enumerate(scenarios, start=1):
-        expected_sc = f"SC-{sc_index:03d}"
-        if scenario.get("id") != expected_sc:
-            errors.append(f"场景序号应为 {expected_sc}，实际为 {scenario.get('id')}")
-        points = scenario.get("testPoints")
-        if not isinstance(points, list) or not points:
-            errors.append(f"{expected_sc} 缺少 testPoints")
-            continue
-        if not any(point.get("title") == "E2E场景测试" for point in points):
-            errors.append(f"{scenario.get('id')} 缺少 E2E场景测试")
-        for point in points:
-            expected_tp = f"TP-{tp_index:03d}"
-            point_id = point.get("id")
-            if point_id != expected_tp:
-                errors.append(f"测试点序号应为 {expected_tp}，实际为 {point_id}")
-            details = point.get("details")
-            if not isinstance(details, list) or not details:
-                errors.append(f"{point_id} 缺少 details")
-                tp_index += 1
+    tc_index = 1
+    scenario_keys = {"id", "title", "fields", "children", "testPoints"}
+    analysis_point_keys = {"id", "title", "objective", "basisRefs", "methodRefs", "note"}
+    design_point_keys = analysis_point_keys | {"testCases"}
+
+    def walk(nodes: list[Any], parent_id: str = "", depth: int = 1) -> None:
+        nonlocal tp_index, tc_index
+        if depth > 3:
+            errors.append(f"{parent_id or 'scenarios'} 超过 3 层 SC 深度")
+            return
+        for index, scenario in enumerate(nodes, start=1):
+            if not isinstance(scenario, dict):
+                errors.append(f"{parent_id or 'scenarios'}[{index}] 不是对象")
                 continue
-            for detail_index, detail in enumerate(details, start=1):
-                expected_detail = f"{point_id}-{detail_index:03d}"
-                detail_id = detail.get("id")
-                if detail_id != expected_detail:
-                    errors.append(f"测试点明细序号应为 {expected_detail}，实际为 {detail_id}")
-                failures = detail.get("failureDetails", [])
-                if failures:
-                    for failure_index, failure in enumerate(failures, start=1):
-                        expected_failure = f"{detail_id}-{failure_index:03d}"
-                        if failure.get("id") != expected_failure:
-                            errors.append(f"失败类型明细序号应为 {expected_failure}，实际为 {failure.get('id')}")
-                        if not failure.get("description") or not failure.get("expectedResult"):
-                            errors.append(f"{failure.get('id')} 缺少 description 或 expectedResult")
-                        if is_design:
-                            tdi_index, tdi_errors = validate_design_items(failure.get("designItems", []), tdi_index, failure.get("id"))
-                            errors.extend(tdi_errors)
+            expected_sc = f"{parent_id}-{index:03d}" if parent_id else f"SC-{index:03d}"
+            scenario_id = normalize_text(scenario.get("id"))
+            if scenario_id != expected_sc:
+                errors.append(f"场景序号应为 {expected_sc}，实际为 {scenario.get('id')}")
+            extra_scenario_keys = sorted(set(scenario) - scenario_keys)
+            if extra_scenario_keys:
+                errors.append(f"{scenario_id} 包含 schemaVersion 2.0 未定义字段: {', '.join(extra_scenario_keys)}")
+            children = scenario.get("children", [])
+            if children is None:
+                children = []
+            if not isinstance(children, list):
+                errors.append(f"{scenario_id} children 必须是数组")
+                children = []
+            points = scenario.get("testPoints", [])
+            if children:
+                if points:
+                    errors.append(f"{scenario_id} 是非叶子场景，不得挂载 testPoints")
+                walk(children, scenario_id, depth + 1)
+                continue
+            if not isinstance(points, list) or not points:
+                errors.append(f"{scenario_id} 是叶子场景，必须包含 testPoints")
+                continue
+            if not any(point.get("title") == "E2E场景测试" for point in points if isinstance(point, dict)):
+                errors.append(f"{scenario_id} 缺少 E2E场景测试")
+            for point in points:
+                if not isinstance(point, dict):
+                    errors.append(f"{scenario_id} testPoints 中存在非对象节点")
+                    continue
+                expected_tp = f"TP-{tp_index:03d}"
+                point_id = normalize_text(point.get("id"))
+                if point_id != expected_tp:
+                    errors.append(f"测试点序号应为 {expected_tp}，实际为 {point.get('id')}")
+                if not point.get("title") or not point.get("objective"):
+                    errors.append(f"{point_id} 缺少 title 或 objective")
+                if not is_design:
+                    extra_point_keys = sorted(set(point) - analysis_point_keys)
+                    if extra_point_keys:
+                        errors.append(f"{point_id} 包含 schemaVersion 2.0 分析节点未定义字段: {', '.join(extra_point_keys)}")
                 else:
-                    if not detail.get("description") or not detail.get("expectedResult"):
-                        errors.append(f"{detail_id} 缺少 description 或 expectedResult")
-                    if is_design:
-                        tdi_index, tdi_errors = validate_design_items(detail.get("designItems", []), tdi_index, detail_id)
-                        errors.extend(tdi_errors)
-                if not is_design and (detail.get("designItems") or "TDI-" in json.dumps(detail, ensure_ascii=False)):
-                    errors.append(f"{detail_id} 是分析方案节点，不得包含 TDI-* 或 designItems")
-            tp_index += 1
+                    extra_point_keys = sorted(set(point) - design_point_keys)
+                    if extra_point_keys:
+                        errors.append(f"{point_id} 包含 schemaVersion 2.0 设计节点未定义字段: {', '.join(extra_point_keys)}")
+                    cases = point.get("testCases")
+                    if not isinstance(cases, list) or not cases:
+                        errors.append(f"{point_id} 缺少 testCases")
+                    else:
+                        tc_index = validate_test_cases(cases, tc_index, point_id, errors)
+                tp_index += 1
+
+    walk(scenarios)
     return errors, warnings
 
 
-def validate_design_items(items: Any, start_index: int, parent_id: str | None) -> tuple[int, list[str]]:
-    errors: list[str] = []
-    if not isinstance(items, list) or not items:
-        errors.append(f"{parent_id} 缺少 designItems")
-        return start_index, errors
-    for item in items:
-        expected_id = f"TDI-{start_index:03d}"
-        if item.get("id") != expected_id:
-            errors.append(f"测试设计项序号应为 {expected_id}，实际为 {item.get('id')}")
-        content = normalize_text(item.get("content"))
-        if not content:
-            errors.append(f"{item.get('id')} content 为空")
-        if re.search(r"https?://\S+", content, re.IGNORECASE):
-            errors.append(f"{item.get('id')} 不得包含完整裸 URL")
-        if any(term in content for term in ("处理成功", "处理失败", "显示提示", "发送通知", "接口调用正确")):
-            errors.append(f"{item.get('id')} 疑似写成结果或动作表达")
+def validate_test_cases(cases: Any, start_index: int, parent_id: str, errors: list[str]) -> int:
+    case_keys = {"id", "title", "preconditions", "testData", "steps", "expectedResult", "sourceRefs"}
+    for case in cases:
+        if not isinstance(case, dict):
+            errors.append(f"{parent_id} testCases 中存在非对象节点")
+            continue
+        expected_id = f"TC-{start_index:03d}"
+        case_id = normalize_text(case.get("id"))
+        if case_id != expected_id:
+            errors.append(f"测试用例序号应为 {expected_id}，实际为 {case.get('id')}")
+        extra_case_keys = sorted(set(case) - case_keys)
+        if extra_case_keys:
+            errors.append(f"{case_id} 包含 schemaVersion 2.0 测试用例未定义字段: {', '.join(extra_case_keys)}")
+        if not case.get("title") or not case.get("expectedResult"):
+            errors.append(f"{case_id} 缺少 title 或 expectedResult")
+        preconditions = case.get("preconditions")
+        if not isinstance(preconditions, list):
+            errors.append(f"{case_id} preconditions 必须是数组")
+        test_data = case.get("testData")
+        if not isinstance(test_data, list) or not test_data:
+            errors.append(f"{case_id} testData 必须是非空数组")
+        else:
+            for item_index, item in enumerate(test_data, start=1):
+                if not isinstance(item, dict) or any(is_empty_value(item.get(key)) for key in ("name", "value", "description")):
+                    errors.append(f"{case_id} testData[{item_index}] 必须包含 name/value/description")
+        steps = case.get("steps")
+        if not isinstance(steps, list) or not steps:
+            errors.append(f"{case_id} steps 必须是非空数组")
+        else:
+            for step_index, step in enumerate(steps, start=1):
+                if not isinstance(step, dict):
+                    errors.append(f"{case_id} steps[{step_index}] 不是对象")
+                    continue
+                if step.get("stepNo") != step_index:
+                    errors.append(f"{case_id} steps[{step_index}] stepNo 应为 {step_index}")
+                if not step.get("action") or not step.get("expected"):
+                    errors.append(f"{case_id} steps[{step_index}] 缺少 action 或 expected")
+        source_refs = case.get("sourceRefs")
+        if source_refs is not None and not isinstance(source_refs, list):
+            errors.append(f"{case_id} sourceRefs 必须是数组")
         start_index += 1
-    return start_index, errors
+    return start_index
 
 
 def validate_review_json(data: dict[str, Any]) -> tuple[list[str], list[str]]:
@@ -763,8 +842,9 @@ def validate_artifact(data: dict[str, Any]) -> tuple[list[str], list[str]]:
     warnings: list[str] = []
     if not artifact_type:
         return ["JSON 缺少 artifactType"], warnings
-    if data.get("schemaVersion") != "1.0":
-        errors.append(f"{artifact_type}.json schemaVersion 必须为 1.0")
+    expected_schema_version = "2.0" if artifact_type in {"test-analysis-solution", "test-design-solution"} else "1.0"
+    if data.get("schemaVersion") != expected_schema_version:
+        errors.append(f"{artifact_type}.json schemaVersion 必须为 {expected_schema_version}")
     if artifact_type == "task-list":
         task_errors, task_warnings = validate_task_list(data)
         errors.extend(task_errors)

@@ -12,11 +12,6 @@
     "projectKey": "",
     "reason": "未提供 project-key，且无法从输入唯一识别"
   },
-  "personalBinding": {
-    "status": "default",
-    "personalKey": "default",
-    "reason": "使用默认 personal 扩展路径"
-  },
   "sources": [
     {
       "path": "knowledge/projects/<project-key>/example.md",

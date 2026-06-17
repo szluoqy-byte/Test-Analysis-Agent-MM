@@ -77,7 +77,7 @@
       "order": 9,
       "stage": "独立评审",
       "owner": "test-analysis-solution-review",
-      "checkpoint": "语义覆盖、测试点明细粒度、预期结果依据、事实溯源和非用例化语义",
+      "checkpoint": "语义覆盖、测试点粒度、依据质量、事实溯源和分析边界",
       "status": "done",
       "evidence": "reports/test-analysis-solution-review.json"
     },
