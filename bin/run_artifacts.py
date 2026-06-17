@@ -642,9 +642,35 @@ def validate_generic_document(data: dict[str, Any], artifact_type: str) -> tuple
 
 def validate_context_pack_json(data: dict[str, Any]) -> list[str]:
     errors: list[str] = []
-    for key in ("projectBinding", "personalBinding"):
-        if not isinstance(data.get(key), dict):
-            errors.append(f"context-pack.json 缺少对象字段: {key}")
+    project_binding = data.get("projectBinding")
+    personal_binding = data.get("personalBinding")
+    if not isinstance(project_binding, dict):
+        errors.append("context-pack.json 缺少对象字段: projectBinding")
+    elif project_binding.get("status") not in {"resolved", "unresolved"}:
+        errors.append("context-pack.json projectBinding.status 必须为 resolved 或 unresolved")
+    if not isinstance(personal_binding, dict):
+        errors.append("context-pack.json 缺少对象字段: personalBinding")
+    elif personal_binding.get("status") not in {"default", "resolved"}:
+        errors.append("context-pack.json personalBinding.status 必须为 default 或 resolved")
+
+    allowed_source_prefixes = (
+        "rules/projects/",
+        "rules/user/",
+        "knowledge/projects/",
+        "knowledge/user/",
+        "memory/projects/",
+        "memory/user/",
+    )
+    forbidden_source_keys = {"sourceType", "layer", "projectKey", "stages", "applied"}
+    forbidden_core_prefixes = (
+        "rules/core/",
+        "knowledge/core/",
+        "rules/",
+        "knowledge/",
+        "templates/",
+        "skills/",
+        ".opencode/",
+    )
 
     sources = data.get("sources")
     if not isinstance(sources, list):
@@ -658,8 +684,23 @@ def validate_context_pack_json(data: dict[str, Any]) -> list[str]:
         for key in ("path", "name", "description", "availableStages"):
             if is_empty_value(source.get(key)):
                 errors.append(f"context-pack.json sources[{index}] 缺少字段: {key}")
-        if any(key in source for key in ("sourceType", "layer", "projectKey")):
-            errors.append(f"context-pack.json sources[{index}] 不应写入 sourceType/layer/projectKey；这些信息由 path 推断")
+        unexpected_keys = sorted(key for key in forbidden_source_keys if key in source)
+        if unexpected_keys:
+            errors.append(
+                f"context-pack.json sources[{index}] 不应写入字段: {', '.join(unexpected_keys)}；"
+                "context pack 只记录动态来源索引，应用状态写入后续阶段产物"
+            )
+        source_path = normalize_text(source.get("path")).replace("\\", "/")
+        if re.match(r"^[A-Za-z]:/", source_path) or source_path.startswith("/"):
+            errors.append(f"context-pack.json sources[{index}].path 必须是仓库相对路径，不得使用绝对路径")
+        if any(source_path.startswith(prefix) for prefix in forbidden_core_prefixes) and not any(
+            source_path.startswith(prefix) for prefix in allowed_source_prefixes
+        ):
+            errors.append(f"context-pack.json sources[{index}] 不得索引 core 层或 skill/template 路径: {source_path}")
+        if source_path and not any(source_path.startswith(prefix) for prefix in allowed_source_prefixes):
+            errors.append(
+                f"context-pack.json sources[{index}].path 必须位于 project/personal 动态来源目录: {source_path}"
+            )
         stages = source.get("availableStages")
         if not isinstance(stages, list) or not all(isinstance(stage, str) and stage for stage in stages):
             errors.append(f"context-pack.json sources[{index}].availableStages 必须是非空字符串数组")

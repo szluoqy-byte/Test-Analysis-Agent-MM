@@ -9,7 +9,7 @@ description: 在测试分析或测试设计开始前使用，仅索引 project/p
 
 `process/context-pack.json` 是当前 run 的上下文来源事实源；`process/context-pack.md` 只由 `bin/render-run-markdown.py` 渲染给人阅读。后续 skill 必须以 JSON 为准。
 
-本 skill 必须优先调用脚本生成 context pack，不手工拼写 JSON：
+本 skill 必须调用脚本生成 context pack，不得手工拼写、补写或改写 `process/context-pack.json`：
 
 ```bash
 python skills/context-source-indexing/scripts/build-context-source-index.py \
@@ -28,6 +28,8 @@ python skills/context-source-indexing/scripts/build-context-source-index.py \
 - 不扫描、不摘录、不动态索引 core 层文件：根目录 `rules/*.md`、`knowledge/*.md`、`templates/` 和各 skill 私有参考文件由 workflow 或对应 skill 固定引用。
 - 不读取动态来源正文来判断具体测试点、测试设计项、覆盖缺口或专项方法命中。
 - 不把来源内容复制到 context pack；context pack 只记录路径、名称、描述、阶段可见性、绑定状态和告警。
+- 不把 `applied`、`not_applicable`、`conflict_with_requirement` 等应用状态写入 `sources[]`；应用状态只能写入后续阶段的过程 JSON、review JSON 或 coverage JSON。
+- 不把绝对路径写入 `sources[].path`；脚本输出统一使用仓库相对路径。
 - 不修改 `rules/`、`knowledge/` 或 `memory/` 下的长期来源文件。
 
 ## 输入
@@ -105,7 +107,7 @@ stages:
 - `description`：必填，说明该来源提供什么补充价值。
 - `stages`：可选。缺省或空数组表示对所有阶段可见，渲染为 `["*"]`；显式配置时只对列出的阶段可见。
 
-`sources[]` 不写 `sourceType`、`layer` 或 `projectKey`。这些信息由路径推断：`rules/projects/<project-key>/...` 是 project rules，`knowledge/user/...` 是 personal knowledge。`project-key` 的绑定只写在顶层 `projectBinding`。
+`sources[]` 不写 `sourceType`、`layer`、`projectKey`、`stages` 或 `applied`。这些信息由路径和后续阶段应用记录推断：`rules/projects/<project-key>/...` 是 project rules，`knowledge/user/...` 是 personal knowledge。`project-key` 的绑定只写在顶层 `projectBinding`；阶段可见性只写为 `availableStages` 和 `availability`。
 
 推荐阶段值：
 
@@ -165,6 +167,7 @@ stages:
 
 - 即使没有 project/personal 命中，也必须生成 `process/context-pack.json` 和派生 `process/context-pack.md`。
 - `sources` 可以为空；空列表表示本次没有动态 project/personal 来源可用。
+- `sources[]` 只允许来自 `rules/projects/<project-key>/`、`knowledge/projects/<project-key>/`、`memory/projects/<project-key>/`、`rules/user/`、`knowledge/user/` 或 `memory/user/`。core rules、core knowledge、templates 和 skill 私有参考不进入 `sources[]`。
 - `availableStages` 缺省时统一写 `["*"]`，`availability` 写 `all`；显式阶段列表时写 `restricted`。
 - frontmatter 缺失或不合法的动态来源不得静默注入，必须在 `warnings[]` 中记录文件路径和问题，且不写入 `sources[]`。
 - 如果 `project-key` 未唯一确定，`projectBinding.status` 写 `unresolved`，并在 `unscannedProjectSources[]` 记录 project 根路径未扫描原因。

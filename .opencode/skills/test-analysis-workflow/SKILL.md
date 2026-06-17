@@ -73,7 +73,7 @@ project/personal 层只能补充项目风险画像、覆盖策略、术语映射
 1. 校验输入至少包含一份 Markdown 需求文档；识别可选 Markdown 设计方案文档。若发现 `.docx` 或 `.xlsx` 输入，输出需先使用 `@file-normalization-agent` 的阻断说明，不创建测试分析 run。
 2. 将当前 agent 会话工作目录固定为 `PROJECT_ROOT`，运行 `python bin/generate-run-id.py` 生成本次运行 ID，并创建 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/`、`process/`、`reports/` 和 `inputs/`。
 3. 使用 `templates/process-artifacts-json-template.json` 创建 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/task-list.json`，并按阶段维护状态；需要人读版时由渲染脚本生成 `process/task-list.md`。
-4. 解析可选 `project-key` 和 `personal-key`，使用 `context-source-indexing` 仅索引 project/personal 动态来源 frontmatter，生成 `process/context-pack.json`，登记 `projectBinding`、`personalBinding`、`sources[]`、未扫描 project 来源和告警。
+4. 解析可选 `project-key` 和 `personal-key`，必须调用 `python skills/context-source-indexing/scripts/build-context-source-index.py ...` 生成 `process/context-pack.json`；不得手工拼写或改写该 JSON。`sources[]` 只允许脚本索引 project/personal 动态来源 frontmatter，登记 `projectBinding`、`personalBinding`、`availableStages`、`availability`、未扫描 project 来源和告警；不得把 core rules、core knowledge、templates、skill 私有参考、绝对路径或应用状态写入 `sources[]`。
 5. 使用 `input-fact-modeling` 读取需求文档和可选设计方案文档，生成 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/input-fact-model.json`，其中包含事实清单、需求-设计映射、待确认事项和来源应用说明；如果未提供设计方案，在事实模型中记录未提供设计依据，而不是单独跳过设计提取阶段。
 6. 使用 `clarification-gate` 执行 `CP-INPUT`，合并 memory、需求与设计方案之间的冲突、缺失和歧义，不向用户提问。
 7. 使用 `testing-method-router` 对输入事实模型中的需求事实、设计事实和待确认事项进行测试技术路由，选择适用测试技术和专项方法参考；如果 `sources[]` 中存在对本阶段可见的动态来源，必须按需读取并记录应用状态。

@@ -71,7 +71,7 @@ core rules、core knowledge、templates 和 skill 私有参考由 workflow 或�
 3. 固定 `PROJECT_ROOT` 和 `<run-id>`；如果输入分析方案位于 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-analysis-solution.json` 或同名 `.md`，优先复用该 run，否则运行 `python bin/generate-run-id.py` 新建 run。创建或复用 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/`、`process/`、`reports/` 和 `inputs/`。
 4. 创建或刷新 `process/task-list.json`，记录当前进入测试设计阶段；需要人读版时由渲染脚本生成 `process/task-list.md`。
 5. 优先读取并校验 `deliverables/test-analysis-solution.json`；若只有 Markdown 输入，先转换或解析为临时 JSON，再运行 `bin/lint-run-json.py` 和 `bin/lint-test-analysis-solution.py`。
-6. 读取或生成 `process/context-pack.json`，确认 `projectBinding`、`personalBinding` 和对设计阶段可见的动态来源索引。
+6. 读取或生成 `process/context-pack.json`。若需要生成，必须调用 `python skills/context-source-indexing/scripts/build-context-source-index.py ...`，不得手工拼写或改写该 JSON；确认 `projectBinding`、`personalBinding` 和对设计阶段可见的动态来源索引。`sources[]` 不得包含 core rules、core knowledge、templates、skill 私有参考、绝对路径或应用状态。
 7. 创建或刷新 `process/clarification-session.json`；如果设计阶段没有新增待确认候选，声明 `无待确认候选`。
 8. 受控补读归一化后的原始需求 Markdown、设计方案 Markdown、`design-facts` 或结构化过程记录中与当前分析方案相关的依据；不得要求后续读者回看这些文件才能理解主交付件。
 9. 使用 `test-design-solution-generation` 在普通 `TP-*-*` 或失败类型 `TP-*-*-*` 下生成 1-N 个 `TDI-*`，写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.json`，并记录动态来源应用状态。
