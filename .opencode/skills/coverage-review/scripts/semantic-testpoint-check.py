@@ -17,7 +17,7 @@ ROUTE_HEADER_TECHNIQUE = "| 需求片段 | 触发信号 | 适用测试技术 | �
 ROUTE_HEADER_WITH_DIMENSION_TECHNIQUE = "| 需求片段 | 分析维度 | 触发信号 | 适用测试技术 | 方法参考 | 必要性 | 置信度 | 说明 |"
 QUESTION_HEADER = "| ID | 问题 | 影响 | 关联需求依据 |"
 EVIDENCE_HEADERS = {
-    "| 证据ID | 方法 | 需求片段 | 分析结论 | 关联测试点/待确认 |",
+    "| 证据ID | 方法 | 需求片段 | 分析结论 | 关联测试点/说明 |",
     "| 证据ID | 方法 | 需求片段 | 分析结论 | 关联测试点/缺口 |",
 }
 GATE_HEADER = "| 门禁 | 结果 | 失败/警告项 | 修正建议 |"
@@ -182,8 +182,8 @@ def main() -> int:
             warnings.append(f"第 {line_number} 行：方法证据中的方法 `{method}` 未出现在知识标准方法中")
         if not fragment or not conclusion or not links:
             errors.append(f"第 {line_number} 行：方法证据存在空字段")
-        if "TP-" not in links and "CQ-" not in links:
-            warnings.append(f"第 {line_number} 行：方法证据未关联 TP-* 或 CQ-*")
+        if "TP-" not in links:
+            warnings.append(f"第 {line_number} 行：方法证据未关联 TP-*")
 
     for line_number, cells in testpoint_rows:
         if len(cells) != 8 or not is_testpoint_id(cells[0]):
@@ -259,7 +259,7 @@ def main() -> int:
         has_questions = any(cells and cells[0].startswith("Q-") for _, cells in question_rows)
         message = "必选方法未在测试点方法列中体现: " + "、".join(missing_methods)
         if has_questions:
-            warnings.append(message + "；报告存在待确认问题，请确认是否已解释缺口")
+            warnings.append(message + "；报告存在输入不足说明，请确认是否已解释缺口")
         else:
             errors.append(message)
 
@@ -268,7 +268,7 @@ def main() -> int:
         has_questions = any(cells and cells[0].startswith("Q-") for _, cells in question_rows)
         message = "必选方法未在方法证据中体现: " + "、".join(missing_evidence_methods)
         if has_questions:
-            warnings.append(message + "；报告存在待确认问题，请确认是否已解释证据缺口")
+            warnings.append(message + "；报告存在输入不足说明，请确认是否已解释证据缺口")
         else:
             errors.append(message)
 

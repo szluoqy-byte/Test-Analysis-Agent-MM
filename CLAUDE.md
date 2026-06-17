@@ -26,9 +26,9 @@
 - 配置按 `core / project / personal` 三层处理；personal 本地目录是 `*/user/`，project 和 personal 层默认本地化，不提交 Git。
 - project 和 personal 是当前 run 的一等输入源，绑定结果和动态来源索引必须记录到 `process/context-pack.json`，并渲染到 `process/context-pack.md`。
 - project/personal 动态来源必须用 frontmatter 声明 `name`、`description`，可选 `stages`；context pack 只记录路径、描述和阶段可见性，被后续阶段读取后再留痕应用状态。
-- 每次 run 必须维护 `process/task-list.json/.md`、`process/context-pack.json/.md`、`process/input-fact-model.json/.md` 和 `process/clarification-session.json/.md` 四组固定 process 产物。
+- 每次 run 必须维护 `process/task-list.json/.md`、`process/context-pack.json/.md` 和 `process/input-fact-model.json/.md` 三组固定 process 产物。
 - JSON 是 run 过程产物、主交付件、review 和 coverage 的事实源；Markdown 是 `bin/render-run-markdown.py` 派生的人读版，不手工维护。
-- `process/task-list.json` 用于约束阶段顺序和状态；`process/context-pack.json` 记录本次 project/personal 来源索引；`process/input-fact-model.json` 记录输入事实模型；`process/clarification-session.json` 记录待确认治理结果，无候选时也必须声明 `无待确认候选`。
+- `process/task-list.json` 用于约束阶段顺序和状态；`process/context-pack.json` 记录本次 project/personal 来源索引；`process/input-fact-model.json` 记录输入事实模型。
 - 测试分析主交付件固定为 `outputs/runs/<run-id>/deliverables/test-analysis-solution.json`，并渲染 `test-analysis-solution.md`；输出粒度是“测试场景 -> 测试点 -> 测试点明细”，非成功测试点明细继续到失败类型明细。
 - 测试设计主交付件固定为 `outputs/runs/<run-id>/deliverables/test-design-solution.json`，并渲染 `test-design-solution.md`；输出粒度是“测试场景 -> 测试点 -> 测试点明细 -> 测试设计项”，非成功测试点明细继承失败类型明细后再生成测试设计项。
 - 主交付件术语与缩写固定为测试场景 `SC-*`、测试点 `TP-*`、测试点明细 `TP-*-*`、失败类型明细 `TP-*-*-*`、测试设计项 `TDI-*`，不展开英文全名。
@@ -40,7 +40,7 @@
 - 接口类 `TDI-*` 不输出完整裸 URL；拆成 `接口=METHOD /path`、`参数名=参数值`、`响应状态=HTTP 500` 等同一行字段片段，避免 Markdown 转脑图时被链接解析或换行破坏层级。
 - `TDI-*` 不写结果或动作表达，例如“发送通知”“显示提示”“自动填充”“接口调用正确”“处理成功”“删除成功”；同类条件复用时必须补充场景、渠道、操作、接口或数据依赖等差异维度。
 - 接口契约叶子节点应基于已明确字段约束覆盖代表性有效、无效、边界、枚举、必填、鉴权、幂等、超时或异常返回组合；超时、回滚、补偿或外部依赖恢复类叶子节点应写成可观察条件组合。
-- 如果错误提示、状态变化、错误码或其他判定依据未被需求/设计方案明确说明，普通测试点明细或失败类型明细的 `预期结果` 写 `待人工分析确认`。
+- 如果错误提示、状态变化、错误码或其他判定依据未被需求/设计方案明确说明，普通测试点明细或失败类型明细的 `预期结果` 只写输入可支撑的保守判定，不补写未说明具体值。
 - 主交付件不设置 `未明确规则` 章节，不输出独立待确认信息清单。
 - 主交付件不得使用 Markdown 加粗语法，例如 `**文本**` 或 `__文本__`。
 - 不生成完整测试用例、前置步骤、测试步骤、自动化脚本或执行数据清单。

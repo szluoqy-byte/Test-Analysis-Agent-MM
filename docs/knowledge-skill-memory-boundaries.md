@@ -44,7 +44,7 @@ Rules 是高优先级约束源：优先级低于当前用户明确指令，高�
 | 需求文档、需求依据、方法证据、上下文来源索引等框架术语 | `knowledge/test-workflow-boundaries.md` | 稳定分析术语，所有 skill 共用 |
 | 分析维度、需求信号到测试技术的映射 | `skills/testing-method-router/references/test-method-routing-matrix.md` | 稳定路由知识 |
 | 方法分析证据字段和质量要求 | `skills/testing-method-router/references/method-evidence-standard.md` | 证明测试理论被实际应用的统一标准 |
-| 输入事实模型字段 | `templates/input-fact-model-template.md` | 输入事实模型是运行期结构化产物，模板定义事实清单、需求-设计映射、待确认事项和来源说明 |
+| 输入事实模型字段 | `templates/input-fact-model-template.md` | 输入事实模型是运行期结构化产物，模板定义事实清单、需求-设计映射和来源说明 |
 | 项目风险画像、覆盖策略、术语映射、路由说明、测试 oracle、测试设计因子、测试设计模式和 checklist 补充 | `knowledge/projects/<project-key>/**/*.md` | 项目级测试知识补充，确定 `project-key` 后索引 frontmatter，后续阶段按 `sources[]` 可见性读取 |
 | 个人测试启发、检查清单和本地关注点 | `knowledge/user/**/*.md` | personal 层知识补充，索引 frontmatter 后按阶段可见性读取 |
 | 记住、记录、归档类请求的写入分类流程 | `skills/context-capture/SKILL.md` | 判断写入 memory/knowledge 与 personal/project 层级 |
@@ -54,7 +54,6 @@ Rules 是高优先级约束源：优先级低于当前用户明确指令，高�
 | 指定项目的事实、历史经验、团队反馈和输出偏好 | `memory/projects/<project-key>/**/*.md` | 项目级长期 memory，确定 `project-key` 后索引 frontmatter |
 | 个人输出偏好、检查习惯和本地记忆 | `memory/user/**/*.md` | personal 层 memory，索引 frontmatter 后按阶段可见性读取 |
 | 本次运行可见的动态来源索引 | `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.json` | 运行产物事实源，不是长期事实源；同名 Markdown 为派生阅读版 |
-| 本次运行缺口治理结果 | `${PROJECT_ROOT}/outputs/runs/<run-id>/process/clarification-session.json` | 运行产物事实源，用于解释 `待人工分析确认` 的来源 |
 | 本次运行阶段顺序、状态和证据路径 | `${PROJECT_ROOT}/outputs/runs/<run-id>/process/task-list.json` | 运行产物，是流程事实源，不是长期配置 |
 | 运行产物分类、固定文件名和下游消费约定 | `docs/output-artifact-contract.md` | 输出契约，防止 skill、模板和脚本各自发散 |
 | 测试设计 Agent 架构、流程和边界 | `docs/test-design-agent-design.md` | 设计层架构文档，说明如何承接测试分析方案 |
@@ -80,7 +79,7 @@ Rules 是高优先级约束源：优先级低于当前用户明确指令，高�
 - `templates/` 只保留 core 模板，不提供 project/personal 分层模板补充；项目或个人输出偏好应归入 memory，强制格式要求应归入 rules。
 - `context-pack.json` 只记录 project/personal 动态来源路径、名称、描述和阶段可见性，不摘录正文，不复制整份长期文件，也不放在 `memory/` 下；`context-pack.md` 只是派生阅读版。
 - 后续 skill 按 `sources[]` 阶段可见性读取正文；具体命中和应用由对应 skill 在阶段内判断，并记录应用状态。
-- `task-list.json`、`context-pack.json`、`input-fact-model.json` 和 `clarification-session.json` 必须随 run 目录生成，分别记录固定阶段顺序、动态来源索引、输入事实模型和待确认治理结果；同名 Markdown 由脚本渲染，即使无 project/personal 命中或无待确认候选，也必须在 JSON 中说明原因。
+- `task-list.json`、`context-pack.json` 和 `input-fact-model.json` 必须随 run 目录生成，分别记录固定阶段顺序、动态来源索引和输入事实模型；同名 Markdown 由脚本渲染，即使无 project/personal 命中，也必须在 JSON 中说明原因。
 - `task-list.json` 不替代运行时 todo 工具，但比运行时 UI 更适合作为可校验流程事实源；`task-list.md` 只用于人工查看。
 - `templates/` 只列出字段、占位和最小示例，不直接维护或长篇引用背景知识；字段含义、类型、方法等标准由调用模板的 `skills/` 和 `skills/*/references/` 按需引用 `knowledge/`。
 - 覆盖门禁作为 `coverage-review` 的私有参考维护在 `skills/coverage-review/references/`，不再维护独立顶层质量门禁目录。
@@ -100,4 +99,4 @@ Rules 是高优先级约束源：优先级低于当前用户明确指令，高�
 8. `knowledge/` 中的通用测试知识。
 9. skill 的流程性默认动作。
 
-如果 rules 与输入文档冲突，默认遵守 rules，并记录“规则覆盖输入”。如果 memory 或 knowledge 与输入文档冲突，不直接覆盖输入；相关预期结果缺少依据时写 `待人工分析确认`，并在过程记录中说明。
+如果 rules 与输入文档冲突，默认遵守 rules，并记录“规则覆盖输入”。如果 memory 或 knowledge 与输入文档冲突，不直接覆盖输入；相关预期结果缺少依据时只写输入可支撑的保守判定，并在 review/coverage JSON 中说明。

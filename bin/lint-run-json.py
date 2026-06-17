@@ -13,7 +13,6 @@ from run_artifacts import collect_renderable_json_files, load_json, validate_art
 REQUIRED_PROCESS_JSON = [
     "process/task-list.json",
     "process/context-pack.json",
-    "process/clarification-session.json",
 ]
 
 

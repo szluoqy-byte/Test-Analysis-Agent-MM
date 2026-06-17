@@ -17,12 +17,10 @@ APPLICATION_STATUS_VALUES = {
     "conflict_with_requirement",
     "deferred_to_review",
 }
-EXPECTED_FALLBACK = "待人工分析确认"
 ARTIFACT_TITLES = {
     "task-list": "测试分析方案任务清单",
     "context-pack": "上下文来源索引",
     "input-fact-model": "输入事实模型",
-    "clarification-session": "待确认治理记录",
     "test-analysis-solution": "测试分析方案",
     "test-design-solution": "测试设计方案",
     "test-analysis-solution-review": "测试分析方案语义评审结果",
@@ -34,7 +32,6 @@ ANALYSIS_REQUIRED_STAGES = [
     "固定 PROJECT_ROOT 与运行目录",
     "上下文来源索引",
     "输入事实建模",
-    "待确认治理",
     "测试技术路由",
     "专项分析",
     "按源补读",
@@ -359,8 +356,6 @@ def render_input_fact_model(data: dict[str, Any]) -> str:
             "factList",
             "requirementDesignMappings",
             "mappings",
-            "clarificationItems",
-            "clarifications",
             "sourceApplications",
             "applications",
         ],
@@ -371,41 +366,8 @@ def render_input_fact_model(data: dict[str, Any]) -> str:
             "factList": "事实清单",
             "requirementDesignMappings": "需求-设计映射",
             "mappings": "需求-设计映射",
-            "clarificationItems": "待确认事项",
-            "clarifications": "待确认事项",
             "sourceApplications": "来源与应用说明",
             "applications": "来源与应用说明",
-        },
-    )
-
-
-def render_clarification_session(data: dict[str, Any]) -> str:
-    return render_structured_sections(
-        data,
-        "待确认治理记录",
-        [
-            "status",
-            "runStatus",
-            "candidates",
-            "candidateSummary",
-            "candidateDetails",
-            "deduplicationResults",
-            "deduplication",
-            "expectedResultFallbacks",
-            "fallbacks",
-            "rules",
-        ],
-        {
-            "status": "运行状态",
-            "runStatus": "运行状态",
-            "candidates": "候选问题总表",
-            "candidateSummary": "候选问题总表",
-            "candidateDetails": "候选问题详情",
-            "deduplicationResults": "去重与降级结果",
-            "deduplication": "去重与降级结果",
-            "expectedResultFallbacks": "预期结果兜底清单",
-            "fallbacks": "预期结果兜底清单",
-            "rules": "治理规则",
         },
     )
 
@@ -530,7 +492,6 @@ RENDERERS = {
     "task-list": render_task_list,
     "context-pack": render_context_pack,
     "input-fact-model": render_input_fact_model,
-    "clarification-session": render_clarification_session,
     "test-analysis-solution": render_analysis_solution,
     "test-design-solution": render_design_solution,
     "test-analysis-solution-review": render_review_report,
@@ -552,7 +513,6 @@ def collect_renderable_json_files(run_dir: Path) -> list[tuple[Path, Path]]:
         (run_dir / "process" / "task-list.json", run_dir / "process" / "task-list.md"),
         (run_dir / "process" / "context-pack.json", run_dir / "process" / "context-pack.md"),
         (run_dir / "process" / "input-fact-model.json", run_dir / "process" / "input-fact-model.md"),
-        (run_dir / "process" / "clarification-session.json", run_dir / "process" / "clarification-session.md"),
         (run_dir / "deliverables" / "test-analysis-solution.json", run_dir / "deliverables" / "test-analysis-solution.md"),
         (run_dir / "deliverables" / "test-design-solution.json", run_dir / "deliverables" / "test-design-solution.md"),
         (run_dir / "reports" / "test-analysis-solution-review.json", run_dir / "reports" / "test-analysis-solution-review.md"),
@@ -631,12 +591,6 @@ def validate_generic_document(data: dict[str, Any], artifact_type: str) -> tuple
     rendered = RENDERERS.get(artifact_type, render_generic_document)(data)
     if artifact_type == "context-pack":
         errors.extend(validate_context_pack_json(data))
-    if artifact_type == "clarification-session":
-        for marker in ("候选问题总表", "候选问题详情", "去重与降级结果", "预期结果兜底清单"):
-            if marker not in rendered:
-                errors.append(f"clarification-session.json 缺少固定章节: {marker}")
-        if "无待确认候选" not in rendered and "CQ-" not in rendered:
-            warnings.append("clarification-session.json 未记录候选问题，也未声明无待确认候选")
     return errors, warnings
 
 
@@ -815,7 +769,7 @@ def validate_artifact(data: dict[str, Any]) -> tuple[list[str], list[str]]:
         task_errors, task_warnings = validate_task_list(data)
         errors.extend(task_errors)
         warnings.extend(task_warnings)
-    elif artifact_type in {"context-pack", "input-fact-model", "clarification-session"}:
+    elif artifact_type in {"context-pack", "input-fact-model"}:
         doc_errors, doc_warnings = validate_generic_document(data, artifact_type)
         errors.extend(doc_errors)
         warnings.extend(doc_warnings)

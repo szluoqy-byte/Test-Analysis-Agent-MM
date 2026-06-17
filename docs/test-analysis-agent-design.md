@@ -110,12 +110,10 @@ flowchart TD
   office -- 否 --> main["test-analysis-workflow<br/>创建 run 与任务清单"]
   restart --> main
   main --> ctx["context-source-indexing<br/>索引动态来源<br/>生成 context-pack"]
-  ctx --> facts[input-fact-modeling<br/>建立输入事实模型<br/>事实清单/需求-设计映射/待确认事项]
-  facts --> cpInput[clarification-gate CP-INPUT<br/>收口输入冲突与缺失]
-  cpInput --> route[testing-method-router<br/>选择测试技术与专项方法参考]
+  ctx --> facts[input-fact-modeling<br/>建立输入事实模型<br/>事实清单/需求-设计映射/来源应用]
+  facts --> route[testing-method-router<br/>选择测试技术与专项方法参考]
   route --> methods[专项方法参考<br/>产出 ME-* 方法证据与测试点候选]
-  methods --> cpAnalysis[clarification-gate CP-ANALYSIS<br/>收口会影响覆盖和预期结果的缺口]
-  cpAnalysis --> analysis[test-analysis-solution-generation<br/>生成 SC-*、TP-* 与 TP-*-*<br/>写入 test-analysis-solution.json]
+  methods --> analysis[test-analysis-solution-generation<br/>生成 SC-*、TP-* 与 TP-*-*<br/>写入 test-analysis-solution.json]
   analysis --> jsonLint[bin/lint-run-json.py<br/>JSON canonical 校验]
   jsonLint --> render[bin/render-run-markdown.py<br/>渲染派生 Markdown]
   render --> lint[bin/lint-test-analysis-solution.py<br/>派生 Markdown 校验]
@@ -137,10 +135,9 @@ flowchart TD
 | 文件归一化入口 | `file-normalization-agent` | 将 `.docx` / `.xlsx` 输入归一化为 Markdown；不进入测试分析主流程 |
 | 主入口 | `test-analysis-workflow` | 固定根目录、创建 run、编排全链路、输出主交付件 |
 | 上下文 | `context-source-indexing` | 索引 project/personal 动态来源 frontmatter，记录绑定状态和阶段可见性 |
-| 输入事实建模 | `input-fact-modeling` | 建立输入事实模型，记录事实清单、需求-设计映射、待确认事项和来源应用说明 |
-| 缺口治理 | `clarification-gate` | 合并过程缺口，不向主交付件写独立待确认章节 |
+| 输入事实建模 | `input-fact-modeling` | 建立输入事实模型，记录事实清单、需求-设计映射和来源应用说明 |
 | 方法路由 | `testing-method-router` | 选择适用测试技术和专项方法参考 |
-| 专项方法参考 | `skills/testing-method-router/references/*.md` | 生成方法证据、测试点候选和技术缺口 |
+| 专项方法参考 | `skills/testing-method-router/references/*.md` | 生成方法证据、测试点候选和补读记录 |
 | 测试分析方案生成 | `test-analysis-solution-generation` | 生成并写入 `SC-*`、`TP-*`、`TP-*-*` 测试点明细和预期结果；非成功测试点明细继续拆分 `TP-*-*-*` |
 | 确定性校验 | `bin/lint-run-json.py`、`bin/render-run-markdown.py --check`、`bin/lint-test-analysis-solution.py` | 先检查 JSON canonical 结构、编号和字段，再检查派生 Markdown 渲染一致性与人读格式；失败时修正 JSON，不手工改 Markdown |
 | 独立评审 | `test-analysis-solution-review` | 只检查语义质量：测试点明细粒度、失败类型拆分充分性、预期结果依据、事实溯源和非用例化倾向 |
@@ -196,7 +193,7 @@ project/personal 动态来源只来自 `rules/projects/<project-key>/`、`rules/
 - 主输出不得出现旧版主交付件字段；字段禁用清单以 `bin/lint-test-analysis-solution.py` 为准。
 - 主输出不得使用 Markdown 加粗语法，例如 `**文本**` 或 `__文本__`。
 - 主输出不得包含完整测试用例字段、操作步骤、脚本或执行数据。
-- 依据不足的预期结果必须写 `待人工分析确认`。
+- 依据不足的预期结果只写输入可支撑的保守判定，不补写未说明具体值。
 - 适用 rules 必须被执行、解释不适用，或记录被当前用户明确指令覆盖。
 
 ## 校验命令

@@ -24,10 +24,9 @@
 | 设计编排入口 | `test-design-workflow` | 复用或创建 run，承接已评审测试分析方案，写出测试设计方案 | `deliverables/test-design-solution.json` |
 | 上下文归档 | `context-capture` | 处理“记住/记录/收录/归档”类请求，判断写入 memory 或 knowledge | 长期 personal/project 上下文 |
 | 上下文层 | `context-source-indexing` | 索引 rules/knowledge/memory 下 project/personal 动态来源 frontmatter，记录绑定状态和阶段可见性；core 来源由 workflow/skill 固定引用 | `process/context-pack.json` |
-| 输入事实建模层 | `input-fact-modeling` | 从需求文档和可选设计方案建立事实清单、需求-设计映射、待确认事项和来源应用说明 | `process/input-fact-model.json` |
-| 待确认治理层 | `clarification-gate` | 在 `CP-INPUT`、`CP-ANALYSIS`、`CP-REVIEW` 三个检查点治理候选缺口 | `process/clarification-session.json`、预期结果兜底清单 |
-| 路由层 | `testing-method-router` | 根据分析维度和触发信号选择测试技术和专项方法参考 | 测试技术路由表、技术范围缺口候选 |
-| 专项方法参考层 | `skills/testing-method-router/references/*.md` | 为路由阶段提供专项分析步骤，产出 `ME-*` 方法证据和测试点候选 | 方法证据、测试点候选、技术缺口候选 |
+| 输入事实建模层 | `input-fact-modeling` | 从需求文档和可选设计方案建立事实清单、需求-设计映射和来源应用说明 | `process/input-fact-model.json` |
+| 路由层 | `testing-method-router` | 根据分析维度和触发信号选择测试技术和专项方法参考 | 测试技术路由表、适用/不适用解释 |
+| 专项方法参考层 | `skills/testing-method-router/references/*.md` | 为路由阶段提供专项分析步骤，产出 `ME-*` 方法证据和测试点候选 | 方法证据、测试点候选、补读记录 |
 | 测试分析方案生成层 | `test-analysis-solution-generation` | 把方法证据和候选归并为场景、测试点、测试点明细和预期结果；非成功测试点明细继续拆分失败类型明细 | `SC-*`、`TP-*`、`TP-*-*` 测试点明细、`TP-*-*-*` 失败类型明细 |
 | 确定性校验层 | `bin/lint-run-json.py` / `bin/render-run-markdown.py --check` / 主交付件 Markdown lint | 检查 JSON canonical 结构、编号、字段、Markdown 渲染漂移、禁用术语和固定交付件格式 | lint 结果 |
 | 独立评审层 | `test-analysis-solution-review` | 在 lint 通过后评审测试点明细粒度、失败类型拆分充分性、预期结果依据、事实溯源和非用例化语义 | 独立语义评审结论 |
@@ -58,15 +57,15 @@ SC-* 测试场景
 - 每个测试场景新增 `E2E场景测试` 测试点，用于确保端到端主流程闭环不被局部规则覆盖稀释。
 - 非成功路径的第四层由 `TP-*-*` 测试点明细触发，不由 `TP-*` 测试点主题触发。
 
-### F2. 缺口治理从主交付件章节转为预期结果兜底
+### F2. 预期结果改为自动保守收敛
 
-`clarification-gate` 仍负责过程级待确认治理，但不再向主交付件写独立待确认章节。需求或设计方案未说明错误提示、状态变化、错误码、接口返回或数据记录变化时，生成阶段将相关测试点明细的 `预期结果` 写成 `待人工分析确认`。
+流程不再维护独立澄清治理阶段，也不再生成确认类过程产物。需求或设计方案未说明错误提示、状态变化、错误码、接口返回或数据记录变化时，生成阶段只写输入可支撑的保守预期，不补写未说明具体值。
 
 影响：
 
 - 主交付件更精简。
-- 缺口直接贴近受影响的测试点明细。
-- 不再需要 `## 3. 未明确规则` 或待确认信息清单。
+- 输入不足不会阻断生成链路。
+- 不再需要 `## 3. 未明确规则`、确认类清单或中途人工交互。
 
 ### F3. Agent 门面与执行 skill 分离
 
@@ -90,9 +89,9 @@ project/personal 动态来源文件不要求固定命名，但必须声明 `name
 | Agent 门面 | 保持轻量 | 只做意图识别、路由和用户体验收口，不沉淀测试理论或复杂流程 |
 | 编排入口 | 保持单入口 | 只负责调度、run 目录、任务清单和最终落盘 |
 | 上下文层 | 保持独立 | 将 project/personal 发现策略和动态来源阶段可见性沉淀在 context pack，不下放给后续 skill 自行搜索 |
-| 需求与设计层 | 统一输入事实模型 | `input-fact-modeling` 负责需求事实、设计事实、映射关系、缺口冲突和待确认事项 |
+| 需求与设计层 | 统一输入事实模型 | `input-fact-modeling` 负责需求事实、设计事实、映射关系和来源应用说明 |
 | 路由层 | 保持独立 | 明确输出只到测试技术路由，不提前选择测试点明细 |
-| 专项方法参考层 | 统一输出骨架 | 所有专项方法参考使用同一方法证据表、候选测试点表和缺口候选表 |
+| 专项方法参考层 | 统一输出骨架 | 所有专项方法参考使用同一方法证据表、候选测试点表和补读记录 |
 | 测试分析方案生成层 | 保持独立 | 统一生成 `SC-*`、`TP-*`、`TP-*-*`、非成功 `TP-*-*-*` 失败类型明细和预期结果 |
 | 确定性校验层 | 前置执行 | 先跑 lint，结构失败时不进入模型评审 |
 | 独立评审层 | 保持独立但收窄职责 | 只审粒度、预期结果依据、事实溯源、失败类型充分性和非用例化语义 |
@@ -103,7 +102,7 @@ project/personal 动态来源文件不要求固定命名，但必须声明 `name
 1. 统一专项方法参考输出骨架：所有专项分析都引用 `skills/testing-method-router/references/method-evidence-standard.md`。
 2. 强化输入事实使用：让 `input-fact-modeling` 的结构化结果稳定进入测试技术路由和测试分析方案生成。
 3. 梳理 test-techniques：明确哪些内容服务 `test-analysis-agent`，哪些示例服务 `test-design-agent`。
-4. 扩展评审样例：增加包含错误码缺失、状态变化缺失和提示文案缺失的样例，验证 `待人工分析确认` 规则。
+4. 扩展评审样例：增加包含错误码缺失、状态变化缺失和提示文案缺失的样例，验证保守预期规则。
 
 ## 6. 当前结论
 

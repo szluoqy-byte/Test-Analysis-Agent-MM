@@ -228,7 +228,6 @@ def validate_context_source_metadata(root: Path, files: list[Path], issues: list
     allowed_stages = {
         "*",
         "input-fact-modeling",
-        "clarification-gate",
         "testing-method-router",
         "test-analysis-solution-generation",
         "test-analysis-solution-review",

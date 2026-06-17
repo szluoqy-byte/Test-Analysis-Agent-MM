@@ -21,7 +21,6 @@
 
 - deliverables/test-analysis-solution.json
 - process/input-fact-model.json
-- process/clarification-session.json
 
 ## 6. Knowledge Applications
 

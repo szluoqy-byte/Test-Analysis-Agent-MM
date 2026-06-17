@@ -13,10 +13,10 @@ REQUIRED_SECTIONS = [
     "## 1. 分析范围",
     "## 2. 记忆上下文包摘要",
     "## 3. 需求结构化摘要",
-    "## 4. 待确认治理摘要",
+    "## 4. 输入不足摘要",
     "## 5. 测试技术路由",
     "## 6. 方法分析证据摘要",
-    "## 7. 待确认问题",
+    "## 7. 输入不足说明",
     "## 8. 测试点明细",
     "## 9. 覆盖审查结果",
     "## 10. 质量门禁结果",
@@ -31,10 +31,10 @@ MODERN_REQUIRED_SECTIONS = [
     "## 3. 记忆上下文包摘要",
     "## 4. Project/Personal 上下文使用情况",
     "## 5. 需求结构化摘要",
-    "## 6. 待确认治理摘要",
+    "## 6. 输入不足摘要",
     "## 7. 测试分析维度与测试技术路由",
     "## 8. 方法分析证据摘要",
-    "## 9. 待确认问题",
+    "## 9. 输入不足说明",
     "## 10. 测试点明细",
     "## 11. 覆盖审查结果",
     "## 12. 质量门禁结果",
@@ -49,7 +49,7 @@ LEGACY_REQUIRED_SECTIONS = [
     "## 3. 需求结构化摘要",
     "## 4. 测试技术路由",
     "## 5. 方法分析证据摘要",
-    "## 6. 待确认问题",
+    "## 6. 输入不足说明",
     "## 7. 测试点明细",
     "## 8. 覆盖审查结果",
     "## 9. 质量门禁结果",
@@ -73,7 +73,7 @@ DETAIL_REQUIRED_SECTIONS = [
 TESTPOINT_HEADER = "| ID | 模块 | 测试点 | 类型 | 方法 | 需求依据 | 级别 | 风险/备注 |"
 DETAIL_SUMMARY_HEADER = "| 测试点明细 ID | 关联测试点 | 测试点明细 | 预期结果 |"
 EVIDENCE_HEADERS = {
-    "| 证据ID | 方法 | 需求片段 | 分析结论 | 关联测试点/待确认 |",
+    "| 证据ID | 方法 | 需求片段 | 分析结论 | 关联测试点/说明 |",
     "| 证据ID | 方法 | 需求片段 | 分析结论 | 关联测试点/缺口 |",
 }
 
@@ -100,7 +100,7 @@ ROUTE_SECTION_ALIASES = {
         "## 4. 测试分析维度与方法路由",
     ],
     "## 7. 测试分析维度与测试技术路由": ["## 7. 测试分析维度与方法路由"],
-    "## 4. 待确认治理摘要": ["## 4. 交互澄清摘要"],
+    "## 4. 输入不足摘要": [],
 }
 
 
@@ -209,7 +209,7 @@ def main() -> int:
             required_sections = LIGHTWEIGHT_REQUIRED_SECTIONS
         elif "## 4. Project/Personal 上下文使用情况" in text:
             required_sections = MODERN_REQUIRED_SECTIONS
-        elif "## 4. 交互澄清摘要" in text or "## 4. 待确认治理摘要" in text:
+        elif "## 4. 输入不足摘要" in text:
             required_sections = REQUIRED_SECTIONS
         else:
             required_sections = LEGACY_REQUIRED_SECTIONS
@@ -259,12 +259,12 @@ def main() -> int:
             ("方法", method),
             ("需求片段", fragment),
             ("分析结论", conclusion),
-            ("关联测试点/待确认", links),
+            ("关联测试点", links),
         ]:
             if not value:
                 errors.append(f"第 {line_number} 行：方法证据必填字段为空: {name}")
-        if not ("TP-" in links or "CQ-" in links):
-            warnings.append(f"第 {line_number} 行：方法证据建议关联 TP-* 或 CQ-*: {links}")
+        if "TP-" not in links:
+            warnings.append(f"第 {line_number} 行：方法证据建议关联 TP-*: {links}")
 
     expected_tp_id = 1
     for line_number, cells in rows:

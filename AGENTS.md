@@ -52,9 +52,9 @@
 - 测试分析主交付件固定为 `outputs/runs/<run-id>/deliverables/test-analysis-solution.json`，并由 `bin/render-run-markdown.py` 渲染同名 `.md` 人读版。
 - 测试设计主交付件固定为 `outputs/runs/<run-id>/deliverables/test-design-solution.json`，并由 `bin/render-run-markdown.py` 渲染同名 `.md` 人读版；优先复用上游测试分析方案所在 run。
 - JSON 是 run 过程产物、主交付件、review 和 coverage 的事实源；Markdown 是脚本派生产物，不手工维护。若二者不一致，以 JSON 为准并重新渲染 Markdown。
-- 创建 run 目录后必须维护四组固定 process 产物：`process/task-list.json/.md`、`process/context-pack.json/.md`、`process/input-fact-model.json/.md` 和 `process/clarification-session.json/.md`。
-- `process/task-list.json` 是阶段顺序和状态的流程事实源；`process/context-pack.json` 是本次 project/personal 动态来源索引事实源；`process/input-fact-model.json` 是输入事实模型事实源；`process/clarification-session.json` 是待确认治理事实源。
-- 即使没有 project/personal 命中或没有待确认候选，也必须生成对应 process 产物，并在文件内写明无命中或 `无待确认候选`。
+- 创建 run 目录后必须维护三组固定 process 产物：`process/task-list.json/.md`、`process/context-pack.json/.md` 和 `process/input-fact-model.json/.md`。
+- `process/task-list.json` 是阶段顺序和状态的流程事实源；`process/context-pack.json` 是本次 project/personal 动态来源索引事实源；`process/input-fact-model.json` 是输入事实模型事实源。
+- 即使没有 project/personal 命中，也必须生成对应 process 产物，并在文件内写明无命中。
 
 ## Project/Personal 上下文
 
@@ -73,17 +73,17 @@
 - 当用户要求把 `.docx` / `.xlsx` / `.md` 输入整理为可供下游读取的 Markdown 输入事实源时，使用 `@file-normalization-agent`。它调用 `normalize-input-documents`，负责缓存复用、可选 run-local 绑定、DOCX 图片/图形补充和复杂 Excel warning 收口。
 - 当用户要求基于需求和设计方案生成测试场景、测试点、测试点明细粒度的方案时，使用 `test-analysis-workflow`。该 workflow 只接受 Markdown 输入；如果用户直接提供 `.docx` 或 `.xlsx`，先切换到 `@file-normalization-agent` 归一化，不在分析 workflow 内转换。
 - `normalize-input-documents` 不能只以脚本执行成功作为完成标准；必须处理或记录 DOCX 图片/图形、复杂 Excel 和 metadata warnings 的收口状态，并确认图片/图形补充已合并到归一化 Markdown 的正确原文位置后，才能向下游交付 Markdown 输入事实源。
-- 测试分析阶段性动作依次使用 `context-source-indexing`、`input-fact-modeling`、`clarification-gate`、`testing-method-router`、路由选中的专项方法参考、`test-analysis-solution-generation`、JSON lint、Markdown render、派生 Markdown lint、`test-analysis-solution-review` 和 `coverage-review`。
-- 设计方案输入用于补充接口、字段、状态、权限、数据依赖、配置开关、异常处理和非功能指标；没有设计方案时继续生成，并把缺口沉淀到过程澄清记录或单条预期结果的 `待人工分析确认`。
+- 测试分析阶段性动作依次使用 `context-source-indexing`、`input-fact-modeling`、`testing-method-router`、路由选中的专项方法参考、`test-analysis-solution-generation`、JSON lint、Markdown render、派生 Markdown lint、`test-analysis-solution-review` 和 `coverage-review`。
+- 设计方案输入用于补充接口、字段、状态、权限、数据依赖、配置开关、异常处理和非功能指标；没有设计方案时继续生成，预期结果只写输入可支撑的保守判定，不补写未说明具体值。
 - 当用户要求基于已评审测试分析方案生成测试设计项时，使用 `test-design-workflow`。该 workflow 只接受 JSON canonical、Markdown 分析方案迁移输入或已归一化 Markdown 依据；如果用户直接提供 `.docx` 或 `.xlsx`，先切换到 `@file-normalization-agent` 归一化。
 - 测试设计阶段使用 `test-design-solution-generation`、确定性 lint 和 `test-design-solution-review`，在每个 `TP-*-*` 下生成 `TDI-*`；如果用户只提供需求/设计方案且要求测试设计，必须先生成或取得测试分析方案，再进入测试设计。
 - 不编造业务事实、状态、角色、接口契约、阈值、错误码、错误提示或状态变化；测试设计阶段可使用由规则推导的代表值或稳定数据槽位，但不得伪造真实生产数据或需求未说明的业务事实。
-- 如果需求和设计方案没有说明错误提示、状态变化、错误码或其他判定依据，相关测试点明细或失败类型明细的 `预期结果` 写 `待人工分析确认`。
+- 如果需求和设计方案没有说明错误提示、状态变化、错误码或其他判定依据，相关测试点明细或失败类型明细的 `预期结果` 只写输入可支撑的保守判定，不补写未说明具体值。
 - 每个测试场景下必须包含一个 `E2E场景测试` 测试点，用于覆盖该场景端到端业务主流程是否按预期完整闭环。
 - `E2E场景测试` 是场景下独立同级 `TP-*`，只维护 1 个端到端主流程成功闭环测试点明细；其他业务规则、异常处理、接口契约、权限、状态、数据校验、回滚或补偿分支必须拆成同级 `TP-*`。
 - 当需求、设计方案或用户任务明确要求接口测试/API 契约覆盖时，接口测试或集成覆盖场景下的非 E2E `TP-*` 必须先按接口、端点、消息、回调或集成点组织；字段、状态码、错误码、鉴权、幂等、超时和重试作为该接口 `TP-*` 下的明细或失败类型，不作为无法定位目标接口的泛化 `TP-*`。
 - 是否新增第四层由 `TP-*-*` 测试点明细决定：只有明确非成功聚合明细强制新增 `TP-*-*-*` 失败类型明细；“未找到返回空结果”“列表为空”“count=0”等单一弱结果分支可停留在 `TP-*-*`。`TP-*` 本身仍表示测试点主题。
-- 主交付件不设置独立的 `未明确规则` 章节，也不输出待确认信息清单；澄清和缺口治理保留在过程产物中。
+- 主交付件不设置独立的 `未明确规则` 章节，也不输出待确认信息清单；输入不足时自动使用可由输入支撑的保守预期，并在 review/coverage findings 中给出最终审查建议。
 - 主交付件不得使用 Markdown 加粗语法，例如 `**文本**` 或 `__文本__`。
 - 测试设计方案中的普通测试点明细或失败类型明细层保留 `expectedResult`；`TDI-*` 必须写入对应叶子节点的 `designItems[]`，每项包含 `id` 和 `content`，不得在 `designItems[].content` 中重复写预期结果，不得使用测试设计项表格。
 - `TDI-*` 应优先写具体数据值、数据槽位、状态值、接口返回或组合，例如 `amount=1000.00；category=PAY；customer_id=AGT_CUSTOMER_001`，不要只写“有效金额”“错误PIN”“接口超时”等抽象标签。

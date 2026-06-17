@@ -9,7 +9,6 @@
   "recommendations": [],
   "evidenceRefs": [
     "deliverables/test-analysis-solution.json",
-    "process/input-fact-model.json",
-    "process/clarification-session.json"
+    "process/input-fact-model.json"
   ]
 }

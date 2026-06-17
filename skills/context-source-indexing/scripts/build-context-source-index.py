@@ -16,7 +16,6 @@ PROJECT_KEY_RE = re.compile(r"^(?=.{1,64}$)[A-Za-z0-9](?:[A-Za-z0-9 _-]*[A-Za-z0
 ALLOWED_STAGES = {
     "*",
     "input-fact-modeling",
-    "clarification-gate",
     "testing-method-router",
     "test-analysis-solution-generation",
     "test-analysis-solution-review",

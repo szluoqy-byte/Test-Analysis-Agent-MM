@@ -112,7 +112,6 @@ stages:
 推荐阶段值：
 
 - `input-fact-modeling`
-- `clarification-gate`
 - `testing-method-router`
 - `test-analysis-solution-generation`
 - `test-analysis-solution-review`

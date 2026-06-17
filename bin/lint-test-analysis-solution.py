@@ -16,7 +16,6 @@ REQUIRED_SECTIONS = [
 ]
 
 INFO_HEADER = "| 字段 | 内容 |"
-EXPECTED_FALLBACK = "待人工分析确认"
 DETAIL_PREFIX = "- 测试点详情："
 EXPECTED_PREFIX = "- 预期结果："
 E2E_POINT_TITLE = "E2E场景测试"
@@ -149,7 +148,7 @@ EMPTY_MARKERS = {
     "<测试点明细>",
     "<测试点详情>",
     "<测试场景名称>",
-    "<明确预期结果或待人工分析确认>",
+    "<明确预期结果，或输入可支撑的保守预期>",
 }
 
 
@@ -158,8 +157,6 @@ def split_row(line: str) -> list[str]:
 
 
 def has_generic_reference(value: str) -> bool:
-    if value == EXPECTED_FALLBACK:
-        return False
     return any(word in value for word in GENERIC_REFERENCE_WORDS)
 
 
@@ -351,7 +348,7 @@ def main() -> int:
 
     for line_number, line in enumerate(lines, start=1):
         if re.match(r"^## 3\.", line):
-            errors.append(f"第 {line_number} 行：主交付件不应设置第三章，请把缺口沉淀到预期结果的“{EXPECTED_FALLBACK}”")
+            errors.append(f"第 {line_number} 行：主交付件不应设置第三章；全自动闭环不维护待确认章节")
         for term in BANNED_TERMS:
             if term in line:
                 errors.append(f"第 {line_number} 行：出现禁止字段或术语: {term}")

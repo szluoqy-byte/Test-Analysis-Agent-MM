@@ -240,7 +240,6 @@ def convert_run(run_dir: Path) -> list[Path]:
         (run_dir / "process" / "task-list.md", "task-list", parse_task_list),
         (run_dir / "process" / "context-pack.md", "context-pack", parse_generic_markdown),
         (run_dir / "process" / "input-fact-model.md", "input-fact-model", parse_generic_markdown),
-        (run_dir / "process" / "clarification-session.md", "clarification-session", parse_generic_markdown),
         (run_dir / "deliverables" / "test-analysis-solution.md", "test-analysis-solution", parse_solution),
         (run_dir / "deliverables" / "test-design-solution.md", "test-design-solution", parse_solution),
     ]

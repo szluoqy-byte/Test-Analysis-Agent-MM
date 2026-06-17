@@ -17,7 +17,6 @@ ANALYSIS_REQUIRED_TASK_STAGES = [
     "固定 PROJECT_ROOT 与运行目录",
     "上下文来源索引",
     "输入事实建模",
-    "待确认治理",
     "测试技术路由",
     "专项分析",
     "按源补读",
@@ -197,30 +196,6 @@ def validate_context_pack(path: Path) -> tuple[list[str], list[str]]:
     return errors, warnings
 
 
-def validate_clarification_session(path: Path) -> tuple[list[str], list[str]]:
-    text = path.read_text(encoding="utf-8")
-    errors: list[str] = []
-    warnings: list[str] = []
-
-    if not text.strip():
-        errors.append("clarification-session 为空")
-        return errors, warnings
-    required_markers = [
-        "# 待确认治理记录",
-        "## 1. 候选问题总表",
-        "## 2. 候选问题详情",
-        "## 3. 去重与降级结果",
-        "## 4. 预期结果兜底清单",
-    ]
-    for marker in required_markers:
-        if marker not in text:
-            errors.append(f"clarification-session 缺少固定章节: {marker}")
-    if "无待确认候选" not in text and "CQ-" not in text:
-        warnings.append("clarification-session 未记录候选问题，也未声明无待确认候选")
-
-    return errors, warnings
-
-
 def main() -> int:
     if len(sys.argv) != 2:
         print("用法: check-artifact-consistency.py <outputs/runs/<run-id>>", file=sys.stderr)
@@ -270,10 +245,8 @@ def main() -> int:
     required_paths = [
         run_dir / "process" / "task-list.json",
         run_dir / "process" / "context-pack.json",
-        run_dir / "process" / "clarification-session.json",
         run_dir / "process" / "task-list.md",
         run_dir / "process" / "context-pack.md",
-        run_dir / "process" / "clarification-session.md",
     ]
     for required in required_paths:
         if not required.exists():
@@ -286,7 +259,6 @@ def main() -> int:
     normalize_deliverable_markdown_files(run_dir / "deliverables")
     task_list_path = run_dir / "process" / "task-list.md"
     context_pack_path = run_dir / "process" / "context-pack.md"
-    clarification_session_path = run_dir / "process" / "clarification-session.md"
 
     if not solution_path.exists() and not design_solution_path.exists():
         errors.append("缺少主交付件: deliverables/test-analysis-solution.md 或 deliverables/test-design-solution.md")
@@ -311,11 +283,6 @@ def main() -> int:
         context_errors, context_warnings = validate_context_pack(context_pack_path)
         errors.extend(context_errors)
         warnings.extend(context_warnings)
-
-    if clarification_session_path.exists():
-        clarification_errors, clarification_warnings = validate_clarification_session(clarification_session_path)
-        errors.extend(clarification_errors)
-        warnings.extend(clarification_warnings)
 
     if solution_path.exists():
         points = collect_solution_points(solution_path)

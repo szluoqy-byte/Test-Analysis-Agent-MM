@@ -17,7 +17,7 @@ description: 在测试分析方案或测试设计方案 JSON 生成后使用，�
 - 如有结构化过程 JSON 或 review/coverage JSON，读取其中的测试点映射、测试技术路由和方法证据。
 - `${PROJECT_ROOT}/outputs/runs/<run-id>/process/task-list.json`。
 - `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.json`。
-- `${PROJECT_ROOT}/outputs/runs/<run-id>/process/clarification-session.json`。
+- `${PROJECT_ROOT}/outputs/runs/<run-id>/process/input-fact-model.json`。
 - core rules、core knowledge 和固定质量门禁。
 - `process/context-pack.json` 中 `sources[]` 对 `coverage-review` 可见的 project/personal checklist、覆盖策略、风险画像、Oracle 或附加门禁。
 - `knowledge/test-workflow-boundaries.md`。
@@ -39,7 +39,7 @@ description: 在测试分析方案或测试设计方案 JSON 生成后使用，�
 2. 检查主交付件 lint 结果；先确认 `bin/lint-run-json.py` 和 `bin/render-run-markdown.py --check` 通过，再按方案类型消费 `bin/lint-test-analysis-solution.py` 或 `bin/lint-test-design-solution.py`。如果 lint 失败，输出 `失败`，不继续做模型型覆盖审查。
 3. 消费独立评审结果。如果独立评审结论为 `需修正`，输出 `失败` 或 `警告`，并只补充覆盖层面的影响，不重复评审结构和粒度细节。
 4. 执行 `coverage-check.md`，检查需求模块、主流程、失败路径、权限、状态、接口、数据一致性、高风险区域和场景级 E2E 是否被覆盖；已由 lint 确认的 E2E 存在性不再重复判断，只判断语义覆盖是否合理。
-5. 执行 `skills/coverage-review/references/review-gates.md`，检查测试点、测试点明细或测试设计项是否能追踪到需求、设计方案、rules、方法证据或明确风险确认点，并检查必选测试技术是否落到主交付件、方法证据或过程缺口，不只停留在路由表。
+5. 执行 `skills/coverage-review/references/review-gates.md`，检查测试点、测试点明细或测试设计项是否能追踪到需求、设计方案、rules、方法证据或明确风险确认点，并检查必选测试技术是否落到主交付件或方法证据，不只停留在路由表。
 6. 执行 `skills/coverage-review/references/context-application-gates.md`，检查 core rules 是否被应用、解释不适用，或由当前用户明确指令覆盖；同时检查动态来源读取和应用状态。默认 checklist 类动态来源在本阶段统一查漏，避免独立评审和覆盖审查重复读取。
 7. 检查前序阶段和当前覆盖审查中的 core rules/project/personal 使用情况是否在结构化过程记录或审查 JSON 中可见。
 8. 按本阶段可见的 project checklist、覆盖策略、风险画像、Oracle 或附加门禁检查项目级漏覆盖，并验证前序阶段是否有应用状态记录。
@@ -48,7 +48,7 @@ description: 在测试分析方案或测试设计方案 JSON 生成后使用，�
 11. 如果使用了 core rules 或 project/personal 动态来源，检查相关强制规则、覆盖策略、判定依据、个人偏好或附加门禁是否已正确处理，且没有违反 core rules、核心字段、输出契约和质量门禁。
 12. 仅在用户明确要求深度评估、任务参数声明 deep review、或覆盖审查发现高风险但无法定性时，使用 `skills/coverage-review/references/deep-review-rubric.md` 进行专家评分；默认单次报告不执行专家评分。
 13. 列出通过、警告和失败项。
-14. 对阻断报告发布且无法通过修正测试点、测试点明细或测试设计项解决的问题，登记 `CP-REVIEW` 过程候选。
+14. 对阻断报告发布且无法通过修正测试点、测试点明细或测试设计项解决的问题，在 `blockingIssues[]` 或 `recommendations[]` 中输出可定位修正建议。
 15. 给出针对性修正建议。
 
 ## 不再重复检查
@@ -67,14 +67,14 @@ description: 在测试分析方案或测试设计方案 JSON 生成后使用，�
 | 结果 | 含义 | 后续处理 |
 |---|---|---|
 | 通过 | lint、独立评审、覆盖、追踪、方法应用、core rules 和动态来源应用均满足要求 | 可以输出方案 |
-| 警告 | 存在非阻断问题、依据不足或局部待人工分析确认风险 | 记录原因，必要时把相关预期结果改为 `待人工分析确认` |
+| 警告 | 存在非阻断问题、依据不足或局部保守预期风险 | 记录原因，必要时把相关预期结果降级为输入可支撑的保守判定 |
 | 失败 | 确定性 lint 失败、核心需求不可追踪、必选方法无承接、core rules/动态来源应用失败或独立评审阻断 | 修正后重跑对应检查 |
 
 失败项分为四类处理：
 
 - 确定性校验失败：结构、编号、字段、语法和固定路径问题。必须按脚本输出修正后重跑 lint；最终一致性问题必须在输出收口阶段修正后重跑 `check-artifact-consistency.py`。
 - 输出质量失败：例如测试点/测试点明细完整用例化、核心粒度不合理、预期结果为空或事实编造。必须修正输出后重跑独立评审和覆盖审查。
-- 需求信息缺失：例如核心规则、终态、权限范围或接口契约无法确认。登记 `CP-REVIEW` 过程候选，并把相关叶子节点的 `预期结果` 写成 `待人工分析确认`。
+- 需求信息缺失：例如核心规则、终态、权限范围或接口契约无法确认。若影响交付质量，在 `findings[]`、`blockingIssues[]` 或 `recommendations[]` 中记录可定位问题；相关叶子节点只保留输入可支撑的保守预期，不补写未说明具体值。
 - Dynamic/core 应用失败：core rules 未被遵守，或 `sources[]` 可见动态来源未被对应阶段读取、应用或解释。必须补读、补齐应用记录或修正输出后重审。
 
 ## 输出
@@ -97,12 +97,11 @@ description: 在测试分析方案或测试设计方案 JSON 生成后使用，�
 - 独立评审结论：只引用结论和阻断项，不重复展开所有结构规则。
 - 每个覆盖类 quality gate 的结果和失败/警告项。
 - task-list 中固定阶段的状态和异常项。
-- 必选方法是否都有主交付件承接、方法证据或过程缺口。
+- 必选方法是否都有主交付件承接或方法证据。
 - 适用分析维度是否落到主交付件，而不是只停留在结构化过程记录。
 - 需求依据和方法证据是否可追踪。
 - core rules 应用状态，包括适用 rules 是否已遵守、解释不适用、被当前用户明确指令覆盖，或与输入冲突并完成覆盖留痕。
-- 动态来源应用状态，包括每个已读取来源是否已应用、解释不适用或进入缺口兜底。
-- 需要回传给 `clarification-gate` 的 `CP-REVIEW` 过程候选。
+- 动态来源应用状态，包括每个已读取来源是否已应用、解释不适用或产生最终审查发现。
 - 深度评估开启时，输出专家评分；默认不输出专家评分章节。
 
 ## 约束
@@ -110,7 +109,7 @@ description: 在测试分析方案或测试设计方案 JSON 生成后使用，�
 - 不静默修复或隐藏失败项。
 - 不通过不可追踪的测试点。
 - 不重复执行确定性脚本已经覆盖的结构、编号、字段和 Markdown 语法检查。
-- 保留需求歧义，但必须用 `待人工分析确认` 承接缺少依据的预期结果。
+- 保留需求歧义，但缺少依据的预期结果必须降级为输入可支撑的保守判定，不补写未说明具体值。
 - 不通过缺少方法分析证据且没有解释的必选方法。
 - 确定性 lint 失败视为阻断性输出质量问题。
 - 本 skill 不直接向用户提问；覆盖建议默认不进入主交付件。

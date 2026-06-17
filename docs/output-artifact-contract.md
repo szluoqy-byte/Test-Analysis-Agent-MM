@@ -30,8 +30,6 @@ outputs/
         context-pack.md
         input-fact-model.json
         input-fact-model.md
-        clarification-session.json
-        clarification-session.md
       reports/
         test-analysis-solution-review.json
         test-design-solution-review.json
@@ -60,10 +58,8 @@ DOCX 图片理解和 Mermaid 转换必须按原文顺序分批处理：普通图
 | 任务清单 Markdown | `process/task-list.md` | 是 | 由 `task-list.json` 渲染的人读版 |
 | 上下文来源索引 JSON | `process/context-pack.json` | 是 | 记录 `projectBinding`、`personalBinding`、动态 `sources[]`、未扫描 project 来源和告警；core rules/knowledge 不进入动态索引 |
 | 上下文来源索引 Markdown | `process/context-pack.md` | 是 | 由 `context-pack.json` 渲染的人读版 |
-| 输入事实模型 JSON | `process/input-fact-model.json` | 分析阶段是 | 记录输入来源、事实、需求-设计映射、待确认事项和来源应用说明 |
+| 输入事实模型 JSON | `process/input-fact-model.json` | 分析阶段是 | 记录输入来源、事实、需求-设计映射和来源应用说明 |
 | 输入事实模型 Markdown | `process/input-fact-model.md` | 分析阶段是 | 由 `input-fact-model.json` 渲染的人读版 |
-| 待确认治理记录 JSON | `process/clarification-session.json` | 是 | 记录候选问题、去重降级结果和预期结果兜底清单；无候选时也必须声明 `无待确认候选` |
-| 待确认治理记录 Markdown | `process/clarification-session.md` | 是 | 由 `clarification-session.json` 渲染的人读版；不写入主交付件章节 |
 | 分析语义评审 JSON | `reports/test-analysis-solution-review.json` | 分析评审时是 | 记录 LLM 语义评审结论、阻断项、建议和证据引用 |
 | 设计语义评审 JSON | `reports/test-design-solution-review.json` | 设计评审时是 | 记录 LLM 语义评审结论、阻断项、建议和证据引用 |
 | 覆盖审查 JSON | `reports/coverage-review.json` | 是 | 记录覆盖、追踪、core rules/动态来源应用和覆盖门禁结论 |
@@ -80,8 +76,7 @@ DOCX 图片理解和 Mermaid 转换必须按原文顺序分批处理：普通图
 
 - `task-list.json` / `task-list.md`：阶段顺序、状态和证据路径。
 - `context-pack.json` / `context-pack.md`：project/personal 动态来源索引、阶段可见性、未扫描 project 来源和告警。
-- `input-fact-model.json` / `input-fact-model.md`：输入事实、需求-设计映射和待确认事项。
-- `clarification-session.json` / `clarification-session.md`：待确认候选治理、去重降级结果和预期结果兜底清单。
+- `input-fact-model.json` / `input-fact-model.md`：输入事实、需求-设计映射和来源应用说明。
 
 其他过程性材料不是固定必需产物。若某个 skill 需要保存中间证据，优先写入 `reports/` 的结构化 JSON，或在上述 process JSON 中登记摘要和证据路径，避免 `process/` 目录随流程漂移。
 
@@ -115,7 +110,7 @@ DOCX 图片理解和 Mermaid 转换必须按原文顺序分批处理：普通图
               "id": "TP-001-001",
               "title": "<端到端主流程测试点明细>",
               "description": "<说明该场景端到端业务主流程需要验证什么。>",
-              "expectedResult": "<业务主流程按预期完整闭环或待人工分析确认>",
+              "expectedResult": "<业务主流程按输入规则完整闭环>",
               "failureDetails": []
             }
           ]
@@ -128,7 +123,7 @@ DOCX 图片理解和 Mermaid 转换必须按原文顺序分批处理：普通图
               "id": "TP-002-001",
               "title": "<测试点明细>",
               "description": "<说明该分支需要验证什么。>",
-              "expectedResult": "<明确预期结果或待人工分析确认>",
+              "expectedResult": "<明确预期结果，或输入可支撑的保守预期>",
               "failureDetails": []
             },
             {
@@ -139,7 +134,7 @@ DOCX 图片理解和 Mermaid 转换必须按原文顺序分批处理：普通图
                   "id": "TP-002-002-001",
                   "title": "<失败类型明细>",
                   "description": "<说明该失败类型需要验证什么。>",
-                  "expectedResult": "<明确预期结果或待人工分析确认>"
+                  "expectedResult": "<明确预期结果，或输入可支撑的保守预期>"
                 }
               ]
             }
@@ -181,7 +176,7 @@ DOCX 图片理解和 Mermaid 转换必须按原文顺序分批处理：普通图
               "id": "TP-001-001",
               "title": "<端到端主流程测试点明细>",
               "description": "<来自测试分析方案的端到端主流程测试点详情。>",
-              "expectedResult": "<来自测试分析方案的预期结果，依据不足时为待人工分析确认>",
+              "expectedResult": "<来自测试分析方案的预期结果；依据不足时保留输入可支撑的保守预期>",
               "failureDetails": [],
               "designItems": [
                 {
@@ -200,7 +195,7 @@ DOCX 图片理解和 Mermaid 转换必须按原文顺序分批处理：普通图
               "id": "TP-002-001",
               "title": "<测试点明细>",
               "description": "<来自测试分析方案的测试点详情。>",
-              "expectedResult": "<来自测试分析方案的预期结果，依据不足时为待人工分析确认>",
+              "expectedResult": "<来自测试分析方案的预期结果；依据不足时保留输入可支撑的保守预期>",
               "failureDetails": [],
               "designItems": [
                 {
@@ -217,7 +212,7 @@ DOCX 图片理解和 Mermaid 转换必须按原文顺序分批处理：普通图
                   "id": "TP-002-002-001",
                   "title": "<失败类型明细>",
                   "description": "<来自测试分析方案的失败类型明细。>",
-                  "expectedResult": "<来自测试分析方案的预期结果，依据不足时为待人工分析确认>",
+                  "expectedResult": "<来自测试分析方案的预期结果；依据不足时保留输入可支撑的保守预期>",
                   "designItems": [
                     {
                       "id": "TDI-003",
@@ -237,10 +232,10 @@ DOCX 图片理解和 Mermaid 转换必须按原文顺序分批处理：普通图
 
 测试设计方案必须继承测试分析方案的分析层级，不新增、删除、合并或改写 `SC-*`、`TP-*`、`TP-*-*` 或 `TP-*-*-*`。`E2E场景测试` 仍是独立同级测试点，只维护端到端主流程成功闭环设计项；其他规则、异常、接口、权限、状态、回滚或补偿设计项保留在同级 `TP-*` 下。当分析方案包含接口测试或集成覆盖场景时，设计方案必须继承按接口、端点、消息、回调、集成点或通用接口范围组织的 `TP-*`，让每个 `TDI-*` 能追溯到具体接口或通用接口范围。已有 `TP-*-*-*` 失败类型明细时，`designItems[]` 挂第四层；单一弱结果分支停留在 `TP-*-*` 时，`designItems[]` 直接挂该明细，不机械新增第四层。普通测试点明细或失败类型明细层保留 `expectedResult`；`TDI-*` 必须写入 `designItems[]`，只写代表性条件、具体数据值、数据槽位、状态、接口返回或组合，不重复写 `expectedResult`，不得使用测试设计项表格。接口类 `TDI-*` 不输出完整裸 URL，必须拆成 `接口=METHOD /path`、`参数名=参数值`、`响应状态=...` 等同一行字段片段。`TDI-*` 不写结果或动作表达；同类条件在不同场景、渠道、操作或接口下复用时必须补充差异维度；接口契约叶子节点应基于已明确字段约束覆盖代表性有效、无效、边界、枚举、必填、鉴权、幂等、超时或异常返回组合；补偿类叶子节点应写成可观察分支条件。
 
-## 预期结果兜底
+## 预期结果保守收敛
 
 - `预期结果` 只能写需求、设计方案或上游测试分析方案明确支持的简短判定结果。
-- 如果需求和设计方案没有说明错误提示、状态变化、错误码、接口返回内容、消息发送结果或数据记录变化，写 `待人工分析确认`。
+- 如果需求和设计方案没有说明错误提示、状态变化、错误码、接口返回内容、消息发送结果或数据记录变化，只写输入可支撑的保守预期，不补写未说明具体值。
 - 不得为缺口新增 `## 3. 未明确规则`。
 - 不得在主交付件输出独立待确认信息清单。
 - 不得在主交付件使用 Markdown 加粗语法，例如 `**文本**` 或 `__文本__`。
@@ -249,7 +244,7 @@ DOCX 图片理解和 Mermaid 转换必须按原文顺序分批处理：普通图
 
 - 后续机器流程和 review skill 优先读取 `outputs/runs/<run-id>/deliverables/test-analysis-solution.json`；人工评审读取同名 `.md` 派生版。
 - 后续完整用例写作或自动化设计优先读取 `outputs/runs/<run-id>/deliverables/test-design-solution.json`；人工评审读取同名 `.md` 派生版。
-- 结构化过程记录、context pack 和 clarification session 是审查证据，不是主交付件的必读前置。
+- 结构化过程记录和 context pack 是审查证据，不是主交付件的必读前置。
 - 如果 `sources[]` 中可见动态来源被读取，后续理解测试分析方案需要知道的项目风险、覆盖策略、术语映射、个人关注点或判定依据必须上收到主交付件或结构化 review/coverage JSON。
 - core rules 由 workflow 或对应 skill 固定读取；后续生成、评审和覆盖审查必须应用、解释不适用，或记录被当前用户明确指令覆盖；rules 与输入文档冲突时默认遵守 rules 并留痕。
 - 如果某阶段读取了 `sources[]` 中的动态来源，该阶段的结构化过程记录或审查 JSON 必须包含应用状态，覆盖审查需检查来源是否被读取和处理。

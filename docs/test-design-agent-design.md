@@ -108,7 +108,7 @@ flowchart TD
 | 确定性校验 | `bin/lint-run-json.py`、`bin/render-run-markdown.py --check`、`bin/lint-test-design-solution.py` | 先检查 JSON canonical 结构、编号和字段，再检查派生 Markdown 渲染一致性与人读格式；失败时修正 JSON，不手工改 Markdown |
 | 独立评审 | `test-design-solution-review` | 检查承接关系、设计项数据化粒度、叶子节点预期结果依据和非完整用例化语义 |
 | 覆盖审查 | `coverage-review` | 检查需求覆盖、分析方案承接、rules 应用、动态来源应用和覆盖门禁；不重复 lint 已覆盖的结构规则 |
-| 输出收口 | `bin/check-artifact-consistency.py` | 检查 run 目录、四组固定 process 产物、任务清单状态和主交付件基础一致性 |
+| 输出收口 | `bin/check-artifact-consistency.py` | 检查 run 目录、三组固定 process 产物、任务清单状态和主交付件基础一致性 |
 
 ## 分析输入质量处理
 
@@ -172,7 +172,7 @@ project/personal 动态来源只来自 `rules/projects/<project-key>/`、`rules/
 - 超时、回滚、补偿或外部依赖恢复类叶子节点应写成可观察条件组合，例如查询返回数量、状态值、依赖返回或超时状态。
 - 主输出不得出现完整测试用例字段、操作步骤、脚本或执行数据。
 - 主输出不得使用 Markdown 加粗语法，例如 `**文本**` 或 `__文本__`。
-- 依据不足的预期结果必须写 `待人工分析确认`。
+- 依据不足的预期结果只写输入可支撑的保守判定，不补写未说明具体值。
 - 适用 rules 必须被执行、解释不适用，或记录被当前用户明确指令覆盖。
 
 ## 校验命令

@@ -16,7 +16,7 @@ description: 当用户提供已评审测试分析方案，或要求从需求先�
 - 固定缩写：测试场景 `SC-*`、测试点 `TP-*`、测试点明细 `TP-*-*`、失败类型明细 `TP-*-*-*`、测试设计项 `TDI-*`；主交付件不展开英文全名。
 - 设计项 ID：`TDI-001` 起全局连续编号。
 - 设计项内容：代表性条件、具体数据值、数据槽位、状态、接口返回或组合。
-- 预期结果：普通测试点明细或失败类型明细层的判定结果；只能写需求或设计方案明确支持的结果，依据不足时写 `待人工分析确认`。
+- 预期结果：普通测试点明细或失败类型明细层的判定结果；只能写需求或设计方案明确支持的结果，依据不足时写可由输入直接支持的保守结果。
 
 ## 必需输入
 
@@ -72,14 +72,13 @@ core rules、core knowledge、templates 和 skill 私有参考由 workflow 或�
 4. 创建或刷新 `process/task-list.json`，记录当前进入测试设计阶段；需要人读版时由渲染脚本生成 `process/task-list.md`。
 5. 优先读取并校验 `deliverables/test-analysis-solution.json`；若只有 Markdown 输入，先转换或解析为临时 JSON，再运行 `bin/lint-run-json.py` 和 `bin/lint-test-analysis-solution.py`。
 6. 读取或生成 `process/context-pack.json`。若需要生成，必须调用 `python skills/context-source-indexing/scripts/build-context-source-index.py ...`，不得手工拼写或改写该 JSON；确认 `projectBinding`、`personalBinding` 和对设计阶段可见的动态来源索引。`sources[]` 不得包含 core rules、core knowledge、templates、skill 私有参考、绝对路径或应用状态。
-7. 创建或刷新 `process/clarification-session.json`；如果设计阶段没有新增待确认候选，声明 `无待确认候选`。
-8. 受控补读归一化后的原始需求 Markdown、设计方案 Markdown、`design-facts` 或结构化过程记录中与当前分析方案相关的依据；不得要求后续读者回看这些文件才能理解主交付件。
-9. 使用 `test-design-solution-generation` 在普通 `TP-*-*` 或失败类型 `TP-*-*-*` 下生成 1-N 个 `TDI-*`，写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.json`，并记录动态来源应用状态。
-10. 运行 `bin/lint-run-json.py ${PROJECT_ROOT}/outputs/runs/<run-id>` 做 JSON 结构校验；随后运行 `bin/render-run-markdown.py ${PROJECT_ROOT}/outputs/runs/<run-id>` 和 `bin/lint-test-design-solution.py ${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.md` 校验派生 Markdown；失败时先修正 JSON，不手工改 Markdown。
-11. 使用 `test-design-solution-review` 独立评审测试设计方案 JSON，重点检查分析方案承接、失败类型明细继承、设计项数据化粒度、叶子节点预期结果依据和非完整用例化语义。评审结果写入 `reports/test-design-solution-review.json`。
-12. 使用 `coverage-review` 或设计级覆盖审查记录检查需求覆盖、分析方案承接关系、core rules 与动态来源应用状态和过程门禁，不重复 lint 已覆盖的结构规则。覆盖结果写入 `reports/coverage-review.json`。
-13. 如需保留人读过程审查信息，优先由 `reports/test-design-solution-review.json` 或 `reports/coverage-review.json` 渲染派生 Markdown，不再维护独立设计报告模板。
-14. 最终输出前刷新 `process/task-list.json`：设计阶段必选项必须为 `done`，未触发的可选项为 `skipped` 并说明原因；运行 `bin/render-run-markdown.py ${PROJECT_ROOT}/outputs/runs/<run-id>` 生成派生 Markdown；运行 `bin/check-artifact-consistency.py ${PROJECT_ROOT}/outputs/runs/<run-id>` 做最终一致性检查；如果存在 `blocked`，必须在 `process/task-list.json`、`process/clarification-session.json` 或 review/coverage JSON 中说明。
+7. 受控补读归一化后的原始需求 Markdown、设计方案 Markdown、`design-facts` 或结构化过程记录中与当前分析方案相关的依据；不得要求后续读者回看这些文件才能理解主交付件。
+8. 使用 `test-design-solution-generation` 在普通 `TP-*-*` 或失败类型 `TP-*-*-*` 下生成 1-N 个 `TDI-*`，写入 `${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.json`，并记录动态来源应用状态。
+9. 运行 `bin/lint-run-json.py ${PROJECT_ROOT}/outputs/runs/<run-id>` 做 JSON 结构校验；随后运行 `bin/render-run-markdown.py ${PROJECT_ROOT}/outputs/runs/<run-id>` 和 `bin/lint-test-design-solution.py ${PROJECT_ROOT}/outputs/runs/<run-id>/deliverables/test-design-solution.md` 校验派生 Markdown；失败时先修正 JSON，不手工改 Markdown。
+10. 使用 `test-design-solution-review` 独立评审测试设计方案 JSON，重点检查分析方案承接、失败类型明细继承、设计项数据化粒度、叶子节点预期结果依据和非完整用例化语义。评审结果写入 `reports/test-design-solution-review.json`。
+11. 使用 `coverage-review` 或设计级覆盖审查记录检查需求覆盖、分析方案承接关系、core rules 与动态来源应用状态和过程门禁，不重复 lint 已覆盖的结构规则。覆盖结果写入 `reports/coverage-review.json`。
+12. 如需保留人读过程审查信息，优先由 `reports/test-design-solution-review.json` 或 `reports/coverage-review.json` 渲染派生 Markdown，不再维护独立设计报告模板。
+13. 最终输出前刷新 `process/task-list.json`：设计阶段必选项必须为 `done`，未触发的可选项为 `skipped` 并说明原因；运行 `bin/render-run-markdown.py ${PROJECT_ROOT}/outputs/runs/<run-id>` 生成派生 Markdown；运行 `bin/check-artifact-consistency.py ${PROJECT_ROOT}/outputs/runs/<run-id>` 做最终一致性检查；如果存在 `blocked`，必须在 `process/task-list.json` 或 review/coverage JSON 中说明。
 
 ## 阶段产物契约
 
@@ -87,7 +86,6 @@ core rules、core knowledge、templates 和 skill 私有参考由 workflow 或�
 |---|---|---|
 | `analysis-solution-check` | 已校验 `test-analysis-solution.json`、承接关系检查 | 测试设计项生成 |
 | `context-source-indexing` | `process/context-pack.json` 或复用记录、`projectBinding`、`personalBinding`、动态 `sources[]`、未扫描 project 来源和告警 | 测试设计项生成和评审 |
-| `clarification-session` | `process/clarification-session.json`，无候选时声明 `无待确认候选` | 测试设计项生成和评审 |
 | `test-design-solution-generation` | `deliverables/test-design-solution.json`、`TDI-*` 测试设计项、叶子节点预期结果、项目知识应用状态 | 确定性校验 |
 | 确定性校验 | `lint-run-json.py`、`render-run-markdown.py --check`、`lint-test-design-solution.py` 结果 | 独立评审；失败时回到 JSON 修正 |
 | `test-design-solution-review` | `reports/test-design-solution-review.json` | 覆盖审查与输出收口 |
@@ -122,7 +120,7 @@ core rules、core knowledge、templates 和 skill 私有参考由 workflow 或�
 - 接口契约叶子节点必须结合输入已明确的字段约束生成代表性有效、无效、边界和异常返回组合；例如金额精度、枚举值、必填字段、鉴权、幂等、状态码、错误码、超时和重试。
 - 超时、回滚、补偿或外部依赖恢复类叶子节点必须把分支写成可观察组合，例如 `查询返回count=1；payment_status=SUCCESS`、`查询返回count=0；payment_status=FAILED`、`查询超时；payment_status=TIMEOUT`，不得只写抽象“接口超时”或“补偿成功”。
 - `预期结果` 只能来自当前用户明确指令、core rules、对当前阶段可见且已读取的动态来源、需求、设计方案、测试分析方案或可直接推出的业务不变量。
-- 如果需求和设计方案没有明确错误提示、状态变化、错误码、返回内容、数据记录变化或其他判定依据，`预期结果` 写 `待人工分析确认`。
+- 如果需求和设计方案没有明确错误提示、状态变化、错误码、返回内容、数据记录变化或其他判定依据，`预期结果` 只写可由输入支持的保守结果，不写具体缺失值或占位确认文案。
 - 主输出不得包含 `覆盖意图`、`级别`、`待确认信息`、`判定关注`、`输入条件与数据依赖` 等旧字段。
 - 主输出不得使用 Markdown 加粗语法，例如 `**文本**` 或 `__文本__`。
 - 主输出不得包含操作步骤、前置步骤、有序测试步骤、自动化脚本、接口调用代码或执行数据表。
@@ -136,5 +134,5 @@ core rules、core knowledge、templates 和 skill 私有参考由 workflow 或�
 - 不把“回读原始需求、设计方案、结构化过程记录或 memory”作为后续理解测试设计方案的前提。
 - 不直接覆盖历史运行产物；设计交付件必须写入固定 run 目录，并使用固定文件名。
 - 不允许在 `skills/`、`.claude-plugin/`、`.opencode/`、插件缓存目录或 skill 工作目录下创建 `outputs/runs/`。
-- 全流程不调用用户交互能力；多个环节只登记过程候选，不直接向用户提问，不暂停主流程。
+- 全流程不调用用户交互能力，不创建问题队列，不直接向用户提问，不暂停主流程。
 - 未经用户明确确认，不写入 memory 源文件。
