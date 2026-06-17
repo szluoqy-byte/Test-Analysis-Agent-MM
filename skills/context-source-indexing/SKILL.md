@@ -20,7 +20,7 @@ python skills/context-source-indexing/scripts/build-context-source-index.py \
   --project <project-key>
 ```
 
-如果没有唯一 `project-key`，不要传 `--project`，可用 `--project-reason` 写明未绑定原因。脚本会默认渲染 `process/context-pack.md`；只需要 JSON 时才使用 `--no-render`。
+如果没有显式 `project-key`，不要传 `--project`。脚本会基于需求标题、需求路径和 `--keyword` 与现有 project 目录名做轻量推断；只有唯一命中时才绑定并扫描 project 来源。无法唯一命中时可用 `--project-reason` 写明未绑定原因。脚本会默认渲染 `process/context-pack.md`；只需要 JSON 时才使用 `--no-render`。
 
 ## 职责边界
 
@@ -36,7 +36,7 @@ python skills/context-source-indexing/scripts/build-context-source-index.py \
 
 - 当前 run 目录：`${PROJECT_ROOT}/outputs/runs/<run-id>/`。
 - 已解析的需求文档路径、需求标题或关键词，用于记录本次索引背景。
-- 可选 `project-key`：只有唯一确定时才扫描 project 层路径。
+- 可选 `project-key`：显式提供时优先使用；未提供时，脚本只枚举 project 一级目录名，并用需求标题、路径和关键词做唯一匹配。只有唯一确定时才扫描 project 层路径。
 - 可选 `personal-key`：当前默认使用 `default`，扫描 `*/user/**/*.md`。
 - 脚本：`skills/context-source-indexing/scripts/build-context-source-index.py`。
 - 模板：`templates/context-pack-json-template.json` 和 `templates/context-pack-template.md`，仅作为结构和人读样式参考；实际生成以脚本输出为准。
@@ -76,7 +76,7 @@ python skills/context-source-indexing/scripts/build-context-source-index.py \
 - `knowledge/projects/<project-key>/**/*.md`
 - `memory/projects/<project-key>/**/*.md`
 
-无唯一 `project-key` 时，不扫描任何 project 目录正文，也不把所有项目目录加载进索引；只在 `projectBinding` 和 `unscannedProjectSources` 中记录未扫描原因。
+无唯一 `project-key` 时，不扫描任何 project 目录正文，也不把所有项目目录加载进索引；只在 `projectBinding`、`unscannedProjectSources` 和 `warnings` 中记录未扫描原因。允许枚举 `rules/projects/`、`knowledge/projects/`、`memory/projects/` 的一级目录名用于唯一性判断，但不得读取候选目录下的 Markdown 正文或 frontmatter。
 
 personal 层扫描：
 
@@ -171,6 +171,7 @@ stages:
 - `availableStages` 缺省时统一写 `["*"]`，`availability` 写 `all`；显式阶段列表时写 `restricted`。
 - frontmatter 缺失或不合法的动态来源不得静默注入，必须在 `warnings[]` 中记录文件路径和问题，且不写入 `sources[]`。
 - 如果 `project-key` 未唯一确定，`projectBinding.status` 写 `unresolved`，并在 `unscannedProjectSources[]` 记录 project 根路径未扫描原因。
+- 如果未传 `--project`，但需求标题、路径或 keywords 唯一命中某个 project 目录名，`projectBinding.status` 写 `resolved`，`reason` 写明由关键词/路径推断；如果命中多个目录，保持 `unresolved` 并在 `warnings[]` 列出候选。
 
 ## 后续消费原则
 

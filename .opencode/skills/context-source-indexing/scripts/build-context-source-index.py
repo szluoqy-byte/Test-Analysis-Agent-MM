@@ -86,6 +86,44 @@ def split_keywords(values: list[str]) -> list[str]:
     return keywords
 
 
+def normalize_match_text(value: str) -> str:
+    return re.sub(r"[^0-9a-z]+", "", value.casefold())
+
+
+def discover_project_keys(root: Path) -> list[str]:
+    keys: set[str] = set()
+    for pattern in PROJECT_ROOT_PATTERNS:
+        projects_root = root / pattern.split("/{project_key}", 1)[0]
+        if not projects_root.is_dir():
+            continue
+        for path in projects_root.iterdir():
+            if path.is_dir() and PROJECT_KEY_RE.fullmatch(path.name):
+                keys.add(path.name)
+    return sorted(keys, key=lambda value: value.casefold())
+
+
+def infer_project_key(args: argparse.Namespace, root: Path) -> tuple[str, str, list[str]]:
+    evidence_parts = [args.requirement_title or "", str(args.requirement or "")]
+    evidence_parts.extend(split_keywords(args.keyword))
+    evidence_text = normalize_match_text(" ".join(evidence_parts))
+    if not evidence_text:
+        return "", "未提供 project-key，且需求标题、路径和关键词不足以推断", []
+
+    candidates: list[str] = []
+    for project_key in discover_project_keys(root):
+        normalized_key = normalize_match_text(project_key)
+        if not normalized_key:
+            continue
+        if normalized_key in evidence_text:
+            candidates.append(project_key)
+
+    if len(candidates) == 1:
+        return candidates[0], f"根据需求标题/路径/keywords 唯一匹配 project-key: {candidates[0]}", []
+    if len(candidates) > 1:
+        return "", "需求标题/路径/keywords 命中多个 project-key，未唯一绑定", candidates
+    return "", "未提供 project-key，且无法从需求标题/路径/keywords 唯一识别", []
+
+
 def parse_inline_list(value: str) -> list[str]:
     value = value.strip()
     if not (value.startswith("[") and value.endswith("]")):
@@ -224,12 +262,17 @@ def build_index(args: argparse.Namespace, root: Path) -> dict[str, Any]:
     sources: list[dict[str, Any]] = []
     unscanned_project_sources: list[dict[str, str]] = []
 
-    project_key = (args.project or "").strip()
+    explicit_project_key = (args.project or "").strip()
+    project_key = explicit_project_key
+    inferred_reason = ""
+    ambiguous_candidates: list[str] = []
+    if not project_key:
+        project_key, inferred_reason, ambiguous_candidates = infer_project_key(args, root)
     if project_key and PROJECT_KEY_RE.fullmatch(project_key):
         project_binding = {
             "status": "resolved",
             "projectKey": project_key,
-            "reason": args.project_reason or "用户显式提供 project-key",
+            "reason": args.project_reason or ("用户显式提供 project-key" if explicit_project_key else inferred_reason),
         }
         for pattern in PROJECT_ROOT_PATTERNS:
             for path in iter_markdown_sources(root / pattern.format(project_key=project_key)):
@@ -237,14 +280,16 @@ def build_index(args: argparse.Namespace, root: Path) -> dict[str, Any]:
                 if source:
                     sources.append(source)
     else:
-        reason = args.project_reason or "未提供 project-key，且无法从输入唯一识别"
+        reason = args.project_reason or inferred_reason or "未提供 project-key，且无法从输入唯一识别"
         project_binding = {
             "status": "unresolved",
             "projectKey": project_key if project_key and not PROJECT_KEY_RE.fullmatch(project_key) else "",
             "reason": reason,
         }
-        if project_key and not PROJECT_KEY_RE.fullmatch(project_key):
+        if explicit_project_key and not PROJECT_KEY_RE.fullmatch(explicit_project_key):
             warnings.append(f"project-key `{project_key}` 格式非法，未扫描 project 目录")
+        if ambiguous_candidates:
+            warnings.append("project-key 候选不唯一，未扫描 project 目录: " + "、".join(ambiguous_candidates))
         unscanned_project_sources = [
             {"path": path, "reason": "project-key 未唯一确定"}
             for path in PROJECT_UNSCANNED_ROOTS
