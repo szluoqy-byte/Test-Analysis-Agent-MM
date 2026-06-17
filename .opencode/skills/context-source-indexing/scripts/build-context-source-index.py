@@ -98,6 +98,27 @@ def parse_inline_list(value: str) -> list[str]:
     return items
 
 
+def strip_yaml_scalar(value: str) -> str:
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {"\"", "'", "“", "”", "‘", "’"}:
+        return value[1:-1].strip()
+    return value
+
+
+def split_frontmatter_item(line: str) -> tuple[str, str] | None:
+    half_index = line.find(":")
+    full_index = line.find("：")
+    indexes = [index for index in (half_index, full_index) if index >= 0]
+    if not indexes:
+        return None
+    index = min(indexes)
+    key = line[:index].strip().lstrip("\ufeff")
+    value = line[index + 1 :].strip()
+    if not key:
+        return None
+    return key, value
+
+
 def read_frontmatter(path: Path) -> tuple[dict[str, Any] | None, str | None]:
     try:
         text = path.read_text(encoding="utf-8")
@@ -105,7 +126,7 @@ def read_frontmatter(path: Path) -> tuple[dict[str, Any] | None, str | None]:
         return None, f"不是有效 UTF-8: {exc}"
 
     lines = text.splitlines()
-    if not lines or lines[0].strip() != "---":
+    if not lines or lines[0].strip().lstrip("\ufeff") != "---":
         return None, "缺少 frontmatter"
 
     frontmatter: list[str] = []
@@ -127,17 +148,16 @@ def parse_frontmatter_lines(lines: list[str]) -> dict[str, Any]:
             values.setdefault(current_key, []).append(stripped[2:].strip().strip("\"'"))
             continue
         current_key = ""
-        key, sep, value = line.partition(":")
-        if not sep:
+        item = split_frontmatter_item(line)
+        if item is None:
             continue
-        key = key.strip()
-        value = value.strip()
+        key, value = item
         if key == "stages":
             current_key = key
             inline = parse_inline_list(value)
             values[key] = inline if inline else []
         else:
-            values[key] = value.strip("\"'")
+            values[key] = strip_yaml_scalar(value)
     return values
 
 

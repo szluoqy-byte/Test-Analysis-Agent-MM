@@ -203,6 +203,27 @@ def validate_markdown_files(root: Path, files: list[Path], issues: list[str]) ->
             fail(f"{markdown_file.relative_to(root)} must not be empty", issues)
 
 
+def strip_yaml_scalar(value: str) -> str:
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {"\"", "'", "“", "”", "‘", "’"}:
+        return value[1:-1].strip()
+    return value
+
+
+def split_frontmatter_item(line: str) -> tuple[str, str] | None:
+    half_index = line.find(":")
+    full_index = line.find("：")
+    indexes = [index for index in (half_index, full_index) if index >= 0]
+    if not indexes:
+        return None
+    index = min(indexes)
+    key = line[:index].strip().lstrip("\ufeff")
+    value = line[index + 1 :].strip()
+    if not key:
+        return None
+    return key, value
+
+
 def validate_context_source_metadata(root: Path, files: list[Path], issues: list[str]) -> None:
     allowed_stages = {
         "*",
@@ -224,7 +245,7 @@ def validate_context_source_metadata(root: Path, files: list[Path], issues: list
             continue
 
         lines = text.splitlines()
-        if not lines or lines[0].strip() != "---":
+        if not lines or lines[0].strip().lstrip("\ufeff") != "---":
             fail(f"{markdown_file.relative_to(root)} must declare frontmatter with name and description", issues)
             continue
 
@@ -248,12 +269,11 @@ def validate_context_source_metadata(root: Path, files: list[Path], issues: list
                 stages.append(stripped[2:].strip())
                 continue
             in_stages = False
-            key, sep, value = line.partition(":")
-            if not sep:
+            item = split_frontmatter_item(line)
+            if item is None:
                 continue
-            key = key.strip()
-            value = value.strip()
-            values[key] = value
+            key, value = item
+            values[key] = strip_yaml_scalar(value)
             if key == "stages":
                 in_stages = True
                 if value.startswith("[") and value.endswith("]"):
