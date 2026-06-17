@@ -13,7 +13,7 @@ memory/projects/<project-key>/
   output-preferences.md
 ```
 
-`project-key` 建议使用小写字母、数字、短横线或下划线，例如 `crm`, `mall-order`, `payment_core`。
+`project-key` 可使用大小写字母、数字、空格、短横线或下划线，例如 `CRM`, `Mall Order`, `payment_core`。不要使用路径分隔符，且不要以空格、短横线或下划线开头或结尾。
 
 ## 发现规则
 

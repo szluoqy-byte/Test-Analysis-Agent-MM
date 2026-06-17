@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 
-PROJECT_KEY_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
+PROJECT_KEY_RE = re.compile(r"^(?=.{1,64}$)[A-Za-z0-9](?:[A-Za-z0-9 _-]*[A-Za-z0-9])?$")
 ALLOWED_STAGES = {
     "*",
     "input-fact-modeling",

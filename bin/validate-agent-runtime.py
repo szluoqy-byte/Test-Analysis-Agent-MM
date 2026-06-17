@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
-PROJECT_KEY_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
+PROJECT_KEY_RE = re.compile(r"^(?=.{1,64}$)[A-Za-z0-9](?:[A-Za-z0-9 _-]*[A-Za-z0-9])?$")
 MAIN_SKILLS = {
     "analysis": "test-analysis-workflow",
     "design": "test-design-workflow",
@@ -296,7 +296,7 @@ def validate_project_extension_dirs(root: Path, issues: list[str]) -> None:
             if not PROJECT_KEY_RE.fullmatch(project_dir.name):
                 fail(
                     f"{project_dir.relative_to(root)} has invalid project-key; "
-                    "use lowercase letters, digits, '-' or '_'",
+                    "use letters, digits, spaces, '-' or '_' without leading/trailing separators",
                     issues,
                 )
                 continue
