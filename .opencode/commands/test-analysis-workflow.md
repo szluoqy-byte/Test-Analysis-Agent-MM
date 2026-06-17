@@ -27,4 +27,4 @@ Example:
 requirements/order-cancel.md design=design/order-cancel.md project=mall-order
 ```
 
-Keep `PROJECT_ROOT` fixed to the current repository root. Write outputs under `outputs/runs/<run-id>/`, generate the main deliverable fact source at `deliverables/test-analysis-solution.json`, render `deliverables/test-analysis-solution.md` with `bin/render-run-markdown.py`, run JSON lint, render drift check, Markdown lint, and consistency checks from `bin/`, and report the JSON and Markdown solution paths, check result, and any expected results marked as `待人工分析确认`.
+Keep `PROJECT_ROOT` fixed to the current repository root. Write outputs under `outputs/runs/<run-id>/`, generate the main deliverable fact source at `deliverables/test-analysis-solution.json`, render `deliverables/test-analysis-solution.md` with `bin/render-run-markdown.py`, run JSON lint, render drift check, Markdown lint, and consistency checks from `bin/`, and report the JSON and Markdown solution paths plus check results.
