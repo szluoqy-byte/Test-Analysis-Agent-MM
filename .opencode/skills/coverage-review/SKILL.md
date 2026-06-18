@@ -1,6 +1,6 @@
 ---
 name: coverage-review
-description: 对测试分析/测试设计运行结果执行覆盖审查，检查需求到 TP、TP 到 TC 的覆盖关系、测试方法应用、core rules 和动态 project/personal 来源应用状态，并输出结构化 coverage-review JSON。
+description: 对测试分析/测试设计运行结果执行覆盖审查，检查需求到 TP、TP 到 TC 的覆盖关系、core rules 和动态 project/personal 来源应用状态，并输出结构化 coverage-review JSON。
 ---
 
 # 覆盖审查
@@ -22,7 +22,7 @@ description: 对测试分析/测试设计运行结果执行覆盖审查，检查
 ## 审查步骤
 
 1. 确认 deterministic lint 已通过；未通过时直接输出需修正。
-2. 检查需求事实、设计事实、方法证据和高风险点是否能追踪到 `SC-*` 或 `TP-*`。
+2. 检查需求事实、设计事实和高风险点是否能追踪到 `SC-*` 或 `TP-*`。
 3. 如果存在测试设计方案，检查每个 `TP-*` 是否至少有一个 `TC-*` 承接。
 4. 检查 TC 的测试数据、步骤和最终预期是否有依据。
 5. 检查 core rules 与动态来源应用状态。

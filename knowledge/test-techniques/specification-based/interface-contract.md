@@ -23,9 +23,6 @@
   "objective": "验证交易创建接口的请求字段、鉴权、响应和副作用契约。",
   "basisRefs": [
     {"source": "design.md", "location": "交易创建接口", "description": "接口字段和响应契约"}
-  ],
-  "methodRefs": [
-    {"method": "interface-contract", "evidenceId": "ME-002"}
   ]
 }
 ```

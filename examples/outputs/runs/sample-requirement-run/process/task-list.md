@@ -16,8 +16,8 @@
 | 2 | 上下文来源索引 | context-source-indexing | process/context-pack.json、动态 project/personal 来源索引 | done | process/context-pack.json |
 | 3 | 输入事实建模 | input-fact-modeling | process/input-fact-model.json、事实清单、需求-设计映射 | done | process/input-fact-model.json |
 | 4 | 测试技术路由 | testing-method-router | 分析维度覆盖表、测试技术路由表、动态来源应用记录 | done | process/input-fact-model.json；process/context-pack.json |
-| 5 | 专项分析 | selected method references | ME-* 方法证据、测试点候选、补读记录 | done | deliverables/test-analysis-solution.json |
-| 6 | 按源补读 | selected method references | 按需补读记录、来源说明 | skipped | 示例未触发补读 |
+| 5 | 专项分析 | testing-method-router | 覆盖维度建议、测试点候选、补读记录 | done | deliverables/test-analysis-solution.json |
+| 6 | 按源补读 | testing-method-router | 按需补读记录、来源说明 | skipped | 示例未触发补读 |
 | 7 | 测试分析方案生成 | test-analysis-solution-generation | deliverables/test-analysis-solution.json、动态来源应用记录 | done | deliverables/test-analysis-solution.json |
 | 8 | 确定性校验 | bin | lint-run-json.py、render-run-markdown.py、lint-test-analysis-solution.py 结果；失败不进入评审 | done | bin/lint-run-json.py；bin/render-run-markdown.py；bin/lint-test-analysis-solution.py |
 | 9 | 独立评审 | test-analysis-solution-review | 语义覆盖、测试点粒度、依据质量、事实溯源和分析边界 | done | reports/test-analysis-solution-review.json |

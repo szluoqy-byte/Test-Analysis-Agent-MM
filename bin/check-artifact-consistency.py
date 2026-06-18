@@ -75,29 +75,22 @@ def collect_solution_points(path: Path) -> set[str]:
     lines = path.read_text(encoding="utf-8").splitlines()
     points: set[str] = set()
     for line in lines:
-        match = re.match(r"^#### (TP-\d{3})\s+", line)
+        match = re.match(r"^#{3,6}\s+(TP-\d{3})\s+", line)
         if match:
             points.add(match.group(1))
     return points
-
-
-def collect_solution_details(path: Path) -> set[str]:
-    lines = path.read_text(encoding="utf-8").splitlines()
-    details: set[str] = set()
-    for line in lines:
-        match = re.match(r"^##### (TP-\d{3}-\d{3})\s+", line)
-        if match:
-            details.add(match.group(1))
-    return details
 
 
 def collect_test_cases(path: Path) -> set[str]:
     lines = path.read_text(encoding="utf-8").splitlines()
     cases: set[str] = set()
     for line in lines:
-        match = re.match(r"^##### (TC-\d{3})\s+", line)
-        if match:
-            cases.add(match.group(1))
+        heading_match = re.match(r"^#{4,5}\s+(TC-\d{3})\s+", line)
+        bullet_match = re.match(r"^\s*-\s+(TC-\d{3})\s+", line)
+        if heading_match:
+            cases.add(heading_match.group(1))
+        elif bullet_match:
+            cases.add(bullet_match.group(1))
     return cases
 
 

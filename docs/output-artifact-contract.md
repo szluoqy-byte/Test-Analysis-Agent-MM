@@ -7,6 +7,8 @@
 
 JSON 是 run 内过程产物、主交付件和 review/coverage 结果的唯一事实源；Markdown 是派生的人类阅读版，不手工维护。若 JSON 与 Markdown 不一致，以 JSON 为准，运行 `python bin/render-run-markdown.py outputs/runs/<run-id>` 重新渲染。
 
+派生 Markdown 必须保留 JSON 层级。测试分析 Markdown 保留章节层级：`SC-001` 渲染为 `###`，`SC-001-001` 渲染为 `####`，`SC-001-001-001` 渲染为 `#####`；叶子 SC 下的 `TP-*` 比父级 SC 低一层。测试设计 Markdown 面向脑图导入优化，不额外增加“测试场景与测试设计”章节层级：`SC-001` 渲染为 `##`，`SC-001-001` 渲染为 `###`，常规叶子 SC 下 `TP-*` 渲染为 `####`，`TC-*` 渲染为 `#####`；如 3 层 SC 导致 TP 已是 `#####`，TC 使用 TP 下的列表节点兜底，避免 6 级标题在 emmx/脑图解析中截断。
+
 ## 运行目录
 
 ```text
@@ -63,8 +65,7 @@ Office 输入必须先通过 `@file-normalization-agent` 归一化为 Markdown�
               "id": "TP-001",
               "title": "E2E场景测试",
               "objective": "<验证目标>",
-              "basisRefs": [{"source": "<来源>", "location": "<位置>", "description": "<依据>"}],
-              "methodRefs": [{"method": "<方法>", "evidenceId": "<ME-*>"}]
+              "basisRefs": [{"source": "<来源>", "location": "<位置>", "description": "<依据>"}]
             }
           ]
         }
@@ -106,7 +107,6 @@ Office 输入必须先通过 `@file-normalization-agent` 归一化为 Markdown�
               "title": "E2E场景测试",
               "objective": "<继承分析方案>",
               "basisRefs": [],
-              "methodRefs": [],
               "testCases": [
                 {
                   "id": "TC-001",

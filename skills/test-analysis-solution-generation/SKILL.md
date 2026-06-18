@@ -1,6 +1,6 @@
 ---
 name: test-analysis-solution-generation
-description: 基于输入事实模型、测试技术路由、专项方法证据和可见动态来源，生成 schema 2.0 的 SC 场景树与 TP 测试点测试分析方案。
+description: 基于输入事实模型、测试技术路由参考、专项方法候选和可见动态来源，生成 schema 2.0 的 SC 场景树与 TP 测试点测试分析方案。
 ---
 
 # 测试分析方案生成
@@ -11,7 +11,7 @@ description: 基于输入事实模型、测试技术路由、专项方法证据�
 
 - `process/input-fact-model.json`
 - `process/context-pack.json`
-- 测试技术路由结果与专项方法证据
+- 测试技术路由结果与专项方法候选
 - `knowledge/test-analysis-solution-standard.md`
 - `knowledge/testpoint-standard.md`
 - `templates/test-analysis-solution-json-template.json`
@@ -28,6 +28,7 @@ description: 基于输入事实模型、测试技术路由、专项方法证据�
 7. 不输出 `expectedResult`。具体预期属于设计阶段 TC。
 8. 不输出具体数据值、操作步骤、测试脚本、自动化代码或真实生产数据。
 9. 如果输入不足，只生成输入可支持的测试点，不编造错误码、提示文案、状态值或阈值。
+10. 测试技术和专项方法只作为生成参考，用于启发覆盖维度和风险视角；最终 TP 不必逐项映射方法，也不得为了贴合某个方法而牺牲输入事实支持。
 
 ## JSON 结构
 
@@ -48,7 +49,6 @@ outputs/runs/<run-id>/deliverables/test-analysis-solution.json
   - `title`
   - `objective`
   - `basisRefs[]`
-  - `methodRefs[]`
   - 可选 `note`
 
 ## 禁止项

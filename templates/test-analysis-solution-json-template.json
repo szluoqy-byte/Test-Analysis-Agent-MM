@@ -38,7 +38,6 @@
               "title": "E2E场景测试",
               "objective": "<验证该叶子场景端到端主流程是否完整闭环>",
               "basisRefs": [{"source": "<需求/设计/规则>", "location": "<位置>", "description": "<依据摘要>"}],
-              "methodRefs": [{"method": "scenario-flow", "evidenceId": "<ME-*>"}],
               "note": ""
             },
             {
@@ -46,7 +45,6 @@
               "title": "<测试点>",
               "objective": "<说明该测试点要验证的规则、路径、状态、权限、接口契约或风险>",
               "basisRefs": [{"source": "<需求/设计/规则>", "location": "<位置>", "description": "<依据摘要>"}],
-              "methodRefs": [{"method": "<测试技术>", "evidenceId": "<ME-*>"}],
               "note": ""
             }
           ]

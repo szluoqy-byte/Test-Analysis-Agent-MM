@@ -42,7 +42,7 @@ outputs/runs/<run-id>/deliverables/test-design-solution.json
 - `schemaVersion`: `2.0`
 - `inputs[]`: 设计输入说明
 - `scenarios[]`: 继承分析方案场景树
-- 叶子场景的 `testPoints[]` 继承 `id`、`title`、`objective`、`basisRefs[]`、`methodRefs[]`
+- 叶子场景的 `testPoints[]` 继承 `id`、`title`、`objective`、`basisRefs[]`
 - 每个测试点下生成 `testCases[]`
 
 每个 TC 必须包含：

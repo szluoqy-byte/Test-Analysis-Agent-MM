@@ -3,52 +3,103 @@
   "schemaVersion": "2.0",
   "title": "示例需求：限时优惠与订单支付 测试分析方案",
   "scope": [
-    {"field": "需求 ID", "content": "复杂示例需求"},
-    {"field": "需求名称", "content": "限时优惠与订单支付"},
-    {"field": "需求来源", "content": "examples/requirements/complex-promotion-requirement.md"},
-    {"field": "设计方案来源", "content": "未提供"},
-    {"field": "需求摘要", "content": "大促期间支持限时优惠券抵扣订单金额，支付成功后锁定优惠券状态并扣减库存。"},
-    {"field": "本次覆盖范围", "content": "优惠券领取、试算、支付提交、支付回调、超时释放、重复支付和版本兼容。"},
-    {"field": "本次不覆盖内容", "content": "真实支付渠道清结算、运营后台完整配置流程和客服后台 UI。"}
+    {
+      "field": "需求 ID",
+      "content": "复杂示例需求"
+    },
+    {
+      "field": "需求名称",
+      "content": "限时优惠与订单支付"
+    },
+    {
+      "field": "需求来源",
+      "content": "examples/requirements/complex-promotion-requirement.md"
+    },
+    {
+      "field": "设计方案来源",
+      "content": "未提供"
+    },
+    {
+      "field": "需求摘要",
+      "content": "大促期间支持限时优惠券抵扣订单金额，支付成功后锁定优惠券状态并扣减库存。"
+    },
+    {
+      "field": "本次覆盖范围",
+      "content": "优惠券领取、试算、支付提交、支付回调、超时释放、重复支付和版本兼容。"
+    },
+    {
+      "field": "本次不覆盖内容",
+      "content": "真实支付渠道清结算、运营后台完整配置流程和客服后台 UI。"
+    }
   ],
   "scenarios": [
     {
       "id": "SC-001",
       "title": "优惠券活动与领取",
       "fields": [
-        {"field": "场景目标", "content": "覆盖优惠券活动有效期、库存、用户领取次数和适用商品范围。"}
+        {
+          "field": "场景目标",
+          "content": "覆盖优惠券活动有效期、库存、用户领取次数和适用商品范围。"
+        }
       ],
       "children": [
         {
           "id": "SC-001-001",
           "title": "普通用户领取优惠券",
           "fields": [
-            {"field": "场景目标", "content": "验证普通用户只能领取自己可用范围内且库存充足的优惠券。"},
-            {"field": "场景入口/触发方式", "content": "用户在 App 领取限时优惠券。"},
-            {"field": "执行用户/角色", "content": "普通用户。"},
-            {"field": "业务与设计约束", "content": "活动有开始和结束时间；库存为 0 不能领取；每个用户同一活动最多领取 1 张。"}
+            {
+              "field": "场景目标",
+              "content": "验证普通用户只能领取自己可用范围内且库存充足的优惠券。"
+            },
+            {
+              "field": "场景入口/触发方式",
+              "content": "用户在 App 领取限时优惠券。"
+            },
+            {
+              "field": "执行用户/角色",
+              "content": "普通用户。"
+            },
+            {
+              "field": "业务与设计约束",
+              "content": "活动有开始和结束时间；库存为 0 不能领取；每个用户同一活动最多领取 1 张。"
+            }
           ],
           "testPoints": [
             {
               "id": "TP-001",
               "title": "E2E场景测试",
               "objective": "验证用户在活动有效期内领取库存充足优惠券后，可获得一张属于自己的可用优惠券。",
-              "basisRefs": [{"source": "examples/requirements/complex-promotion-requirement.md", "location": "优惠券规则", "description": "普通用户只能使用自己领取且未过期的优惠券。"}],
-              "methodRefs": [{"method": "scenario-flow", "evidenceId": "ME-001"}]
+              "basisRefs": [
+                {
+                  "source": "examples/requirements/complex-promotion-requirement.md",
+                  "location": "优惠券规则",
+                  "description": "普通用户只能使用自己领取且未过期的优惠券。"
+                }
+              ]
             },
             {
               "id": "TP-002",
               "title": "活动时间窗口",
               "objective": "验证优惠券活动开始前、进行中和结束后对领取资格的影响。",
-              "basisRefs": [{"source": "examples/requirements/complex-promotion-requirement.md", "location": "优惠券规则", "description": "优惠券活动有开始时间和结束时间。"}],
-              "methodRefs": [{"method": "equivalence-boundary", "evidenceId": "ME-002"}]
+              "basisRefs": [
+                {
+                  "source": "examples/requirements/complex-promotion-requirement.md",
+                  "location": "优惠券规则",
+                  "description": "优惠券活动有开始时间和结束时间。"
+                }
+              ]
             },
             {
               "id": "TP-003",
               "title": "库存与单用户领取次数",
               "objective": "验证库存为 0 和同一用户重复领取时，系统不会发放超出规则的优惠券。",
-              "basisRefs": [{"source": "examples/requirements/complex-promotion-requirement.md", "location": "优惠券规则", "description": "库存为 0 不能领取；每个用户同一活动最多领取 1 张。"}],
-              "methodRefs": [{"method": "decision-table", "evidenceId": "ME-003"}]
+              "basisRefs": [
+                {
+                  "source": "examples/requirements/complex-promotion-requirement.md",
+                  "location": "优惠券规则",
+                  "description": "库存为 0 不能领取；每个用户同一活动最多领取 1 张。"
+                }
+              ]
             }
           ]
         }
@@ -58,39 +109,69 @@
       "id": "SC-002",
       "title": "下单试算与优惠使用",
       "fields": [
-        {"field": "场景目标", "content": "覆盖优惠券在订单试算和支付前的可用性判断。"}
+        {
+          "field": "场景目标",
+          "content": "覆盖优惠券在订单试算和支付前的可用性判断。"
+        }
       ],
       "children": [
         {
           "id": "SC-002-001",
           "title": "订单试算",
           "fields": [
-            {"field": "场景目标", "content": "验证试算接口返回优惠金额、应付金额和不可用原因。"},
-            {"field": "场景入口/触发方式", "content": "前端调用试算接口。"},
-            {"field": "执行用户/角色", "content": "普通用户。"},
-            {"field": "业务与设计约束", "content": "优惠券仅适用于配置商品分类；订单金额必须大于等于最低使用门槛；VIP 可叠加会员折扣。"}
+            {
+              "field": "场景目标",
+              "content": "验证试算接口返回优惠金额、应付金额和不可用原因。"
+            },
+            {
+              "field": "场景入口/触发方式",
+              "content": "前端调用试算接口。"
+            },
+            {
+              "field": "执行用户/角色",
+              "content": "普通用户。"
+            },
+            {
+              "field": "业务与设计约束",
+              "content": "优惠券仅适用于配置商品分类；订单金额必须大于等于最低使用门槛；VIP 可叠加会员折扣。"
+            }
           ],
           "testPoints": [
             {
               "id": "TP-004",
               "title": "E2E场景测试",
               "objective": "验证符合商品范围和金额门槛的优惠券在试算时正确影响优惠金额和应付金额。",
-              "basisRefs": [{"source": "examples/requirements/complex-promotion-requirement.md", "location": "接口与数据", "description": "前端调用试算接口获取优惠金额、应付金额和不可用原因。"}],
-              "methodRefs": [{"method": "scenario-flow", "evidenceId": "ME-004"}]
+              "basisRefs": [
+                {
+                  "source": "examples/requirements/complex-promotion-requirement.md",
+                  "location": "接口与数据",
+                  "description": "前端调用试算接口获取优惠金额、应付金额和不可用原因。"
+                }
+              ]
             },
             {
               "id": "TP-005",
               "title": "商品范围与最低门槛",
               "objective": "验证商品分类不适用或订单金额低于最低使用门槛时，试算结果给出不可用原因。",
-              "basisRefs": [{"source": "examples/requirements/complex-promotion-requirement.md", "location": "优惠券规则", "description": "优惠券仅适用于活动配置商品分类；订单金额必须大于等于最低使用门槛。"}],
-              "methodRefs": [{"method": "decision-table", "evidenceId": "ME-005"}]
+              "basisRefs": [
+                {
+                  "source": "examples/requirements/complex-promotion-requirement.md",
+                  "location": "优惠券规则",
+                  "description": "优惠券仅适用于活动配置商品分类；订单金额必须大于等于最低使用门槛。"
+                }
+              ]
             },
             {
               "id": "TP-006",
               "title": "会员折扣叠加资格",
               "objective": "验证 VIP 用户可叠加会员折扣，普通用户不可叠加。",
-              "basisRefs": [{"source": "examples/requirements/complex-promotion-requirement.md", "location": "优惠券规则", "description": "会员等级为 VIP 的用户可以叠加会员折扣，普通用户不可叠加。"}],
-              "methodRefs": [{"method": "cause-effect", "evidenceId": "ME-006"}]
+              "basisRefs": [
+                {
+                  "source": "examples/requirements/complex-promotion-requirement.md",
+                  "location": "优惠券规则",
+                  "description": "会员等级为 VIP 的用户可以叠加会员折扣，普通用户不可叠加。"
+                }
+              ]
             }
           ]
         }
@@ -100,39 +181,69 @@
       "id": "SC-003",
       "title": "订单支付与异步结果",
       "fields": [
-        {"field": "场景目标", "content": "覆盖支付提交、异步回调、超时释放和重复支付副作用。"}
+        {
+          "field": "场景目标",
+          "content": "覆盖支付提交、异步回调、超时释放和重复支付副作用。"
+        }
       ],
       "children": [
         {
           "id": "SC-003-001",
           "title": "优惠券支付闭环",
           "fields": [
-            {"field": "场景目标", "content": "验证待支付订单使用优惠券支付后的状态、优惠券、库存和日志处理。"},
-            {"field": "场景入口/触发方式", "content": "前端调用支付接口，支付系统异步回调。"},
-            {"field": "执行用户/角色", "content": "普通用户、支付系统。"},
-            {"field": "业务与设计约束", "content": "待支付订单可以使用优惠券支付；已支付订单不能再次使用优惠券；支付成功后更新订单状态、优惠券状态、库存数量和操作日志。"}
+            {
+              "field": "场景目标",
+              "content": "验证待支付订单使用优惠券支付后的状态、优惠券、库存和日志处理。"
+            },
+            {
+              "field": "场景入口/触发方式",
+              "content": "前端调用支付接口，支付系统异步回调。"
+            },
+            {
+              "field": "执行用户/角色",
+              "content": "普通用户、支付系统。"
+            },
+            {
+              "field": "业务与设计约束",
+              "content": "待支付订单可以使用优惠券支付；已支付订单不能再次使用优惠券；支付成功后更新订单状态、优惠券状态、库存数量和操作日志。"
+            }
           ],
           "testPoints": [
             {
               "id": "TP-007",
               "title": "E2E场景测试",
               "objective": "验证待支付订单使用有效优惠券支付成功后，订单、优惠券、库存和操作日志形成完整闭环。",
-              "basisRefs": [{"source": "examples/requirements/complex-promotion-requirement.md", "location": "订单支付规则", "description": "待支付订单可以使用优惠券支付，支付成功后更新相关状态。"}],
-              "methodRefs": [{"method": "scenario-flow", "evidenceId": "ME-007"}]
+              "basisRefs": [
+                {
+                  "source": "examples/requirements/complex-promotion-requirement.md",
+                  "location": "订单支付规则",
+                  "description": "待支付订单可以使用优惠券支付，支付成功后更新相关状态。"
+                }
+              ]
             },
             {
               "id": "TP-008",
               "title": "已支付订单重复使用限制",
               "objective": "验证已支付订单不能再次使用优惠券，系统不重复扣减优惠券和库存。",
-              "basisRefs": [{"source": "examples/requirements/complex-promotion-requirement.md", "location": "订单支付规则", "description": "已支付订单不能再次使用优惠券；重复提交支付请求不能重复扣减优惠券和库存。"}],
-              "methodRefs": [{"method": "state-transition", "evidenceId": "ME-008"}]
+              "basisRefs": [
+                {
+                  "source": "examples/requirements/complex-promotion-requirement.md",
+                  "location": "订单支付规则",
+                  "description": "已支付订单不能再次使用优惠券；重复提交支付请求不能重复扣减优惠券和库存。"
+                }
+              ]
             },
             {
               "id": "TP-009",
               "title": "支付超时释放优惠券",
               "objective": "验证支付超时关闭订单时，已锁定优惠券需要释放并允许用户重新支付。",
-              "basisRefs": [{"source": "examples/requirements/complex-promotion-requirement.md", "location": "订单支付规则", "description": "支付超时后订单关闭，已锁定优惠券需要释放；支付失败或回调超时时保留订单待支付状态并允许重新支付。"}],
-              "methodRefs": [{"method": "processing-cycle", "evidenceId": "ME-009"}]
+              "basisRefs": [
+                {
+                  "source": "examples/requirements/complex-promotion-requirement.md",
+                  "location": "订单支付规则",
+                  "description": "支付超时后订单关闭，已锁定优惠券需要释放；支付失败或回调超时时保留订单待支付状态并允许重新支付。"
+                }
+              ]
             }
           ]
         }
@@ -142,22 +253,35 @@
       "id": "SC-004",
       "title": "版本兼容展示",
       "fields": [
-        {"field": "场景目标", "content": "覆盖 App 版本对新优惠券规则展示的影响。"}
+        {
+          "field": "场景目标",
+          "content": "覆盖 App 版本对新优惠券规则展示的影响。"
+        }
       ],
       "testPoints": [
         {
           "id": "TP-010",
           "title": "E2E场景测试",
           "objective": "验证 App 5.0 及以上版本可使用新优惠券规则展示，老版本只展示不可用原因。",
-          "basisRefs": [{"source": "examples/requirements/complex-promotion-requirement.md", "location": "兼容性", "description": "新规则只对 App 5.0 及以上版本生效；老版本只展示不可用原因。"}],
-          "methodRefs": [{"method": "compatibility", "evidenceId": "ME-010"}]
+          "basisRefs": [
+            {
+              "source": "examples/requirements/complex-promotion-requirement.md",
+              "location": "兼容性",
+              "description": "新规则只对 App 5.0 及以上版本生效；老版本只展示不可用原因。"
+            }
+          ]
         },
         {
           "id": "TP-011",
           "title": "新老版本折扣明细展示差异",
           "objective": "验证 App 5.0 及以上版本展示叠加折扣明细，老版本不展示叠加折扣明细。",
-          "basisRefs": [{"source": "examples/requirements/complex-promotion-requirement.md", "location": "兼容性", "description": "老版本 App 仍然只能展示不可用原因，不展示叠加折扣明细。"}],
-          "methodRefs": [{"method": "compatibility", "evidenceId": "ME-011"}]
+          "basisRefs": [
+            {
+              "source": "examples/requirements/complex-promotion-requirement.md",
+              "location": "兼容性",
+              "description": "老版本 App 仍然只能展示不可用原因，不展示叠加折扣明细。"
+            }
+          ]
         }
       ]
     }

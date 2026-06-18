@@ -44,15 +44,15 @@
     {
       "order": 5,
       "stage": "专项分析",
-      "owner": "selected method references",
-      "checkpoint": "ME-* 方法证据、测试点候选、补读记录",
+      "owner": "testing-method-router",
+      "checkpoint": "覆盖维度建议、测试点候选、补读记录",
       "status": "done",
       "evidence": "deliverables/test-analysis-solution.json"
     },
     {
       "order": 6,
       "stage": "按源补读",
-      "owner": "selected method references",
+      "owner": "testing-method-router",
       "checkpoint": "按需补读记录、来源说明",
       "status": "skipped",
       "evidence": "示例未触发补读"

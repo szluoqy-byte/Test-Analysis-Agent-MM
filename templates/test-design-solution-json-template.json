@@ -35,7 +35,6 @@
               "title": "E2E场景测试",
               "objective": "<继承测试分析方案>",
               "basisRefs": [{"source": "<需求/设计/规则>", "location": "<位置>", "description": "<依据摘要>"}],
-              "methodRefs": [{"method": "scenario-flow", "evidenceId": "<ME-*>"}],
               "testCases": [
                 {
                   "id": "TC-001",

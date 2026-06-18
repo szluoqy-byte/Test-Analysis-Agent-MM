@@ -373,6 +373,20 @@ def render_solution_fields(fields: list[dict[str, Any]]) -> list[str]:
     return markdown_table(["字段", "内容"], rows)
 
 
+def render_solution_field_list(fields: Any) -> list[str]:
+    if not isinstance(fields, list) or not fields:
+        return ["- 无记录"]
+    lines: list[str] = []
+    for field in fields:
+        if not isinstance(field, dict):
+            continue
+        name = normalize_text(field.get("field"))
+        content = normalize_text(field.get("content"))
+        if name or content:
+            lines.append(f"- {name}：{content}" if name else f"- {content}")
+    return lines if lines else ["- 无记录"]
+
+
 def render_source_refs(refs: Any) -> str:
     if not isinstance(refs, list) or not refs:
         return "无记录"
@@ -384,28 +398,39 @@ def scenario_children(scenario: dict[str, Any]) -> list[dict[str, Any]]:
     return children if isinstance(children, list) else []
 
 
-def iter_scenarios(scenarios: list[dict[str, Any]], depth: int = 1) -> list[tuple[dict[str, Any], int]]:
-    items: list[tuple[dict[str, Any], int]] = []
-    for scenario in scenarios:
-        if not isinstance(scenario, dict):
-            continue
-        items.append((scenario, depth))
-        items.extend(iter_scenarios(scenario_children(scenario), depth + 1))
-    return items
+def heading(level: int, text: str) -> str:
+    return f"{'#' * min(max(level, 1), 6)} {text}"
 
 
-def render_test_point(point: dict[str, Any]) -> list[str]:
-    lines = [f"#### {point.get('id')} {point.get('title')}", ""]
+def render_test_point(point: dict[str, Any], heading_level: int, *, table: bool = True) -> list[str]:
+    lines = [heading(heading_level, f"{point.get('id')} {point.get('title')}"), ""]
     rows = [
         ["验证目标", point.get("objective", "")],
         ["依据引用", render_source_refs(point.get("basisRefs", []))],
-        ["方法引用", render_source_refs(point.get("methodRefs", []))],
     ]
     note = normalize_text(point.get("note"))
     if note:
         rows.append(["说明", note])
-    lines.extend(markdown_table(["字段", "内容"], rows))
+    if table:
+        lines.extend(markdown_table(["字段", "内容"], rows))
+    else:
+        lines.extend(f"- {name}：{normalize_text(value)}" for name, value in rows)
     lines.append("")
+    return lines
+
+
+def render_analysis_scenario(scenario: dict[str, Any], depth: int) -> list[str]:
+    scenario_level = 2 + depth
+    lines = [heading(scenario_level, f"{scenario.get('id')} {scenario.get('title')}"), ""]
+    lines.extend(render_solution_fields(scenario.get("fields", [])))
+    lines.append("")
+    children = scenario_children(scenario)
+    if children:
+        for child in children:
+            lines.extend(render_analysis_scenario(child, depth + 1))
+    else:
+        for point in scenario.get("testPoints", []):
+            lines.extend(render_test_point(point, scenario_level + 1))
     return lines
 
 
@@ -413,73 +438,116 @@ def render_analysis_solution(data: dict[str, Any]) -> str:
     lines = [f"# {data.get('title', '测试分析方案')}", "", "## 1. 需求范围", ""]
     lines.extend(render_solution_fields(data.get("scope", [])))
     lines.extend(["", "## 2. 测试场景与测试点", ""])
-    for scenario, depth in iter_scenarios(data.get("scenarios", [])):
-        lines.extend([f"### {scenario.get('id')} {scenario.get('title')}", ""])
-        if depth > 1:
-            lines.append(f"- 场景层级：{depth}")
-            lines.append("")
-        lines.extend(render_solution_fields(scenario.get("fields", [])))
-        lines.append("")
-        for point in scenario.get("testPoints", []):
-            lines.extend(render_test_point(point))
+    for scenario in data.get("scenarios", []):
+        if isinstance(scenario, dict):
+            lines.extend(render_analysis_scenario(scenario, 1))
     return "\n".join(lines).rstrip() + "\n"
 
 
 def render_test_data(items: Any) -> list[str]:
     if not isinstance(items, list) or not items:
         return ["- 无记录"]
-    rows = []
+    lines: list[str] = []
     for item in items:
         if isinstance(item, dict):
-            rows.append([item.get("name", ""), item.get("value", ""), item.get("description", "")])
-    return markdown_table(["名称", "值", "说明"], rows) if rows else ["- 无记录"]
+            name = normalize_text(item.get("name"))
+            value = normalize_text(item.get("value"))
+            description = normalize_text(item.get("description"))
+            parts = [part for part in [f"{name}={value}" if value else name, f"说明={description}" if description else ""] if part]
+            if parts:
+                lines.append("- " + "；".join(parts))
+    return lines if lines else ["- 无记录"]
 
 
-def render_test_steps(items: Any) -> list[str]:
+def render_numbered_items(items: Any) -> list[str]:
     if not isinstance(items, list) or not items:
-        return ["- 无记录"]
-    rows = []
-    for item in items:
+        return ["1. 无"]
+    lines: list[str] = []
+    for index, item in enumerate(items, start=1):
+        text = normalize_text(item)
+        if text:
+            lines.append(f"{index}. {text}")
+    return lines if lines else ["1. 无"]
+
+
+def render_test_actions(items: Any) -> list[str]:
+    if not isinstance(items, list) or not items:
+        return ["1. 无"]
+    lines: list[str] = []
+    for index, item in enumerate(items, start=1):
         if isinstance(item, dict):
-            rows.append([normalize_text(item.get("stepNo")), item.get("action", ""), item.get("expected", "")])
-    return markdown_table(["步骤", "操作", "预期"], rows) if rows else ["- 无记录"]
+            action = normalize_text(item.get("action"))
+            if action:
+                lines.append(f"{index}. {action}")
+    return lines if lines else ["1. 无"]
 
 
-def render_test_case(case: dict[str, Any]) -> list[str]:
-    lines = [f"##### {case.get('id')} {case.get('title')}", ""]
-    preconditions = case.get("preconditions", [])
-    lines.extend(["- 前置条件："])
-    if isinstance(preconditions, list) and preconditions:
-        lines.extend(f"  - {normalize_text(item)}" for item in preconditions)
+def render_step_expectations(items: Any) -> list[str]:
+    if not isinstance(items, list) or not items:
+        return ["1. 无"]
+    lines: list[str] = []
+    for index, item in enumerate(items, start=1):
+        if isinstance(item, dict):
+            expected = normalize_text(item.get("expected"))
+            if expected:
+                lines.append(f"{index}. {expected}")
+    return lines if lines else ["1. 无"]
+
+
+def render_test_case(case: dict[str, Any], heading_level: int) -> list[str]:
+    if heading_level <= 5:
+        lines = [heading(heading_level, f"{case.get('id')} {case.get('title')}"), ""]
+        prefix = ""
+        separator = [""]
     else:
-        lines.append("  - 无")
-    lines.extend(["", "- 测试数据："])
-    lines.extend(render_test_data(case.get("testData", [])))
-    lines.extend(["", "- 测试步骤："])
-    lines.extend(render_test_steps(case.get("steps", [])))
-    lines.extend(["", f"- 最终预期：{case.get('expectedResult', '')}"])
+        lines = [f"- {case.get('id')} {case.get('title')}"]
+        prefix = "  "
+        separator = []
+    child_prefix = prefix + "  "
     refs = render_source_refs(case.get("sourceRefs", []))
-    if refs != "无记录":
-        lines.append(f"- 来源引用：{refs}")
+    summary_rows = [["最终预期", case.get("expectedResult", "")], ["来源引用", refs]]
+    lines.extend(markdown_table(["字段", "内容"], summary_rows))
+    lines.extend(separator)
+    preconditions = case.get("preconditions", [])
+    lines.extend([f"{prefix}- 前置条件："])
+    lines.extend(f"{child_prefix}{line}" for line in render_numbered_items(preconditions))
+    lines.extend([*separator, f"{prefix}- 测试数据："])
+    lines.extend(f"{child_prefix}{line.lstrip()}" for line in render_test_data(case.get("testData", [])))
+    steps = case.get("steps", [])
+    lines.extend([*separator, f"{prefix}- 测试步骤："])
+    lines.extend(f"{child_prefix}{line}" for line in render_test_actions(steps))
+    lines.extend([*separator, f"{prefix}- 预期结果："])
+    lines.extend(f"{child_prefix}{line}" for line in render_step_expectations(steps))
     lines.append("")
     return lines
 
 
-def render_design_solution(data: dict[str, Any]) -> str:
-    lines = [f"# {data.get('title', '测试设计方案')}", "", "## 1. 设计输入", ""]
-    lines.extend(render_solution_fields(data.get("inputs", [])))
-    lines.extend(["", "## 2. 测试场景与测试设计", ""])
-    for scenario, depth in iter_scenarios(data.get("scenarios", [])):
-        lines.extend([f"### {scenario.get('id')} {scenario.get('title')}", ""])
-        if depth > 1:
-            lines.append(f"- 场景层级：{depth}")
-            lines.append("")
-        lines.extend(render_solution_fields(scenario.get("fields", [])))
-        lines.append("")
+def render_design_scenario(scenario: dict[str, Any], depth: int) -> list[str]:
+    scenario_level = 1 + depth
+    lines = [heading(scenario_level, f"{scenario.get('id')} {scenario.get('title')}"), ""]
+    lines.extend(render_solution_fields(scenario.get("fields", [])))
+    lines.append("")
+    children = scenario_children(scenario)
+    if children:
+        for child in children:
+            lines.extend(render_design_scenario(child, depth + 1))
+    else:
+        point_level = scenario_level + 1
+        case_level = point_level + 1
         for point in scenario.get("testPoints", []):
-            lines.extend(render_test_point(point))
+            lines.extend(render_test_point(point, point_level, table=True))
             for case in point.get("testCases", []):
-                lines.extend(render_test_case(case))
+                lines.extend(render_test_case(case, case_level))
+    return lines
+
+
+def render_design_solution(data: dict[str, Any]) -> str:
+    lines = [f"# {data.get('title', '测试设计方案')}", "", "## 设计输入", ""]
+    lines.extend(render_solution_fields(data.get("inputs", [])))
+    lines.append("")
+    for scenario in data.get("scenarios", []):
+        if isinstance(scenario, dict):
+            lines.extend(render_design_scenario(scenario, 1))
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -713,7 +781,7 @@ def validate_solution_ids(data: dict[str, Any], is_design: bool) -> tuple[list[s
     tp_index = 1
     tc_index = 1
     scenario_keys = {"id", "title", "fields", "children", "testPoints"}
-    analysis_point_keys = {"id", "title", "objective", "basisRefs", "methodRefs", "note"}
+    analysis_point_keys = {"id", "title", "objective", "basisRefs", "note"}
     design_point_keys = analysis_point_keys | {"testCases"}
 
     def walk(nodes: list[Any], parent_id: str = "", depth: int = 1) -> None:

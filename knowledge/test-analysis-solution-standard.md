@@ -36,14 +36,13 @@ description: 定义测试分析方案的 SC 场景树与 TP 测试点输出标�
   "objective": "验证该叶子场景端到端业务主流程是否完整闭环。",
   "basisRefs": [
     {"source": "requirements.md", "location": "章节", "description": "依据摘要"}
-  ],
-  "methodRefs": [
-    {"method": "scenario-flow", "evidenceId": "ME-001"}
   ]
 }
 ```
 
 `objective` 必须说明要验证什么，不写具体执行步骤或最终预期。
+
+测试技术和专项方法只作为生成参考，不进入主交付字段。不要为了贴合某个方法而输出 `methodRefs[]`；TP 是否成立只看需求、设计、规则、动态来源或明确风险依据是否能支撑。
 
 ## 粒度规则
 

@@ -23,10 +23,11 @@ DESIGN_STAGE_TERMS = (
     "steps",
     "testData",
 )
+FORBIDDEN_METHOD_TERMS = ("方法引用", "methodRefs")
 
-SC_RE = re.compile(r"^### (SC-\d{3}(?:-\d{3}){0,2})\s+(.+)")
-TP_RE = re.compile(r"^#### (TP-\d{3})\s+(.+)")
-TC_RE = re.compile(r"^##### (TC-\d{3})\s+(.+)")
+SC_RE = re.compile(r"^(#{3,5}) (SC-\d{3}(?:-\d{3}){0,2})\s+(.+)")
+TP_RE = re.compile(r"^(#{4,6}) (TP-\d{3})\s+(.+)")
+TC_RE = re.compile(r"^(#{5,6}) (TC-\d{3})\s+(.+)")
 
 
 def has_markdown_bold_marker(line: str) -> str | None:
@@ -39,6 +40,10 @@ def has_markdown_bold_marker(line: str) -> str | None:
 
 def numeric_suffix(value: str) -> int:
     return int(value.rsplit("-", 1)[-1])
+
+
+def scenario_depth(scenario_id: str) -> int:
+    return len(scenario_id.split("-")) - 1
 
 
 def main() -> int:
@@ -66,10 +71,35 @@ def main() -> int:
         for term in DESIGN_STAGE_TERMS:
             if term in line:
                 errors.append(f"第 {line_number} 行：分析方案不得包含设计阶段字段 `{term}`")
+        for term in FORBIDDEN_METHOD_TERMS:
+            if term in line:
+                errors.append(f"第 {line_number} 行：分析方案不得包含方法引用字段 `{term}`")
 
-    scenario_ids = [match.group(1) for line in lines if (match := SC_RE.match(line))]
-    point_ids = [match.group(1) for line in lines if (match := TP_RE.match(line))]
-    case_ids = [match.group(1) for line in lines if (match := TC_RE.match(line))]
+    scenario_ids: list[str] = []
+    point_ids: list[str] = []
+    case_ids: list[str] = []
+    current_scenario_level: int | None = None
+    for line_number, line in enumerate(lines, start=1):
+        if match := SC_RE.match(line):
+            level = len(match.group(1))
+            scenario_id = match.group(2)
+            scenario_ids.append(scenario_id)
+            expected_level = 2 + scenario_depth(scenario_id)
+            if level != expected_level:
+                errors.append(f"第 {line_number} 行：{scenario_id} 标题层级应为 {'#' * expected_level}")
+            current_scenario_level = level
+            continue
+        if match := TP_RE.match(line):
+            level = len(match.group(1))
+            point_id = match.group(2)
+            point_ids.append(point_id)
+            if current_scenario_level is None:
+                errors.append(f"第 {line_number} 行：{point_id} 前缺少父级 SC")
+            elif level != current_scenario_level + 1:
+                errors.append(f"第 {line_number} 行：{point_id} 标题层级应比父级 SC 低一层")
+            continue
+        if match := TC_RE.match(line):
+            case_ids.append(match.group(2))
     if not scenario_ids:
         errors.append("未找到 SC-* 测试场景标题")
     if not point_ids:

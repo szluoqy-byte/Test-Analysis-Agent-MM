@@ -10,7 +10,7 @@
 | 入口编排 | `test-design-workflow` | 复用或创建 run、编排设计链路 | `test-design-solution.json` |
 | 输入建模 | `input-fact-modeling` | 抽取需求事实、设计事实和来源应用 | `input-fact-model.json` |
 | 上下文索引 | `context-source-indexing` | 索引 project/personal 动态来源元数据 | `context-pack.json` |
-| 方法路由 | `testing-method-router` | 判断适用测试技术 | 方法证据 |
+| 方法路由 | `testing-method-router` | 判断适用测试技术 | 方法参考记录 |
 | 分析生成 | `test-analysis-solution-generation` | 生成 `SC-*` 场景树和 `TP-*` 测试点 | 分析方案 |
 | 设计生成 | `test-design-solution-generation` | 在每个 `TP-*` 下生成 `TC-*` | 设计方案 |
 | 用例写作 | `test-case-writing` | 从 canonical JSON 生成标准 Markdown 或扩展写作风格 | 派生阅读版/导出格式 |

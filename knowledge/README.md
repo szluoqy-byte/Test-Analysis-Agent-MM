@@ -25,7 +25,7 @@ Knowledge 保存本 Agent 稳定、可复用的测试分析与测试设计知识
 | 所属 skill | 文件或目录 | 用途 |
 |---|---|---|
 | `testing-method-router` | `skills/testing-method-router/references/test-method-routing-matrix.md` | 测试技术路由矩阵 |
-| `testing-method-router` | `skills/testing-method-router/references/method-evidence-standard.md` | 方法证据字段和质量要求 |
+| `testing-method-router` | `skills/testing-method-router/references/method-evidence-standard.md` | 方法参考记录字段和质量要求 |
 | `coverage-review` | `skills/coverage-review/references/basic-test-types.md` | 覆盖审查使用的测试类型分类速查 |
 | `coverage-review` | `skills/coverage-review/references/coverage-check.md` | 覆盖审查使用的覆盖门禁检查 |
 

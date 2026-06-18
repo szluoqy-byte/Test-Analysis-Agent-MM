@@ -4,7 +4,7 @@
 
 | 阶段 | 回答问题 | 主要产物 |
 |---|---|---|
-| Test Analysis | what to test | `ME-*` 方法证据、场景候选、测试点候选 |
+| Test Analysis | what to test | 覆盖维度建议、场景候选、测试点候选 |
 | Test Design | how to test | 测试用例候选条件、测试数据和步骤建议 |
 
 `test-analysis-agent` 只输出 `SC-*` 与 `TP-*`。`test-design-agent` 读取评审后的分析方案，在每个测试点下生成 `TC-*`。
@@ -23,7 +23,7 @@
 ## 使用规则
 
 1. `testing-method-router` 只选择适用技术，不直接生成主交付件。
-2. 专项方法参考产出方法证据和候选测试点。
+2. 专项方法参考产出覆盖维度建议和候选测试点。
 3. `test-analysis-solution-generation` 将候选归并为场景树和测试点。
 4. `test-design-solution-generation` 基于测试点生成测试用例。
 5. 缺少判定依据时，不编造错误码、提示文案、状态值或阈值。
