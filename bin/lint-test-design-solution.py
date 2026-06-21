@@ -16,7 +16,8 @@ SC_RE = re.compile(r"^(#{2,4}) (SC-\d{3}(?:-\d{3}){0,2})\s+(.+)")
 TP_RE = re.compile(r"^(#{3,5}) (TP-\d{3})\s+(.+)")
 TC_RE = re.compile(r"^(#{4,5}) (TC-\d{3})\s+(.+)")
 TC_BULLET_RE = re.compile(r"^\s*-\s+(TC-\d{3})\s+(.+)")
-NUMBERED_ITEM_RE = re.compile(r"^\s*\d+\.\s+.+")
+NUMBERED_ITEM_RE = re.compile(r"^\s*(?:-\s+)?\d+\.\s+.+")
+INLINE_NUMBERED_ITEM_RE = re.compile(r"(?:^|[；;]\s*|<br/?>\s*|\\n\s*)(\d+)\.\s+")
 
 
 def has_markdown_bold_marker(line: str) -> str | None:
@@ -29,6 +30,10 @@ def has_markdown_bold_marker(line: str) -> str | None:
 
 def scenario_depth(scenario_id: str) -> int:
     return len(scenario_id.split("-")) - 1
+
+
+def numbered_item_count(text: str) -> int:
+    return len(INLINE_NUMBERED_ITEM_RE.findall(text.strip()))
 
 
 def main() -> int:
@@ -120,7 +125,7 @@ def main() -> int:
         if marker not in text:
             errors.append(f"缺少 TC 固定字段: {marker}")
 
-    step_items = [line for line in lines if NUMBERED_ITEM_RE.match(line)]
+    step_items = [line for line in lines if NUMBERED_ITEM_RE.match(line) or numbered_item_count(line) > 0]
     if not step_items:
         errors.append("未找到有效编号项")
 
@@ -139,13 +144,21 @@ def main() -> int:
             mode = None
             continue
         stripped = line.strip()
-        if stripped in {"测试步骤：", "- 测试步骤："}:
+        if stripped.startswith("- 测试步骤：") or stripped.startswith("测试步骤："):
             mode = "steps"
+            step_count += numbered_item_count(stripped.split("：", 1)[1] if "：" in stripped else "")
             continue
-        if stripped in {"预期结果：", "- 预期结果："}:
+        if stripped.startswith("- 预期结果：") or stripped.startswith("预期结果："):
             mode = "expected"
+            expected_count += numbered_item_count(stripped.split("：", 1)[1] if "：" in stripped else "")
             continue
-        if stripped.startswith("|") or stripped in {"前置条件：", "- 前置条件：", "- 测试数据："}:
+        if (
+            stripped.startswith("|")
+            or stripped.startswith("- 前置条件：")
+            or stripped.startswith("前置条件：")
+            or stripped.startswith("- 测试数据：")
+            or stripped.startswith("测试数据：")
+        ):
             mode = None
             continue
         if NUMBERED_ITEM_RE.match(line):

@@ -459,6 +459,17 @@ def render_test_data(items: Any) -> list[str]:
     return lines if lines else ["- 无记录"]
 
 
+def compact_lines(lines: list[str]) -> str:
+    compacted = [line.strip().removeprefix("- ").strip() for line in lines if line.strip()]
+    return "<br/>".join(compacted) if compacted else "无"
+
+
+def render_compact_field(prefix: str, label: str, lines: list[str]) -> list[str]:
+    compacted = compact_lines(lines)
+    child_prefix = prefix + "  "
+    return [f"{prefix}- {label}：", f"{child_prefix}- {compacted}"]
+
+
 def render_numbered_items(items: Any) -> list[str]:
     if not isinstance(items, list) or not items:
         return ["1. 无"]
@@ -503,21 +514,19 @@ def render_test_case(case: dict[str, Any], heading_level: int) -> list[str]:
         lines = [f"- {case.get('id')} {case.get('title')}"]
         prefix = "  "
         separator = []
-    child_prefix = prefix + "  "
     refs = render_source_refs(case.get("sourceRefs", []))
     summary_rows = [["最终预期", case.get("expectedResult", "")], ["来源引用", refs]]
     lines.extend(markdown_table(["字段", "内容"], summary_rows))
     lines.extend(separator)
     preconditions = case.get("preconditions", [])
-    lines.extend([f"{prefix}- 前置条件："])
-    lines.extend(f"{child_prefix}{line}" for line in render_numbered_items(preconditions))
-    lines.extend([*separator, f"{prefix}- 测试数据："])
-    lines.extend(f"{child_prefix}{line.lstrip()}" for line in render_test_data(case.get("testData", [])))
+    lines.extend(render_compact_field(prefix, "前置条件", render_numbered_items(preconditions)))
+    lines.extend(separator)
+    lines.extend(render_compact_field(prefix, "测试数据", render_test_data(case.get("testData", []))))
     steps = case.get("steps", [])
-    lines.extend([*separator, f"{prefix}- 测试步骤："])
-    lines.extend(f"{child_prefix}{line}" for line in render_test_actions(steps))
-    lines.extend([*separator, f"{prefix}- 预期结果："])
-    lines.extend(f"{child_prefix}{line}" for line in render_step_expectations(steps))
+    lines.extend(separator)
+    lines.extend(render_compact_field(prefix, "测试步骤", render_test_actions(steps)))
+    lines.extend(separator)
+    lines.extend(render_compact_field(prefix, "预期结果", render_step_expectations(steps)))
     lines.append("")
     return lines
 
