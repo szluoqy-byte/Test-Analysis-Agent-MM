@@ -111,6 +111,7 @@ Office 输入必须先通过 `@file-normalization-agent` 归一化为 Markdown�
                 {
                   "id": "TC-001",
                   "title": "<测试用例标题>",
+                  "level": "Level 1",
                   "preconditions": ["<前置条件>"],
                   "testData": [
                     {"name": "<字段>", "value": "<值>", "description": "<说明>"}
@@ -136,6 +137,7 @@ Office 输入必须先通过 `@file-normalization-agent` 归一化为 Markdown�
 - 设计方案完整继承分析方案中的 `SC-*` 和 `TP-*`。
 - 每个 `TP-*` 下至少有 1 个 `TC-*`。
 - `TC-*` 全局连续编号。
+- `level` 使用 `Level 0` 到 `Level 4`。
 - `testData[]` 使用 `{name, value, description}`。
 - `steps[]` 使用 `{stepNo, action, expected}`。
 - 接口类用例不写完整裸 URL。

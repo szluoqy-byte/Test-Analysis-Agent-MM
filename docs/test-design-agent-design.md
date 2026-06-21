@@ -28,13 +28,16 @@ flowchart TD
 
 - `id`
 - `title`
+- `level`
 - `preconditions[]`
 - `testData[]`
 - `steps[]`
 - `expectedResult`
 - `sourceRefs[]`
 
-`testData[]` 使用 `{name, value, description}`；`steps[]` 使用 `{stepNo, action, expected}`。
+`level` 使用 `Level 0` 到 `Level 4`；`testData[]` 使用 `{name, value, description}`；`steps[]` 使用 `{stepNo, action, expected}`。
+
+`steps[].action` 只写可执行动作或取数动作；字段、状态、记录、事件、响应内容等检查要求写入对应 `steps[].expected`，不要把检查项、断言项或观察结论单独写成步骤。
 
 ## 约束
 

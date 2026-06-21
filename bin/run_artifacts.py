@@ -17,6 +17,7 @@ APPLICATION_STATUS_VALUES = {
     "conflict_with_requirement",
     "deferred_to_review",
 }
+TEST_CASE_LEVEL_VALUES = {"Level 0", "Level 1", "Level 2", "Level 3", "Level 4"}
 ARTIFACT_TITLES = {
     "task-list": "测试分析方案任务清单",
     "context-pack": "上下文来源索引",
@@ -62,6 +63,58 @@ STAGE_ALIASES = {
     "需求可测性分析": "输入事实建模",
     "设计方案提取": "输入事实建模",
 }
+ASSERTION_ACTION_PREFIXES = (
+    "检查",
+    "验证",
+    "确认",
+    "断言",
+    "比对",
+    "核对",
+    "观察",
+    "校验",
+    "判断",
+)
+HTTP_ACTION_RE = re.compile(r"\b(GET|POST|PUT|PATCH|DELETE)\s+(/[A-Za-z0-9_./{}:-]+)")
+ACTION_VARIANT_TERMS = (
+    "不包含",
+    "缺失",
+    "未传",
+    "为空",
+    "空字符串",
+    "非法",
+    "无效",
+    "错误",
+    "超过",
+    "小于",
+    "大于",
+    "边界",
+    "最小",
+    "最大",
+    "重复",
+    "不同",
+    "过期",
+    "不存在",
+    "未登录",
+    "无权限",
+    "状态为",
+    "返回成功",
+    "返回失败",
+    "超时",
+    "乱序",
+    "角色",
+    "用户",
+    "开关",
+    "配置",
+    "开启",
+    "关闭",
+    "启用",
+    "禁用",
+    "灰度",
+    "回滚",
+    "成功",
+    "失败",
+)
+ACTION_PREFIX_RE = re.compile(r"^(发送|提交|调用|请求|发起|模拟|构造|输入|选择|切换|设置|使用|用户|角色|管理员|客服|系统|定时任务|批处理)")
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -472,37 +525,37 @@ def render_compact_field(prefix: str, label: str, lines: list[str]) -> list[str]
 
 def render_numbered_items(items: Any) -> list[str]:
     if not isinstance(items, list) or not items:
-        return ["1. 无"]
+        return ["1、无"]
     lines: list[str] = []
     for index, item in enumerate(items, start=1):
         text = normalize_text(item)
         if text:
-            lines.append(f"{index}. {text}")
-    return lines if lines else ["1. 无"]
+            lines.append(f"{index}、{text}")
+    return lines if lines else ["1、无"]
 
 
 def render_test_actions(items: Any) -> list[str]:
     if not isinstance(items, list) or not items:
-        return ["1. 无"]
+        return ["1、无"]
     lines: list[str] = []
     for index, item in enumerate(items, start=1):
         if isinstance(item, dict):
             action = normalize_text(item.get("action"))
             if action:
-                lines.append(f"{index}. {action}")
-    return lines if lines else ["1. 无"]
+                lines.append(f"{index}、{action}")
+    return lines if lines else ["1、无"]
 
 
 def render_step_expectations(items: Any) -> list[str]:
     if not isinstance(items, list) or not items:
-        return ["1. 无"]
+        return ["1、无"]
     lines: list[str] = []
     for index, item in enumerate(items, start=1):
         if isinstance(item, dict):
             expected = normalize_text(item.get("expected"))
             if expected:
-                lines.append(f"{index}. {expected}")
-    return lines if lines else ["1. 无"]
+                lines.append(f"{index}、{expected}")
+    return lines if lines else ["1、无"]
 
 
 def render_test_case(case: dict[str, Any], heading_level: int) -> list[str]:
@@ -515,7 +568,7 @@ def render_test_case(case: dict[str, Any], heading_level: int) -> list[str]:
         prefix = "  "
         separator = []
     refs = render_source_refs(case.get("sourceRefs", []))
-    summary_rows = [["最终预期", case.get("expectedResult", "")], ["来源引用", refs]]
+    summary_rows = [["用例级别", case.get("level", "")], ["最终预期", case.get("expectedResult", "")], ["来源引用", refs]]
     lines.extend(markdown_table(["字段", "内容"], summary_rows))
     lines.extend(separator)
     preconditions = case.get("preconditions", [])
@@ -855,8 +908,48 @@ def validate_solution_ids(data: dict[str, Any], is_design: bool) -> tuple[list[s
     return errors, warnings
 
 
+def action_signature(action: str) -> str:
+    match = HTTP_ACTION_RE.search(action)
+    if match:
+        return f"{match.group(1)} {match.group(2)}"
+    normalized = re.sub(r"[，,；;].*$", "", action).strip()
+    normalized = re.sub(r"\b[A-Z][A-Z0-9_-]*\b", "<值>", normalized)
+    normalized = re.sub(r"\d+", "<数>", normalized)
+    normalized = re.sub(r"用户\s*[A-Za-z0-9一二三四五六七八九甲乙丙丁]+", "用户<值>", normalized)
+    normalized = re.sub(r"角色\s*[A-Za-z0-9一二三四五六七八九甲乙丙丁]+", "角色<值>", normalized)
+    normalized = re.sub(r"(开启|关闭|启用|禁用)[^，,；; ]*", "<配置取值>", normalized)
+    normalized = re.sub(r"\s+", " ", normalized)
+    return normalized[:40]
+
+
+def is_variant_action(action: str) -> bool:
+    if not ACTION_PREFIX_RE.search(action):
+        return False
+    return any(term in action for term in ACTION_VARIANT_TERMS)
+
+
+def validate_atomic_test_case(case_id: str, steps: list[Any], errors: list[str]) -> None:
+    variant_groups: dict[str, list[int]] = {}
+    for index, step in enumerate(steps, start=1):
+        if not isinstance(step, dict):
+            continue
+        action = normalize_text(step.get("action"))
+        if not is_variant_action(action):
+            continue
+        signature = action_signature(action)
+        if signature:
+            variant_groups.setdefault(signature, []).append(index)
+    for signature, indexes in variant_groups.items():
+        if len(indexes) >= 2:
+            step_list = ", ".join(str(index) for index in indexes)
+            errors.append(
+                f"{case_id} 疑似将多个独立输入条件/数据组合合并为一个 TC: "
+                f"步骤 {step_list} 都在枚举 `{signature}` 的不同变体；应拆成多个 TC"
+            )
+
+
 def validate_test_cases(cases: Any, start_index: int, parent_id: str, errors: list[str]) -> int:
-    case_keys = {"id", "title", "preconditions", "testData", "steps", "expectedResult", "sourceRefs"}
+    case_keys = {"id", "title", "level", "preconditions", "testData", "steps", "expectedResult", "sourceRefs"}
     for case in cases:
         if not isinstance(case, dict):
             errors.append(f"{parent_id} testCases 中存在非对象节点")
@@ -870,6 +963,8 @@ def validate_test_cases(cases: Any, start_index: int, parent_id: str, errors: li
             errors.append(f"{case_id} 包含 schemaVersion 2.0 测试用例未定义字段: {', '.join(extra_case_keys)}")
         if not case.get("title") or not case.get("expectedResult"):
             errors.append(f"{case_id} 缺少 title 或 expectedResult")
+        if case.get("level") not in TEST_CASE_LEVEL_VALUES:
+            errors.append(f"{case_id} level 必须为 Level 0/Level 1/Level 2/Level 3/Level 4")
         preconditions = case.get("preconditions")
         if not isinstance(preconditions, list):
             errors.append(f"{case_id} preconditions 必须是数组")
@@ -892,6 +987,13 @@ def validate_test_cases(cases: Any, start_index: int, parent_id: str, errors: li
                     errors.append(f"{case_id} steps[{step_index}] stepNo 应为 {step_index}")
                 if not step.get("action") or not step.get("expected"):
                     errors.append(f"{case_id} steps[{step_index}] 缺少 action 或 expected")
+                action = normalize_text(step.get("action")).strip()
+                if action.startswith(ASSERTION_ACTION_PREFIXES):
+                    errors.append(
+                        f"{case_id} steps[{step_index}].action 不应单独写检查项 `{action}`；"
+                        "请把字段、状态、记录或事件检查要求写入同一步 expected"
+                    )
+            validate_atomic_test_case(case_id, steps, errors)
         source_refs = case.get("sourceRefs")
         if source_refs is not None and not isinstance(source_refs, list):
             errors.append(f"{case_id} sourceRefs 必须是数组")

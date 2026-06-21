@@ -48,8 +48,8 @@ permission:
 - 测试设计主交付件事实源固定为 `outputs/runs/<run-id>/deliverables/test-design-solution.json`；`test-design-solution.md` 由 `test-case-writing` 调用脚本渲染，不手工维护。
 - 需求文档和设计方案是校验依据，用于确认阈值、状态、错误处理、接口契约、字段规则和预期结果。
 - 主交付件继承 `SC-*` 场景树和 `TP-*` 测试点，在每个测试点下生成 `testCases[]`。
-- `TC-*` 全局连续编号。每个 TC 必须包含 `preconditions[]`、`testData[]`、`steps[]`、`expectedResult` 和 `sourceRefs[]`。
-- `testData[]` 使用 `{name, value, description}`；`steps[]` 使用 `{stepNo, action, expected}`。
+- `TC-*` 全局连续编号。每个 TC 必须包含 `level`、`preconditions[]`、`testData[]`、`steps[]`、`expectedResult` 和 `sourceRefs[]`。
+- `level` 使用 `Level 0` 到 `Level 4`；`testData[]` 使用 `{name, value, description}`；`steps[]` 使用 `{stepNo, action, expected}`。
 - 设计阶段继承分析方案的 `E2E场景测试`：该测试点生成端到端主流程测试用例，其他规则、异常、接口、权限、状态、回滚或补偿用例保留在同级 `TP-*` 下。
 - 接口类 TC 不写完整裸 URL；必须拆成 `接口=METHOD /path`、`参数名=参数值`、`响应状态=...` 等字段片段。
 - 如果需求和设计方案没有说明错误提示、状态变化、错误码、接口返回或数据记录变化，相关 TC 的最终预期只写输入可支撑的保守预期。

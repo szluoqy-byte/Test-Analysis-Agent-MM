@@ -119,7 +119,8 @@
                       "location": "订单取消",
                       "description": "取消后订单不可继续支付，系统释放库存并记录取消原因。"
                     }
-                  ]
+                  ],
+                  "level": "Level 2"
                 }
               ]
             },
@@ -179,7 +180,8 @@
                       "location": "订单取消规则",
                       "description": "待支付本人订单允许取消。"
                     }
-                  ]
+                  ],
+                  "level": "Level 2"
                 }
               ]
             },
@@ -239,7 +241,8 @@
                       "location": "权限约束",
                       "description": "普通用户只能取消自己的订单。"
                     }
-                  ]
+                  ],
+                  "level": "Level 2"
                 }
               ]
             },
@@ -299,7 +302,8 @@
                       "location": "状态约束",
                       "description": "已发货订单不允许取消。"
                     }
-                  ]
+                  ],
+                  "level": "Level 2"
                 }
               ]
             }
@@ -383,7 +387,8 @@
                       "location": "重复取消",
                       "description": "重复提交取消请求不能重复释放库存。"
                     }
-                  ]
+                  ],
+                  "level": "Level 2"
                 }
               ]
             },
@@ -443,7 +448,8 @@
                       "location": "副作用控制",
                       "description": "库存不能重复释放。"
                     }
-                  ]
+                  ],
+                  "level": "Level 2"
                 }
               ]
             }
@@ -516,7 +522,8 @@
                   "location": "客服协助取消",
                   "description": "客服可以帮助用户对已支付未发货订单发起取消。"
                 }
-              ]
+              ],
+              "level": "Level 2"
             }
           ]
         },
@@ -575,7 +582,8 @@
                   "location": "客服协助取消",
                   "description": "已支付但未发货订单允许申请取消，需要客服审核。"
                 }
-              ]
+              ],
+              "level": "Level 2"
             }
           ]
         }

@@ -13,7 +13,7 @@ description: 在测试设计方案 JSON 已生成后使用，负责将 canonical
 - 默认生成标准人读版 `deliverables/test-design-solution.md`。
 - 支持后续扩展不同写作风格，例如简洁评审版、详细执行版、接口测试版、平台导入版或自动化候选版。
 - 不新增、删除、合并或改写 `SC-*`、`TP-*`、`TC-*`。
-- 不改变 `testData[]`、`steps[]`、`expectedResult`、`sourceRefs[]` 的事实含义。
+- 不改变 `level`、`testData[]`、`steps[]`、`expectedResult`、`sourceRefs[]` 的事实含义。
 - 不把写作结果反向覆盖 canonical JSON。
 
 ## 输入

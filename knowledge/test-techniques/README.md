@@ -9,7 +9,7 @@
 
 `test-analysis-agent` 只输出 `SC-*` 与 `TP-*`。`test-design-agent` 读取评审后的分析方案，在每个测试点下生成 `TC-*`。
 
-方法示例中的 `testCaseHints[]` 只表示候选条件或数据组合，不是 `test-design-solution.json` 的 canonical 结构。最终测试用例必须由 `test-design-solution-generation` 按 `knowledge/test-design-solution-standard.md` 和 `templates/test-design-solution-json-template.json` 补齐 `preconditions[]`、`testData[]`、`steps[]`、`expectedResult` 和 `sourceRefs[]`。
+方法示例中的 `testCaseHints[]` 只表示候选条件或数据组合，不是 `test-design-solution.json` 的 canonical 结构。最终测试用例必须由 `test-design-solution-generation` 按 `knowledge/test-design-solution-standard.md` 和 `templates/test-design-solution-json-template.json` 补齐 `level`、`preconditions[]`、`testData[]`、`steps[]`、`expectedResult` 和 `sourceRefs[]`。
 
 ## 技术分类
 

@@ -16,8 +16,8 @@ SC_RE = re.compile(r"^(#{2,4}) (SC-\d{3}(?:-\d{3}){0,2})\s+(.+)")
 TP_RE = re.compile(r"^(#{3,5}) (TP-\d{3})\s+(.+)")
 TC_RE = re.compile(r"^(#{4,5}) (TC-\d{3})\s+(.+)")
 TC_BULLET_RE = re.compile(r"^\s*-\s+(TC-\d{3})\s+(.+)")
-NUMBERED_ITEM_RE = re.compile(r"^\s*(?:-\s+)?\d+\.\s+.+")
-INLINE_NUMBERED_ITEM_RE = re.compile(r"(?:^|[；;]\s*|<br/?>\s*|\\n\s*)(\d+)\.\s+")
+NUMBERED_ITEM_RE = re.compile(r"^\s*(?:-\s+)?\d+[.、]\s*.+")
+INLINE_NUMBERED_ITEM_RE = re.compile(r"(?:^|[；;]\s*|<br/?>\s*|\\n\s*)(\d+)[.、]\s*")
 
 
 def has_markdown_bold_marker(line: str) -> str | None:
@@ -120,7 +120,7 @@ def main() -> int:
         if case_id != expected:
             errors.append(f"测试用例序号应为 {expected}，实际为 {case_id}")
 
-    required_markers = ("- 前置条件：", "- 测试数据：", "- 测试步骤：", "- 预期结果：", "| 最终预期 |", "| 来源引用 |")
+    required_markers = ("- 前置条件：", "- 测试数据：", "- 测试步骤：", "- 预期结果：", "| 用例级别 |", "| 最终预期 |", "| 来源引用 |")
     for marker in required_markers:
         if marker not in text:
             errors.append(f"缺少 TC 固定字段: {marker}")

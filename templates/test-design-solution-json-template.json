@@ -39,6 +39,7 @@
                 {
                   "id": "TC-001",
                   "title": "<完整测试用例标题>",
+                  "level": "Level 1",
                   "preconditions": ["<前置条件>"],
                   "testData": [
                     {"name": "<字段/数据槽位>", "value": "<具体值>", "description": "<数据说明>"}
