@@ -1,0 +1,85 @@
+{
+  "artifactType": "task-list",
+  "schemaVersion": "1.0",
+  "metadata": {
+    "requirementDocument": "examples/requirements/sample-requirement.md",
+    "designDocument": "未提供",
+    "runId": "sample-requirement-run",
+    "projectRoot": "示例 fixture",
+    "generatedAt": "示例固定产物"
+  },
+  "stages": [
+    {
+      "order": 1,
+      "stage": "固定 PROJECT_ROOT 与运行目录",
+      "owner": "test-design-workflow",
+      "checkpoint": "outputs/runs/sample-requirement-run/",
+      "status": "done",
+      "evidence": "outputs/runs/sample-requirement-run/"
+    },
+    {
+      "order": 2,
+      "stage": "测试分析方案校验",
+      "owner": "test-design-workflow",
+      "checkpoint": "deliverables/test-analysis-solution.json",
+      "status": "done",
+      "evidence": "deliverables/test-analysis-solution.json"
+    },
+    {
+      "order": 3,
+      "stage": "上下文来源索引",
+      "owner": "context-source-indexing",
+      "checkpoint": "process/context-pack.json",
+      "status": "done",
+      "evidence": "process/context-pack.json"
+    },
+    {
+      "order": 4,
+      "stage": "设计依据补读",
+      "owner": "test-design-workflow",
+      "checkpoint": "归一化需求与测试分析方案",
+      "status": "done",
+      "evidence": "examples/requirements/sample-requirement.md"
+    },
+    {
+      "order": 5,
+      "stage": "测试设计方案生成",
+      "owner": "test-design-solution-generation",
+      "checkpoint": "deliverables/test-design-solution.json",
+      "status": "done",
+      "evidence": "deliverables/test-design-solution.json"
+    },
+    {
+      "order": 6,
+      "stage": "确定性校验",
+      "owner": "lint-run-json/render-run-markdown/lint-test-design-solution",
+      "checkpoint": "JSON 与 Markdown 校验",
+      "status": "done",
+      "evidence": "bin/smoke-test-analysis.py"
+    },
+    {
+      "order": 7,
+      "stage": "独立评审",
+      "owner": "test-design-solution-review",
+      "checkpoint": "reports/test-design-solution-review.json",
+      "status": "done",
+      "evidence": "bin/smoke-test-analysis.py"
+    },
+    {
+      "order": 8,
+      "stage": "覆盖审查",
+      "owner": "coverage-review",
+      "checkpoint": "reports/design-coverage-review.json",
+      "status": "done",
+      "evidence": "bin/check-artifact-consistency.py"
+    },
+    {
+      "order": 9,
+      "stage": "输出收口",
+      "owner": "test-design-workflow",
+      "checkpoint": "check-artifact-consistency",
+      "status": "done",
+      "evidence": "bin/check-artifact-consistency.py"
+    }
+  ]
+}

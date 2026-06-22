@@ -48,7 +48,7 @@
 - 测试分析主交付件固定为 `outputs/runs/<run-id>/deliverables/test-analysis-solution.json`，由 `bin/render-run-markdown.py` 渲染同名 `.md` 人读版。
 - 测试设计主交付件固定为 `outputs/runs/<run-id>/deliverables/test-design-solution.json`，由 `test-case-writing` 调用 `bin/render-run-markdown.py` 渲染同名 `.md` 人读版；优先复用上游测试分析方案所在 run。
 - JSON 是 run 过程产物、主交付件、review 和 coverage 的事实源；Markdown 是脚本派生产物，不手工维护。
-- 创建 run 目录后必须维护三组固定 process 产物：`process/task-list.json/.md`、`process/context-pack.json/.md` 和 `process/input-fact-model.json/.md`。
+- 创建 run 目录后必须维护阶段化任务清单和共享过程产物：测试分析使用 `process/analysis-task-list.json/.md`，测试设计使用 `process/design-task-list.json/.md`；共享过程产物包括 `process/context-pack.json/.md` 和 `process/input-fact-model.json/.md`。历史 `process/task-list.json/.md` 只作为兼容读取路径，不作为新流程写入目标。
 - 当测试分析 JSON 大于 200KB、TP 数量大于 30 或已有测试设计 JSON 大于 300KB 时，必须使用固定分批脚本生成测试设计：`bin/check-design-batch-mode.py`、`bin/extract-design-work-items.py`、`bin/extract-analysis-slice.py`、`bin/init-design-slice.py` 和 `bin/merge-design-slice.py`；分批过程产物写入 `process/design-batch-decision.json`、`process/design-work-items.json` 和 `process/design-slices/`，最终事实源仍是 `deliverables/test-design-solution.json`。
 - 测试设计流程不得临时生成 `.py`、`.js`、`.ps1`、`.bat` 或其他可执行脚本来处理 JSON；固定脚本能力不足时修改仓库 `bin/` 脚本并运行校验。
 - 主交付件 schema 使用 `2.0`；process、review 和 coverage 产物继续使用各自当前 schema。
@@ -69,6 +69,7 @@
 - 当用户要求把 `.docx` / `.xlsx` / `.md` 输入整理为可供下游读取的 Markdown 输入事实源时，使用 `@file-normalization-agent`。
 - 当用户要求基于需求和设计方案生成测试场景、测试点粒度的方案时，使用 `test-analysis-workflow`。该 workflow 只接受 Markdown 输入；Office 输入必须先归一化。
 - 测试分析阶段依次使用 `context-source-indexing`、`input-fact-modeling`、`testing-method-router`、路由选中的专项方法参考、`test-analysis-solution-generation`、JSON lint、Markdown render、派生 Markdown lint、`test-analysis-solution-review` 和 `coverage-review`。
+- 覆盖审查产物按阶段拆分：测试分析写入 `reports/analysis-coverage-review.json/.md`，测试设计写入 `reports/design-coverage-review.json/.md`；历史 `reports/coverage-review.json/.md` 只作为兼容读取路径，不作为新流程写入目标。
 - 当用户要求基于已评审测试分析方案生成测试用例时，使用 `test-design-workflow`。该 workflow 优先读取上游 `test-analysis-solution.json`。
 - 如果用户只提供需求/设计方案且要求测试设计，必须先生成或取得测试分析方案，再进入测试设计。
 - 设计方案输入用于补充接口、字段、状态、权限、数据依赖、配置开关、异常处理和非功能指标；没有设计方案时继续生成，预期结果只写输入可支撑的保守判定。

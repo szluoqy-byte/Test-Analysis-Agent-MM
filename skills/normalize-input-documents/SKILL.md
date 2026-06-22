@@ -206,7 +206,7 @@ DOCX 图片抽取和占位可以一次完成，但图片理解、Mermaid 转换�
 - `@file-normalization-agent` 是本 skill 的用户入口。
 - `@test-analysis-agent` 和 `@test-design-agent` 不直接调用本 skill；它们只消费已经归一化好的 Markdown 或 JSON canonical 输入。
 - 如果用户把 `.docx` / `.xlsx` 直接交给分析或设计 Agent，应先切换到 `@file-normalization-agent`，完成归一化后再把 Markdown 路径传给分析或设计 Agent。
-- 本 skill 不维护分析/设计 run 的 `process/task-list.json` 阶段状态。若用户显式传入 `--run-dir`，只维护 `inputs/input-normalization-manifest.json` 和归一化 Markdown/metadata。
+- 本 skill 不维护分析/设计 run 的 `process/analysis-task-list.json` 或 `process/design-task-list.json` 阶段状态。若用户显式传入 `--run-dir`，只维护 `inputs/input-normalization-manifest.json` 和归一化 Markdown/metadata。历史 `process/task-list.json` 只作为兼容读取路径。
 
 ## 约束
 

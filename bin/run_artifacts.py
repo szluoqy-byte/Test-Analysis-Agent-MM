@@ -262,7 +262,10 @@ def expected_json_path_for_markdown(markdown_path: Path) -> Path:
 
 def render_task_list(data: dict[str, Any]) -> str:
     metadata = data.get("metadata", {})
-    lines = ["# 测试分析方案任务清单", "", "## 运行标识", ""]
+    stage_names = {normalize_text(stage.get("stage")) for stage in data.get("stages", []) if isinstance(stage, dict)}
+    design_markers = {"测试分析方案校验", "设计依据补读", "测试设计方案生成"}
+    title = "测试设计方案任务清单" if stage_names & design_markers else "测试分析方案任务清单"
+    lines = [f"# {title}", "", "## 运行标识", ""]
     for label, key in [
         ("需求文档", "requirementDocument"),
         ("设计方案文档", "designDocument"),
@@ -684,6 +687,8 @@ def render_json_artifact(data: dict[str, Any]) -> str:
 
 def collect_renderable_json_files(run_dir: Path) -> list[tuple[Path, Path]]:
     pairs = [
+        (run_dir / "process" / "analysis-task-list.json", run_dir / "process" / "analysis-task-list.md"),
+        (run_dir / "process" / "design-task-list.json", run_dir / "process" / "design-task-list.md"),
         (run_dir / "process" / "task-list.json", run_dir / "process" / "task-list.md"),
         (run_dir / "process" / "context-pack.json", run_dir / "process" / "context-pack.md"),
         (run_dir / "process" / "input-fact-model.json", run_dir / "process" / "input-fact-model.md"),
@@ -691,6 +696,8 @@ def collect_renderable_json_files(run_dir: Path) -> list[tuple[Path, Path]]:
         (run_dir / "deliverables" / "test-design-solution.json", run_dir / "deliverables" / "test-design-solution.md"),
         (run_dir / "reports" / "test-analysis-solution-review.json", run_dir / "reports" / "test-analysis-solution-review.md"),
         (run_dir / "reports" / "test-design-solution-review.json", run_dir / "reports" / "test-design-solution-review.md"),
+        (run_dir / "reports" / "analysis-coverage-review.json", run_dir / "reports" / "analysis-coverage-review.md"),
+        (run_dir / "reports" / "design-coverage-review.json", run_dir / "reports" / "design-coverage-review.md"),
         (run_dir / "reports" / "coverage-review.json", run_dir / "reports" / "coverage-review.md"),
     ]
     return [(json_path, markdown_path) for json_path, markdown_path in pairs if json_path.exists()]

@@ -11,9 +11,12 @@ from run_artifacts import collect_renderable_json_files, load_json, validate_art
 
 
 REQUIRED_PROCESS_JSON = [
-    "process/task-list.json",
     "process/context-pack.json",
 ]
+
+
+def has_any(run_dir: Path, relatives: list[str]) -> bool:
+    return any((run_dir / relative).exists() for relative in relatives)
 
 
 def main() -> int:
@@ -36,6 +39,10 @@ def main() -> int:
     design_json = run_dir / "deliverables" / "test-design-solution.json"
     if not analysis_json.exists() and not design_json.exists():
         errors.append("缺少主交付件 JSON: deliverables/test-analysis-solution.json 或 deliverables/test-design-solution.json")
+    if analysis_json.exists() and not has_any(run_dir, ["process/analysis-task-list.json", "process/task-list.json"]):
+        errors.append("测试分析 run 缺少任务清单: process/analysis-task-list.json")
+    if design_json.exists() and not has_any(run_dir, ["process/design-task-list.json", "process/task-list.json"]):
+        errors.append("测试设计 run 缺少任务清单: process/design-task-list.json")
     if analysis_json.exists() and not (run_dir / "process" / "input-fact-model.json").exists():
         errors.append("测试分析 run 缺少固定 JSON 运行产物: process/input-fact-model.json")
 
@@ -61,7 +68,11 @@ def main() -> int:
         errors.extend(f"{path.relative_to(run_dir)}: {error}" for error in artifact_errors)
         warnings.extend(f"{path.relative_to(run_dir)}: {warning}" for warning in artifact_warnings)
 
-    task_json = run_dir / "process" / "task-list.json"
+    task_json = (
+        run_dir / "process" / "analysis-task-list.json"
+        if (run_dir / "process" / "analysis-task-list.json").exists()
+        else run_dir / "process" / "task-list.json"
+    )
     if task_json.exists():
         try:
             task_data = load_json(task_json)

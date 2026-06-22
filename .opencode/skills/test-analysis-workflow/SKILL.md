@@ -31,7 +31,7 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 
 1. 校验输入至少包含一份 Markdown 需求文档；若发现 Office 输入，输出需先使用 `@file-normalization-agent` 的阻断说明，不创建测试分析 run。
 2. 固定 `PROJECT_ROOT`，运行 `python bin/generate-run-id.py` 生成本次运行 ID，并创建 `outputs/runs/<run-id>/deliverables/`、`process/`、`reports/` 和 `inputs/`。
-3. 使用 `templates/process-artifacts-json-template.json` 创建 `process/task-list.json`，并按阶段维护状态。
+3. 使用 `templates/process-artifacts-json-template.json` 创建 `process/analysis-task-list.json`，并按阶段维护状态；不要覆盖历史 run 中可能由测试设计维护的 `process/design-task-list.json`。
 4. 调用 `python skills/context-source-indexing/scripts/build-context-source-index.py ...` 生成 `process/context-pack.json`。
 5. 使用 `input-fact-modeling` 读取需求文档和可选设计方案文档，生成 `process/input-fact-model.json`。
 6. 使用 `testing-method-router` 对输入事实模型中的需求事实和设计事实进行测试技术路由。
@@ -40,14 +40,14 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 9. 运行 `bin/lint-run-json.py outputs/runs/<run-id>`。失败时先修正 JSON，不进入评审。
 10. 运行 `bin/render-run-markdown.py outputs/runs/<run-id>`，再运行 `bin/lint-test-analysis-solution.py outputs/runs/<run-id>/deliverables/test-analysis-solution.md`。
 11. 使用 `test-analysis-solution-review` 独立语义评审测试分析方案 JSON，评审结果写入 `reports/test-analysis-solution-review.json`。
-12. 使用 `coverage-review` 执行覆盖、追踪、动态来源应用和过程门禁收口，结果写入 `reports/coverage-review.json`。
-13. 最终输出前刷新 `process/task-list.json`，运行 `bin/render-run-markdown.py` 和 `bin/check-artifact-consistency.py`。
+12. 使用 `coverage-review` 执行覆盖、追踪、动态来源应用和过程门禁收口，结果写入 `reports/analysis-coverage-review.json`。
+13. 最终输出前刷新 `process/analysis-task-list.json`，运行 `bin/render-run-markdown.py` 和 `bin/check-artifact-consistency.py`。
 
 ## 阶段产物契约
 
 | 阶段 | 必须产出 | 交给下一阶段 |
 |---|---|---|
-| `task-list` | `process/task-list.json`、派生 `process/task-list.md` | 全流程阶段顺序与状态追踪 |
+| `task-list` | `process/analysis-task-list.json`、派生 `process/analysis-task-list.md` | 测试分析阶段顺序与状态追踪 |
 | `context-source-indexing` | `process/context-pack.json` | 后续阶段按阶段可见性读取动态来源 |
 | `input-fact-modeling` | `process/input-fact-model.json` | 测试技术路由、测试分析方案生成 |
 | `testing-method-router` | 测试技术路由表 | 专项方法参考、测试分析方案生成 |
@@ -55,7 +55,7 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 | `test-analysis-solution-generation` | `deliverables/test-analysis-solution.json`、场景树、测试点 | JSON 校验 |
 | 确定性校验 | JSON lint、Markdown render、Markdown lint | 独立语义评审 |
 | `test-analysis-solution-review` | `reports/test-analysis-solution-review.json` | 覆盖审查 |
-| `coverage-review` | `reports/coverage-review.json` | 输出收口 |
+| `coverage-review` | `reports/analysis-coverage-review.json` | 输出收口 |
 
 ## 输出要求
 

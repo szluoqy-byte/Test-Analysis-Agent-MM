@@ -5,7 +5,7 @@ description: 对测试分析/测试设计运行结果执行覆盖审查，检查
 
 # 覆盖审查
 
-本 skill 是测试分析与测试设计链路的覆盖收口环节。它读取 JSON canonical、确定性 lint 结果、独立评审结果、core rules、动态来源应用状态和必要的私有参考，输出 `reports/coverage-review.json`。
+本 skill 是测试分析与测试设计链路的覆盖收口环节。它读取 JSON canonical、确定性 lint 结果、独立评审结果、core rules、动态来源应用状态和必要的私有参考。测试分析输出 `reports/analysis-coverage-review.json`；测试设计输出 `reports/design-coverage-review.json`。历史 `reports/coverage-review.json` 只作为兼容读取路径，不作为新流程写入目标。
 
 ## 必读输入
 
@@ -30,6 +30,6 @@ description: 对测试分析/测试设计运行结果执行覆盖审查，检查
 
 ## 输出
 
-输出写入 `reports/coverage-review.json`，结构以 `templates/coverage-review-json-template.json` 为准；如需人读版，由 `bin/render-run-markdown.py` 渲染。
+输出按当前阶段写入 `reports/analysis-coverage-review.json` 或 `reports/design-coverage-review.json`，结构以 `templates/coverage-review-json-template.json` 为准；如需人读版，由 `bin/render-run-markdown.py` 渲染。
 
 coverage-review 不重复执行 deterministic lint 已覆盖的编号、字段、Markdown 语法和 JSON 结构检查。

@@ -108,6 +108,22 @@ def collect_task_rows(path: Path) -> list[tuple[int, list[str]]]:
     return collect_first_table(lines, TASK_LIST_HEADER)
 
 
+def has_any(paths: list[Path]) -> bool:
+    return any(path.exists() for path in paths)
+
+
+def existing_task_list_paths(run_dir: Path) -> list[Path]:
+    preferred = [
+        run_dir / "process" / "analysis-task-list.md",
+        run_dir / "process" / "design-task-list.md",
+    ]
+    existing = [path for path in preferred if path.exists()]
+    legacy = run_dir / "process" / "task-list.md"
+    if not existing and legacy.exists():
+        existing.append(legacy)
+    return existing
+
+
 def validate_task_list(path: Path) -> tuple[list[str], list[str]]:
     errors: list[str] = []
     warnings: list[str] = []
@@ -241,32 +257,58 @@ def main() -> int:
     if render_check.returncode != 0:
         return render_check.returncode
 
+    solution_path = run_dir / "deliverables" / "test-analysis-solution.md"
+    design_solution_path = run_dir / "deliverables" / "test-design-solution.md"
+    solution_json_path = run_dir / "deliverables" / "test-analysis-solution.json"
+    design_solution_json_path = run_dir / "deliverables" / "test-design-solution.json"
+    context_pack_path = run_dir / "process" / "context-pack.md"
+
     required_paths = [
-        run_dir / "process" / "task-list.json",
         run_dir / "process" / "context-pack.json",
-        run_dir / "process" / "task-list.md",
         run_dir / "process" / "context-pack.md",
     ]
     for required in required_paths:
         if not required.exists():
             errors.append(f"缺少固定运行产物: {required.relative_to(run_dir)}")
 
-    solution_path = run_dir / "deliverables" / "test-analysis-solution.md"
-    design_solution_path = run_dir / "deliverables" / "test-design-solution.md"
-    solution_json_path = run_dir / "deliverables" / "test-analysis-solution.json"
-    design_solution_json_path = run_dir / "deliverables" / "test-design-solution.json"
-    task_list_path = run_dir / "process" / "task-list.md"
-    context_pack_path = run_dir / "process" / "context-pack.md"
+    if solution_json_path.exists() and not has_any(
+        [
+            run_dir / "process" / "analysis-task-list.json",
+            run_dir / "process" / "task-list.json",
+        ]
+    ):
+        errors.append("缺少测试分析任务清单: process/analysis-task-list.json")
+    if solution_path.exists() and not has_any(
+        [
+            run_dir / "process" / "analysis-task-list.md",
+            run_dir / "process" / "task-list.md",
+        ]
+    ):
+        errors.append("缺少测试分析任务清单 Markdown: process/analysis-task-list.md")
+    if design_solution_json_path.exists() and not has_any(
+        [
+            run_dir / "process" / "design-task-list.json",
+            run_dir / "process" / "task-list.json",
+        ]
+    ):
+        errors.append("缺少测试设计任务清单: process/design-task-list.json")
+    if design_solution_path.exists() and not has_any(
+        [
+            run_dir / "process" / "design-task-list.md",
+            run_dir / "process" / "task-list.md",
+        ]
+    ):
+        errors.append("缺少测试设计任务清单 Markdown: process/design-task-list.md")
 
     if not solution_path.exists() and not design_solution_path.exists():
         errors.append("缺少主交付件: deliverables/test-analysis-solution.md 或 deliverables/test-design-solution.md")
     if not solution_json_path.exists() and not design_solution_json_path.exists():
         errors.append("缺少主交付件 JSON: deliverables/test-analysis-solution.json 或 deliverables/test-design-solution.json")
 
-    if task_list_path.exists():
+    for task_list_path in existing_task_list_paths(run_dir):
         task_errors, task_warnings = validate_task_list(task_list_path)
-        errors.extend(task_errors)
-        warnings.extend(task_warnings)
+        errors.extend(f"{task_list_path.relative_to(run_dir)}: {error}" for error in task_errors)
+        warnings.extend(f"{task_list_path.relative_to(run_dir)}: {warning}" for warning in task_warnings)
         rows = collect_task_rows(task_list_path)
         normalize_done = any(
             len(cells) == 6 and cells[1] == "输入文档归一化" and cells[4] == "done"
