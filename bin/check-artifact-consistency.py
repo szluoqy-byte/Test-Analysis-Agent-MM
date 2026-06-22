@@ -6,6 +6,7 @@ from __future__ import annotations
 import re
 import subprocess
 import sys
+import os
 from pathlib import Path
 
 
@@ -45,6 +46,14 @@ TASK_STAGE_ALIASES = {
     "需求可测性分析": "输入事实建模",
     "设计方案提取": "输入事实建模",
 }
+
+
+def configure_stdio() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
 
 
 def split_row(line: str) -> list[str]:
@@ -183,6 +192,7 @@ def validate_context_pack(path: Path) -> tuple[list[str], list[str]]:
 
 
 def main() -> int:
+    configure_stdio()
     if len(sys.argv) != 2:
         print("用法: check-artifact-consistency.py <outputs/runs/<run-id>>", file=sys.stderr)
         return 2
@@ -196,9 +206,11 @@ def main() -> int:
         return 1
 
     repo_root = Path(__file__).resolve().parents[1]
+    child_env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
     json_lint = subprocess.run(
         [sys.executable, str(repo_root / "bin" / "lint-run-json.py"), str(run_dir)],
         cwd=repo_root,
+        env=child_env,
         text=True,
         encoding="utf-8",
         errors="replace",
@@ -215,6 +227,7 @@ def main() -> int:
     render_check = subprocess.run(
         [sys.executable, str(repo_root / "bin" / "render-run-markdown.py"), str(run_dir), "--check"],
         cwd=repo_root,
+        env=child_env,
         text=True,
         encoding="utf-8",
         errors="replace",

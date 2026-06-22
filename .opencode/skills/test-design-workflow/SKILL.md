@@ -30,18 +30,25 @@ description: 当用户提供已评审测试分析方案，或要求从需求先�
 ## 执行流程
 
 1. 校验输入：识别测试分析方案、Markdown 需求文档和可选 Markdown 设计方案文档。
-2. 如果没有测试分析方案，先调用 `test-analysis-workflow` 生成分析方案。
+2. 如果没有测试分析方案，先调用 `test-analysis-workflow` 生成分析方案；分析流程成功产出 `deliverables/test-analysis-solution.json` 后继续当前设计流程，不等待用户再次确认。
 3. 固定 `PROJECT_ROOT` 和 `<run-id>`；优先复用上游分析方案所在 run，否则新建 run。
 4. 创建或刷新 `process/task-list.json`，记录当前进入测试设计阶段。
-5. 读取并校验 `deliverables/test-analysis-solution.json`；未通过 schema `2.0` 时不进入测试设计生成。
-6. 读取或生成 `process/context-pack.json`。
+5. 读取并校验 `deliverables/test-analysis-solution.json`；未通过 schema `2.0` 时不进入测试设计生成，直接输出失败原因和“需用当前测试分析 workflow 重新生成分析方案”的建议，不尝试旧格式迁移。
+6. 读取或生成 `process/context-pack.json`；如果缺失，必须调用 `context-source-indexing` 脚本生成，不能手工拼写 JSON。
 7. 受控补读归一化后的原始需求 Markdown、设计方案 Markdown 或结构化过程记录中与当前分析方案相关的依据。
 8. 使用 `test-design-solution-generation` 在每个 `TP-*` 下生成 `testCases[]`，写入 `deliverables/test-design-solution.json`。
-9. 运行 `bin/lint-run-json.py`。
-10. 使用 `test-case-writing` 将 canonical JSON 写作为标准 Markdown，并运行 `bin/render-run-markdown.py --check` 和 `bin/lint-test-design-solution.py`。
-11. 使用 `test-design-solution-review` 独立评审测试设计方案 JSON，结果写入 `reports/test-design-solution-review.json`。
-12. 使用 `coverage-review` 检查需求到测试点、测试点到测试用例的覆盖关系。
-13. 最终输出前刷新 `process/task-list.json`，运行 `test-case-writing` 的标准 Markdown 检查和 `bin/check-artifact-consistency.py`。
+9. 运行 `bin/lint-run-json.py`；失败时只修正 JSON canonical，不进入 Markdown 写作、独立评审或覆盖审查。
+10. 使用 `test-case-writing` 将 canonical JSON 写作为标准 Markdown，并运行 `bin/render-run-markdown.py --check` 和 `bin/lint-test-design-solution.py`；失败时回到 `test-design-solution.json` 修正后重新渲染，不手工编辑 Markdown。
+11. 使用 `test-design-solution-review` 独立评审测试设计方案 JSON，结果写入 `reports/test-design-solution-review.json`；如发现必须修正的问题，回到第 8 步更新 canonical JSON。
+12. 使用 `coverage-review` 检查需求到测试点、测试点到测试用例的覆盖关系；如发现覆盖缺口，回到第 8 步补齐 TC 或在 coverage JSON 中说明不适用依据。
+13. 最终输出前刷新 `process/task-list.json`，运行 `test-case-writing` 的标准 Markdown 检查和 `bin/check-artifact-consistency.py`；失败时输出脚本失败项并修正对应 JSON 或 task-list，不停留在等待状态。
+
+## 防卡住规则
+
+- 不调用用户交互能力；除非输入文件不存在或无法访问，否则按上述失败分支自行推进。
+- 不为旧 schema、缺少设计方案、缺少错误码/提示文案或动态来源未命中而暂停；旧 schema 阻断并给出重跑建议，其余情况使用输入可支撑的保守预期或记录 review/coverage 说明。
+- 不重复运行同一个失败命令超过两次而不修改文件；第二次仍失败时，必须根据失败项修改 JSON、task-list 或相关流程说明。
+- 不把 `reports/coverage-review.json` 或 `reports/test-design-solution-review.json` 缺失当作等待用户输入；需要时按模板生成结构化结论。
 
 ## 输出要求
 
