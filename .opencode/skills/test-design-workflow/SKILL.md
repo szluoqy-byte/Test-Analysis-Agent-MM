@@ -43,6 +43,18 @@ description: 当用户提供已评审测试分析方案，或要求从需求先�
 12. 使用 `coverage-review` 检查需求到测试点、测试点到测试用例的覆盖关系；如发现覆盖缺口，回到第 8 步补齐 TC 或在 coverage JSON 中说明不适用依据。
 13. 最终输出前刷新 `process/task-list.json`，运行 `test-case-writing` 的标准 Markdown 检查和 `bin/check-artifact-consistency.py`；失败时输出脚本失败项并修正对应 JSON 或 task-list，不停留在等待状态。
 
+## 大文件分批模式
+
+当 `deliverables/test-analysis-solution.json` 较大、TP 数量较多，或模型读取完整分析方案出现明显停滞时，使用分批设计模式，不改变最终 `test-design-solution.json` 结构：
+
+1. 运行 `python bin/extract-design-work-items.py outputs/runs/<run-id>`，生成 `process/design-work-items.json`。
+2. 运行 `python bin/extract-analysis-slice.py outputs/runs/<run-id> --batch batch-001`，生成 `process/design-slices/batch-001.json`。
+3. 只读取该 slice，为其中 TP 生成包含 `testCases[]` 的 `test-design-solution-slice` JSON。
+4. 运行 `python bin/merge-design-slice.py outputs/runs/<run-id> --slice <slice-json>`，合并到 `deliverables/test-design-solution.json` 并重新全局编号 `TC-*`。
+5. 重复处理下一批未完成 batch，直到 `process/design-work-items.json` 中所有批次完成，再进入 lint、Markdown render、review 和 coverage。
+
+分批模式下仍以 `deliverables/test-design-solution.json` 作为唯一主交付事实源；slice 和 work-items 只是性能优化过程产物。
+
 ## 防卡住规则
 
 - 不调用用户交互能力；除非输入文件不存在或无法访问，否则按上述失败分支自行推进。

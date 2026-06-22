@@ -51,6 +51,14 @@ outputs/runs/<run-id>/deliverables/test-design-solution.json
 - 叶子场景的 `testPoints[]` 继承 `id`、`title`、`objective`、`basisRefs[]`
 - 每个测试点下生成 `testCases[]`
 
+大文件分批模式下，输入可以是 `process/design-slices/<batch>.json`。此时只为 slice 中的 TP 生成局部 JSON，结构仍保持 `scenarios[] -> testPoints[] -> testCases[]`，推荐写为：
+
+```text
+outputs/runs/<run-id>/process/design-slices/<batch>-design.json
+```
+
+局部 JSON 由 `python bin/merge-design-slice.py outputs/runs/<run-id> --slice <slice-json>` 合并回主交付件；不要手工拼接主 JSON。
+
 每个 TC 必须包含：
 
 - `id`
