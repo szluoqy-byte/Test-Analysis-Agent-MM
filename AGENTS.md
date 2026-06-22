@@ -49,7 +49,8 @@
 - 测试设计主交付件固定为 `outputs/runs/<run-id>/deliverables/test-design-solution.json`，由 `test-case-writing` 调用 `bin/render-run-markdown.py` 渲染同名 `.md` 人读版；优先复用上游测试分析方案所在 run。
 - JSON 是 run 过程产物、主交付件、review 和 coverage 的事实源；Markdown 是脚本派生产物，不手工维护。
 - 创建 run 目录后必须维护三组固定 process 产物：`process/task-list.json/.md`、`process/context-pack.json/.md` 和 `process/input-fact-model.json/.md`。
-- 当测试分析 JSON 较大或 TP 数量较多导致设计阶段读取停滞时，可使用 `bin/extract-design-work-items.py`、`bin/extract-analysis-slice.py` 和 `bin/merge-design-slice.py` 分批生成测试设计；分批过程产物写入 `process/design-work-items.json` 和 `process/design-slices/`，最终事实源仍是 `deliverables/test-design-solution.json`。
+- 当测试分析 JSON 大于 200KB、TP 数量大于 30 或已有测试设计 JSON 大于 300KB 时，必须使用固定分批脚本生成测试设计：`bin/check-design-batch-mode.py`、`bin/extract-design-work-items.py`、`bin/extract-analysis-slice.py`、`bin/init-design-slice.py` 和 `bin/merge-design-slice.py`；分批过程产物写入 `process/design-batch-decision.json`、`process/design-work-items.json` 和 `process/design-slices/`，最终事实源仍是 `deliverables/test-design-solution.json`。
+- 测试设计流程不得临时生成 `.py`、`.js`、`.ps1`、`.bat` 或其他可执行脚本来处理 JSON；固定脚本能力不足时修改仓库 `bin/` 脚本并运行校验。
 - 主交付件 schema 使用 `2.0`；process、review 和 coverage 产物继续使用各自当前 schema。
 - 新 run 只支持 schemaVersion 2.0；历史 run 需要按新模型重新生成。
 

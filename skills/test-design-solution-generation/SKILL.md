@@ -51,13 +51,13 @@ outputs/runs/<run-id>/deliverables/test-design-solution.json
 - 叶子场景的 `testPoints[]` 继承 `id`、`title`、`objective`、`basisRefs[]`
 - 每个测试点下生成 `testCases[]`
 
-大文件分批模式下，输入可以是 `process/design-slices/<batch>.json`。此时只为 slice 中的 TP 生成局部 JSON，结构仍保持 `scenarios[] -> testPoints[] -> testCases[]`，推荐写为：
+大文件分批模式下，输入是 `process/design-slices/<batch>.json`，输出是 `process/design-slices/<batch>-design.json`。`<batch>-design.json` 必须先由 `python bin/init-design-slice.py outputs/runs/<run-id> --batch <batch>` 生成骨架；生成阶段只填写该骨架中既有 TP 的 `testCases[]`，不得新增、删除、合并或改写 `SC-*` 与 `TP-*`。
 
 ```text
 outputs/runs/<run-id>/process/design-slices/<batch>-design.json
 ```
 
-局部 JSON 由 `python bin/merge-design-slice.py outputs/runs/<run-id> --slice <slice-json>` 合并回主交付件；不要手工拼接主 JSON。
+局部 JSON 由 `python bin/merge-design-slice.py outputs/runs/<run-id> --slice <slice-json>` 合并回主交付件；不要手工拼接主 JSON，不要临时创建 Python/JavaScript/PowerShell 脚本处理 JSON。
 
 每个 TC 必须包含：
 
@@ -75,4 +75,5 @@ outputs/runs/<run-id>/process/design-slices/<batch>-design.json
 - 不手工写 Markdown、CSV、平台导入文件或其他派生表达格式。
 - 不写 schemaVersion 2.0 之外的字段。
 - 不输出自动化脚本或真实生产数据。
+- 不在生成过程中创建临时 `.py`、`.js`、`.ps1` 或其他可执行脚本。
 - 派生表达由 `test-case-writing` 读取 canonical JSON 后生成。

@@ -120,7 +120,7 @@ def main() -> int:
         if case_id != expected:
             errors.append(f"测试用例序号应为 {expected}，实际为 {case_id}")
 
-    required_markers = ("- 前置条件：", "- 测试数据：", "- 测试步骤：", "- 预期结果：", "| 用例级别 |", "| 最终预期 |", "| 来源引用 |")
+    required_markers = ("- 前置条件：", "- 测试数据：", "- 测试步骤：", "- 预期结果：", "- 用例级别：", "- 最终预期：", "- 来源引用：")
     for marker in required_markers:
         if marker not in text:
             errors.append(f"缺少 TC 固定字段: {marker}")

@@ -567,10 +567,6 @@ def render_test_case(case: dict[str, Any], heading_level: int) -> list[str]:
         lines = [f"- {case.get('id')} {case.get('title')}"]
         prefix = "  "
         separator = []
-    refs = render_source_refs(case.get("sourceRefs", []))
-    summary_rows = [["用例级别", case.get("level", "")], ["最终预期", case.get("expectedResult", "")], ["来源引用", refs]]
-    lines.extend(markdown_table(["字段", "内容"], summary_rows))
-    lines.extend(separator)
     preconditions = case.get("preconditions", [])
     lines.extend(render_compact_field(prefix, "前置条件", render_numbered_items(preconditions)))
     lines.extend(separator)
@@ -580,6 +576,12 @@ def render_test_case(case: dict[str, Any], heading_level: int) -> list[str]:
     lines.extend(render_compact_field(prefix, "测试步骤", render_test_actions(steps)))
     lines.extend(separator)
     lines.extend(render_compact_field(prefix, "预期结果", render_step_expectations(steps)))
+    lines.extend(separator)
+    lines.extend(render_compact_field(prefix, "用例级别", [normalize_text(case.get("level")) or "无记录"]))
+    lines.extend(separator)
+    lines.extend(render_compact_field(prefix, "最终预期", [normalize_text(case.get("expectedResult")) or "无记录"]))
+    lines.extend(separator)
+    lines.extend(render_compact_field(prefix, "来源引用", [render_source_refs(case.get("sourceRefs", []))]))
     lines.append("")
     return lines
 

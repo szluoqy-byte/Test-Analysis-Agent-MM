@@ -34,26 +34,34 @@ description: 当用户提供已评审测试分析方案，或要求从需求先�
 3. 固定 `PROJECT_ROOT` 和 `<run-id>`；优先复用上游分析方案所在 run，否则新建 run。
 4. 创建或刷新 `process/task-list.json`，记录当前进入测试设计阶段。
 5. 读取并校验 `deliverables/test-analysis-solution.json`；未通过 schema `2.0` 时不进入测试设计生成，直接输出失败原因和“需用当前测试分析 workflow 重新生成分析方案”的建议，不尝试旧格式迁移。
-6. 读取或生成 `process/context-pack.json`；如果缺失，必须调用 `context-source-indexing` 脚本生成，不能手工拼写 JSON。
-7. 受控补读归一化后的原始需求 Markdown、设计方案 Markdown 或结构化过程记录中与当前分析方案相关的依据。
-8. 使用 `test-design-solution-generation` 在每个 `TP-*` 下生成 `testCases[]`，写入 `deliverables/test-design-solution.json`。
-9. 运行 `bin/lint-run-json.py`；失败时只修正 JSON canonical，不进入 Markdown 写作、独立评审或覆盖审查。
-10. 使用 `test-case-writing` 将 canonical JSON 写作为标准 Markdown，并运行 `bin/render-run-markdown.py --check` 和 `bin/lint-test-design-solution.py`；失败时回到 `test-design-solution.json` 修正后重新渲染，不手工编辑 Markdown。
-11. 使用 `test-design-solution-review` 独立评审测试设计方案 JSON，结果写入 `reports/test-design-solution-review.json`；如发现必须修正的问题，回到第 8 步更新 canonical JSON。
-12. 使用 `coverage-review` 检查需求到测试点、测试点到测试用例的覆盖关系；如发现覆盖缺口，回到第 8 步补齐 TC 或在 coverage JSON 中说明不适用依据。
-13. 最终输出前刷新 `process/task-list.json`，运行 `test-case-writing` 的标准 Markdown 检查和 `bin/check-artifact-consistency.py`；失败时输出脚本失败项并修正对应 JSON 或 task-list，不停留在等待状态。
+6. 运行 `python bin/check-design-batch-mode.py outputs/runs/<run-id>` 写入 `process/design-batch-decision.json`；若 `batchRequired=true`，必须进入“大文件分批模式”，不得整包读取或整包生成设计 JSON。
+7. 读取或生成 `process/context-pack.json`；如果缺失，必须调用 `context-source-indexing` 脚本生成，不能手工拼写 JSON。
+8. 受控补读归一化后的原始需求 Markdown、设计方案 Markdown 或结构化过程记录中与当前分析方案相关的依据。
+9. 使用 `test-design-solution-generation` 在每个 `TP-*` 下生成 `testCases[]`，写入 `deliverables/test-design-solution.json`。
+10. 运行 `bin/lint-run-json.py`；失败时只修正 JSON canonical，不进入 Markdown 写作、独立评审或覆盖审查。
+11. 使用 `test-case-writing` 将 canonical JSON 写作为标准 Markdown，并运行 `bin/render-run-markdown.py --check` 和 `bin/lint-test-design-solution.py`；失败时回到 `test-design-solution.json` 修正后重新渲染，不手工编辑 Markdown。
+12. 使用 `test-design-solution-review` 独立评审测试设计方案 JSON，结果写入 `reports/test-design-solution-review.json`；如发现必须修正的问题，回到第 9 步更新 canonical JSON。
+13. 使用 `coverage-review` 检查需求到测试点、测试点到测试用例的覆盖关系；如发现覆盖缺口，回到第 9 步补齐 TC 或在 coverage JSON 中说明不适用依据。
+14. 最终输出前刷新 `process/task-list.json`，运行 `test-case-writing` 的标准 Markdown 检查和 `bin/check-artifact-consistency.py`；失败时输出脚本失败项并修正对应 JSON 或 task-list，不停留在等待状态。
 
 ## 大文件分批模式
 
-当 `deliverables/test-analysis-solution.json` 较大、TP 数量较多，或模型读取完整分析方案出现明显停滞时，使用分批设计模式，不改变最终 `test-design-solution.json` 结构：
+当 `process/design-batch-decision.json` 中 `batchRequired=true` 时，必须使用分批设计模式，不改变最终 `test-design-solution.json` 结构。默认触发阈值固定为：`test-analysis-solution.json` 大于 200KB，或 TP 数量大于 30，或已有 `test-design-solution.json` 大于 300KB。
 
 1. 运行 `python bin/extract-design-work-items.py outputs/runs/<run-id>`，生成 `process/design-work-items.json`。
 2. 运行 `python bin/extract-analysis-slice.py outputs/runs/<run-id> --batch batch-001`，生成 `process/design-slices/batch-001.json`。
-3. 只读取该 slice，为其中 TP 生成包含 `testCases[]` 的 `test-design-solution-slice` JSON。
-4. 运行 `python bin/merge-design-slice.py outputs/runs/<run-id> --slice <slice-json>`，合并到 `deliverables/test-design-solution.json` 并重新全局编号 `TC-*`。
-5. 重复处理下一批未完成 batch，直到 `process/design-work-items.json` 中所有批次完成，再进入 lint、Markdown render、review 和 coverage。
+3. 运行 `python bin/init-design-slice.py outputs/runs/<run-id> --batch batch-001`，生成 `process/design-slices/batch-001-design.json`。
+4. 只读取 `batch-001.json` 和 `batch-001-design.json`，在 `batch-001-design.json` 的既有 TP 下填写 `testCases[]`。
+5. 运行 `python bin/merge-design-slice.py outputs/runs/<run-id> --slice outputs/runs/<run-id>/process/design-slices/batch-001-design.json`，合并到 `deliverables/test-design-solution.json` 并重新全局编号 `TC-*`。
+6. 重复处理下一批未完成 batch，直到 `process/design-work-items.json` 中所有批次完成，再进入 lint、Markdown render、review 和 coverage。
 
 分批模式下仍以 `deliverables/test-design-solution.json` 作为唯一主交付事实源；slice 和 work-items 只是性能优化过程产物。
+
+## 脚本稳定性规则
+
+- design 流程不得临时创建 `.py`、`.js`、`.ps1`、`.bat` 或其他可执行脚本来拼接、修复或拆分 JSON。
+- 只能调用仓库固定脚本：`bin/check-design-batch-mode.py`、`bin/extract-design-work-items.py`、`bin/extract-analysis-slice.py`、`bin/init-design-slice.py`、`bin/merge-design-slice.py`、`bin/lint-run-json.py`、`bin/render-run-markdown.py`、`bin/lint-test-design-solution.py` 和 `bin/check-artifact-consistency.py`。
+- 如果固定脚本能力不足，必须修改仓库 `bin/` 脚本并运行校验；不得在 `outputs/`、`process/`、`reports/`、临时目录或当前工作目录写一次性脚本。
 
 ## 防卡住规则
 

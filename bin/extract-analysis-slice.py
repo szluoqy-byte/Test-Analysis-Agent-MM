@@ -143,8 +143,9 @@ def main() -> int:
         "scope": analysis.get("scope", []),
         "scenarios": scenarios,
         "instructions": [
-            "仅为本切片中的 TP 生成 testCases[]。",
-            "输出可交给 bin/merge-design-slice.py 的 test-design-solution-slice JSON。",
+            "先运行 bin/init-design-slice.py 为本切片生成 <batch>-design.json 骨架。",
+            "仅填写骨架中既有 TP 的 testCases[]，不要新增、删除、合并或改写 SC/TP。",
+            "填写后交给 bin/merge-design-slice.py 合并，不要临时创建脚本拼接 JSON。",
         ],
     }
 
