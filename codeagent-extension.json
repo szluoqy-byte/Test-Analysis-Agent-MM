@@ -1,5 +1,5 @@
 {
-  "name": "test-analysis-agent",
+  "name": "Test-Analysis-Agent-MM",
   "version": "0.1.0",
   "description": "面向 Markdown 需求文档、设计方案和已评审测试分析方案的独立测试分析/测试设计插件，生成 SC/TP 测试分析方案或 SC/TP/TC 测试设计方案。"
 }

@@ -54,4 +54,4 @@ description: 测试设计方案门面 Agent；当用户希望基于已评审测�
 - 修改运行时 wiring 后，运行 `python bin/validate-agent-runtime.py`。
 - 当前 run 相关 lint 包括 `bin/lint-run-json.py`、`bin/render-run-markdown.py --check`、派生 Markdown lint 和 `bin/check-artifact-consistency.py`。
 - 修改 Agent、skill、knowledge、template、coverage-review reference、bin 脚本或示例 fixture 后，再运行 `python bin/sync-opencode-skills.py --check`、`python bin/smoke-test-analysis.py` 和必要 lint。
-- 不直接编辑 `.opencode/skills/` 或 `.opencode/agents/`；它们由同步脚本生成。
+- 不直接编辑 `.opencode/skills/`、`.opencode/agents/`、`.testagent/skills/` 或 `.testagent/agents/`；它们由同步脚本生成。

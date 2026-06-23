@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Mirror root skills and agent facades into .opencode for OpenCode discovery."""
+"""Mirror root skills and agent facades into framework discovery directories."""
 
 from __future__ import annotations
 
@@ -12,6 +12,10 @@ from pathlib import Path
 
 
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+MIRROR_DIRS = (".opencode", ".testagent")
+PRIMARY_MIRROR = ".opencode"
+SECONDARY_STATIC_SKIP = {"agents", "skills", "codearts.json"}
+ROOT_CONFIG_MIRRORS = ("codearts.json",)
 
 
 def write_text_lf(path: Path, text: str) -> None:
@@ -136,9 +140,9 @@ def compare_dirs(left: Path, right: Path) -> list[str]:
     return issues
 
 
-def mirror_skills(root: Path, check: bool) -> int:
+def mirror_skills(root: Path, mirror_dir: str, check: bool) -> int:
     source = root / "skills"
-    destination = root / ".opencode" / "skills"
+    destination = root / mirror_dir / "skills"
     readme = destination / "README.md"
 
     if not source.is_dir():
@@ -151,20 +155,22 @@ def mirror_skills(root: Path, check: bool) -> int:
 
     if check:
         if not destination.is_dir():
-            print(".opencode/skills directory not found", file=sys.stderr)
+            print(f"{mirror_dir}/skills directory not found", file=sys.stderr)
             return 1
         issues = compare_dirs(source, destination)
         if issues:
-            print("OpenCode skill mirror is out of sync:")
+            print(f"{mirror_dir} skill mirror is out of sync:")
             for issue in issues:
                 print(f"- {issue}")
             return 1
-        print("OpenCode skill mirror is in sync")
+        print(f"{mirror_dir} skill mirror is in sync")
         return 0
 
     destination.mkdir(parents=True, exist_ok=True)
     if readme.exists():
         readme_text = readme.read_text(encoding="utf-8")
+    elif mirror_dir != PRIMARY_MIRROR and (root / PRIMARY_MIRROR / "skills" / "README.md").exists():
+        readme_text = (root / PRIMARY_MIRROR / "skills" / "README.md").read_text(encoding="utf-8")
     else:
         readme_text = ""
 
@@ -186,9 +192,9 @@ def mirror_skills(root: Path, check: bool) -> int:
     return 0
 
 
-def mirror_agents(root: Path, check: bool) -> int:
+def mirror_agents(root: Path, mirror_dir: str, check: bool) -> int:
     source = root / "agents"
-    destination = root / ".opencode" / "agents"
+    destination = root / mirror_dir / "agents"
     readme = destination / "README.md"
 
     if not source.is_dir():
@@ -201,7 +207,7 @@ def mirror_agents(root: Path, check: bool) -> int:
 
     if check:
         if not destination.is_dir():
-            print(".opencode/agents directory not found", file=sys.stderr)
+            print(f"{mirror_dir}/agents directory not found", file=sys.stderr)
             return 1
 
         issues: list[str] = []
@@ -221,11 +227,11 @@ def mirror_agents(root: Path, check: bool) -> int:
                 issues.append(f"differs: {target}")
 
         if issues:
-            print("OpenCode agent mirror is out of sync:")
+            print(f"{mirror_dir} agent mirror is out of sync:")
             for issue in issues:
                 print(f"- {issue}")
             return 1
-        print("OpenCode agent mirror is in sync")
+        print(f"{mirror_dir} agent mirror is in sync")
         return 0
 
     destination.mkdir(parents=True, exist_ok=True)
@@ -252,6 +258,112 @@ def mirror_agents(root: Path, check: bool) -> int:
     return 0
 
 
+def mirror_root_configs(root: Path, mirror_dir: str, check: bool) -> int:
+    destination_dir = root / mirror_dir
+    issues: list[str] = []
+    for config_name in ROOT_CONFIG_MIRRORS:
+        source = root / config_name
+        destination = destination_dir / config_name
+        if not source.exists():
+            print(f"{config_name} not found", file=sys.stderr)
+            return 1
+        if check:
+            if not destination.exists():
+                issues.append(f"missing in mirror: {destination}")
+            elif not filecmp.cmp(source, destination, shallow=False):
+                issues.append(f"differs: {destination}")
+            continue
+        destination_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, destination)
+
+    if check:
+        if issues:
+            print(f"{mirror_dir} root config mirror is out of sync:")
+            for issue in issues:
+                print(f"- {issue}")
+            return 1
+        print(f"{mirror_dir} root config mirror is in sync")
+    else:
+        print(f"Mirrored {', '.join(ROOT_CONFIG_MIRRORS)} to {destination_dir.relative_to(root)}")
+    return 0
+
+
+def copy_tree_or_file(source: Path, destination: Path) -> None:
+    if destination.exists():
+        if destination.is_dir():
+            shutil.rmtree(destination)
+        else:
+            destination.unlink()
+    if source.is_dir():
+        shutil.copytree(source, destination)
+    else:
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, destination)
+
+
+def compare_tree_or_file(source: Path, destination: Path) -> list[str]:
+    if not destination.exists():
+        return [f"missing in mirror: {destination}"]
+    if source.is_dir():
+        if not destination.is_dir():
+            return [f"expected directory in mirror: {destination}"]
+        return compare_dirs(source, destination)
+    if destination.is_dir():
+        return [f"expected file in mirror: {destination}"]
+    if not filecmp.cmp(source, destination, shallow=False):
+        return [f"differs: {destination}"]
+    return []
+
+
+def mirror_secondary_static(root: Path, check: bool) -> int:
+    source_root = root / PRIMARY_MIRROR
+    destination_root = root / ".testagent"
+    if not source_root.is_dir():
+        print(f"{PRIMARY_MIRROR} directory not found", file=sys.stderr)
+        return 1
+
+    source_entries = {
+        child.name: child
+        for child in source_root.iterdir()
+        if child.name not in SECONDARY_STATIC_SKIP
+    }
+
+    if check:
+        if not destination_root.is_dir():
+            print(".testagent directory not found", file=sys.stderr)
+            return 1
+        issues: list[str] = []
+        for name, source in sorted(source_entries.items()):
+            issues.extend(compare_tree_or_file(source, destination_root / name))
+        actual_static_names = {
+            child.name
+            for child in destination_root.iterdir()
+            if child.name not in SECONDARY_STATIC_SKIP
+        }
+        for name in sorted(actual_static_names - set(source_entries)):
+            issues.append(f"stale in mirror: {destination_root / name}")
+        if issues:
+            print(".testagent static mirror is out of sync:")
+            for issue in issues:
+                print(f"- {issue}")
+            return 1
+        print(".testagent static mirror is in sync")
+        return 0
+
+    destination_root.mkdir(parents=True, exist_ok=True)
+    for child in list(destination_root.iterdir()):
+        if child.name in SECONDARY_STATIC_SKIP:
+            continue
+        if child.is_dir():
+            shutil.rmtree(child)
+        else:
+            child.unlink()
+    for name, source in sorted(source_entries.items()):
+        copy_tree_or_file(source, destination_root / name)
+    print(f"Mirrored static {PRIMARY_MIRROR} entries to {destination_root.relative_to(root)}")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="fail if mirror is stale")
@@ -259,9 +371,13 @@ def main() -> int:
 
     root = Path(__file__).resolve().parents[1]
     try:
-        skill_status = mirror_skills(root, args.check)
-        agent_status = mirror_agents(root, args.check)
-        return 0 if skill_status == 0 and agent_status == 0 else 1
+        statuses: list[int] = []
+        for mirror_dir in MIRROR_DIRS:
+            statuses.append(mirror_skills(root, mirror_dir, args.check))
+            statuses.append(mirror_agents(root, mirror_dir, args.check))
+            statuses.append(mirror_root_configs(root, mirror_dir, args.check))
+        statuses.append(mirror_secondary_static(root, args.check))
+        return 0 if all(status == 0 for status in statuses) else 1
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
         return 1

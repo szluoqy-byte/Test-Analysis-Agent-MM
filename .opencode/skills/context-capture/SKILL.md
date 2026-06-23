@@ -76,4 +76,4 @@ description: 当用户要求记住、记录、收录、归档或沉淀个人偏�
 - 不把一次性任务结论写进长期文件，除非用户明确要求沉淀。
 - 不把用户个人偏好写成团队共识。
 - 不把通用测试理论复制进 memory。
-- 不直接编辑 `.opencode/skills/` 或 `.opencode/agents/`。
+- 不直接编辑 `.opencode/skills/`、`.opencode/agents/`、`.testagent/skills/` 或 `.testagent/agents/`。

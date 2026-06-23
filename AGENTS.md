@@ -17,6 +17,7 @@
 
 - Claude Code 使用 `.claude-plugin/plugin.json`、根目录 `agents/` 和根目录 `skills/`。
 - OpenCode 使用 `opencode.json`、`AGENTS.md`、`.opencode/agents/`、`.opencode/commands/` 和 `.opencode/skills/`。
+- TestAgent/CodeArts 兼容入口使用 `codearts.json`、`.testagent/agents/`、`.testagent/commands/` 和 `.testagent/skills/`；`.testagent` 内容由同步脚本与 `.opencode` 保持一致。
 - 用户主入口 Agent 包括 `@file-normalization-agent`、`@test-analysis-agent` 和 `@test-design-agent`。
 - 文件归一化入口是 `agents/file-normalization-agent.md`，用于把 `.docx` / `.xlsx` / `.md` 输入整理为后续分析或设计可读取的 Markdown 输入事实源。
 - 测试分析主流程 skill 入口是 `skills/test-analysis-workflow/SKILL.md`。
@@ -29,14 +30,14 @@
 
 - `agents/` 是唯一手工维护的 Agent 门面源。
 - `skills/` 是唯一手工维护的 skill 源。
-- `.opencode/agents/` 和 `.opencode/skills/` 是生成镜像，不直接手工编辑。
-- 修改任何 `agents/*.md` 或 `skills/*/SKILL.md` 后，运行 `python bin/sync-opencode-skills.py`。
+- `.opencode/agents/`、`.opencode/skills/`、`.testagent/agents/` 和 `.testagent/skills/` 是生成镜像，不直接手工编辑。
+- 修改任何 `agents/*.md`、`skills/*/SKILL.md` 或根目录 `codearts.json` 后，运行 `python bin/sync-opencode-skills.py`。
 - 修改运行时 wiring 后，运行 `python bin/validate-agent-runtime.py`。
 
 ## 路径规则
 
 - 所有 `skills/...`、`rules/...`、`knowledge/...`、`templates/...`、`memory/...`、`bin/...` 和 `outputs/...` 路径都从仓库根目录解析。
-- 不要基于 skill 目录、`.claude-plugin/`、`.opencode/` 或输入文件目录解析路径。
+- 不要基于 skill 目录、`.claude-plugin/`、`.opencode/`、`.testagent/` 或输入文件目录解析路径。
 - 运行产物写入 `outputs/runs/<run-id>/`。
 - 新建完整 run 时，`run-id` 固定使用 `python bin/generate-run-id.py` 生成，格式为 `<YYYYMMDD-HHMMSS>`。
 - Office 输入归一化复用缓存写入 `outputs/input-cache/<sha256-12>/`；绑定既有 run 时写入 `outputs/runs/<run-id>/inputs/`。
@@ -84,7 +85,7 @@
 ## 校验命令
 
 - Runtime wiring：`python bin/validate-agent-runtime.py`
-- OpenCode skill 镜像：`python bin/sync-opencode-skills.py --check`
+- OpenCode/TestAgent skill 镜像：`python bin/sync-opencode-skills.py --check`
 - 单次 run JSON 结构：`python bin/lint-run-json.py outputs/runs/<run-id>`
 - 单次 run Markdown 渲染一致性：`python bin/render-run-markdown.py outputs/runs/<run-id> --check`
 - 测试分析方案结构：`python bin/lint-test-analysis-solution.py <solution.md>`

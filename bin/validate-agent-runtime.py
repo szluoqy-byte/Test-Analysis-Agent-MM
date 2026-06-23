@@ -32,10 +32,12 @@ REQUIRED_AGENTS = {
     "test-analysis-agent": ("test-analysis-workflow", "file-normalization-agent", "context-capture"),
     "test-design-agent": ("test-design-workflow", "file-normalization-agent", "test-design-solution-generation", "test-case-writing", "context-capture"),
 }
-OPENCODE_COMMANDS = {
-    ".opencode/commands/test-analysis-workflow.md": "test-analysis-workflow",
-    ".opencode/commands/test-design-workflow.md": "test-design-workflow",
-    ".opencode/commands/normalize-input-documents.md": "normalize-input-documents",
+RUNTIME_CONFIGS = ("opencode.json", "codearts.json")
+FRAMEWORK_MIRRORS = (".opencode", ".testagent")
+FRAMEWORK_COMMANDS = {
+    "commands/test-analysis-workflow.md": "test-analysis-workflow",
+    "commands/test-design-workflow.md": "test-design-workflow",
+    "commands/normalize-input-documents.md": "normalize-input-documents",
 }
 
 
@@ -137,33 +139,41 @@ def validate_agents(root: Path, issues: list[str]) -> None:
             fail(f"required agent {agent_name!r} is missing", issues)
 
 
-def validate_opencode(root: Path, issues: list[str]) -> None:
-    config_path = root / "opencode.json"
+def validate_runtime_config(root: Path, config_path: Path, issues: list[str]) -> None:
     try:
         config = json.loads(config_path.read_text(encoding="utf-8"))
     except Exception as exc:
-        fail(f"opencode.json is not valid JSON: {exc}", issues)
+        fail(f"{config_path.relative_to(root)} is not valid JSON: {exc}", issues)
         return
 
     if config.get("$schema") != "https://opencode.ai/config.json":
-        fail("opencode.json must declare the OpenCode schema", issues)
+        fail(f"{config_path.relative_to(root)} must declare the OpenCode schema", issues)
     skill_permission = config.get("permission", {}).get("skill", {})
     if skill_permission.get("*") != "allow":
-        fail('opencode.json should allow project skills with permission.skill."*"', issues)
+        fail(f'{config_path.relative_to(root)} should allow project skills with permission.skill."*"', issues)
 
-    for command, skill_name in OPENCODE_COMMANDS.items():
-        command_path = root / command
+
+def validate_framework_mirror(root: Path, mirror_dir: str, issues: list[str]) -> None:
+    config_path = root / mirror_dir / "codearts.json"
+    if not config_path.exists():
+        fail(f"{mirror_dir}/codearts.json is missing", issues)
+    else:
+        validate_runtime_config(root, config_path, issues)
+
+    for command, skill_name in FRAMEWORK_COMMANDS.items():
+        command_path = root / mirror_dir / command
+        command_label = f"{mirror_dir}/{command}"
         if not command_path.exists():
-            fail(f"{command} is missing", issues)
+            fail(f"{command_label} is missing", issues)
             continue
         command_text = command_path.read_text(encoding="utf-8")
         if skill_name not in command_text:
-            fail(f"{command} must invoke {skill_name}", issues)
+            fail(f"{command_label} must invoke {skill_name}", issues)
         if "$ARGUMENTS" not in command_text:
-            fail(f"{command} must pass $ARGUMENTS", issues)
+            fail(f"{command_label} must pass $ARGUMENTS", issues)
 
     for agent_name, required_terms in REQUIRED_AGENTS.items():
-        opencode_agent = f".opencode/agents/{agent_name}.md"
+        opencode_agent = f"{mirror_dir}/agents/{agent_name}.md"
         opencode_agent_path = root / opencode_agent
         if not opencode_agent_path.exists():
             fail(f"{opencode_agent} is missing", issues)
@@ -174,6 +184,14 @@ def validate_opencode(root: Path, issues: list[str]) -> None:
         for term in required_terms:
             if term not in agent_text:
                 fail(f"{opencode_agent} must mention {term}", issues)
+
+
+def validate_frameworks(root: Path, issues: list[str]) -> None:
+    for config_name in RUNTIME_CONFIGS:
+        validate_runtime_config(root, root / config_name, issues)
+
+    for mirror_dir in FRAMEWORK_MIRRORS:
+        validate_framework_mirror(root, mirror_dir, issues)
 
     for rules_file in ("AGENTS.md", "CLAUDE.md"):
         if not (root / rules_file).exists():
@@ -190,7 +208,7 @@ def validate_sync(root: Path, issues: list[str]) -> None:
     )
     if result.returncode != 0:
         detail = (result.stdout + result.stderr).strip()
-        fail(f"OpenCode skill mirror is out of sync: {detail}", issues)
+        fail(f"framework mirrors are out of sync: {detail}", issues)
 
 
 def validate_markdown_files(root: Path, files: list[Path], issues: list[str]) -> None:
@@ -360,7 +378,7 @@ def main() -> int:
     validate_plugin(root, issues)
     validate_agents(root, issues)
     validate_skills(root, issues)
-    validate_opencode(root, issues)
+    validate_frameworks(root, issues)
     validate_sync(root, issues)
     validate_rules_module(root, issues)
     validate_project_extension_dirs(root, issues)
