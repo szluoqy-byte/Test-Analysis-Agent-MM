@@ -74,7 +74,13 @@ ASSERTION_ACTION_PREFIXES = (
     "校验",
     "判断",
 )
+SYSTEM_ACTION_ACTOR_RE = re.compile(
+    r"^(?!系统管理员)"
+    r"(?:MM系统|系统|平台|服务端|后端|后台|定时任务|批处理|数据库|消息队列|网关|核心系统|风控系统|第三方系统|下游系统)\s*"
+    r"(?:判断|根据|校验|验证|检查|处理|执行|生成|创建|更新|写入|发送|返回|通知|计算|匹配|查询|读取|调用|取消|拒绝|受理|释放|记录|落库|推送|触发|同步|异步|扣减|回滚|补偿|提交|发起|展示|显示|保存|删除|拦截)"
+)
 HTTP_ACTION_RE = re.compile(r"\b(GET|POST|PUT|PATCH|DELETE)\s+(/[A-Za-z0-9_./{}:-]+)")
+ANGLE_TOKEN_RE = re.compile(r"<(?!/?br\s*/?\s*>)([^<>\r\n]{1,120})>", re.IGNORECASE)
 ACTION_VARIANT_TERMS = (
     "不包含",
     "缺失",
@@ -151,6 +157,10 @@ def normalize_text(value: Any) -> str:
 
 def format_table_cell(value: Any) -> str:
     return normalize_text(value).replace("\n", "<br>").replace("|", "\\|")
+
+
+def sanitize_markdown_angle_tokens(text: str) -> str:
+    return ANGLE_TOKEN_RE.sub(lambda match: "{" + match.group(1).strip() + "}", text)
 
 
 def artifact_title(data: dict[str, Any], fallback: str | None = None) -> str:
@@ -682,7 +692,7 @@ def render_json_artifact(data: dict[str, Any]) -> str:
     renderer = RENDERERS.get(artifact_type)
     if renderer is None:
         raise ValueError(f"unsupported artifactType: {artifact_type}")
-    return renderer(data)
+    return sanitize_markdown_angle_tokens(renderer(data))
 
 
 def collect_renderable_json_files(run_dir: Path) -> list[tuple[Path, Path]]:
@@ -957,6 +967,19 @@ def validate_atomic_test_case(case_id: str, steps: list[Any], errors: list[str])
             )
 
 
+def validate_executable_step_action(case_id: str, step_index: int, action: str, errors: list[str]) -> None:
+    if action.startswith(ASSERTION_ACTION_PREFIXES):
+        errors.append(
+            f"{case_id} steps[{step_index}].action 不应单独写检查项 `{action}`；"
+            "请把字段、状态、记录或事件检查要求写入同一步 expected"
+        )
+    if SYSTEM_ACTION_ACTOR_RE.search(action):
+        errors.append(
+            f"{case_id} steps[{step_index}].action 不应写系统行为 `{action}`；"
+            "action 只写用户、测试人员、外部调用方可执行的操作或取数动作，系统判断、处理、返回、取消、释放等写入 expected"
+        )
+
+
 def validate_test_cases(cases: Any, start_index: int, parent_id: str, errors: list[str]) -> int:
     case_keys = {"id", "title", "level", "preconditions", "testData", "steps", "expectedResult", "sourceRefs"}
     for case in cases:
@@ -997,11 +1020,7 @@ def validate_test_cases(cases: Any, start_index: int, parent_id: str, errors: li
                 if not step.get("action") or not step.get("expected"):
                     errors.append(f"{case_id} steps[{step_index}] 缺少 action 或 expected")
                 action = normalize_text(step.get("action")).strip()
-                if action.startswith(ASSERTION_ACTION_PREFIXES):
-                    errors.append(
-                        f"{case_id} steps[{step_index}].action 不应单独写检查项 `{action}`；"
-                        "请把字段、状态、记录或事件检查要求写入同一步 expected"
-                    )
+                validate_executable_step_action(case_id, step_index, action, errors)
             validate_atomic_test_case(case_id, steps, errors)
         source_refs = case.get("sourceRefs")
         if source_refs is not None and not isinstance(source_refs, list):
