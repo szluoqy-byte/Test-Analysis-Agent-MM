@@ -22,7 +22,6 @@
 
 | 路径 | 原因 |
 |---|---|
-| rules/projects/ | project-key 未唯一确定 |
 | knowledge/projects/ | project-key 未唯一确定 |
 | memory/projects/ | project-key 未唯一确定 |
 

@@ -22,7 +22,7 @@
 | 测试用例粒度 | 通过/警告/失败 |  |  |
 | 预期结果依据 | 通过/警告/失败 |  |  |
 | 非用例化 | 通过/警告/失败 |  |  |
-| Core Rules 应用 | 通过/警告/失败 | core rules 是否已遵守、解释或被当前用户明确指令覆盖 |  |
+| Rules Pack 应用 | 通过/警告/失败 | `process/rules-pack.json` 中适用 rules 是否已遵守、解释或被当前用户明确指令覆盖 |  |
 | 动态来源应用 | 通过/警告/失败 | `sources[]` 可见动态来源是否已被对应阶段读取、应用或解释跳过 |  |
 | 动态 Checklist 覆盖 | 通过/警告/失败 | 对覆盖审查可见的 project/personal checklist 是否已处理 |  |
 | 任务清单 | 通过/警告/失败 | 固定阶段顺序、最终状态和证据路径 |  |
@@ -43,7 +43,7 @@
 |---|---|---|---|---|---|
 | project/personal source |  |  | applied/not_applicable/insufficient_evidence/conflict_with_requirement/deferred_to_review |  |  |
 
-## Core Rules 应用记录
+## Rules Pack 应用记录
 
 | 规则 ID | 来源文件 | 阶段 | 应用状态 | 应用位置 | 说明 |
 |---|---|---|---|---|---|

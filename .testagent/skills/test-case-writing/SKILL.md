@@ -20,6 +20,7 @@ description: 在测试设计方案 JSON 已生成后使用，负责将 canonical
 
 - 当前 run 目录：`outputs/runs/<run-id>/`。
 - 主事实源：`outputs/runs/<run-id>/deliverables/test-design-solution.json`。
+- `process/rules-pack.json` 中对 `test-case-writing` 可见的 core/project/user rules。
 - 可选：`process/context-pack.json` 中对 `test-case-writing` 可见的 project/personal 写作偏好、平台字段映射、命名风格或导入约束。
 - 模板：`templates/test-design-solution-template.md` 作为标准 Markdown 阅读版样式参考。
 - 脚本：`bin/render-run-markdown.py` 作为默认确定性写作器。
@@ -54,6 +55,7 @@ python bin/lint-test-design-solution.py outputs/runs/<run-id>/deliverables/test-
 - 测试数据事实不变。
 - 步骤语义不变。
 - 最终预期不新增无依据业务事实。
+- 写作表达必须遵守 `process/rules-pack.json` 中适用 rules；rules 与个人偏好或动态来源冲突时，以 rules 为准。
 - 来源引用不丢失；如目标格式不支持完整来源引用，必须在配套说明或 sidecar 文件中保留。
 
 ## 动态来源应用

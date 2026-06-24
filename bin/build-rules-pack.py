@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build process/context-pack.json from project/personal source metadata."""
+"""Build process/rules-pack.json as the mandatory rules source for a run."""
 
 from __future__ import annotations
 
@@ -24,22 +24,12 @@ ALLOWED_STAGES = {
     "test-design-solution-review",
     "coverage-review",
 }
+PROJECT_RULES_ROOT = "rules/projects/{project_key}"
+PERSONAL_RULES_ROOT = "rules/user"
 PROJECT_INFERENCE_ROOTS = (
     "rules/projects",
     "knowledge/projects",
     "memory/projects",
-)
-PROJECT_ROOT_PATTERNS = (
-    "knowledge/projects/{project_key}",
-    "memory/projects/{project_key}",
-)
-PROJECT_UNSCANNED_ROOTS = (
-    "knowledge/projects/",
-    "memory/projects/",
-)
-PERSONAL_ROOTS = (
-    "knowledge/user",
-    "memory/user",
 )
 
 
@@ -68,7 +58,7 @@ def configure_stdio() -> None:
 
 
 def repo_root() -> Path:
-    return Path(__file__).resolve().parents[3]
+    return Path(__file__).resolve().parents[1]
 
 
 def rel_path(path: Path, root: Path) -> str:
@@ -114,9 +104,7 @@ def infer_project_key(args: argparse.Namespace, root: Path) -> tuple[str, str, l
     candidates: list[str] = []
     for project_key in discover_project_keys(root):
         normalized_key = normalize_match_text(project_key)
-        if not normalized_key:
-            continue
-        if normalized_key in evidence_text:
+        if normalized_key and normalized_key in evidence_text:
             candidates.append(project_key)
 
     if len(candidates) == 1:
@@ -124,18 +112,6 @@ def infer_project_key(args: argparse.Namespace, root: Path) -> tuple[str, str, l
     if len(candidates) > 1:
         return "", "需求标题/路径/keywords 命中多个 project-key，未唯一绑定", candidates
     return "", "未提供 project-key，且无法从需求标题/路径/keywords 唯一识别", []
-
-
-def parse_inline_list(value: str) -> list[str]:
-    value = value.strip()
-    if not (value.startswith("[") and value.endswith("]")):
-        return []
-    items = []
-    for raw_item in value[1:-1].split(","):
-        item = raw_item.strip().strip("\"'")
-        if item:
-            items.append(item)
-    return items
 
 
 def strip_yaml_scalar(value: str) -> str:
@@ -159,22 +135,16 @@ def split_frontmatter_item(line: str) -> tuple[str, str] | None:
     return key, value
 
 
-def read_frontmatter(path: Path) -> tuple[dict[str, Any] | None, str | None]:
-    try:
-        text = path.read_text(encoding="utf-8")
-    except UnicodeDecodeError as exc:
-        return None, f"不是有效 UTF-8: {exc}"
-
-    lines = text.splitlines()
-    if not lines or lines[0].strip().lstrip("\ufeff") != "---":
-        return None, "缺少 frontmatter"
-
-    frontmatter: list[str] = []
-    for line in lines[1:]:
-        if line.strip() == "---":
-            return parse_frontmatter_lines(frontmatter), None
-        frontmatter.append(line)
-    return None, "frontmatter 未闭合"
+def parse_inline_list(value: str) -> list[str]:
+    value = value.strip()
+    if not (value.startswith("[") and value.endswith("]")):
+        return []
+    items = []
+    for raw_item in value[1:-1].split(","):
+        item = raw_item.strip().strip("\"'")
+        if item:
+            items.append(item)
+    return items
 
 
 def parse_frontmatter_lines(lines: list[str]) -> dict[str, Any]:
@@ -201,6 +171,25 @@ def parse_frontmatter_lines(lines: list[str]) -> dict[str, Any]:
     return values
 
 
+def read_markdown(path: Path) -> tuple[str, dict[str, Any], str | None]:
+    try:
+        text = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        return "", {}, f"不是有效 UTF-8: {exc}"
+
+    lines = text.splitlines()
+    if not lines or lines[0].strip().lstrip("\ufeff") != "---":
+        return text, {}, None
+
+    frontmatter: list[str] = []
+    for index, line in enumerate(lines[1:], start=1):
+        if line.strip() == "---":
+            content = "\n".join(lines[index + 1 :]).strip()
+            return content, parse_frontmatter_lines(frontmatter), None
+        frontmatter.append(line)
+    return "", {}, "frontmatter 未闭合"
+
+
 def normalize_stages(value: Any) -> tuple[list[str], str]:
     if value is None or value == "":
         return ["*"], "all"
@@ -215,24 +204,36 @@ def normalize_stages(value: Any) -> tuple[list[str], str]:
     return stages, "restricted" if stages != ["*"] else "all"
 
 
-def collect_source(path: Path, root: Path, warnings: list[str]) -> dict[str, Any] | None:
-    meta, error = read_frontmatter(path)
+def first_heading(text: str, fallback: str) -> str:
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            return stripped.lstrip("#").strip() or fallback
+    return fallback
+
+
+def collect_rule(path: Path, root: Path, layer: str, warnings: list[str]) -> dict[str, Any] | None:
     relative = rel_path(path, root)
+    content, meta, error = read_markdown(path)
     if error:
         warnings.append(f"{relative}: {error}")
         return None
-    if meta is None:
-        warnings.append(f"{relative}: frontmatter 解析失败")
-        return None
 
-    name = str(meta.get("name", "")).strip()
-    description = str(meta.get("description", "")).strip()
-    if not name:
-        warnings.append(f"{relative}: frontmatter 缺少 name")
-        return None
-    if not description:
-        warnings.append(f"{relative}: frontmatter 缺少 description")
-        return None
+    if layer in {"project", "user"}:
+        if not meta:
+            warnings.append(f"{relative}: 缺少 frontmatter，未加载为 rules-pack 规则")
+            return None
+        name = str(meta.get("name", "")).strip()
+        description = str(meta.get("description", "")).strip()
+        if not name:
+            warnings.append(f"{relative}: frontmatter 缺少 name")
+            return None
+        if not description:
+            warnings.append(f"{relative}: frontmatter 缺少 description")
+            return None
+    else:
+        name = str(meta.get("name", "")).strip() or path.stem
+        description = str(meta.get("description", "")).strip() or first_heading(content, path.stem)
 
     stages, availability = normalize_stages(meta.get("stages"))
     invalid_stages = [stage for stage in stages if stage not in ALLOWED_STAGES]
@@ -240,12 +241,19 @@ def collect_source(path: Path, root: Path, warnings: list[str]) -> dict[str, Any
         warnings.append(f"{relative}: stages 包含不支持的阶段: {', '.join(invalid_stages)}")
         return None
 
+    content = content.strip()
+    if not content:
+        warnings.append(f"{relative}: 规则正文为空，未加载")
+        return None
+
     return {
         "path": relative,
+        "layer": layer,
         "name": name,
         "description": description,
         "availableStages": stages,
         "availability": availability,
+        "content": content,
     }
 
 
@@ -259,10 +267,19 @@ def iter_markdown_sources(source_root: Path) -> list[Path]:
     )
 
 
-def build_index(args: argparse.Namespace, root: Path) -> dict[str, Any]:
+def build_rules_pack(args: argparse.Namespace, root: Path) -> dict[str, Any]:
     warnings: list[str] = []
-    sources: list[dict[str, Any]] = []
-    unscanned_project_sources: list[dict[str, str]] = []
+    core_rules: list[dict[str, Any]] = []
+    project_rules: list[dict[str, Any]] = []
+    user_rules: list[dict[str, Any]] = []
+    unscanned_project_rules: list[dict[str, str]] = []
+
+    for path in sorted((root / "rules").glob("*.md")):
+        if path.name == "README.md":
+            continue
+        rule = collect_rule(path, root, "core", warnings)
+        if rule:
+            core_rules.append(rule)
 
     explicit_project_key = (args.project or "").strip()
     project_key = explicit_project_key
@@ -270,17 +287,17 @@ def build_index(args: argparse.Namespace, root: Path) -> dict[str, Any]:
     ambiguous_candidates: list[str] = []
     if not project_key:
         project_key, inferred_reason, ambiguous_candidates = infer_project_key(args, root)
+
     if project_key and PROJECT_KEY_RE.fullmatch(project_key):
         project_binding = {
             "status": "resolved",
             "projectKey": project_key,
             "reason": args.project_reason or ("用户显式提供 project-key" if explicit_project_key else inferred_reason),
         }
-        for pattern in PROJECT_ROOT_PATTERNS:
-            for path in iter_markdown_sources(root / pattern.format(project_key=project_key)):
-                source = collect_source(path, root, warnings)
-                if source:
-                    sources.append(source)
+        for path in iter_markdown_sources(root / PROJECT_RULES_ROOT.format(project_key=project_key)):
+            rule = collect_rule(path, root, "project", warnings)
+            if rule:
+                project_rules.append(rule)
     else:
         reason = args.project_reason or inferred_reason or "未提供 project-key，且无法从输入唯一识别"
         project_binding = {
@@ -289,36 +306,32 @@ def build_index(args: argparse.Namespace, root: Path) -> dict[str, Any]:
             "reason": reason,
         }
         if explicit_project_key and not PROJECT_KEY_RE.fullmatch(explicit_project_key):
-            warnings.append(f"project-key `{project_key}` 格式非法，未扫描 project 目录")
+            warnings.append(f"project-key `{project_key}` 格式非法，未扫描 project rules")
         if ambiguous_candidates:
-            warnings.append("project-key 候选不唯一，未扫描 project 目录: " + "、".join(ambiguous_candidates))
-        unscanned_project_sources = [
-            {"path": path, "reason": "project-key 未唯一确定"}
-            for path in PROJECT_UNSCANNED_ROOTS
-        ]
+            warnings.append("project-key 候选不唯一，未扫描 project rules: " + "、".join(ambiguous_candidates))
+        unscanned_project_rules.append({"path": "rules/projects/", "reason": "project-key 未唯一确定"})
 
-    for relative_root in PERSONAL_ROOTS:
-        for path in iter_markdown_sources(root / relative_root):
-            source = collect_source(path, root, warnings)
-            if source:
-                sources.append(source)
-
-    requirement_path = ""
-    if args.requirement:
-        requirement_path = rel_path(Path(args.requirement), root)
+    for path in iter_markdown_sources(root / PERSONAL_RULES_ROOT):
+        rule = collect_rule(path, root, "user", warnings)
+        if rule:
+            user_rules.append(rule)
 
     return {
-        "artifactType": "context-pack",
+        "artifactType": "rules-pack",
         "schemaVersion": "1.0",
-        "title": args.title or "上下文来源索引",
-        "requirement": {
-            "path": requirement_path,
-            "title": args.requirement_title or "",
-            "keywords": split_keywords(args.keyword),
+        "title": args.title or "强制规则包",
+        "priorityPolicy": {
+            "currentUserInstruction": "当前用户明确指令最高；只有当前用户明确指令可以覆盖 rules。",
+            "runtimeContract": "AGENTS、workflow、skill、schema 和固定脚本定义执行契约；rules 不能要求违反运行时契约，除非用户明确要求修改框架。",
+            "rules": "rules 是强制约束，按 core > project > user 处理，优先于输入文档、memory 和 knowledge。",
+            "inputDocuments": "需求、设计方案和已评审测试分析方案是业务事实来源；与 rules 冲突时默认遵守 rules 并记录覆盖原因。",
+            "memoryKnowledge": "memory 和 knowledge 只能补充风险、偏好、方法或经验；与输入文档或 rules 冲突时不得覆盖。",
         },
         "projectBinding": project_binding,
-        "sources": sources,
-        "unscannedProjectSources": unscanned_project_sources,
+        "coreRules": core_rules,
+        "projectRules": project_rules,
+        "userRules": user_rules,
+        "unscannedProjectRules": unscanned_project_rules,
         "warnings": warnings,
     }
 
@@ -346,14 +359,14 @@ def render_markdown(run_dir: Path, root: Path) -> int:
 
 def main() -> int:
     configure_stdio()
-    parser = ChineseArgumentParser(description="生成 process/context-pack.json 动态来源索引")
+    parser = ChineseArgumentParser(description="生成 process/rules-pack.json 强制规则包")
     parser.add_argument("--run-dir", required=True, type=Path, help="outputs/runs/<run-id>")
     parser.add_argument("--requirement", type=Path, help="需求 Markdown 路径")
     parser.add_argument("--requirement-title", default="", help="需求标题")
     parser.add_argument("--keyword", action="append", default=[], help="需求关键词，可重复或用逗号分隔")
     parser.add_argument("--project", default="", help="已唯一确定的 project-key")
     parser.add_argument("--project-reason", default="", help="project 绑定或未绑定原因")
-    parser.add_argument("--title", default="", help="context-pack 标题")
+    parser.add_argument("--title", default="", help="rules-pack 标题")
     parser.add_argument("--no-render", action="store_true", help="只写 JSON，不渲染 Markdown")
     args = parser.parse_args()
 
@@ -363,10 +376,11 @@ def main() -> int:
         run_dir = root / run_dir
     run_dir.mkdir(parents=True, exist_ok=True)
 
-    data = build_index(args, root)
-    output_path = run_dir / "process" / "context-pack.json"
+    data = build_rules_pack(args, root)
+    output_path = run_dir / "process" / "rules-pack.json"
     write_json(output_path, data)
-    print(f"通过: 已生成 {rel_path(output_path, root)}，动态来源 {len(data['sources'])} 个，告警 {len(data['warnings'])} 个")
+    count = len(data["coreRules"]) + len(data["projectRules"]) + len(data["userRules"])
+    print(f"通过: 已生成 {rel_path(output_path, root)}，规则 {count} 条，告警 {len(data['warnings'])} 个")
 
     if args.no_render:
         return 0

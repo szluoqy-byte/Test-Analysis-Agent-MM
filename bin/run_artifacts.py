@@ -20,6 +20,7 @@ APPLICATION_STATUS_VALUES = {
 TEST_CASE_LEVEL_VALUES = {"Level 0", "Level 1", "Level 2", "Level 3", "Level 4"}
 ARTIFACT_TITLES = {
     "task-list": "测试分析方案任务清单",
+    "rules-pack": "强制规则包",
     "context-pack": "上下文来源索引",
     "input-fact-model": "输入事实模型",
     "test-analysis-solution": "测试分析方案",
@@ -31,6 +32,7 @@ ARTIFACT_TITLES = {
 GENERIC_METADATA_KEYS = {"artifactType", "alternateArtifactTypes", "schemaVersion", "title", "sections"}
 ANALYSIS_REQUIRED_STAGES = [
     "固定 PROJECT_ROOT 与运行目录",
+    "强制规则加载",
     "上下文来源索引",
     "输入事实建模",
     "测试技术路由",
@@ -45,6 +47,7 @@ ANALYSIS_REQUIRED_STAGES = [
 DESIGN_REQUIRED_STAGES = [
     "固定 PROJECT_ROOT 与运行目录",
     "测试分析方案校验",
+    "强制规则加载",
     "上下文来源索引",
     "设计依据补读",
     "测试设计方案生成",
@@ -407,6 +410,72 @@ def render_context_pack(data: dict[str, Any]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+def render_rules_pack(data: dict[str, Any]) -> str:
+    if data.get("artifactType") != "rules-pack":
+        return render_generic_document(data, "强制规则包")
+
+    lines = [f"# {artifact_title(data, '强制规则包')}", ""]
+
+    policy = data.get("priorityPolicy") if isinstance(data.get("priorityPolicy"), dict) else {}
+    lines.extend(["## 优先级策略", ""])
+    policy_rows = [[key, normalize_text(value)] for key, value in policy.items()]
+    if policy_rows:
+        lines.extend(markdown_table(["策略项", "说明"], policy_rows))
+    else:
+        lines.append("未声明优先级策略。")
+    lines.append("")
+
+    for key, title in (
+        ("coreRules", "Core Rules"),
+        ("projectRules", "Project Rules"),
+        ("userRules", "User Rules"),
+    ):
+        rows: list[list[str]] = []
+        for rule in data.get(key, []):
+            if not isinstance(rule, dict):
+                continue
+            stages = rule.get("availableStages", [])
+            stage_text = "、".join(stages) if isinstance(stages, list) else normalize_text(stages)
+            rows.append(
+                [
+                    rule.get("path", ""),
+                    rule.get("name", ""),
+                    rule.get("description", ""),
+                    stage_text,
+                    rule.get("availability", ""),
+                    normalize_text(rule.get("content", "")),
+                ]
+            )
+        lines.extend([f"## {title}", ""])
+        if rows:
+            lines.extend(markdown_table(["路径", "名称", "描述", "可用阶段", "可见性", "规则内容"], rows))
+        else:
+            lines.append("无。")
+        lines.append("")
+
+    unscanned_rows: list[list[str]] = []
+    for item in data.get("unscannedProjectRules", []):
+        if isinstance(item, dict):
+            unscanned_rows.append([item.get("path", ""), item.get("reason", "")])
+        else:
+            unscanned_rows.append([normalize_text(item), ""])
+    lines.extend(["## 未扫描项目规则", ""])
+    if unscanned_rows:
+        lines.extend(markdown_table(["路径", "原因"], unscanned_rows))
+    else:
+        lines.append("无未扫描项目规则。")
+    lines.append("")
+
+    warning_rows = [[normalize_text(item)] for item in data.get("warnings", [])]
+    lines.extend(["## 告警", ""])
+    if warning_rows:
+        lines.extend(markdown_table(["说明"], warning_rows))
+    else:
+        lines.append("无告警。")
+
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def render_input_fact_model(data: dict[str, Any]) -> str:
     return render_structured_sections(
         data,
@@ -677,6 +746,7 @@ def render_coverage_report(data: dict[str, Any]) -> str:
 
 RENDERERS = {
     "task-list": render_task_list,
+    "rules-pack": render_rules_pack,
     "context-pack": render_context_pack,
     "input-fact-model": render_input_fact_model,
     "test-analysis-solution": render_analysis_solution,
@@ -700,6 +770,7 @@ def collect_renderable_json_files(run_dir: Path) -> list[tuple[Path, Path]]:
         (run_dir / "process" / "analysis-task-list.json", run_dir / "process" / "analysis-task-list.md"),
         (run_dir / "process" / "design-task-list.json", run_dir / "process" / "design-task-list.md"),
         (run_dir / "process" / "task-list.json", run_dir / "process" / "task-list.md"),
+        (run_dir / "process" / "rules-pack.json", run_dir / "process" / "rules-pack.md"),
         (run_dir / "process" / "context-pack.json", run_dir / "process" / "context-pack.md"),
         (run_dir / "process" / "input-fact-model.json", run_dir / "process" / "input-fact-model.md"),
         (run_dir / "deliverables" / "test-analysis-solution.json", run_dir / "deliverables" / "test-analysis-solution.md"),
@@ -794,8 +865,6 @@ def validate_context_pack_json(data: dict[str, Any]) -> list[str]:
         errors.append("context-pack.json projectBinding.status 必须为 resolved 或 unresolved")
 
     allowed_source_prefixes = (
-        "rules/projects/",
-        "rules/user/",
         "knowledge/projects/",
         "knowledge/user/",
         "memory/projects/",
@@ -849,6 +918,35 @@ def validate_context_pack_json(data: dict[str, Any]) -> list[str]:
         errors.append("context-pack.json unscannedProjectSources 必须是数组")
     if "warnings" in data and not isinstance(data.get("warnings"), list):
         errors.append("context-pack.json warnings 必须是数组")
+    return errors
+
+
+def validate_rules_pack_json(data: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    if not isinstance(data.get("priorityPolicy"), dict):
+        errors.append("rules-pack.json 缺少对象字段: priorityPolicy")
+    for key in ("coreRules", "projectRules", "userRules"):
+        rules = data.get(key)
+        if not isinstance(rules, list):
+            errors.append(f"rules-pack.json 缺少数组字段: {key}")
+            continue
+        for index, rule in enumerate(rules, start=1):
+            if not isinstance(rule, dict):
+                errors.append(f"rules-pack.json {key}[{index}] 必须是对象")
+                continue
+            for required in ("path", "name", "description", "availableStages", "content"):
+                if is_empty_value(rule.get(required)):
+                    errors.append(f"rules-pack.json {key}[{index}] 缺少字段: {required}")
+            stages = rule.get("availableStages")
+            if not isinstance(stages, list) or not all(isinstance(stage, str) and stage for stage in stages):
+                errors.append(f"rules-pack.json {key}[{index}].availableStages 必须是非空字符串数组")
+            path = normalize_text(rule.get("path")).replace("\\", "/")
+            if re.match(r"^[A-Za-z]:/", path) or path.startswith("/"):
+                errors.append(f"rules-pack.json {key}[{index}].path 必须是仓库相对路径")
+    if "unscannedProjectRules" in data and not isinstance(data.get("unscannedProjectRules"), list):
+        errors.append("rules-pack.json unscannedProjectRules 必须是数组")
+    if "warnings" in data and not isinstance(data.get("warnings"), list):
+        errors.append("rules-pack.json warnings 必须是数组")
     return errors
 
 
@@ -1056,6 +1154,11 @@ def validate_artifact(data: dict[str, Any]) -> tuple[list[str], list[str]]:
         task_errors, task_warnings = validate_task_list(data)
         errors.extend(task_errors)
         warnings.extend(task_warnings)
+    elif artifact_type == "rules-pack":
+        doc_errors, doc_warnings = validate_generic_document(data, artifact_type)
+        errors.extend(doc_errors)
+        warnings.extend(doc_warnings)
+        errors.extend(validate_rules_pack_json(data))
     elif artifact_type in {"context-pack", "input-fact-model"}:
         doc_errors, doc_warnings = validate_generic_document(data, artifact_type)
         errors.extend(doc_errors)

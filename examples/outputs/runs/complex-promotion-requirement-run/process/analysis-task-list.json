@@ -19,14 +19,22 @@
     },
     {
       "order": 2,
+      "stage": "强制规则加载",
+      "owner": "bin/build-rules-pack.py",
+      "checkpoint": "process/rules-pack.json、core/project/user rules 强制规则包",
+      "status": "done",
+      "evidence": "process/rules-pack.json"
+    },
+    {
+      "order": 3,
       "stage": "上下文来源索引",
       "owner": "context-source-indexing",
-      "checkpoint": "process/context-pack.json、动态 project/personal 来源索引",
+      "checkpoint": "process/context-pack.json、动态 project/personal knowledge/memory 来源索引",
       "status": "done",
       "evidence": "process/context-pack.json"
     },
     {
-      "order": 3,
+      "order": 4,
       "stage": "输入事实建模",
       "owner": "input-fact-modeling",
       "checkpoint": "process/input-fact-model.json、事实清单、需求-设计映射",
@@ -34,15 +42,15 @@
       "evidence": "process/input-fact-model.json"
     },
     {
-      "order": 4,
+      "order": 5,
       "stage": "测试技术路由",
       "owner": "testing-method-router",
       "checkpoint": "分析维度覆盖表、测试技术路由表、动态来源应用记录",
       "status": "done",
-      "evidence": "process/input-fact-model.json；process/context-pack.json"
+      "evidence": "process/input-fact-model.json；process/rules-pack.json；process/context-pack.json"
     },
     {
-      "order": 5,
+      "order": 6,
       "stage": "专项分析",
       "owner": "testing-method-router",
       "checkpoint": "覆盖维度建议、测试点候选、补读记录",
@@ -50,7 +58,7 @@
       "evidence": "deliverables/test-analysis-solution.json"
     },
     {
-      "order": 6,
+      "order": 7,
       "stage": "按源补读",
       "owner": "testing-method-router",
       "checkpoint": "按需补读记录、来源说明",
@@ -58,15 +66,15 @@
       "evidence": "示例未触发补读"
     },
     {
-      "order": 7,
+      "order": 8,
       "stage": "测试分析方案生成",
       "owner": "test-analysis-solution-generation",
-      "checkpoint": "deliverables/test-analysis-solution.json、动态来源应用记录",
+      "checkpoint": "deliverables/test-analysis-solution.json、rules-pack 与动态来源应用记录",
       "status": "done",
       "evidence": "deliverables/test-analysis-solution.json"
     },
     {
-      "order": 8,
+      "order": 9,
       "stage": "确定性校验",
       "owner": "bin",
       "checkpoint": "lint-run-json.py、render-run-markdown.py、lint-test-analysis-solution.py 结果；失败不进入评审",
@@ -74,7 +82,7 @@
       "evidence": "bin/lint-run-json.py；bin/render-run-markdown.py；bin/lint-test-analysis-solution.py"
     },
     {
-      "order": 9,
+      "order": 10,
       "stage": "独立评审",
       "owner": "test-analysis-solution-review",
       "checkpoint": "语义覆盖、测试点粒度、依据质量、事实溯源和分析边界",
@@ -82,15 +90,15 @@
       "evidence": "reports/test-analysis-solution-review.json"
     },
     {
-      "order": 10,
+      "order": 11,
       "stage": "覆盖审查",
       "owner": "coverage-review",
-      "checkpoint": "需求/方法/rules/动态来源应用检查、阻断项；专家评分仅深度评估时执行",
+      "checkpoint": "需求/方法/rules-pack/动态来源应用检查、阻断项；专家评分仅深度评估时执行",
       "status": "done",
       "evidence": "reports/coverage-review.json"
     },
     {
-      "order": 11,
+      "order": 12,
       "stage": "输出收口",
       "owner": "test-analysis-workflow",
       "checkpoint": "主交付件 JSON/Markdown 路径、review/coverage JSON 路径、check-artifact-consistency.py 结果",

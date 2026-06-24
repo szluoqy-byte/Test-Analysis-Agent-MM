@@ -12,7 +12,7 @@ description: 当用户提供已评审测试分析方案，或要求从需求先�
 ## 必需输入
 
 - `$ARGUMENTS`：优先是一份 `test-analysis-solution.json`。
-- 可选：原始需求文档路径、设计方案文档路径或 `project=<project-key>`；personal 来源固定来自 `*/user/**/*.md`，无需额外参数。
+- 可选：原始需求文档路径、设计方案文档路径或 `project=<project-key>`；personal rules 来自 `rules/user/**/*.md`，personal 动态补充来源来自 `knowledge/user/**/*.md` 和 `memory/user/**/*.md`。
 - 如果用户只提供需求文档和可选设计方案文档，并明确要求生成测试设计方案，本 skill 必须先使用 `test-analysis-workflow` 生成分析方案。
 - 如果输入包含 `.docx` 或 `.xlsx`，不得在本 workflow 中转换；必须先由 `@file-normalization-agent` 归一化为 Markdown。
 - 新模型不支持旧格式自动迁移；输入分析方案必须符合 schema `2.0`。
@@ -22,6 +22,7 @@ description: 当用户提供已评审测试分析方案，或要求从需求先�
 - 本 skill 只负责编排设计链路和写出测试设计方案。
 - 测试分析层事实来自已评审测试分析方案；不得把设计阶段发现的新范围直接写成新的 `SC-*` 或 `TP-*`。
 - 需求与设计方案只用于校验和补强测试用例依据；不得覆盖分析方案中的已评审层级。
+- 强制规则由 `process/rules-pack.json` 独立承载，后续每个阶段必须读取并遵守适用 rules。
 - `test-design-solution-generation` 负责在每个 `TP-*` 下生成 `testCases[]`。
 - `test-case-writing` 负责把 canonical JSON 写作为标准 Markdown 或后续扩展的不同交付风格，不改变测试用例事实。
 - `test-design-solution-review` 负责独立评审测试用例步骤、测试数据、预期结果依据和分析方案承接。
@@ -35,14 +36,15 @@ description: 当用户提供已评审测试分析方案，或要求从需求先�
 4. 创建或刷新 `process/design-task-list.json`，记录当前进入测试设计阶段；复用分析 run 时不得覆盖 `process/analysis-task-list.json`。
 5. 读取并校验 `deliverables/test-analysis-solution.json`；未通过 schema `2.0` 时不进入测试设计生成，直接输出失败原因和“需用当前测试分析 workflow 重新生成分析方案”的建议，不尝试旧格式迁移。
 6. 运行 `python bin/check-design-batch-mode.py outputs/runs/<run-id>` 写入 `process/design-batch-decision.json`；若 `batchRequired=true`，必须进入“大文件分批模式”，不得整包读取或整包生成设计 JSON。
-7. 读取或生成 `process/context-pack.json`；如果缺失，必须调用 `context-source-indexing` 脚本生成，不能手工拼写 JSON。
-8. 受控补读归一化后的原始需求 Markdown、设计方案 Markdown 或结构化过程记录中与当前分析方案相关的依据。
-9. 使用 `test-design-solution-generation` 在每个 `TP-*` 下生成 `testCases[]`，写入 `deliverables/test-design-solution.json`。
-10. 运行 `bin/lint-run-json.py`；失败时只修正 JSON canonical，不进入 Markdown 写作、独立评审或覆盖审查。
-11. 使用 `test-case-writing` 将 canonical JSON 写作为标准 Markdown，并运行 `bin/render-run-markdown.py --check` 和 `bin/lint-test-design-solution.py`；失败时回到 `test-design-solution.json` 修正后重新渲染，不手工编辑 Markdown。
-12. 使用 `test-design-solution-review` 独立评审测试设计方案 JSON，结果写入 `reports/test-design-solution-review.json`；如发现必须修正的问题，回到第 9 步更新 canonical JSON。
-13. 使用 `coverage-review` 检查需求到测试点、测试点到测试用例的覆盖关系，结果写入 `reports/design-coverage-review.json`；如发现覆盖缺口，回到第 9 步补齐 TC 或在 coverage JSON 中说明不适用依据。
-14. 最终输出前刷新 `process/design-task-list.json`，运行 `test-case-writing` 的标准 Markdown 检查和 `bin/check-artifact-consistency.py`；失败时输出脚本失败项并修正对应 JSON 或 task-list，不停留在等待状态。
+7. 读取或生成 `process/rules-pack.json`；如果缺失，必须调用 `bin/build-rules-pack.py` 生成，不能手工拼写 JSON。
+8. 读取或生成 `process/context-pack.json`；如果缺失，必须调用 `context-source-indexing` 脚本生成，不能手工拼写 JSON。
+9. 受控补读归一化后的原始需求 Markdown、设计方案 Markdown 或结构化过程记录中与当前分析方案相关的依据。
+10. 使用 `test-design-solution-generation` 读取 `process/rules-pack.json` 后在每个 `TP-*` 下生成 `testCases[]`，写入 `deliverables/test-design-solution.json`。
+11. 运行 `bin/lint-run-json.py`；失败时只修正 JSON canonical，不进入 Markdown 写作、独立评审或覆盖审查。
+12. 使用 `test-case-writing` 将 canonical JSON 写作为标准 Markdown，并运行 `bin/render-run-markdown.py --check` 和 `bin/lint-test-design-solution.py`；失败时回到 `test-design-solution.json` 修正后重新渲染，不手工编辑 Markdown。
+13. 使用 `test-design-solution-review` 独立评审测试设计方案 JSON，结果写入 `reports/test-design-solution-review.json`；如发现必须修正的问题，回到第 10 步更新 canonical JSON。
+14. 使用 `coverage-review` 检查需求到测试点、测试点到测试用例的覆盖关系，结果写入 `reports/design-coverage-review.json`；如发现覆盖缺口，回到第 10 步补齐 TC 或在 coverage JSON 中说明不适用依据。
+15. 最终输出前刷新 `process/design-task-list.json`，运行 `test-case-writing` 的标准 Markdown 检查和 `bin/check-artifact-consistency.py`；失败时输出脚本失败项并修正对应 JSON 或 task-list，不停留在等待状态。
 
 ## 大文件分批模式
 
@@ -60,7 +62,7 @@ description: 当用户提供已评审测试分析方案，或要求从需求先�
 ## 脚本稳定性规则
 
 - design 流程不得临时创建 `.py`、`.js`、`.ps1`、`.bat` 或其他可执行脚本来拼接、修复或拆分 JSON。
-- 只能调用仓库固定脚本：`bin/check-design-batch-mode.py`、`bin/extract-design-work-items.py`、`bin/extract-analysis-slice.py`、`bin/init-design-slice.py`、`bin/merge-design-slice.py`、`bin/lint-run-json.py`、`bin/render-run-markdown.py`、`bin/lint-test-design-solution.py` 和 `bin/check-artifact-consistency.py`。
+- 只能调用仓库固定脚本：`bin/build-rules-pack.py`、`bin/check-design-batch-mode.py`、`bin/extract-design-work-items.py`、`bin/extract-analysis-slice.py`、`bin/init-design-slice.py`、`bin/merge-design-slice.py`、`bin/lint-run-json.py`、`bin/render-run-markdown.py`、`bin/lint-test-design-solution.py` 和 `bin/check-artifact-consistency.py`。
 - 如果固定脚本能力不足，必须修改仓库 `bin/` 脚本并运行校验；不得在 `outputs/`、`process/`、`reports/`、临时目录或当前工作目录写一次性脚本。
 
 ## 防卡住规则

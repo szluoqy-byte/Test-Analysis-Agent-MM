@@ -1,21 +1,20 @@
 # Rules 模块说明
 
-Rules 保存本 Agent 的强制规则。它不是测试知识库，也不是长期事实库；它用于声明当前运行必须遵守的约束。
+Rules 保存本 Agent 的强制规则。它不是测试知识库，也不是长期事实库；它用于声明当前运行必须遵守的约束。每次 run 由 `bin/build-rules-pack.py` 加载到 `process/rules-pack.json`，后续阶段以该 JSON 为强制规则事实源。
 
 ## 优先级
 
-在本仓库的运行决策中，优先级为：
+`skills/`、schema 和固定脚本定义运行时执行契约，不作为业务事实来源。业务和输出约束的优先级为：
 
 ```text
 当前用户明确指令
-  > rules 强制规则
+  > process/rules-pack.json 中的适用 rules
   > 当前输入文档（需求 / 设计方案 / 已评审测试分析方案）
   > memory
   > knowledge
-  > skill 默认流程
 ```
 
-如果 rules 与输入文档冲突，默认遵守 rules，并在 `process/context-pack.json` 或结构化 review/coverage JSON 中记录“规则覆盖输入”的原因。只有当前用户明确指令可以覆盖 rules；同名 Markdown 只作为脚本渲染的人读版。
+如果 rules 与输入文档冲突，默认遵守 rules，并在过程 JSON 或结构化 review/coverage JSON 中记录“规则覆盖输入”的原因。只有当前用户明确指令可以覆盖 rules；同名 Markdown 只作为脚本渲染的人读版。
 
 Rules 内部冲突时，按 `core > project > personal` 处理；project/personal rules 可以细化更高层规则，但不得放宽或违反更高层强制约束。
 

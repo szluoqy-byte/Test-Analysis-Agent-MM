@@ -13,6 +13,7 @@ description: 在确定性 lint 通过后，评审 schema 2.0 测试设计方案�
 - `outputs/runs/<run-id>/deliverables/test-analysis-solution.json`
 - `bin/lint-run-json.py`、`bin/render-run-markdown.py --check` 和 `bin/lint-test-design-solution.py` 的执行结果
 - 归一化后的需求 Markdown 和可选设计方案 Markdown
+- `process/rules-pack.json`
 - `process/context-pack.json`
 - `knowledge/test-design-solution-standard.md`
 
@@ -28,6 +29,7 @@ description: 在确定性 lint 通过后，评审 schema 2.0 测试设计方案�
 | 步骤可执行性 | `steps[]` 是否按顺序表达同一个测试实例内由用户、测试人员、外部调用方或测试工具执行的动作和步骤预期，而不是枚举多个互斥请求、多组替代数据、多种角色/状态/配置切换或多条独立路径；`action` 是否只写可执行动作或取数动作，没有把检查项、断言项、观察结论或系统内部行为单独写成步骤 |
 | 最终预期 | `expectedResult` 是否有需求、设计、规则或分析方案依据 |
 | 接口表达 | 接口类用例是否拆成字段片段，避免完整裸 URL |
+| Rules 应用 | `process/rules-pack.json` 中适用 rules 是否已遵守，冲突时是否说明规则覆盖输入的原因 |
 | 动态来源 | 可见 project/personal 来源是否被读取、应用或解释不适用 |
 
 ## 输出

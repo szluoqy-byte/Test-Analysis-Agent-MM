@@ -1,6 +1,6 @@
 ---
 name: context-source-indexing
-description: 在测试分析或测试设计开始前使用，仅索引 project/personal 扩展来源的元数据，生成 process/context-pack.json；core rules、knowledge、templates 和 skill 私有参考由对应 workflow/skill 固定引用，不进入动态索引。
+description: 在测试分析或测试设计开始前使用，仅索引 project/personal knowledge 和 memory 扩展来源的元数据，生成 process/context-pack.json；rules 由 process/rules-pack.json 独立承载强制语义。
 ---
 
 # 上下文来源索引
@@ -25,7 +25,8 @@ python skills/context-source-indexing/scripts/build-context-source-index.py \
 ## 职责边界
 
 - 只索引 `project` 和 `personal` 扩展来源的元数据。
-- 不扫描、不摘录、不动态索引 core 层文件：根目录 `rules/*.md`、`knowledge/*.md`、`templates/` 和各 skill 私有参考文件由 workflow 或对应 skill 固定引用。
+- 不扫描、不摘录、不动态索引 rules：`rules/*.md`、`rules/projects/**` 和 `rules/user/**` 由 `process/rules-pack.json` 独立承载强制语义。
+- 不扫描、不摘录、不动态索引 core 层文件：根目录 `knowledge/*.md`、`templates/` 和各 skill 私有参考文件由 workflow 或对应 skill 固定引用。
 - 不读取动态来源正文来判断具体测试点、测试用例、覆盖缺口或专项方法命中。
 - 不把来源内容复制到 context pack；context pack 只记录路径、名称、描述、阶段可见性、绑定状态和告警。
 - 不把 `applied`、`not_applicable`、`conflict_with_requirement` 等应用状态写入 `sources[]`；应用状态只能写入后续阶段的过程 JSON、review JSON 或 coverage JSON。
@@ -71,15 +72,13 @@ python skills/context-source-indexing/scripts/build-context-source-index.py \
 
 当 `project-key` 已唯一确定时，扫描：
 
-- `rules/projects/<project-key>/**/*.md`
 - `knowledge/projects/<project-key>/**/*.md`
 - `memory/projects/<project-key>/**/*.md`
 
-无唯一 `project-key` 时，不扫描任何 project 目录正文，也不把所有项目目录加载进索引；只在 `projectBinding`、`unscannedProjectSources` 和 `warnings` 中记录未扫描原因。允许枚举 `rules/projects/`、`knowledge/projects/`、`memory/projects/` 的一级目录名用于唯一性判断，但不得读取候选目录下的 Markdown 正文或 frontmatter。
+无唯一 `project-key` 时，不扫描任何 project 目录正文，也不把所有项目目录加载进索引；只在 `projectBinding`、`unscannedProjectSources` 和 `warnings` 中记录未扫描原因。允许枚举 `rules/projects/`、`knowledge/projects/`、`memory/projects/` 的一级目录名用于唯一性判断，确保 `rules-pack` 和 `context-pack` 的 project 绑定口径一致；但不得读取候选目录下的 Markdown 正文或 frontmatter。
 
 personal 层扫描：
 
-- `rules/user/**/*.md`
 - `knowledge/user/**/*.md`
 - `memory/user/**/*.md`
 
@@ -106,7 +105,7 @@ stages:
 - `description`：必填，说明该来源提供什么补充价值。
 - `stages`：可选。缺省或空数组表示对所有阶段可见，渲染为 `["*"]`；显式配置时只对列出的阶段可见。
 
-`sources[]` 不写 `sourceType`、`layer`、`projectKey`、`stages`、`applied` 或 personal 专属字段。这些信息由路径和后续阶段应用记录推断：`rules/projects/<project-key>/...` 是 project rules，`knowledge/user/...` 是 personal knowledge。`project-key` 的绑定只写在顶层 `projectBinding`；personal 来源只通过 `rules/user/**`、`knowledge/user/**`、`memory/user/**` 路径表达；阶段可见性只写为 `availableStages` 和 `availability`。
+`sources[]` 不写 `sourceType`、`layer`、`projectKey`、`stages`、`applied` 或 personal 专属字段。这些信息由路径和后续阶段应用记录推断：`knowledge/projects/<project-key>/...` 是 project knowledge，`memory/user/...` 是 personal memory。`project-key` 的绑定只写在顶层 `projectBinding`；personal 来源只通过 `knowledge/user/**`、`memory/user/**` 路径表达；阶段可见性只写为 `availableStages` 和 `availability`。
 
 推荐阶段值：
 
@@ -161,7 +160,7 @@ stages:
 
 - 即使没有 project/personal 命中，也必须生成 `process/context-pack.json` 和派生 `process/context-pack.md`。
 - `sources` 可以为空；空列表表示本次没有动态 project/personal 来源可用。
-- `sources[]` 只允许来自 `rules/projects/<project-key>/`、`knowledge/projects/<project-key>/`、`memory/projects/<project-key>/`、`rules/user/`、`knowledge/user/` 或 `memory/user/`。core rules、core knowledge、templates 和 skill 私有参考不进入 `sources[]`。
+- `sources[]` 只允许来自 `knowledge/projects/<project-key>/`、`memory/projects/<project-key>/`、`knowledge/user/` 或 `memory/user/`。rules 不进入 `sources[]`；core knowledge、templates 和 skill 私有参考不进入 `sources[]`。
 - `availableStages` 缺省时统一写 `["*"]`，`availability` 写 `all`；显式阶段列表时写 `restricted`。
 - frontmatter 缺失或不合法的动态来源不得静默注入，必须在 `warnings[]` 中记录文件路径和问题，且不写入 `sources[]`。
 - 如果 `project-key` 未唯一确定，`projectBinding.status` 写 `unresolved`，并在 `unscannedProjectSources[]` 记录 project 根路径未扫描原因。
@@ -174,6 +173,6 @@ stages:
 - `availableStages` 包含当前阶段，或包含 `"*"`，才允许读取对应来源正文。
 - 被读取的动态来源必须在本阶段的过程 JSON、review JSON 或 coverage JSON 中记录应用状态。
 - 应用状态只能使用 `applied`、`not_applicable`、`insufficient_evidence`、`conflict_with_requirement` 或 `deferred_to_review`。
-- 如果动态来源与当前用户明确指令、core rules 或输入文档冲突，不在 context pack 中裁决；由读取该来源的阶段记录冲突和处理依据。
+- 如果动态来源与当前用户明确指令、`process/rules-pack.json` 中适用 rules 或输入文档冲突，不在 context pack 中裁决；由读取该来源的阶段记录冲突和处理依据。
 
-core rules、core knowledge 和 skill 私有参考不依赖 `context-pack.json` 才能生效。它们由 workflow 和 skill 明确读取，属于默认能力边界。
+rules 不依赖 `context-pack.json` 才能生效；后续阶段必须读取 `process/rules-pack.json`。core knowledge 和 skill 私有参考由 workflow 和 skill 明确读取，属于默认能力边界。

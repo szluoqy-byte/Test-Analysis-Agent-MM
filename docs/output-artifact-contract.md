@@ -23,8 +23,12 @@ outputs/
         test-design-solution.json
         test-design-solution.md
       process/
-        task-list.json
-        task-list.md
+        analysis-task-list.json
+        analysis-task-list.md
+        design-task-list.json
+        design-task-list.md
+        rules-pack.json
+        rules-pack.md
         context-pack.json
         context-pack.md
         input-fact-model.json
@@ -39,6 +43,8 @@ outputs/
 ```
 
 Office 输入必须先通过 `@file-normalization-agent` 归一化为 Markdown。测试分析和测试设计 workflow 本身只消费已归一化 Markdown 或 JSON canonical 输入。
+
+`process/rules-pack.json` 是强制规则事实源，独立承载 core/project/user rules；`process/context-pack.json` 只索引 project/personal knowledge 和 memory 动态来源，不承载 rules 强制语义。
 
 ## 测试分析主交付件
 

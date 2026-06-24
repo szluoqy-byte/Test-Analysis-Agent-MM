@@ -20,10 +20,6 @@
   "sources": [],
   "unscannedProjectSources": [
     {
-      "path": "rules/projects/",
-      "reason": "project-key 未唯一确定"
-    },
-    {
       "path": "knowledge/projects/",
       "reason": "project-key 未唯一确定"
     },

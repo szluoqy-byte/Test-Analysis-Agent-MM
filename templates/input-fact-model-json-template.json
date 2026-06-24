@@ -33,6 +33,12 @@
               "process/context-pack.json",
               "",
               ""
+            ],
+            [
+              "Rules Pack",
+              "process/rules-pack.json",
+              "",
+              ""
             ]
           ]
         }
@@ -94,6 +100,12 @@
             "说明"
           ],
           "rows": [
+            [
+              "process/rules-pack.json",
+              "applied/not_applicable/insufficient_evidence/conflict_with_requirement",
+              "输入事实建模",
+              ""
+            ],
             [
               "process/context-pack.json",
               "applied/not_applicable/insufficient_evidence/conflict_with_requirement",

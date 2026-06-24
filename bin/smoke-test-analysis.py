@@ -87,6 +87,7 @@ REQUIRED_FILES = [
     "bin/lint-run-json.py",
     "bin/render-run-markdown.py",
     "bin/run_artifacts.py",
+    "bin/build-rules-pack.py",
     "bin/check-design-batch-mode.py",
     "bin/extract-design-work-items.py",
     "bin/extract-analysis-slice.py",

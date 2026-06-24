@@ -24,18 +24,20 @@ ALLOWED_STAGES = {
     "test-design-solution-review",
     "coverage-review",
 }
+PROJECT_INFERENCE_ROOTS = (
+    "rules/projects",
+    "knowledge/projects",
+    "memory/projects",
+)
 PROJECT_ROOT_PATTERNS = (
-    "rules/projects/{project_key}",
     "knowledge/projects/{project_key}",
     "memory/projects/{project_key}",
 )
 PROJECT_UNSCANNED_ROOTS = (
-    "rules/projects/",
     "knowledge/projects/",
     "memory/projects/",
 )
 PERSONAL_ROOTS = (
-    "rules/user",
     "knowledge/user",
     "memory/user",
 )
@@ -92,8 +94,8 @@ def normalize_match_text(value: str) -> str:
 
 def discover_project_keys(root: Path) -> list[str]:
     keys: set[str] = set()
-    for pattern in PROJECT_ROOT_PATTERNS:
-        projects_root = root / pattern.split("/{project_key}", 1)[0]
+    for relative_root in PROJECT_INFERENCE_ROOTS:
+        projects_root = root / relative_root
         if not projects_root.is_dir():
             continue
         for path in projects_root.iterdir():

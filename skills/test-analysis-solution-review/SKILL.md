@@ -12,6 +12,7 @@ description: 在确定性 lint 通过后，评审 schema 2.0 测试分析方案�
 - `outputs/runs/<run-id>/deliverables/test-analysis-solution.json`
 - `bin/lint-run-json.py`、`bin/render-run-markdown.py --check` 和 `bin/lint-test-analysis-solution.py` 的执行结果
 - `process/input-fact-model.json`
+- `process/rules-pack.json`
 - `process/context-pack.json`
 - `knowledge/test-analysis-solution-standard.md`
 
@@ -25,6 +26,7 @@ description: 在确定性 lint 通过后，评审 schema 2.0 测试分析方案�
 | 接口组织 | 接口/API 明确时，TP 是否定位到接口、端点、消息、回调或集成点 |
 | 覆盖完整性 | 需求事实、设计事实和高风险点是否有测试点承接 |
 | 依据质量 | basisRefs 是否能支撑测试点 |
+| Rules 应用 | `process/rules-pack.json` 中适用 rules 是否已遵守，冲突时是否说明规则覆盖输入的原因 |
 | 动态来源 | 可见 project/personal 来源是否被读取、应用或解释不适用 |
 | 分析边界 | 是否提前生成 TC、步骤、测试数据或预期结果 |
 

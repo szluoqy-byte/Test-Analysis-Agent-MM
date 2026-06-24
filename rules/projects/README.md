@@ -10,7 +10,7 @@ rules/projects/<project-key>/**/*.md
 
 项目级 rules 的优先级高于当前输入文档、memory 和 knowledge；如果与输入文档冲突，默认遵守 rules，并在过程产物中记录覆盖原因。项目级 rules 不得覆盖当前用户明确指令，也不得违反 core rules。
 
-动态来源文件必须声明 frontmatter：
+项目规则文件必须声明 frontmatter：
 
 ```yaml
 ---
@@ -22,4 +22,4 @@ stages:
 ---
 ```
 
-`stages` 可选；未配置时默认所有阶段可用。`context-source-indexing` 只索引 frontmatter，后续阶段按 `sources[]` 可见性读取正文。
+`stages` 可选；未配置时默认所有阶段可用。`bin/build-rules-pack.py` 读取 frontmatter 和正文，写入 `process/rules-pack.json`；后续阶段按 rules-pack 中的阶段可见性读取和应用。

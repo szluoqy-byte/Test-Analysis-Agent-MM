@@ -16,7 +16,8 @@
 
 ```mermaid
 flowchart TD
-  input["Markdown 需求/设计"] --> context["context-source-indexing"]
+  input["Markdown 需求/设计"] --> rules["rules-pack"]
+  rules --> context["context-source-indexing"]
   context --> facts["input-fact-modeling"]
   facts --> router["testing-method-router"]
   router --> methods["专项方法参考"]
@@ -33,6 +34,7 @@ flowchart TD
 - `TP-*`：全局连续编号，每个叶子场景包含 `E2E场景测试`。
 - `basisRefs[]`：需求、设计、规则或动态来源依据。
 - 测试技术和专项方法只作为生成参考，不作为主交付字段；TP 通过 `basisRefs[]` 追溯需求、设计、规则或动态来源依据。
+- `process/rules-pack.json` 独立承载强制规则；`process/context-pack.json` 只索引 project/personal knowledge 和 memory 动态来源。
 
 ## 校验
 

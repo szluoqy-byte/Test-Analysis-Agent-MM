@@ -14,6 +14,7 @@ description: 在需求结构化之后使用，用于根据需求片段的分析�
 ## 输入
 
 - 输入事实模型。
+- `process/rules-pack.json` 中对 `testing-method-router` 可见的 core/project/user rules。
 - 上下文来源索引。
 - `process/context-pack.json` 中 `sources[]` 对 `testing-method-router` 可见的 project/personal 覆盖策略、风险画像、个人关注点和路由补充。
 - `knowledge/test-workflow-boundaries.md`。
@@ -23,16 +24,17 @@ description: 在需求结构化之后使用，用于根据需求片段的分析�
 
 ## 分析步骤
 
-1. 读取 `process/context-pack.json`，筛选 `availableStages` 包含 `testing-method-router` 或 `"*"` 的动态来源；如需使用，按来源文件、相关章节、关键词或标题读取正文，不全量复制大文件。
-2. 逐条扫描输入事实模型中的事实、约束/条件和可观察结果，先识别分析维度：需求可测性、风险、业务场景、数据域、规则组合、状态、权限、接口、数据一致性、组合兼容、非功能质量属性和经验缺陷模式。
-3. 识别每个分析维度下的触发信号。
-4. 结合本阶段可见的 project/personal 动态来源，补充识别项目特有风险、覆盖要求或测试技术倾向；补充只能提高关注度，不能覆盖根目录 knowledge 的路由矩阵和核心标准。
-5. 将触发信号映射到一个或多个测试技术和专项方法参考。
-6. 将方法标记为 `必选`、`可选` 或 `不适用`。
-7. 根据需求明确程度标记置信度：`高`、`中`、`低`。
-8. 说明选择或跳过某个维度/方法的原因。
-9. 对范围不确定项只做自动适用性判断：明确触发信号标记 `必选`，弱触发信号标记 `可选`，完全无依据标记 `不适用`；不创建问题队列。
-10. 记录本阶段动态来源应用状态，并将分析维度和测试技术路由结果传递给测试分析方案生成阶段。
+1. 读取 `process/rules-pack.json`，筛选 `availableStages` 包含 `testing-method-router` 或 `"*"` 的 rules；路由选择必须遵守适用 rules。
+2. 读取 `process/context-pack.json`，筛选 `availableStages` 包含 `testing-method-router` 或 `"*"` 的动态来源；如需使用，按来源文件、相关章节、关键词或标题读取正文，不全量复制大文件。
+3. 逐条扫描输入事实模型中的事实、约束/条件和可观察结果，先识别分析维度：需求可测性、风险、业务场景、数据域、规则组合、状态、权限、接口、数据一致性、组合兼容、非功能质量属性和经验缺陷模式。
+4. 识别每个分析维度下的触发信号。
+5. 结合本阶段可见的 project/personal 动态来源，补充识别项目特有风险、覆盖要求或测试技术倾向；补充只能提高关注度，不能覆盖 rules、根目录 knowledge 的路由矩阵和核心标准。
+6. 将触发信号映射到一个或多个测试技术和专项方法参考。
+7. 将方法标记为 `必选`、`可选` 或 `不适用`。
+8. 根据需求明确程度标记置信度：`高`、`中`、`低`。
+9. 说明选择或跳过某个维度/方法的原因。
+10. 对范围不确定项只做自动适用性判断：明确触发信号标记 `必选`，弱触发信号标记 `可选`，完全无依据标记 `不适用`；不创建问题队列。
+11. 记录本阶段 rules 与动态来源应用状态，并将分析维度和测试技术路由结果传递给测试分析方案生成阶段。
 
 ## 路由判定细则
 
@@ -61,6 +63,7 @@ description: 在需求结构化之后使用，用于根据需求片段的分析�
 ## 路由规则
 
 - 工作流术语和分析/设计边界以 `knowledge/test-workflow-boundaries.md` 为准。
+- 强制规则以 `process/rules-pack.json` 为准；rules 与输入文档冲突时，默认遵守 rules 并记录覆盖原因。
 - 分析维度和路由矩阵以 `skills/testing-method-router/references/test-method-routing-matrix.md` 为准。
 - 覆盖要求以 `skills/coverage-review/references/coverage-check.md` 为准。
 - project/personal 动态来源补充以当前 run 的 `process/context-pack.json` `sources[]` 为准，只能补充关注点和原因；personal 层不能覆盖 project 层或 core 层约束。

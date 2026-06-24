@@ -14,6 +14,7 @@ TASK_LIST_HEADER = "| 序号 | 阶段 | 负责 skill | 必须产物/检查点 | 
 TASK_STATUS_VALUES = {"pending", "in_progress", "done", "blocked", "skipped"}
 ANALYSIS_REQUIRED_TASK_STAGES = [
     "固定 PROJECT_ROOT 与运行目录",
+    "强制规则加载",
     "上下文来源索引",
     "输入事实建模",
     "测试技术路由",
@@ -28,6 +29,7 @@ ANALYSIS_REQUIRED_TASK_STAGES = [
 DESIGN_REQUIRED_TASK_STAGES = [
     "固定 PROJECT_ROOT 与运行目录",
     "测试分析方案校验",
+    "强制规则加载",
     "上下文来源索引",
     "设计依据补读",
     "测试设计方案生成",
@@ -207,6 +209,21 @@ def validate_context_pack(path: Path) -> tuple[list[str], list[str]]:
     return errors, warnings
 
 
+def validate_rules_pack(path: Path) -> tuple[list[str], list[str]]:
+    text = path.read_text(encoding="utf-8")
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    if not text.strip():
+        errors.append("rules-pack 为空")
+        return errors, warnings
+    for marker in ["强制规则包", "## 优先级策略", "## Core Rules", "## Project Rules", "## User Rules"]:
+        if marker not in text:
+            errors.append(f"rules-pack 缺少固定渲染标记: {marker}")
+
+    return errors, warnings
+
+
 def main() -> int:
     configure_stdio()
     if len(sys.argv) != 2:
@@ -262,8 +279,11 @@ def main() -> int:
     solution_json_path = run_dir / "deliverables" / "test-analysis-solution.json"
     design_solution_json_path = run_dir / "deliverables" / "test-design-solution.json"
     context_pack_path = run_dir / "process" / "context-pack.md"
+    rules_pack_path = run_dir / "process" / "rules-pack.md"
 
     required_paths = [
+        run_dir / "process" / "rules-pack.json",
+        run_dir / "process" / "rules-pack.md",
         run_dir / "process" / "context-pack.json",
         run_dir / "process" / "context-pack.md",
     ]
@@ -323,6 +343,10 @@ def main() -> int:
         context_errors, context_warnings = validate_context_pack(context_pack_path)
         errors.extend(context_errors)
         warnings.extend(context_warnings)
+    if rules_pack_path.exists():
+        rules_errors, rules_warnings = validate_rules_pack(rules_pack_path)
+        errors.extend(rules_errors)
+        warnings.extend(rules_warnings)
 
     if solution_path.exists():
         points = collect_solution_points(solution_path)

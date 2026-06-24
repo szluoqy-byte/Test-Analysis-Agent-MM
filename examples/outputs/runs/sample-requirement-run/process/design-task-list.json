@@ -27,6 +27,14 @@
     },
     {
       "order": 3,
+      "stage": "强制规则加载",
+      "owner": "bin/build-rules-pack.py",
+      "checkpoint": "process/rules-pack.json、core/project/user rules 强制规则包",
+      "status": "done",
+      "evidence": "process/rules-pack.json"
+    },
+    {
+      "order": 4,
       "stage": "上下文来源索引",
       "owner": "context-source-indexing",
       "checkpoint": "process/context-pack.json",
@@ -34,7 +42,7 @@
       "evidence": "process/context-pack.json"
     },
     {
-      "order": 4,
+      "order": 5,
       "stage": "设计依据补读",
       "owner": "test-design-workflow",
       "checkpoint": "归一化需求与测试分析方案",
@@ -42,7 +50,7 @@
       "evidence": "examples/requirements/sample-requirement.md"
     },
     {
-      "order": 5,
+      "order": 6,
       "stage": "测试设计方案生成",
       "owner": "test-design-solution-generation",
       "checkpoint": "deliverables/test-design-solution.json",
@@ -50,7 +58,7 @@
       "evidence": "deliverables/test-design-solution.json"
     },
     {
-      "order": 6,
+      "order": 7,
       "stage": "确定性校验",
       "owner": "lint-run-json/render-run-markdown/lint-test-design-solution",
       "checkpoint": "JSON 与 Markdown 校验",
@@ -58,7 +66,7 @@
       "evidence": "bin/smoke-test-analysis.py"
     },
     {
-      "order": 7,
+      "order": 8,
       "stage": "独立评审",
       "owner": "test-design-solution-review",
       "checkpoint": "reports/test-design-solution-review.json",
@@ -66,7 +74,7 @@
       "evidence": "bin/smoke-test-analysis.py"
     },
     {
-      "order": 8,
+      "order": 9,
       "stage": "覆盖审查",
       "owner": "coverage-review",
       "checkpoint": "reports/design-coverage-review.json",
@@ -74,7 +82,7 @@
       "evidence": "bin/check-artifact-consistency.py"
     },
     {
-      "order": 9,
+      "order": 10,
       "stage": "输出收口",
       "owner": "test-design-workflow",
       "checkpoint": "check-artifact-consistency",

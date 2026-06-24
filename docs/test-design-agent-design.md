@@ -11,7 +11,8 @@
 ```mermaid
 flowchart TD
   analysis["test-analysis-solution.json"] --> check["analysis-solution-check"]
-  check --> context["context-source-indexing / reuse context-pack"]
+  check --> rules["rules-pack / reuse rules-pack"]
+  rules --> context["context-source-indexing / reuse context-pack"]
   context --> basis["需求/设计依据补读"]
   basis --> generation["test-design-solution-generation"]
   generation --> jsonlint["JSON deterministic lint"]
@@ -46,6 +47,7 @@ flowchart TD
 - 接口类 TC 不写完整裸 URL。
 - 不输出自动化脚本或真实生产数据。
 - 依据不足时使用输入可支撑的保守预期，不补写未说明具体值。
+- `process/rules-pack.json` 独立承载强制规则；`process/context-pack.json` 只索引 project/personal knowledge 和 memory 动态来源。
 
 ## 校验
 

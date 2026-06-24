@@ -10,6 +10,20 @@
 | `memory/` | 项目或个人会变化的事实、偏好、经验 | 项目风险、历史缺陷、个人关注点 |
 | `templates/` | JSON skeleton 和 Markdown 渲染样式参考 | 主交付件模板 |
 
+## 优先级
+
+`skills/`、schema 和固定脚本定义运行时执行契约，不作为业务事实来源。业务和输出约束按以下顺序处理：
+
+```text
+当前用户明确指令
+  > process/rules-pack.json 中的适用 rules
+  > 当前输入文档（需求 / 设计方案 / 已评审测试分析方案）
+  > memory
+  > knowledge
+```
+
+rules 内部按 `core > project > personal` 处理；project/personal rules 可以细化更高层规则，但不得放宽或违反更高层强制约束。
+
 ## 当前主标准
 
 - 测试分析方案标准：`knowledge/test-analysis-solution-standard.md`
@@ -19,4 +33,4 @@
 
 ## 动态来源
 
-project/personal 动态来源必须声明 `name`、`description`，可选 `stages`。`context-source-indexing` 只索引元数据；后续阶段按 `context-pack.json` 中的 `sources[]` 读取正文并记录应用状态。
+project/personal knowledge 和 memory 动态来源必须声明 `name`、`description`，可选 `stages`。`context-source-indexing` 只索引元数据；后续阶段按 `context-pack.json` 中的 `sources[]` 读取正文并记录应用状态。rules 不进入 `context-pack.json`，由 `process/rules-pack.json` 独立承载强制语义。
