@@ -8,7 +8,7 @@
 |---|---|---|---|
 | 入口编排 | `test-analysis-workflow` | 创建 run、编排分析链路 | `test-analysis-solution.json` |
 | 入口编排 | `test-design-workflow` | 复用或创建 run、编排设计链路 | `test-design-solution.json` |
-| 强制规则加载 | `bin/build-rules-pack.py` | 加载 core/project/user rules 并形成强约束事实源 | `rules-pack.json` |
+| 强制规则索引 | `bin/build-rules-pack.py` | 索引 core/project/user rules 元数据；后续阶段按 `ruleSources[]` 读取适用规则正文并形成强约束事实 | `rules-pack.json` |
 | 输入建模 | `input-fact-modeling` | 抽取需求事实、设计事实和来源应用 | `input-fact-model.json` |
 | 上下文索引 | `context-source-indexing` | 索引 project/personal knowledge 和 memory 动态来源元数据 | `context-pack.json` |
 | 方法路由 | `testing-method-router` | 判断适用测试技术 | 方法参考记录 |
@@ -20,7 +20,7 @@
 
 ## 核心原则
 
-- rules 由 `process/rules-pack.json` 独立承载强制语义，后续阶段必须读取适用 rules。
+- rules 由 `process/rules-pack.json` 独立索引强制语义，后续阶段必须读取适用 rules 正文。
 - core knowledge、templates 和 skill 私有参考由 workflow 或 skill 固定读取。
 - project/personal knowledge 和 memory 动态来源只通过 `context-pack.json` 暴露给后续阶段。
 - 分析阶段不输出执行实例；设计阶段不改写分析层级。

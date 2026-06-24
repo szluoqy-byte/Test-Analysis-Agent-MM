@@ -1,6 +1,6 @@
 # Rules 模块说明
 
-Rules 保存本 Agent 的强制规则。它不是测试知识库，也不是长期事实库；它用于声明当前运行必须遵守的约束。每次 run 由 `bin/build-rules-pack.py` 加载到 `process/rules-pack.json`，后续阶段以该 JSON 为强制规则事实源。
+Rules 保存本 Agent 的强制规则。它不是测试知识库，也不是长期事实库；它用于声明当前运行必须遵守的约束。每次 run 由 `bin/build-rules-pack.py` 将命中的规则元数据索引到 `process/rules-pack.json`；后续阶段必须筛选当前阶段可见的 `ruleSources[]`，再读取对应 Markdown 正文作为强制规则事实。
 
 ## 优先级
 
@@ -8,7 +8,7 @@ Rules 保存本 Agent 的强制规则。它不是测试知识库，也不是长�
 
 ```text
 当前用户明确指令
-  > process/rules-pack.json 中的适用 rules
+  > process/rules-pack.json 中当前阶段可见且已读取正文的适用 rules
   > 当前输入文档（需求 / 设计方案 / 已评审测试分析方案）
   > memory
   > knowledge

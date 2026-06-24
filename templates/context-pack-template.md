@@ -39,7 +39,7 @@
 ## 生成原则
 
 - `context-pack.json` 只记录动态 project/personal 来源索引，不摘录正文。
-- rules 由 `process/rules-pack.json` 独立承载强制语义，不进入 `sources[]`。
+- rules 由 `process/rules-pack.json` 独立索引强制语义，不进入 `sources[]`；后续阶段按 `ruleSources[]` 读取适用规则正文。
 - core 层 `knowledge/*.md`、templates 和 skill 私有参考由 workflow 或对应 skill 固定引用，不进入 `sources[]`。
 - 只有唯一确定 `project-key` 时才扫描 `*/projects/<project-key>/**/*.md`；未确定时不得读取所有 project 目录正文。
 - personal 层扫描 `*/user/**/*.md`，但跳过 `README.md` 正文。

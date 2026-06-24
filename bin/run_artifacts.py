@@ -20,7 +20,7 @@ APPLICATION_STATUS_VALUES = {
 TEST_CASE_LEVEL_VALUES = {"Level 0", "Level 1", "Level 2", "Level 3", "Level 4"}
 ARTIFACT_TITLES = {
     "task-list": "测试分析方案任务清单",
-    "rules-pack": "强制规则包",
+    "rules-pack": "强制规则索引",
     "context-pack": "上下文来源索引",
     "input-fact-model": "输入事实模型",
     "test-analysis-solution": "测试分析方案",
@@ -412,9 +412,9 @@ def render_context_pack(data: dict[str, Any]) -> str:
 
 def render_rules_pack(data: dict[str, Any]) -> str:
     if data.get("artifactType") != "rules-pack":
-        return render_generic_document(data, "强制规则包")
+        return render_generic_document(data, "强制规则索引")
 
-    lines = [f"# {artifact_title(data, '强制规则包')}", ""]
+    lines = [f"# {artifact_title(data, '强制规则索引')}", ""]
 
     policy = data.get("priorityPolicy") if isinstance(data.get("priorityPolicy"), dict) else {}
     lines.extend(["## 优先级策略", ""])
@@ -425,33 +425,39 @@ def render_rules_pack(data: dict[str, Any]) -> str:
         lines.append("未声明优先级策略。")
     lines.append("")
 
-    for key, title in (
-        ("coreRules", "Core Rules"),
-        ("projectRules", "Project Rules"),
-        ("userRules", "User Rules"),
-    ):
-        rows: list[list[str]] = []
-        for rule in data.get(key, []):
-            if not isinstance(rule, dict):
-                continue
-            stages = rule.get("availableStages", [])
-            stage_text = "、".join(stages) if isinstance(stages, list) else normalize_text(stages)
-            rows.append(
-                [
-                    rule.get("path", ""),
-                    rule.get("name", ""),
-                    rule.get("description", ""),
-                    stage_text,
-                    rule.get("availability", ""),
-                    normalize_text(rule.get("content", "")),
-                ]
-            )
-        lines.extend([f"## {title}", ""])
-        if rows:
-            lines.extend(markdown_table(["路径", "名称", "描述", "可用阶段", "可见性", "规则内容"], rows))
-        else:
-            lines.append("无。")
-        lines.append("")
+    loading = data.get("loadingPolicy") if isinstance(data.get("loadingPolicy"), dict) else {}
+    lines.extend(["## 加载策略", ""])
+    loading_rows = [[key, normalize_text(value)] for key, value in loading.items()]
+    if loading_rows:
+        lines.extend(markdown_table(["策略项", "说明"], loading_rows))
+    else:
+        lines.append("未声明加载策略。")
+    lines.append("")
+
+    rows: list[list[str]] = []
+    for rule in data.get("ruleSources", []):
+        if not isinstance(rule, dict):
+            continue
+        stages = rule.get("availableStages", [])
+        stage_text = "、".join(stages) if isinstance(stages, list) else normalize_text(stages)
+        rows.append(
+            [
+                rule.get("layer", ""),
+                rule.get("path", ""),
+                rule.get("name", ""),
+                rule.get("description", ""),
+                stage_text,
+                rule.get("availability", ""),
+                "是" if rule.get("mandatory") is True else normalize_text(rule.get("mandatory")),
+                rule.get("loadPolicy", ""),
+            ]
+        )
+    lines.extend(["## 规则来源索引", ""])
+    if rows:
+        lines.extend(markdown_table(["层级", "路径", "名称", "描述", "可用阶段", "可见性", "强制", "加载策略"], rows))
+    else:
+        lines.append("无。")
+    lines.append("")
 
     unscanned_rows: list[list[str]] = []
     for item in data.get("unscannedProjectRules", []):
@@ -925,24 +931,44 @@ def validate_rules_pack_json(data: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     if not isinstance(data.get("priorityPolicy"), dict):
         errors.append("rules-pack.json 缺少对象字段: priorityPolicy")
-    for key in ("coreRules", "projectRules", "userRules"):
-        rules = data.get(key)
-        if not isinstance(rules, list):
-            errors.append(f"rules-pack.json 缺少数组字段: {key}")
+    if not isinstance(data.get("loadingPolicy"), dict):
+        errors.append("rules-pack.json 缺少对象字段: loadingPolicy")
+    rules = data.get("ruleSources")
+    if not isinstance(rules, list):
+        errors.append("rules-pack.json 缺少数组字段: ruleSources")
+        rules = []
+    for index, rule in enumerate(rules, start=1):
+        if not isinstance(rule, dict):
+            errors.append(f"rules-pack.json ruleSources[{index}] 必须是对象")
             continue
-        for index, rule in enumerate(rules, start=1):
-            if not isinstance(rule, dict):
-                errors.append(f"rules-pack.json {key}[{index}] 必须是对象")
-                continue
-            for required in ("path", "name", "description", "availableStages", "content"):
-                if is_empty_value(rule.get(required)):
-                    errors.append(f"rules-pack.json {key}[{index}] 缺少字段: {required}")
-            stages = rule.get("availableStages")
-            if not isinstance(stages, list) or not all(isinstance(stage, str) and stage for stage in stages):
-                errors.append(f"rules-pack.json {key}[{index}].availableStages 必须是非空字符串数组")
-            path = normalize_text(rule.get("path")).replace("\\", "/")
-            if re.match(r"^[A-Za-z]:/", path) or path.startswith("/"):
-                errors.append(f"rules-pack.json {key}[{index}].path 必须是仓库相对路径")
+        for required in (
+            "path",
+            "layer",
+            "name",
+            "description",
+            "availableStages",
+            "availability",
+            "mandatory",
+            "loadPolicy",
+        ):
+            if is_empty_value(rule.get(required)):
+                errors.append(f"rules-pack.json ruleSources[{index}] 缺少字段: {required}")
+        if rule.get("mandatory") is not True:
+            errors.append(f"rules-pack.json ruleSources[{index}].mandatory 必须为 true")
+        if rule.get("loadPolicy") != "stage_required":
+            errors.append(f"rules-pack.json ruleSources[{index}].loadPolicy 必须为 stage_required")
+        if "content" in rule:
+            errors.append(f"rules-pack.json ruleSources[{index}] 不得内联 content，后续阶段按 path 读取规则正文")
+        if rule.get("layer") not in {"core", "project", "user"}:
+            errors.append(f"rules-pack.json ruleSources[{index}].layer 必须为 core/project/user")
+        stages = rule.get("availableStages")
+        if not isinstance(stages, list) or not all(isinstance(stage, str) and stage for stage in stages):
+            errors.append(f"rules-pack.json ruleSources[{index}].availableStages 必须是非空字符串数组")
+        path = normalize_text(rule.get("path")).replace("\\", "/")
+        if re.match(r"^[A-Za-z]:/", path) or path.startswith("/"):
+            errors.append(f"rules-pack.json ruleSources[{index}].path 必须是仓库相对路径")
+        if path and not path.startswith("rules/"):
+            errors.append(f"rules-pack.json ruleSources[{index}].path 必须位于 rules/ 目录: {path}")
     if "unscannedProjectRules" in data and not isinstance(data.get("unscannedProjectRules"), list):
         errors.append("rules-pack.json unscannedProjectRules 必须是数组")
     if "warnings" in data and not isinstance(data.get("warnings"), list):
@@ -1148,6 +1174,8 @@ def validate_artifact(data: dict[str, Any]) -> tuple[list[str], list[str]]:
     if not artifact_type:
         return ["JSON 缺少 artifactType"], warnings
     expected_schema_version = "2.0" if artifact_type in {"test-analysis-solution", "test-design-solution"} else "1.0"
+    if artifact_type == "rules-pack":
+        expected_schema_version = "1.1"
     if data.get("schemaVersion") != expected_schema_version:
         errors.append(f"{artifact_type}.json schemaVersion 必须为 {expected_schema_version}")
     if artifact_type == "task-list":

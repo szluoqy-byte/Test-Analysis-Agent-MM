@@ -1,7 +1,7 @@
 {
   "artifactType": "rules-pack",
-  "schemaVersion": "1.0",
-  "title": "示例需求：限时优惠与订单支付 强制规则包",
+  "schemaVersion": "1.1",
+  "title": "强制规则索引",
   "priorityPolicy": {
     "currentUserInstruction": "当前用户明确指令最高；只有当前用户明确指令可以覆盖 rules。",
     "runtimeContract": "AGENTS、workflow、skill、schema 和固定脚本定义执行契约；rules 不能要求违反运行时契约，除非用户明确要求修改框架。",
@@ -9,14 +9,17 @@
     "inputDocuments": "需求、设计方案和已评审测试分析方案是业务事实来源；与 rules 冲突时默认遵守 rules 并记录覆盖原因。",
     "memoryKnowledge": "memory 和 knowledge 只能补充风险、偏好、方法或经验；与输入文档或 rules 冲突时不得覆盖。"
   },
+  "loadingPolicy": {
+    "indexOnly": "rules-pack 只索引规则元数据，不内联规则正文。",
+    "stageRequired": "后续阶段必须筛选 availableStages 包含当前阶段或 `*` 的 ruleSources，并读取对应 Markdown 正文后再执行。",
+    "applicationRecord": "读取、应用、未应用或被当前用户指令覆盖的 rules，必须在阶段产物、review 或 coverage 中留痕。"
+  },
   "projectBinding": {
     "status": "unresolved",
     "projectKey": "",
-    "reason": "未提供 project-key，且无法从需求标题/路径/keywords 唯一识别"
+    "reason": "未提供 project-key，且需求标题、路径和关键词不足以推断"
   },
-  "coreRules": [],
-  "projectRules": [],
-  "userRules": [],
+  "ruleSources": [],
   "unscannedProjectRules": [
     {
       "path": "rules/projects/",

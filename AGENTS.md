@@ -58,7 +58,7 @@
 ## Project/Personal 上下文
 
 - 支持可选 `project-key`：确定后可扫描 `*/projects/<project-key>/**/*.md`；未唯一确定时不得读取所有项目目录正文。
-- `rules/` 是强制规则源，按 `core / project / personal` 三层加载，必须由 `bin/build-rules-pack.py` 写入 `process/rules-pack.json`；后续每个阶段读取该 JSON 并遵守适用 rules。
+- `rules/` 是强制规则源，按 `core / project / personal` 三层加载，必须由 `bin/build-rules-pack.py` 写入 `process/rules-pack.json` 规则索引；后续每个阶段筛选 `ruleSources[]` 中对当前阶段可见的规则，读取对应 Markdown 正文并遵守。
 - `project` 和 `personal` 的 knowledge/memory 是当前 run 的动态补充输入源：必须由 `context-source-indexing` 在 `process/context-pack.json` 中记录绑定结果和动态来源索引。
 - 优先级分两层理解：workflow、skill、schema 和固定脚本定义运行时执行契约；业务与输出约束按 `当前用户明确指令 > rules > 当前输入文档 > memory > knowledge` 处理。
 - `knowledge/projects/<project-key>/` 和 `knowledge/user/` 只能作为测试知识补充，不得覆盖根目录 `knowledge/` 的核心标准、字段和质量门禁。

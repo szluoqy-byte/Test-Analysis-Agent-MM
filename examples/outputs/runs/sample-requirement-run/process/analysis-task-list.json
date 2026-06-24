@@ -21,7 +21,7 @@
       "order": 2,
       "stage": "强制规则加载",
       "owner": "bin/build-rules-pack.py",
-      "checkpoint": "process/rules-pack.json、core/project/user rules 强制规则包",
+      "checkpoint": "process/rules-pack.json、core/project/user rules 强制规则索引",
       "status": "done",
       "evidence": "process/rules-pack.json"
     },

@@ -1,6 +1,6 @@
 ---
 name: context-source-indexing
-description: 在测试分析或测试设计开始前使用，仅索引 project/personal knowledge 和 memory 扩展来源的元数据，生成 process/context-pack.json；rules 由 process/rules-pack.json 独立承载强制语义。
+description: 在测试分析或测试设计开始前使用，仅索引 project/personal knowledge 和 memory 扩展来源的元数据，生成 process/context-pack.json；rules 由 process/rules-pack.json 独立索引强制语义。
 ---
 
 # 上下文来源索引
@@ -25,7 +25,7 @@ python skills/context-source-indexing/scripts/build-context-source-index.py \
 ## 职责边界
 
 - 只索引 `project` 和 `personal` 扩展来源的元数据。
-- 不扫描、不摘录、不动态索引 rules：`rules/*.md`、`rules/projects/**` 和 `rules/user/**` 由 `process/rules-pack.json` 独立承载强制语义。
+- 不扫描、不摘录、不动态索引 rules：`rules/*.md`、`rules/projects/**` 和 `rules/user/**` 由 `process/rules-pack.json` 独立索引强制语义。
 - 不扫描、不摘录、不动态索引 core 层文件：根目录 `knowledge/*.md`、`templates/` 和各 skill 私有参考文件由 workflow 或对应 skill 固定引用。
 - 不读取动态来源正文来判断具体测试点、测试用例、覆盖缺口或专项方法命中。
 - 不把来源内容复制到 context pack；context pack 只记录路径、名称、描述、阶段可见性、绑定状态和告警。
@@ -173,6 +173,6 @@ stages:
 - `availableStages` 包含当前阶段，或包含 `"*"`，才允许读取对应来源正文。
 - 被读取的动态来源必须在本阶段的过程 JSON、review JSON 或 coverage JSON 中记录应用状态。
 - 应用状态只能使用 `applied`、`not_applicable`、`insufficient_evidence`、`conflict_with_requirement` 或 `deferred_to_review`。
-- 如果动态来源与当前用户明确指令、`process/rules-pack.json` 中适用 rules 或输入文档冲突，不在 context pack 中裁决；由读取该来源的阶段记录冲突和处理依据。
+- 如果动态来源与当前用户明确指令、`process/rules-pack.json` 中当前阶段可见且已读取正文的适用 rules 或输入文档冲突，不在 context pack 中裁决；由读取该来源的阶段记录冲突和处理依据。
 
-rules 不依赖 `context-pack.json` 才能生效；后续阶段必须读取 `process/rules-pack.json`。core knowledge 和 skill 私有参考由 workflow 和 skill 明确读取，属于默认能力边界。
+rules 不依赖 `context-pack.json` 才能生效；后续阶段必须读取 `process/rules-pack.json`，筛选当前阶段可见的 `ruleSources[]`，再读取对应 Markdown 正文。core knowledge 和 skill 私有参考由 workflow 和 skill 明确读取，属于默认能力边界。

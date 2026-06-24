@@ -22,4 +22,4 @@ stages:
 ---
 ```
 
-`stages` 可选；未配置时默认所有阶段可用。`bin/build-rules-pack.py` 读取 frontmatter 和正文，写入 `process/rules-pack.json`；后续阶段按 rules-pack 中的阶段可见性读取和应用。
+`stages` 可选；未配置时默认所有阶段可用。`bin/build-rules-pack.py` 读取 frontmatter 并确认正文非空，写入 `process/rules-pack.json` 的 `ruleSources[]` 索引；后续阶段按 rules-pack 中的阶段可见性读取对应 Markdown 正文并应用。

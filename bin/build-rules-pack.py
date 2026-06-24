@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build process/rules-pack.json as the mandatory rules source for a run."""
+"""Build process/rules-pack.json as the mandatory rules source index for a run."""
 
 from __future__ import annotations
 
@@ -212,6 +212,10 @@ def first_heading(text: str, fallback: str) -> str:
     return fallback
 
 
+def rule_priority(layer: str) -> int:
+    return {"core": 300, "project": 200, "user": 100}.get(layer, 0)
+
+
 def collect_rule(path: Path, root: Path, layer: str, warnings: list[str]) -> dict[str, Any] | None:
     relative = rel_path(path, root)
     content, meta, error = read_markdown(path)
@@ -241,8 +245,7 @@ def collect_rule(path: Path, root: Path, layer: str, warnings: list[str]) -> dic
         warnings.append(f"{relative}: stages 包含不支持的阶段: {', '.join(invalid_stages)}")
         return None
 
-    content = content.strip()
-    if not content:
+    if not content.strip():
         warnings.append(f"{relative}: 规则正文为空，未加载")
         return None
 
@@ -253,7 +256,10 @@ def collect_rule(path: Path, root: Path, layer: str, warnings: list[str]) -> dic
         "description": description,
         "availableStages": stages,
         "availability": availability,
-        "content": content,
+        "mandatory": True,
+        "loadPolicy": "stage_required",
+        "priority": rule_priority(layer),
+        "conflictPolicy": "current_user_instruction_overrides_rules; rules_override_input_documents_memory_knowledge",
     }
 
 
@@ -269,9 +275,7 @@ def iter_markdown_sources(source_root: Path) -> list[Path]:
 
 def build_rules_pack(args: argparse.Namespace, root: Path) -> dict[str, Any]:
     warnings: list[str] = []
-    core_rules: list[dict[str, Any]] = []
-    project_rules: list[dict[str, Any]] = []
-    user_rules: list[dict[str, Any]] = []
+    rule_sources: list[dict[str, Any]] = []
     unscanned_project_rules: list[dict[str, str]] = []
 
     for path in sorted((root / "rules").glob("*.md")):
@@ -279,7 +283,7 @@ def build_rules_pack(args: argparse.Namespace, root: Path) -> dict[str, Any]:
             continue
         rule = collect_rule(path, root, "core", warnings)
         if rule:
-            core_rules.append(rule)
+            rule_sources.append(rule)
 
     explicit_project_key = (args.project or "").strip()
     project_key = explicit_project_key
@@ -297,7 +301,7 @@ def build_rules_pack(args: argparse.Namespace, root: Path) -> dict[str, Any]:
         for path in iter_markdown_sources(root / PROJECT_RULES_ROOT.format(project_key=project_key)):
             rule = collect_rule(path, root, "project", warnings)
             if rule:
-                project_rules.append(rule)
+                rule_sources.append(rule)
     else:
         reason = args.project_reason or inferred_reason or "未提供 project-key，且无法从输入唯一识别"
         project_binding = {
@@ -314,12 +318,12 @@ def build_rules_pack(args: argparse.Namespace, root: Path) -> dict[str, Any]:
     for path in iter_markdown_sources(root / PERSONAL_RULES_ROOT):
         rule = collect_rule(path, root, "user", warnings)
         if rule:
-            user_rules.append(rule)
+            rule_sources.append(rule)
 
     return {
         "artifactType": "rules-pack",
-        "schemaVersion": "1.0",
-        "title": args.title or "强制规则包",
+        "schemaVersion": "1.1",
+        "title": args.title or "强制规则索引",
         "priorityPolicy": {
             "currentUserInstruction": "当前用户明确指令最高；只有当前用户明确指令可以覆盖 rules。",
             "runtimeContract": "AGENTS、workflow、skill、schema 和固定脚本定义执行契约；rules 不能要求违反运行时契约，除非用户明确要求修改框架。",
@@ -327,10 +331,13 @@ def build_rules_pack(args: argparse.Namespace, root: Path) -> dict[str, Any]:
             "inputDocuments": "需求、设计方案和已评审测试分析方案是业务事实来源；与 rules 冲突时默认遵守 rules 并记录覆盖原因。",
             "memoryKnowledge": "memory 和 knowledge 只能补充风险、偏好、方法或经验；与输入文档或 rules 冲突时不得覆盖。",
         },
+        "loadingPolicy": {
+            "indexOnly": "rules-pack 只索引规则元数据，不内联规则正文。",
+            "stageRequired": "后续阶段必须筛选 availableStages 包含当前阶段或 `*` 的 ruleSources，并读取对应 Markdown 正文后再执行。",
+            "applicationRecord": "读取、应用、未应用或被当前用户指令覆盖的 rules，必须在阶段产物、review 或 coverage 中留痕。",
+        },
         "projectBinding": project_binding,
-        "coreRules": core_rules,
-        "projectRules": project_rules,
-        "userRules": user_rules,
+        "ruleSources": rule_sources,
         "unscannedProjectRules": unscanned_project_rules,
         "warnings": warnings,
     }
@@ -359,7 +366,7 @@ def render_markdown(run_dir: Path, root: Path) -> int:
 
 def main() -> int:
     configure_stdio()
-    parser = ChineseArgumentParser(description="生成 process/rules-pack.json 强制规则包")
+    parser = ChineseArgumentParser(description="生成 process/rules-pack.json 强制规则索引")
     parser.add_argument("--run-dir", required=True, type=Path, help="outputs/runs/<run-id>")
     parser.add_argument("--requirement", type=Path, help="需求 Markdown 路径")
     parser.add_argument("--requirement-title", default="", help="需求标题")
@@ -379,8 +386,8 @@ def main() -> int:
     data = build_rules_pack(args, root)
     output_path = run_dir / "process" / "rules-pack.json"
     write_json(output_path, data)
-    count = len(data["coreRules"]) + len(data["projectRules"]) + len(data["userRules"])
-    print(f"通过: 已生成 {rel_path(output_path, root)}，规则 {count} 条，告警 {len(data['warnings'])} 个")
+    count = len(data["ruleSources"])
+    print(f"通过: 已生成 {rel_path(output_path, root)}，规则索引 {count} 条，告警 {len(data['warnings'])} 个")
 
     if args.no_render:
         return 0

@@ -16,7 +16,7 @@
 
 ```text
 当前用户明确指令
-  > process/rules-pack.json 中的适用 rules
+  > process/rules-pack.json 中当前阶段可见且已读取正文的适用 rules
   > 当前输入文档（需求 / 设计方案 / 已评审测试分析方案）
   > memory
   > knowledge
@@ -33,4 +33,4 @@ rules 内部按 `core > project > personal` 处理；project/personal rules 可�
 
 ## 动态来源
 
-project/personal knowledge 和 memory 动态来源必须声明 `name`、`description`，可选 `stages`。`context-source-indexing` 只索引元数据；后续阶段按 `context-pack.json` 中的 `sources[]` 读取正文并记录应用状态。rules 不进入 `context-pack.json`，由 `process/rules-pack.json` 独立承载强制语义。
+project/personal knowledge 和 memory 动态来源必须声明 `name`、`description`，可选 `stages`。`context-source-indexing` 只索引元数据；后续阶段按 `context-pack.json` 中的 `sources[]` 读取正文并记录应用状态。rules 不进入 `context-pack.json`，由 `process/rules-pack.json` 独立索引强制规则；后续阶段按 `ruleSources[]` 读取当前阶段适用规则正文并记录应用状态。

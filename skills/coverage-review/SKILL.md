@@ -5,7 +5,7 @@ description: 对测试分析/测试设计运行结果执行覆盖审查，检查
 
 # 覆盖审查
 
-本 skill 是测试分析与测试设计链路的覆盖收口环节。它读取 JSON canonical、确定性 lint 结果、独立评审结果、`process/rules-pack.json`、动态来源应用状态和必要的私有参考。测试分析输出 `reports/analysis-coverage-review.json`；测试设计输出 `reports/design-coverage-review.json`。历史 `reports/coverage-review.json` 只作为兼容读取路径，不作为新流程写入目标。
+本 skill 是测试分析与测试设计链路的覆盖收口环节。它读取 JSON canonical、确定性 lint 结果、独立评审结果、`process/rules-pack.json` 中当前阶段可见的规则索引及对应 Markdown 正文、动态来源应用状态和必要的私有参考。测试分析输出 `reports/analysis-coverage-review.json`；测试设计输出 `reports/design-coverage-review.json`。历史 `reports/coverage-review.json` 只作为兼容读取路径，不作为新流程写入目标。
 
 ## 必读输入
 
@@ -26,7 +26,7 @@ description: 对测试分析/测试设计运行结果执行覆盖审查，检查
 2. 检查需求事实、设计事实和高风险点是否能追踪到 `SC-*` 或 `TP-*`。
 3. 如果存在测试设计方案，检查每个 `TP-*` 是否至少有一个 `TC-*` 承接。
 4. 检查 TC 的测试数据、步骤和最终预期是否有依据。
-5. 检查 `process/rules-pack.json` 中 core/project/user rules 与动态来源应用状态。
+5. 筛选 `process/rules-pack.json` 的 `ruleSources[]` 中对 `coverage-review` 可见的 core/project/user rules，读取对应 Markdown 正文，并检查 rules 与动态来源应用状态。
 6. 输出结构化 findings、blockingIssues、recommendations、evidenceRefs、qualityGates 和 coverageGaps。
 
 ## 输出

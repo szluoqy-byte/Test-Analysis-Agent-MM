@@ -14,7 +14,7 @@ description: 在需求结构化之后使用，用于根据需求片段的分析�
 ## 输入
 
 - 输入事实模型。
-- `process/rules-pack.json` 中对 `testing-method-router` 可见的 core/project/user rules。
+- `process/rules-pack.json` 中对 `testing-method-router` 可见的 core/project/user rules 索引及对应 Markdown 正文。
 - 上下文来源索引。
 - `process/context-pack.json` 中 `sources[]` 对 `testing-method-router` 可见的 project/personal 覆盖策略、风险画像、个人关注点和路由补充。
 - `knowledge/test-workflow-boundaries.md`。
@@ -24,7 +24,7 @@ description: 在需求结构化之后使用，用于根据需求片段的分析�
 
 ## 分析步骤
 
-1. 读取 `process/rules-pack.json`，筛选 `availableStages` 包含 `testing-method-router` 或 `"*"` 的 rules；路由选择必须遵守适用 rules。
+1. 读取 `process/rules-pack.json`，筛选 `ruleSources[]` 中 `availableStages` 包含 `testing-method-router` 或 `"*"` 的 rules，并读取对应 `path` 的 Markdown 正文；路由选择必须遵守适用 rules。
 2. 读取 `process/context-pack.json`，筛选 `availableStages` 包含 `testing-method-router` 或 `"*"` 的动态来源；如需使用，按来源文件、相关章节、关键词或标题读取正文，不全量复制大文件。
 3. 逐条扫描输入事实模型中的事实、约束/条件和可观察结果，先识别分析维度：需求可测性、风险、业务场景、数据域、规则组合、状态、权限、接口、数据一致性、组合兼容、非功能质量属性和经验缺陷模式。
 4. 识别每个分析维度下的触发信号。

@@ -22,7 +22,7 @@ description: 当用户提供已评审测试分析方案，或要求从需求先�
 - 本 skill 只负责编排设计链路和写出测试设计方案。
 - 测试分析层事实来自已评审测试分析方案；不得把设计阶段发现的新范围直接写成新的 `SC-*` 或 `TP-*`。
 - 需求与设计方案只用于校验和补强测试用例依据；不得覆盖分析方案中的已评审层级。
-- 强制规则由 `process/rules-pack.json` 独立承载，后续每个阶段必须读取并遵守适用 rules。
+- 强制规则由 `process/rules-pack.json` 独立索引，后续每个阶段必须筛选当前阶段可见的 `ruleSources[]`，读取对应 Markdown 正文并遵守适用 rules。
 - `test-design-solution-generation` 负责在每个 `TP-*` 下生成 `testCases[]`。
 - `test-case-writing` 负责把 canonical JSON 写作为标准 Markdown 或后续扩展的不同交付风格，不改变测试用例事实。
 - `test-design-solution-review` 负责独立评审测试用例步骤、测试数据、预期结果依据和分析方案承接。
@@ -39,7 +39,7 @@ description: 当用户提供已评审测试分析方案，或要求从需求先�
 7. 读取或生成 `process/rules-pack.json`；如果缺失，必须调用 `bin/build-rules-pack.py` 生成，不能手工拼写 JSON。
 8. 读取或生成 `process/context-pack.json`；如果缺失，必须调用 `context-source-indexing` 脚本生成，不能手工拼写 JSON。
 9. 受控补读归一化后的原始需求 Markdown、设计方案 Markdown 或结构化过程记录中与当前分析方案相关的依据。
-10. 使用 `test-design-solution-generation` 读取 `process/rules-pack.json` 后在每个 `TP-*` 下生成 `testCases[]`，写入 `deliverables/test-design-solution.json`。
+10. 使用 `test-design-solution-generation` 读取 `process/rules-pack.json` 中当前阶段可见的规则正文后，在每个 `TP-*` 下生成 `testCases[]`，写入 `deliverables/test-design-solution.json`。
 11. 运行 `bin/lint-run-json.py`；失败时只修正 JSON canonical，不进入 Markdown 写作、独立评审或覆盖审查。
 12. 使用 `test-case-writing` 将 canonical JSON 写作为标准 Markdown，并运行 `bin/render-run-markdown.py --check` 和 `bin/lint-test-design-solution.py`；失败时回到 `test-design-solution.json` 修正后重新渲染，不手工编辑 Markdown。
 13. 使用 `test-design-solution-review` 独立评审测试设计方案 JSON，结果写入 `reports/test-design-solution-review.json`；如发现必须修正的问题，回到第 10 步更新 canonical JSON。

@@ -21,7 +21,7 @@ description: 基于输入事实模型、测试技术路由参考、专项方法�
 ## 生成原则
 
 1. 从需求目标、业务流程、角色、状态、接口、数据对象和风险中组织 `SC-*` 场景树。
-2. 生成前先筛选 `process/rules-pack.json` 中 `availableStages` 包含 `test-analysis-solution-generation` 或 `"*"` 的 rules；SC/TP 组织、覆盖策略、禁止项和命名口径必须遵守适用 rules。
+2. 生成前先筛选 `process/rules-pack.json` 的 `ruleSources[]` 中 `availableStages` 包含 `test-analysis-solution-generation` 或 `"*"` 的 rules，并读取对应 `path` 的 Markdown 正文；SC/TP 组织、覆盖策略、禁止项和命名口径必须遵守适用 rules。
 3. `SC-*` 最多 3 层。非叶子场景只做业务路径分组，不挂测试点；只有叶子场景挂 `testPoints[]`。
 4. 每个叶子场景必须包含一个 `E2E场景测试` 测试点。
 5. `TP-*` 全局连续编号，不按场景重置。

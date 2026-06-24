@@ -51,7 +51,7 @@ description: 当用户要求记住、记录、收录、归档或沉淀个人偏�
 ## 冲突处理
 
 - rules 优先级低于当前用户明确指令，但高于输入文档、memory 和 knowledge。
-- rules 在 run 内由 `bin/build-rules-pack.py` 加载到 `process/rules-pack.json`，不通过 `process/context-pack.json` 承载强制语义。
+- rules 在 run 内由 `bin/build-rules-pack.py` 索引到 `process/rules-pack.json`，不通过 `process/context-pack.json` 承载强制语义；后续阶段按 `ruleSources[]` 读取适用规则正文。
 - personal rules 不能覆盖 project rules 或 core rules。
 - personal 不能覆盖 project 或 core。
 - project/personal 动态来源不能覆盖根目录 `knowledge/` 的核心标准、字段、输出契约和质量门禁。

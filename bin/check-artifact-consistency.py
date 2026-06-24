@@ -217,7 +217,7 @@ def validate_rules_pack(path: Path) -> tuple[list[str], list[str]]:
     if not text.strip():
         errors.append("rules-pack 为空")
         return errors, warnings
-    for marker in ["强制规则包", "## 优先级策略", "## Core Rules", "## Project Rules", "## User Rules"]:
+    for marker in ["强制规则索引", "## 优先级策略", "## 加载策略", "## 规则来源索引"]:
         if marker not in text:
             errors.append(f"rules-pack 缺少固定渲染标记: {marker}")
 

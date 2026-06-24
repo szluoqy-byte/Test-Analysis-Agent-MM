@@ -20,7 +20,7 @@ description: 基于已评审测试分析方案、需求/设计依据和可见动
 ## 生成原则
 
 1. 完整继承分析方案的 `SC-*` 场景树和 `TP-*` 测试点，不新增、删除、合并或改写分析层级。
-2. 生成前先筛选 `process/rules-pack.json` 中 `availableStages` 包含 `test-design-solution-generation` 或 `"*"` 的 rules；TC 粒度、覆盖策略、数据表达、预期依据和禁止项必须遵守适用 rules。
+2. 生成前先筛选 `process/rules-pack.json` 的 `ruleSources[]` 中 `availableStages` 包含 `test-design-solution-generation` 或 `"*"` 的 rules，并读取对应 `path` 的 Markdown 正文；TC 粒度、覆盖策略、数据表达、预期依据和禁止项必须遵守适用 rules。
 3. 每个 `TP-*` 至少生成 1 个 `TC-*`。
 4. `TC-*` 全局连续编号，不按场景或测试点重置。
 5. TC 必须具体到可执行实例：明确用例级别、前置条件、测试数据、操作步骤、步骤预期和最终预期。

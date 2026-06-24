@@ -44,7 +44,7 @@ outputs/
 
 Office 输入必须先通过 `@file-normalization-agent` 归一化为 Markdown。测试分析和测试设计 workflow 本身只消费已归一化 Markdown 或 JSON canonical 输入。
 
-`process/rules-pack.json` 是强制规则事实源，独立承载 core/project/user rules；`process/context-pack.json` 只索引 project/personal knowledge 和 memory 动态来源，不承载 rules 强制语义。
+`process/rules-pack.json` 是强制规则索引，独立记录 core/project/user rules 的路径、阶段可见性和加载策略；后续阶段必须筛选当前阶段可见的 `ruleSources[]` 并读取对应 Markdown 正文。`process/context-pack.json` 只索引 project/personal knowledge 和 memory 动态来源，不承载 rules 强制语义。
 
 ## 测试分析主交付件
 

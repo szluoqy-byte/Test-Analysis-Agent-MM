@@ -21,7 +21,7 @@ description: 在测试分析 workflow 中读取需求文档和可选设计方案
 
 ## 建模步骤
 
-1. 读取 `process/rules-pack.json`，筛选 `availableStages` 包含 `input-fact-modeling` 或 `"*"` 的 core/project/user rules；rules 是强制约束，优先于输入文档、memory 和 knowledge。
+1. 读取 `process/rules-pack.json`，筛选 `ruleSources[]` 中 `availableStages` 包含 `input-fact-modeling` 或 `"*"` 的 core/project/user rules，并读取对应 `path` 的 Markdown 正文；rules 是强制约束，优先于输入文档、memory 和 knowledge。
 2. 读取 `process/context-pack.json`，筛选 `availableStages` 包含 `input-fact-modeling` 或 `"*"` 的动态来源；如需使用，按来源文件、相关章节、关键词或标题读取正文，不全量复制大文件。
 3. 识别输入来源、需求范围、可选设计方案范围和明确非范围。
 4. 从需求文档提取事实：模块、业务对象、角色、流程、规则、状态、输入输出、异常路径、外部依赖和可观察结果。

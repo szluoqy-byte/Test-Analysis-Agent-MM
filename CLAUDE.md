@@ -17,7 +17,7 @@
 - 从仓库根目录解析路径，不要从 `.claude-plugin/`、`.opencode/`、skill 目录或输入文件目录解析。
 - `test-analysis-workflow` 和 `test-design-workflow` 不直接处理 `.docx` / `.xlsx`；它们只消费已归一化 Markdown 或 JSON canonical 输入。
 - 每次 run 必须维护任务清单，以及 `process/rules-pack.json/.md`、`process/context-pack.json/.md` 和 `process/input-fact-model.json/.md`。
-- `process/rules-pack.json` 是强制规则事实源；`process/context-pack.json` 只索引 project/personal knowledge 和 memory 动态来源。
+- `process/rules-pack.json` 是强制规则索引；后续阶段必须筛选当前阶段可见的 `ruleSources[]` 并读取对应 Markdown 正文。`process/context-pack.json` 只索引 project/personal knowledge 和 memory 动态来源。
 - JSON 是 run 过程产物、主交付件、review 和 coverage 的事实源；Markdown 是 `bin/render-run-markdown.py` 派生的人读版，不手工维护。
 - 测试分析主交付件固定为 `deliverables/test-analysis-solution.json/.md`，输出粒度是 `SC 场景树 -> TP 测试点`。
 - 测试设计主交付件固定为 `deliverables/test-design-solution.json/.md`，输出粒度是 `SC 场景树 -> TP 测试点 -> TC 测试用例`。

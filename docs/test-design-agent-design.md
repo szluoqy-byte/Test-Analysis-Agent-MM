@@ -47,7 +47,7 @@ flowchart TD
 - 接口类 TC 不写完整裸 URL。
 - 不输出自动化脚本或真实生产数据。
 - 依据不足时使用输入可支撑的保守预期，不补写未说明具体值。
-- `process/rules-pack.json` 独立承载强制规则；`process/context-pack.json` 只索引 project/personal knowledge 和 memory 动态来源。
+- `process/rules-pack.json` 独立索引强制规则；后续阶段按 `ruleSources[]` 读取适用规则正文。`process/context-pack.json` 只索引 project/personal knowledge 和 memory 动态来源。
 
 ## 校验
 
