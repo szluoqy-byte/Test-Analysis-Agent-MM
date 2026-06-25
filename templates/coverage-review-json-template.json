@@ -4,6 +4,8 @@
   "title": "覆盖审查结果",
   "result": "通过",
   "summary": "",
+  "coverageScope": "analysis/design",
+  "targetArtifact": "",
   "findings": [
     {
       "id": "CV-001",
@@ -56,9 +58,20 @@
     {
       "id": "GAP-001",
       "requirementRef": "",
-      "artifactLocation": "",
+      "artifactLocation": "process/test-point-slices/<SC-ID>.json 或 process/test-case-slices/<TP-ID>.json",
       "description": "",
-      "suggestedFix": ""
+      "suggestedFix": "回到 artifactLocation 指向的切片修复；重新执行切片 review、脚本合并、最终 review、coverage-review 和一致性检查。"
     }
-  ]
+  ],
+  "generationContext": {
+    "stage": "coverage-review",
+    "targetType": "coverage-review",
+    "targetId": "coverage-review",
+    "inputArtifacts": [],
+    "applicableRules": [],
+    "visibleSources": [],
+    "relevantFacts": [],
+    "constraints": [],
+    "readPlan": []
+  }
 }

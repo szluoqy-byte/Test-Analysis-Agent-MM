@@ -25,6 +25,8 @@ description: 定义测试分析方案的 SC 场景树与 TP 测试点输出标�
 
 `TP-*` 全局连续编号，不按场景重置。每个叶子场景必须包含 `E2E场景测试` 测试点。
 
+生成过程必须先产出并评审 `process/scenario-tree.json`。该过程产物只包含冻结 SC 树，不得包含 `testPoints[]`；SC 通过 review 后，TP 阶段只能在既有叶子 SC 下填写 `process/test-point-slices/<SC-ID>.json`，不得反向改写 SC。
+
 ## 测试点字段
 
 每个测试点至少包含：

@@ -1,0 +1,119 @@
+{
+  "artifactType": "test-point-slice",
+  "schemaVersion": "1.0",
+  "title": "测试点切片 SC-002-001",
+  "runDir": "examples/outputs/runs/complex-promotion-requirement-run",
+  "workItemsSource": "examples/outputs/runs/complex-promotion-requirement-run/process/test-point-work-items.json",
+  "leafScenarioId": "SC-002-001",
+  "scenarioPath": [
+    {
+      "id": "SC-002",
+      "title": "下单试算与优惠使用"
+    },
+    {
+      "id": "SC-002-001",
+      "title": "订单试算"
+    }
+  ],
+  "instructions": [
+    "只在 scenario.testPoints[] 中填写本叶子 SC 的测试点。",
+    "不要新增、删除、合并或改写 SC。",
+    "testPoints[] 可以暂不填写全局 TP 编号，merge 脚本会统一重排。",
+    "每个叶子 SC 必须包含一个标题为 E2E场景测试 的测试点。"
+  ],
+  "scenario": {
+    "id": "SC-002-001",
+    "title": "订单试算",
+    "children": [],
+    "testPoints": [
+      {
+        "id": "TP-004",
+        "title": "E2E场景测试",
+        "objective": "验证符合商品范围和金额门槛的优惠券在试算时正确影响优惠金额和应付金额。",
+        "basisRefs": [
+          {
+            "source": "examples/requirements/complex-promotion-requirement.md",
+            "location": "接口与数据",
+            "description": "前端调用试算接口获取优惠金额、应付金额和不可用原因。"
+          }
+        ]
+      },
+      {
+        "id": "TP-005",
+        "title": "商品范围与最低门槛",
+        "objective": "验证商品分类不适用或订单金额低于最低使用门槛时，试算结果给出不可用原因。",
+        "basisRefs": [
+          {
+            "source": "examples/requirements/complex-promotion-requirement.md",
+            "location": "优惠券规则",
+            "description": "优惠券仅适用于活动配置商品分类；订单金额必须大于等于最低使用门槛。"
+          }
+        ]
+      },
+      {
+        "id": "TP-006",
+        "title": "会员折扣叠加资格",
+        "objective": "验证 VIP 用户可叠加会员折扣，普通用户不可叠加。",
+        "basisRefs": [
+          {
+            "source": "examples/requirements/complex-promotion-requirement.md",
+            "location": "优惠券规则",
+            "description": "会员等级为 VIP 的用户可以叠加会员折扣，普通用户不可叠加。"
+          }
+        ]
+      }
+    ]
+  },
+  "rulesApplications": [],
+  "dynamicSourceApplications": [],
+  "generationContext": {
+    "stage": "test-analysis-solution-generation",
+    "targetType": "test-point-slice",
+    "targetId": "SC-002-001",
+    "coverageScope": "",
+    "inputArtifacts": [
+      "process/rules-pack.json",
+      "process/context-pack.json",
+      "process/input-fact-model.json"
+    ],
+    "applicableRules": [],
+    "visibleSources": [],
+    "relevantFacts": [
+      {
+        "事实ID": "FACT-001",
+        "来源": "需求：限时优惠券领取",
+        "对象/范围": "优惠券领取",
+        "事实内容": "活动时间内、库存充足且未重复领取时允许领取",
+        "约束/条件": "活动开始和结束时间之间；库存充足；同一用户未领取",
+        "可观察结果": "领取成功"
+      },
+      {
+        "事实ID": "FACT-002",
+        "来源": "需求：优惠券可用性",
+        "对象/范围": "优惠计算",
+        "事实内容": "商品范围、金额门槛、会员等级和过期状态影响优惠券可用性",
+        "约束/条件": "订单商品、订单金额、会员等级、优惠券有效期",
+        "可观察结果": "优惠券可用或不可用"
+      },
+      {
+        "事实ID": "FACT-003",
+        "来源": "需求：优惠券支付",
+        "对象/范围": "支付状态与副作用",
+        "事实内容": "重复支付不能重复扣减优惠券和库存",
+        "约束/条件": "同一订单重复提交支付请求",
+        "可观察结果": "不重复扣减优惠券和库存"
+      }
+    ],
+    "constraints": [
+      "只填写当前叶子 SC 的 scenario.testPoints[]。",
+      "不得新增、删除、合并或改写 SC。",
+      "每个叶子 SC 必须包含一个标题为 E2E场景测试 的 TP。",
+      "TP 是验证目标，不输出 TC、步骤、测试数据或预期结果。"
+    ],
+    "readPlan": [
+      "读取 generationContext.applicableRules[] 中已内联的 test-analysis-solution-generation 适用 rules 正文并遵守。",
+      "按需读取 generationContext.visibleSources[] 指向的 project/personal 动态来源正文，并记录应用状态。",
+      "读取当前 test-point-slice 的 scenarioPath 与 relevantFacts[]，只生成当前叶子 SC 的 TP。"
+    ]
+  }
+}

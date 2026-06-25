@@ -66,9 +66,9 @@
           ],
           "testPoints": [
             {
+              "objective": "验证用户在活动有效期内领取库存充足优惠券后，可获得一张属于自己的可用优惠券。",
               "id": "TP-001",
               "title": "E2E场景测试",
-              "objective": "验证用户在活动有效期内领取库存充足优惠券后，可获得一张属于自己的可用优惠券。",
               "basisRefs": [
                 {
                   "source": "examples/requirements/complex-promotion-requirement.md",
@@ -78,9 +78,9 @@
               ]
             },
             {
+              "objective": "验证优惠券活动开始前、进行中和结束后对领取资格的影响。",
               "id": "TP-002",
               "title": "活动时间窗口",
-              "objective": "验证优惠券活动开始前、进行中和结束后对领取资格的影响。",
               "basisRefs": [
                 {
                   "source": "examples/requirements/complex-promotion-requirement.md",
@@ -90,9 +90,9 @@
               ]
             },
             {
+              "objective": "验证库存为 0 和同一用户重复领取时，系统不会发放超出规则的优惠券。",
               "id": "TP-003",
               "title": "库存与单用户领取次数",
-              "objective": "验证库存为 0 和同一用户重复领取时，系统不会发放超出规则的优惠券。",
               "basisRefs": [
                 {
                   "source": "examples/requirements/complex-promotion-requirement.md",
@@ -138,8 +138,6 @@
           ],
           "testPoints": [
             {
-              "id": "TP-004",
-              "title": "E2E场景测试",
               "objective": "验证符合商品范围和金额门槛的优惠券在试算时正确影响优惠金额和应付金额。",
               "basisRefs": [
                 {
@@ -147,11 +145,11 @@
                   "location": "接口与数据",
                   "description": "前端调用试算接口获取优惠金额、应付金额和不可用原因。"
                 }
-              ]
+              ],
+              "title": "E2E场景测试",
+              "id": "TP-004"
             },
             {
-              "id": "TP-005",
-              "title": "商品范围与最低门槛",
               "objective": "验证商品分类不适用或订单金额低于最低使用门槛时，试算结果给出不可用原因。",
               "basisRefs": [
                 {
@@ -159,11 +157,11 @@
                   "location": "优惠券规则",
                   "description": "优惠券仅适用于活动配置商品分类；订单金额必须大于等于最低使用门槛。"
                 }
-              ]
+              ],
+              "title": "商品范围与最低门槛",
+              "id": "TP-005"
             },
             {
-              "id": "TP-006",
-              "title": "会员折扣叠加资格",
               "objective": "验证 VIP 用户可叠加会员折扣，普通用户不可叠加。",
               "basisRefs": [
                 {
@@ -171,7 +169,9 @@
                   "location": "优惠券规则",
                   "description": "会员等级为 VIP 的用户可以叠加会员折扣，普通用户不可叠加。"
                 }
-              ]
+              ],
+              "title": "会员折扣叠加资格",
+              "id": "TP-006"
             }
           ]
         }
@@ -210,8 +210,6 @@
           ],
           "testPoints": [
             {
-              "id": "TP-007",
-              "title": "E2E场景测试",
               "objective": "验证待支付订单使用有效优惠券支付成功后，订单、优惠券、库存和操作日志形成完整闭环。",
               "basisRefs": [
                 {
@@ -219,11 +217,11 @@
                   "location": "订单支付规则",
                   "description": "待支付订单可以使用优惠券支付，支付成功后更新相关状态。"
                 }
-              ]
+              ],
+              "id": "TP-007",
+              "title": "E2E场景测试"
             },
             {
-              "id": "TP-008",
-              "title": "已支付订单重复使用限制",
               "objective": "验证已支付订单不能再次使用优惠券，系统不重复扣减优惠券和库存。",
               "basisRefs": [
                 {
@@ -231,11 +229,11 @@
                   "location": "订单支付规则",
                   "description": "已支付订单不能再次使用优惠券；重复提交支付请求不能重复扣减优惠券和库存。"
                 }
-              ]
+              ],
+              "id": "TP-008",
+              "title": "已支付订单重复使用限制"
             },
             {
-              "id": "TP-009",
-              "title": "支付超时释放优惠券",
               "objective": "验证支付超时关闭订单时，已锁定优惠券需要释放并允许用户重新支付。",
               "basisRefs": [
                 {
@@ -243,7 +241,9 @@
                   "location": "订单支付规则",
                   "description": "支付超时后订单关闭，已锁定优惠券需要释放；支付失败或回调超时时保留订单待支付状态并允许重新支付。"
                 }
-              ]
+              ],
+              "id": "TP-009",
+              "title": "支付超时释放优惠券"
             }
           ]
         }
@@ -260,28 +260,28 @@
       ],
       "testPoints": [
         {
-          "id": "TP-010",
-          "title": "E2E场景测试",
-          "objective": "验证 App 5.0 及以上版本可使用新优惠券规则展示，老版本只展示不可用原因。",
           "basisRefs": [
             {
               "source": "examples/requirements/complex-promotion-requirement.md",
               "location": "兼容性",
               "description": "新规则只对 App 5.0 及以上版本生效；老版本只展示不可用原因。"
             }
-          ]
+          ],
+          "objective": "验证 App 5.0 及以上版本可使用新优惠券规则展示，老版本只展示不可用原因。",
+          "title": "E2E场景测试",
+          "id": "TP-010"
         },
         {
-          "id": "TP-011",
-          "title": "新老版本折扣明细展示差异",
-          "objective": "验证 App 5.0 及以上版本展示叠加折扣明细，老版本不展示叠加折扣明细。",
           "basisRefs": [
             {
               "source": "examples/requirements/complex-promotion-requirement.md",
               "location": "兼容性",
               "description": "老版本 App 仍然只能展示不可用原因，不展示叠加折扣明细。"
             }
-          ]
+          ],
+          "objective": "验证 App 5.0 及以上版本展示叠加折扣明细，老版本不展示叠加折扣明细。",
+          "title": "新老版本折扣明细展示差异",
+          "id": "TP-011"
         }
       ]
     }

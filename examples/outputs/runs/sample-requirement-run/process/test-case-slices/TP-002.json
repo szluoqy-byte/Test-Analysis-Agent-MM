@@ -1,0 +1,138 @@
+{
+  "artifactType": "test-case-slice",
+  "schemaVersion": "1.0",
+  "title": "测试用例切片 TP-002",
+  "runDir": "examples/outputs/runs/sample-requirement-run",
+  "workItemsSource": "examples/outputs/runs/sample-requirement-run/process/test-case-work-items.json",
+  "scenarioPath": [
+    {
+      "id": "SC-001",
+      "title": "订单取消业务流程"
+    },
+    {
+      "id": "SC-001-001",
+      "title": "普通用户取消订单"
+    }
+  ],
+  "leafScenarioId": "SC-001-001",
+  "testPoint": {
+    "id": "TP-002",
+    "title": "本人待支付订单允许取消",
+    "objective": "验证普通用户取消本人名下待支付订单时，系统允许取消并完成状态、库存和取消原因处理。",
+    "basisRefs": [
+      {
+        "source": "examples/requirements/sample-requirement.md",
+        "location": "订单取消规则",
+        "description": "待支付本人订单允许取消。"
+      }
+    ],
+    "testCases": [
+      {
+        "id": "TC-002",
+        "title": "本人待支付订单取消被允许",
+        "preconditions": [
+          "用户 A 已登录",
+          "订单 ORDER_1002 属于用户 A",
+          "订单状态为待支付"
+        ],
+        "testData": [
+          {
+            "name": "user_id",
+            "value": "USER_A",
+            "description": "订单所有人"
+          },
+          {
+            "name": "order_id",
+            "value": "ORDER_1002",
+            "description": "本人待支付订单"
+          },
+          {
+            "name": "order_status",
+            "value": "PENDING_PAYMENT",
+            "description": "待支付状态"
+          }
+        ],
+        "steps": [
+          {
+            "stepNo": 1,
+            "action": "用户 A 对 ORDER_1002 发起取消",
+            "expected": "系统接受取消请求"
+          },
+          {
+            "stepNo": 2,
+            "action": "查询 ORDER_1002 的订单状态和库存占用",
+            "expected": "订单进入取消态，库存占用释放"
+          }
+        ],
+        "expectedResult": "取消成功，订单不可继续支付，库存释放并记录取消原因。",
+        "sourceRefs": [
+          {
+            "source": "examples/requirements/sample-requirement.md",
+            "location": "订单取消规则",
+            "description": "待支付本人订单允许取消。"
+          }
+        ],
+        "level": "Level 2"
+      }
+    ]
+  },
+  "instructions": [
+    "只填写 testPoint.testCases[]。",
+    "不要新增、删除、合并或改写 SC/TP。",
+    "testCases[] 可以暂不填写全局 TC 编号，merge 脚本会统一重排。",
+    "一个 TC 只覆盖一个可独立执行、独立判定的测试实例。"
+  ],
+  "rulesApplications": [],
+  "dynamicSourceApplications": [],
+  "generationContext": {
+    "stage": "test-design-solution-generation",
+    "targetType": "test-case-slice",
+    "targetId": "TP-002",
+    "coverageScope": "",
+    "inputArtifacts": [
+      "process/rules-pack.json",
+      "process/context-pack.json",
+      "process/input-fact-model.json",
+      "deliverables/test-analysis-solution.json"
+    ],
+    "applicableRules": [],
+    "visibleSources": [],
+    "relevantFacts": [
+      {
+        "事实ID": "FACT-001",
+        "来源": "需求：订单取消",
+        "对象/范围": "普通用户取消本人订单",
+        "事实内容": "用户在订单未完成前可以取消订单",
+        "约束/条件": "本人订单且订单未完成",
+        "可观察结果": "取消成功后订单不可继续支付，库存释放并记录取消原因"
+      },
+      {
+        "事实ID": "FACT-002",
+        "来源": "需求：订单取消",
+        "对象/范围": "权限控制",
+        "事实内容": "普通用户不能取消非本人订单",
+        "约束/条件": "订单归属不匹配",
+        "可观察结果": "取消失败"
+      },
+      {
+        "事实ID": "FACT-003",
+        "来源": "需求：重复取消",
+        "对象/范围": "副作用控制",
+        "事实内容": "重复取消不能重复释放库存",
+        "约束/条件": "同一订单重复提交取消请求",
+        "可观察结果": "库存不重复释放"
+      }
+    ],
+    "constraints": [
+      "只填写当前 TP 的 testPoint.testCases[]。",
+      "不得新增、删除、合并或改写 SC/TP。",
+      "一个 TC 只覆盖一个可独立执行、独立判定的测试实例。",
+      "steps[].action 只写可执行动作或取数动作，检查项写入同一步 expected。"
+    ],
+    "readPlan": [
+      "读取 generationContext.applicableRules[] 中已内联的 test-design-solution-generation 适用 rules 正文并遵守。",
+      "按需读取 generationContext.visibleSources[] 指向的 project/personal 动态来源正文，并记录应用状态。",
+      "读取当前 test-case-slice 的 scenarioPath、testPoint 与 relevantFacts[]，只生成当前 TP 的 TC。"
+    ]
+  }
+}

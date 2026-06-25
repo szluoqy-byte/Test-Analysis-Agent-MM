@@ -21,6 +21,10 @@
 - JSON 是 run 过程产物、主交付件、review 和 coverage 的事实源；Markdown 是 `bin/render-run-markdown.py` 派生的人读版，不手工维护。
 - 测试分析主交付件固定为 `deliverables/test-analysis-solution.json/.md`，输出粒度是 `SC 场景树 -> TP 测试点`。
 - 测试设计主交付件固定为 `deliverables/test-design-solution.json/.md`，输出粒度是 `SC 场景树 -> TP 测试点 -> TC 测试用例`。
+- 测试分析生成必须先冻结 `process/scenario-tree.json`，再按叶子 SC 生成并合并 `process/test-point-slices/<SC-ID>.json`。
+- 测试设计生成必须按 TP 生成并合并 `process/test-case-slices/<TP-ID>.json`。
+- SC/TP/TC 过程 JSON 和 review/coverage JSON 必须包含固定脚本生成的 `generationContext`，用于生成前工作包、规则正文、动态来源索引和事实候选。
+- coverage 缺口必须先通过 `bin/apply-coverage-gaps.py` 重开对应 slice 工作项，再修复切片、评审、合并和收口。
 - `SC-*` 最多 3 层，只有叶子 SC 挂 `TP-*`；`TP-*` 全局连续；`TC-*` 全局连续。
 - 测试分析方案不输出测试用例、步骤、测试数据或预期结果。
 - 测试设计方案输出完整步骤级测试用例，包含前置条件、测试数据、步骤、步骤预期和最终预期。

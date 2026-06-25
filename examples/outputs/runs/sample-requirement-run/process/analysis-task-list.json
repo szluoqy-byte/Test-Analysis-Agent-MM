@@ -69,7 +69,7 @@
       "order": 8,
       "stage": "测试分析方案生成",
       "owner": "test-analysis-solution-generation",
-      "checkpoint": "deliverables/test-analysis-solution.json、rules-pack 与动态来源应用记录",
+      "checkpoint": "process/scenario-tree.json、process/test-point-work-items.json、process/test-point-slices/<SC-ID>.json、deliverables/test-analysis-solution.json",
       "status": "done",
       "evidence": "deliverables/test-analysis-solution.json"
     },
@@ -95,7 +95,7 @@
       "owner": "coverage-review",
       "checkpoint": "需求/方法/rules-pack/动态来源应用检查、阻断项；专家评分仅深度评估时执行",
       "status": "done",
-      "evidence": "reports/coverage-review.json"
+      "evidence": "reports/analysis-coverage-review.json"
     },
     {
       "order": 12,

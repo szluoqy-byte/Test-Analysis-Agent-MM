@@ -1,0 +1,74 @@
+{
+  "artifactType": "test-point-work-items",
+  "schemaVersion": "1.0",
+  "title": "测试点生成工作项索引",
+  "runDir": "examples/outputs/runs/complex-promotion-requirement-run",
+  "scenarioTreeSource": "examples/outputs/runs/complex-promotion-requirement-run/process/scenario-tree.json",
+  "totalLeafScenarios": 4,
+  "workItems": [
+    {
+      "scenarioPath": [
+        {
+          "id": "SC-001",
+          "title": "优惠券活动与领取"
+        },
+        {
+          "id": "SC-001-001",
+          "title": "普通用户领取优惠券"
+        }
+      ],
+      "leafScenarioId": "SC-001-001",
+      "leafScenarioTitle": "普通用户领取优惠券",
+      "status": "done",
+      "slicePath": "examples/outputs/runs/complex-promotion-requirement-run/process/test-point-slices/SC-001-001.json",
+      "mergedAt": "2026-06-25T20:55:13"
+    },
+    {
+      "scenarioPath": [
+        {
+          "id": "SC-002",
+          "title": "下单试算与优惠使用"
+        },
+        {
+          "id": "SC-002-001",
+          "title": "订单试算"
+        }
+      ],
+      "leafScenarioId": "SC-002-001",
+      "leafScenarioTitle": "订单试算",
+      "status": "done",
+      "slicePath": "examples/outputs/runs/complex-promotion-requirement-run/process/test-point-slices/SC-002-001.json",
+      "mergedAt": "2026-06-25T20:55:13"
+    },
+    {
+      "scenarioPath": [
+        {
+          "id": "SC-003",
+          "title": "订单支付与异步结果"
+        },
+        {
+          "id": "SC-003-001",
+          "title": "优惠券支付闭环"
+        }
+      ],
+      "leafScenarioId": "SC-003-001",
+      "leafScenarioTitle": "优惠券支付闭环",
+      "status": "done",
+      "slicePath": "examples/outputs/runs/complex-promotion-requirement-run/process/test-point-slices/SC-003-001.json",
+      "mergedAt": "2026-06-25T20:55:13"
+    },
+    {
+      "scenarioPath": [
+        {
+          "id": "SC-004",
+          "title": "版本兼容展示"
+        }
+      ],
+      "leafScenarioId": "SC-004",
+      "leafScenarioTitle": "版本兼容展示",
+      "status": "done",
+      "slicePath": "examples/outputs/runs/complex-promotion-requirement-run/process/test-point-slices/SC-004.json",
+      "mergedAt": "2026-06-25T20:55:13"
+    }
+  ]
+}

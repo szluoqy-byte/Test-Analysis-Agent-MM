@@ -50,7 +50,10 @@
 - 测试设计主交付件固定为 `outputs/runs/<run-id>/deliverables/test-design-solution.json`，由 `test-case-writing` 调用 `bin/render-run-markdown.py` 渲染同名 `.md` 人读版；优先复用上游测试分析方案所在 run。
 - JSON 是 run 过程产物、主交付件、review 和 coverage 的事实源；Markdown 是脚本派生产物，不手工维护。
 - 创建 run 目录后必须维护阶段化任务清单和共享过程产物：测试分析使用 `process/analysis-task-list.json/.md`，测试设计使用 `process/design-task-list.json/.md`；共享过程产物包括 `process/rules-pack.json/.md`、`process/context-pack.json/.md` 和 `process/input-fact-model.json/.md`。历史 `process/task-list.json/.md` 只作为兼容读取路径，不作为新流程写入目标。
-- 当测试分析 JSON 大于 200KB、TP 数量大于 30 或已有测试设计 JSON 大于 300KB 时，必须使用固定分批脚本生成测试设计：`bin/check-design-batch-mode.py`、`bin/extract-design-work-items.py`、`bin/extract-analysis-slice.py`、`bin/init-design-slice.py` 和 `bin/merge-design-slice.py`；分批过程产物写入 `process/design-batch-decision.json`、`process/design-work-items.json` 和 `process/design-slices/`，最终事实源仍是 `deliverables/test-design-solution.json`。
+- 测试分析必须先生成并评审冻结 `process/scenario-tree.json`，再按叶子 SC 生成 `process/test-point-slices/<SC-ID>.json`，最后合并为 `deliverables/test-analysis-solution.json`。
+- 测试设计必须按每个已冻结 TP 生成 `process/test-case-slices/<TP-ID>.json`，评审后合并为 `deliverables/test-design-solution.json`。
+- `process/scenario-tree.json`、`process/test-point-slices/<SC-ID>.json`、`process/test-case-slices/<TP-ID>.json` 以及 review/coverage JSON 必须包含由固定脚本生成的 `generationContext`；它只用于生成前工作包、规则正文、动态来源索引和事实候选，不作为最终业务事实合并进 deliverables。
+- 测试设计流程固定按 `process/test-case-work-items.json` 和 `process/test-case-slices/<TP-ID>.json` 逐 TP 生成并合并，最终事实源仍是 `deliverables/test-design-solution.json`。
 - 测试设计流程不得临时生成 `.py`、`.js`、`.ps1`、`.bat` 或其他可执行脚本来处理 JSON；固定脚本能力不足时修改仓库 `bin/` 脚本并运行校验。
 - 主交付件 schema 使用 `2.0`；process、review 和 coverage 产物继续使用各自当前 schema。
 - 新 run 只支持 schemaVersion 2.0；历史 run 需要按新模型重新生成。
@@ -70,9 +73,11 @@
 
 - 当用户要求把 `.docx` / `.xlsx` / `.md` 输入整理为可供下游读取的 Markdown 输入事实源时，使用 `@file-normalization-agent`。
 - 当用户要求基于需求和设计方案生成测试场景、测试点粒度的方案时，使用 `test-analysis-workflow`。该 workflow 只接受 Markdown 输入；Office 输入必须先归一化。
-- 测试分析阶段依次使用 `rules-pack`、`context-source-indexing`、`input-fact-modeling`、`testing-method-router`、路由选中的专项方法参考、`test-analysis-solution-generation`、JSON lint、Markdown render、派生 Markdown lint、`test-analysis-solution-review` 和 `coverage-review`。
+- 测试分析阶段依次使用 `rules-pack`、`context-source-indexing`、`input-fact-modeling`、`testing-method-router`、路由选中的专项方法参考、`test-analysis-solution-generation` 生成冻结 SC 树、`test-analysis-solution-review` 评审 SC、按叶子 SC 生成并评审 TP 切片、合并分析方案、JSON lint、Markdown render、派生 Markdown lint、最终 `test-analysis-solution-review` 和 `coverage-review`。
 - 覆盖审查产物按阶段拆分：测试分析写入 `reports/analysis-coverage-review.json/.md`，测试设计写入 `reports/design-coverage-review.json/.md`；历史 `reports/coverage-review.json/.md` 只作为兼容读取路径，不作为新流程写入目标。
+- coverage-review 发现覆盖缺口后，不直接编辑最终 Markdown 或主交付件 JSON；必须通过 `coverageGaps[].artifactLocation` 定位到 `process/test-point-slices/<SC-ID>.json` 或 `process/test-case-slices/<TP-ID>.json`，先运行 `bin/apply-coverage-gaps.py` 重开对应工作项，再修复切片并重新执行切片 review、脚本合并、最终 review、coverage 和一致性检查。
 - 当用户要求基于已评审测试分析方案生成测试用例时，使用 `test-design-workflow`。该 workflow 优先读取上游 `test-analysis-solution.json`。
+- 测试设计阶段使用 `test-design-solution-generation` 按 TP 生成 TC 切片，`test-design-solution-review` 按切片评审，切片通过后由固定脚本合并并统一 TC 编号。
 - 如果用户只提供需求/设计方案且要求测试设计，必须先生成或取得测试分析方案，再进入测试设计。
 - 设计方案输入用于补充接口、字段、状态、权限、数据依赖、配置开关、异常处理和非功能指标；没有设计方案时继续生成，预期结果只写输入可支撑的保守判定。
 - 不编造业务事实、状态、角色、接口契约、阈值、错误码、错误提示或状态变化。

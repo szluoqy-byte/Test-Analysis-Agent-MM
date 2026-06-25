@@ -23,13 +23,21 @@ ARTIFACT_TITLES = {
     "rules-pack": "强制规则索引",
     "context-pack": "上下文来源索引",
     "input-fact-model": "输入事实模型",
+    "scenario-tree": "冻结 SC 场景树",
+    "test-point-work-items": "测试点生成工作项索引",
+    "test-point-slice": "测试点切片",
+    "test-case-work-items": "测试用例生成工作项索引",
+    "test-case-slice": "测试用例切片",
     "test-analysis-solution": "测试分析方案",
     "test-design-solution": "测试设计方案",
     "test-analysis-solution-review": "测试分析方案语义评审结果",
     "test-design-solution-review": "测试设计方案语义评审结果",
+    "scenario-tree-review": "SC 场景树评审结果",
+    "test-point-review": "测试点评审结果",
+    "test-case-review": "测试用例评审结果",
     "coverage-review": "覆盖审查结果",
 }
-GENERIC_METADATA_KEYS = {"artifactType", "alternateArtifactTypes", "schemaVersion", "title", "sections"}
+GENERIC_METADATA_KEYS = {"artifactType", "alternateArtifactTypes", "schemaVersion", "title", "sections", "generationContext"}
 ANALYSIS_REQUIRED_STAGES = [
     "固定 PROJECT_ROOT 与运行目录",
     "强制规则加载",
@@ -509,6 +517,48 @@ def render_input_fact_model(data: dict[str, Any]) -> str:
     )
 
 
+def render_process_artifact(data: dict[str, Any]) -> str:
+    artifact_type = normalize_text(data.get("artifactType"))
+    return render_structured_sections(
+        data,
+        ARTIFACT_TITLES.get(artifact_type, artifact_type or "过程产物"),
+        [
+            "runDir",
+            "scenarioTreeSource",
+            "analysisSource",
+            "workItemsSource",
+            "scope",
+            "scenarioPath",
+            "leafScenarioId",
+            "leafScenarioTitle",
+            "testPoint",
+            "scenario",
+            "scenarios",
+            "workItems",
+            "instructions",
+            "rulesApplications",
+            "dynamicSourceApplications",
+        ],
+        {
+            "runDir": "运行目录",
+            "scenarioTreeSource": "场景树来源",
+            "analysisSource": "分析方案来源",
+            "workItemsSource": "工作项来源",
+            "scope": "范围",
+            "scenarioPath": "场景路径",
+            "leafScenarioId": "叶子 SC",
+            "leafScenarioTitle": "叶子 SC 标题",
+            "testPoint": "测试点",
+            "scenario": "场景切片",
+            "scenarios": "场景树",
+            "workItems": "工作项",
+            "instructions": "填写约束",
+            "rulesApplications": "Rules 应用记录",
+            "dynamicSourceApplications": "动态来源应用记录",
+        },
+    )
+
+
 def render_solution_fields(fields: list[dict[str, Any]]) -> list[str]:
     rows = [[normalize_text(field.get("field")), normalize_text(field.get("content"))] for field in fields]
     return markdown_table(["字段", "内容"], rows)
@@ -719,6 +769,8 @@ def render_review_report(data: dict[str, Any]) -> str:
     title = data.get("title") or data.get("artifactType", "review-report")
     lines = [f"# {title}", "", "## 1. 结论", ""]
     lines.append(f"- result：{data.get('result', '未记录')}")
+    if data.get("targetArtifact"):
+        lines.append(f"- targetArtifact：{data.get('targetArtifact')}")
     summary = data.get("summary")
     if summary:
         lines.append(f"- summary：{summary}")
@@ -735,6 +787,10 @@ def render_coverage_report(data: dict[str, Any]) -> str:
     title = data.get("title") or "覆盖审查结果"
     lines = [f"# {title}", "", "## 1. 结论", ""]
     lines.append(f"- result：{data.get('result', '未记录')}")
+    if data.get("coverageScope"):
+        lines.append(f"- coverageScope：{data.get('coverageScope')}")
+    if data.get("targetArtifact"):
+        lines.append(f"- targetArtifact：{data.get('targetArtifact')}")
     summary = data.get("summary")
     if summary:
         lines.append(f"- summary：{summary}")
@@ -755,10 +811,18 @@ RENDERERS = {
     "rules-pack": render_rules_pack,
     "context-pack": render_context_pack,
     "input-fact-model": render_input_fact_model,
+    "scenario-tree": render_process_artifact,
+    "test-point-work-items": render_process_artifact,
+    "test-point-slice": render_process_artifact,
+    "test-case-work-items": render_process_artifact,
+    "test-case-slice": render_process_artifact,
     "test-analysis-solution": render_analysis_solution,
     "test-design-solution": render_design_solution,
     "test-analysis-solution-review": render_review_report,
     "test-design-solution-review": render_review_report,
+    "scenario-tree-review": render_review_report,
+    "test-point-review": render_review_report,
+    "test-case-review": render_review_report,
     "coverage-review": render_coverage_report,
 }
 
@@ -779,14 +843,34 @@ def collect_renderable_json_files(run_dir: Path) -> list[tuple[Path, Path]]:
         (run_dir / "process" / "rules-pack.json", run_dir / "process" / "rules-pack.md"),
         (run_dir / "process" / "context-pack.json", run_dir / "process" / "context-pack.md"),
         (run_dir / "process" / "input-fact-model.json", run_dir / "process" / "input-fact-model.md"),
+        (run_dir / "process" / "scenario-tree.json", run_dir / "process" / "scenario-tree.md"),
+        (run_dir / "process" / "test-point-work-items.json", run_dir / "process" / "test-point-work-items.md"),
+        (run_dir / "process" / "test-case-work-items.json", run_dir / "process" / "test-case-work-items.md"),
         (run_dir / "deliverables" / "test-analysis-solution.json", run_dir / "deliverables" / "test-analysis-solution.md"),
         (run_dir / "deliverables" / "test-design-solution.json", run_dir / "deliverables" / "test-design-solution.md"),
+        (run_dir / "reports" / "scenario-tree-review.json", run_dir / "reports" / "scenario-tree-review.md"),
+        (run_dir / "reports" / "test-point-review.json", run_dir / "reports" / "test-point-review.md"),
+        (run_dir / "reports" / "test-case-review.json", run_dir / "reports" / "test-case-review.md"),
         (run_dir / "reports" / "test-analysis-solution-review.json", run_dir / "reports" / "test-analysis-solution-review.md"),
         (run_dir / "reports" / "test-design-solution-review.json", run_dir / "reports" / "test-design-solution-review.md"),
         (run_dir / "reports" / "analysis-coverage-review.json", run_dir / "reports" / "analysis-coverage-review.md"),
         (run_dir / "reports" / "design-coverage-review.json", run_dir / "reports" / "design-coverage-review.md"),
         (run_dir / "reports" / "coverage-review.json", run_dir / "reports" / "coverage-review.md"),
     ]
+    for directory in (
+        run_dir / "process" / "test-point-slices",
+        run_dir / "process" / "test-case-slices",
+    ):
+        if directory.is_dir():
+            for json_path in sorted(directory.glob("*.json")):
+                pairs.append((json_path, json_path.with_suffix(".md")))
+    for directory in (
+        run_dir / "reports" / "test-point-reviews",
+        run_dir / "reports" / "test-case-reviews",
+    ):
+        if directory.is_dir():
+            for json_path in sorted(directory.glob("*.json")):
+                pairs.append((json_path, json_path.with_suffix(".md")))
     return [(json_path, markdown_path) for json_path, markdown_path in pairs if json_path.exists()]
 
 
@@ -974,6 +1058,192 @@ def validate_rules_pack_json(data: dict[str, Any]) -> list[str]:
     if "warnings" in data and not isinstance(data.get("warnings"), list):
         errors.append("rules-pack.json warnings 必须是数组")
     return errors
+
+
+def validate_scenario_tree_json(data: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    if not isinstance(data.get("scope", []), list):
+        errors.append("scenario-tree.json scope 必须是数组")
+    scenarios = data.get("scenarios")
+    if not isinstance(scenarios, list) or not scenarios:
+        errors.append("scenario-tree.json scenarios 必须是非空数组")
+        return errors
+
+    def walk(nodes: list[Any], parent_id: str = "", depth: int = 1) -> None:
+        if depth > 3:
+            errors.append(f"{parent_id or 'scenarios'} 超过 3 层 SC 深度")
+            return
+        for index, scenario in enumerate(nodes, start=1):
+            if not isinstance(scenario, dict):
+                errors.append(f"{parent_id or 'scenarios'}[{index}] 不是对象")
+                continue
+            expected_sc = f"{parent_id}-{index:03d}" if parent_id else f"SC-{index:03d}"
+            scenario_id = normalize_text(scenario.get("id"))
+            if scenario_id != expected_sc:
+                errors.append(f"场景序号应为 {expected_sc}，实际为 {scenario.get('id')}")
+            if not scenario.get("title"):
+                errors.append(f"{scenario_id or expected_sc} 缺少 title")
+            extra_keys = sorted(set(scenario) - {"id", "title", "fields", "children"})
+            if extra_keys:
+                errors.append(f"{scenario_id or expected_sc} 包含 scenario-tree 未定义字段: {', '.join(extra_keys)}")
+            if "testPoints" in scenario:
+                errors.append(f"{scenario_id or expected_sc} 在 scenario-tree 阶段不得包含 testPoints")
+            children = scenario.get("children", [])
+            if children is None:
+                children = []
+            if not isinstance(children, list):
+                errors.append(f"{scenario_id or expected_sc} children 必须是数组")
+                continue
+            if children:
+                walk(children, scenario_id, depth + 1)
+
+    walk(scenarios)
+    return errors
+
+
+def validate_work_items_json(data: dict[str, Any], id_key: str, label: str) -> list[str]:
+    errors: list[str] = []
+    items = data.get("workItems")
+    if not isinstance(items, list):
+        errors.append(f"{label} workItems 必须是数组")
+        return errors
+    seen: set[str] = set()
+    for index, item in enumerate(items, start=1):
+        if not isinstance(item, dict):
+            errors.append(f"{label} workItems[{index}] 不是对象")
+            continue
+        item_id = normalize_text(item.get(id_key))
+        if not item_id:
+            errors.append(f"{label} workItems[{index}] 缺少 {id_key}")
+        elif item_id in seen:
+            errors.append(f"{label} workItems[{index}] {id_key} 重复: {item_id}")
+        seen.add(item_id)
+        if item.get("status") not in STATUS_VALUES:
+            errors.append(f"{label} workItems[{index}].status 非法: {item.get('status')}")
+        if not isinstance(item.get("scenarioPath", []), list):
+            errors.append(f"{label} workItems[{index}].scenarioPath 必须是数组")
+    return errors
+
+
+def validate_test_point_slice_json(data: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    leaf_id = normalize_text(data.get("leafScenarioId"))
+    scenario = data.get("scenario")
+    if not leaf_id:
+        errors.append("test-point-slice 缺少 leafScenarioId")
+    if not isinstance(scenario, dict):
+        errors.append("test-point-slice 缺少 scenario 对象")
+        return errors
+    if scenario.get("id") != leaf_id:
+        errors.append("test-point-slice scenario.id 必须等于 leafScenarioId")
+    if scenario.get("children") not in ([], None):
+        errors.append(f"{leaf_id} 是叶子 SC 切片，不得包含 children")
+    points = scenario.get("testPoints")
+    if points is not None:
+        if not isinstance(points, list):
+            errors.append("test-point-slice scenario.testPoints 必须是数组")
+        else:
+            for index, point in enumerate(points, start=1):
+                if not isinstance(point, dict):
+                    errors.append(f"test-point-slice testPoints[{index}] 不是对象")
+                    continue
+                extra = sorted(set(point) - {"id", "title", "objective", "basisRefs", "note"})
+                if extra:
+                    errors.append(f"test-point-slice testPoints[{index}] 包含未定义字段: {', '.join(extra)}")
+                if not point.get("title") or not point.get("objective"):
+                    errors.append(f"test-point-slice testPoints[{index}] 缺少 title 或 objective")
+                if "basisRefs" in point and not isinstance(point.get("basisRefs"), list):
+                    errors.append(f"test-point-slice testPoints[{index}].basisRefs 必须是数组")
+    return errors
+
+
+def validate_test_case_slice_json(data: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    point = data.get("testPoint")
+    if not isinstance(point, dict):
+        return ["test-case-slice 缺少 testPoint 对象"]
+    if not point.get("id"):
+        errors.append("test-case-slice testPoint 缺少 id")
+    cases = point.get("testCases")
+    if cases is not None:
+        if not isinstance(cases, list):
+            errors.append("test-case-slice testPoint.testCases 必须是数组")
+        else:
+            for index, case in enumerate(cases, start=1):
+                if not isinstance(case, dict):
+                    errors.append(f"test-case-slice testCases[{index}] 不是对象")
+                    continue
+                extra_keys = sorted(
+                    set(case)
+                    - {"id", "title", "level", "preconditions", "testData", "steps", "expectedResult", "sourceRefs"}
+                )
+                if extra_keys:
+                    errors.append(f"test-case-slice testCases[{index}] 包含未定义字段: {', '.join(extra_keys)}")
+                if case.get("id") and not re.fullmatch(r"TC-\d{3}", normalize_text(case.get("id"))):
+                    errors.append(f"test-case-slice testCases[{index}].id 不是合法 TC 编号")
+                if case.get("level") not in TEST_CASE_LEVEL_VALUES:
+                    errors.append(f"test-case-slice testCases[{index}].level 必须为 Level 0 到 Level 4")
+                for key in ("title", "preconditions", "testData", "steps", "expectedResult", "sourceRefs"):
+                    if key not in case:
+                        errors.append(f"test-case-slice testCases[{index}] 缺少字段: {key}")
+    return errors
+
+
+def validate_generation_context(data: dict[str, Any], artifact_type: str) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    context = data.get("generationContext")
+    required_artifacts = {
+        "scenario-tree",
+        "test-point-slice",
+        "test-case-slice",
+        "scenario-tree-review",
+        "test-point-review",
+        "test-case-review",
+        "test-analysis-solution-review",
+        "test-design-solution-review",
+        "coverage-review",
+    }
+    if context is None:
+        if artifact_type in required_artifacts:
+            errors.append(f"{artifact_type}.json 缺少 generationContext")
+        return errors, warnings
+    if not isinstance(context, dict):
+        return [f"{artifact_type}.json generationContext 必须是对象"], warnings
+    required_keys = (
+        "stage",
+        "targetType",
+        "targetId",
+        "inputArtifacts",
+        "applicableRules",
+        "visibleSources",
+        "relevantFacts",
+        "constraints",
+        "readPlan",
+    )
+    for key in required_keys:
+        if key not in context:
+            errors.append(f"{artifact_type}.json generationContext 缺少字段: {key}")
+    for key in ("inputArtifacts", "applicableRules", "visibleSources", "relevantFacts", "constraints", "readPlan"):
+        if key in context and not isinstance(context.get(key), list):
+            errors.append(f"{artifact_type}.json generationContext.{key} 必须是数组")
+    for index, rule in enumerate(context.get("applicableRules", []), start=1):
+        if not isinstance(rule, dict):
+            errors.append(f"{artifact_type}.json generationContext.applicableRules[{index}] 必须是对象")
+            continue
+        for key in ("path", "name", "description", "content"):
+            if key not in rule:
+                errors.append(f"{artifact_type}.json generationContext.applicableRules[{index}] 缺少 {key}")
+        if not rule.get("content"):
+            warnings.append(f"{artifact_type}.json generationContext.applicableRules[{index}] 未内联规则正文")
+    for index, source in enumerate(context.get("visibleSources", []), start=1):
+        if not isinstance(source, dict):
+            errors.append(f"{artifact_type}.json generationContext.visibleSources[{index}] 必须是对象")
+            continue
+        for key in ("path", "name", "description", "availableStages"):
+            if key not in source:
+                errors.append(f"{artifact_type}.json generationContext.visibleSources[{index}] 缺少 {key}")
+    return errors, warnings
 
 
 def validate_solution_ids(data: dict[str, Any], is_design: bool) -> tuple[list[str], list[str]]:
@@ -1164,6 +1434,39 @@ def validate_review_json(data: dict[str, Any]) -> tuple[list[str], list[str]]:
             warnings.append(f"{data.get('artifactType')} 缺少 {key}")
         elif not isinstance(data.get(key), list):
             errors.append(f"{data.get('artifactType')} 的 {key} 必须是数组")
+    blocking_issues = data.get("blockingIssues", [])
+    findings = data.get("findings", [])
+    has_blocking = bool(blocking_issues) or any(
+        isinstance(item, dict) and item.get("severity") == "blocking"
+        for item in findings
+        if isinstance(findings, list)
+    )
+    if result == "通过" and has_blocking:
+        errors.append("review/coverage JSON result 为通过时不得包含 blocking issue 或 blocking finding")
+    if result in {"失败", "需修正"} and not has_blocking and data.get("artifactType") != "coverage-review":
+        warnings.append("review JSON result 为失败/需修正但没有 blocking issue")
+    if "targetArtifact" in data and not isinstance(data.get("targetArtifact"), str):
+        errors.append("review/coverage JSON targetArtifact 必须是字符串")
+    if data.get("artifactType") == "coverage-review":
+        for key in ("qualityGates", "rulesApplications", "projectKnowledgeApplications", "coverageGaps"):
+            if key not in data:
+                warnings.append(f"coverage-review 缺少 {key}")
+            elif not isinstance(data.get(key), list):
+                errors.append(f"coverage-review 的 {key} 必须是数组")
+        for index, gap in enumerate(data.get("coverageGaps", []), start=1):
+            if not isinstance(gap, dict):
+                errors.append(f"coverage-review coverageGaps[{index}] 必须是对象")
+                continue
+            for key in ("id", "requirementRef", "artifactLocation", "description", "suggestedFix"):
+                if not gap.get(key):
+                    errors.append(f"coverage-review coverageGaps[{index}] 缺少 {key}")
+            location = normalize_text(gap.get("artifactLocation")).replace("\\", "/")
+            if location and not (
+                location.startswith("process/test-point-slices/") or location.startswith("process/test-case-slices/")
+            ):
+                errors.append(
+                    f"coverage-review coverageGaps[{index}].artifactLocation 必须指向 process/test-point-slices/ 或 process/test-case-slices/: {location}"
+                )
     return errors, warnings
 
 
@@ -1191,6 +1494,31 @@ def validate_artifact(data: dict[str, Any]) -> tuple[list[str], list[str]]:
         doc_errors, doc_warnings = validate_generic_document(data, artifact_type)
         errors.extend(doc_errors)
         warnings.extend(doc_warnings)
+    elif artifact_type == "scenario-tree":
+        doc_errors, doc_warnings = validate_generic_document(data, artifact_type)
+        errors.extend(doc_errors)
+        warnings.extend(doc_warnings)
+        errors.extend(validate_scenario_tree_json(data))
+    elif artifact_type == "test-point-work-items":
+        doc_errors, doc_warnings = validate_generic_document(data, artifact_type)
+        errors.extend(doc_errors)
+        warnings.extend(doc_warnings)
+        errors.extend(validate_work_items_json(data, "leafScenarioId", "test-point-work-items"))
+    elif artifact_type == "test-case-work-items":
+        doc_errors, doc_warnings = validate_generic_document(data, artifact_type)
+        errors.extend(doc_errors)
+        warnings.extend(doc_warnings)
+        errors.extend(validate_work_items_json(data, "testPointId", "test-case-work-items"))
+    elif artifact_type == "test-point-slice":
+        doc_errors, doc_warnings = validate_generic_document(data, artifact_type)
+        errors.extend(doc_errors)
+        warnings.extend(doc_warnings)
+        errors.extend(validate_test_point_slice_json(data))
+    elif artifact_type == "test-case-slice":
+        doc_errors, doc_warnings = validate_generic_document(data, artifact_type)
+        errors.extend(doc_errors)
+        warnings.extend(doc_warnings)
+        errors.extend(validate_test_case_slice_json(data))
     elif artifact_type == "test-analysis-solution":
         solution_errors, solution_warnings = validate_solution_ids(data, is_design=False)
         errors.extend(solution_errors)
@@ -1199,10 +1527,20 @@ def validate_artifact(data: dict[str, Any]) -> tuple[list[str], list[str]]:
         solution_errors, solution_warnings = validate_solution_ids(data, is_design=True)
         errors.extend(solution_errors)
         warnings.extend(solution_warnings)
-    elif artifact_type in {"test-analysis-solution-review", "test-design-solution-review", "coverage-review"}:
+    elif artifact_type in {
+        "test-analysis-solution-review",
+        "test-design-solution-review",
+        "scenario-tree-review",
+        "test-point-review",
+        "test-case-review",
+        "coverage-review",
+    }:
         review_errors, review_warnings = validate_review_json(data)
         errors.extend(review_errors)
         warnings.extend(review_warnings)
     else:
         errors.append(f"不支持的 artifactType: {artifact_type}")
+    context_errors, context_warnings = validate_generation_context(data, artifact_type)
+    errors.extend(context_errors)
+    warnings.extend(context_warnings)
     return errors, warnings

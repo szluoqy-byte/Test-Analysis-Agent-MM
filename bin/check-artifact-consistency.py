@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 import sys
@@ -112,6 +113,10 @@ def collect_task_rows(path: Path) -> list[tuple[int, list[str]]]:
 
 def has_any(paths: list[Path]) -> bool:
     return any(path.exists() for path in paths)
+
+
+def load_json(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def existing_task_list_paths(run_dir: Path) -> list[Path]:
@@ -224,6 +229,214 @@ def validate_rules_pack(path: Path) -> tuple[list[str], list[str]]:
     return errors, warnings
 
 
+def normalize_scenario_tree(nodes: list[dict], include_points: bool = False) -> list[dict]:
+    normalized: list[dict] = []
+    for node in nodes:
+        if not isinstance(node, dict):
+            continue
+        item = {
+            "id": node.get("id"),
+            "title": node.get("title"),
+            "fields": node.get("fields", []),
+        }
+        children = node.get("children")
+        if isinstance(children, list) and children:
+            item["children"] = normalize_scenario_tree(children, include_points=include_points)
+        else:
+            item["children"] = []
+            if include_points:
+                item["testPoints"] = [
+                    {
+                        "id": point.get("id"),
+                        "title": point.get("title"),
+                        "objective": point.get("objective"),
+                        "basisRefs": point.get("basisRefs", []),
+                        "note": point.get("note", ""),
+                    }
+                    for point in node.get("testPoints", [])
+                    if isinstance(point, dict)
+                ]
+        normalized.append(item)
+    return normalized
+
+
+def collect_leaf_ids(nodes: list[dict]) -> list[str]:
+    leaf_ids: list[str] = []
+    for node in nodes:
+        if not isinstance(node, dict):
+            continue
+        children = node.get("children")
+        if isinstance(children, list) and children:
+            leaf_ids.extend(collect_leaf_ids(children))
+        else:
+            leaf_ids.append(str(node.get("id") or ""))
+    return leaf_ids
+
+
+def collect_test_point_ids(nodes: list[dict]) -> list[str]:
+    point_ids: list[str] = []
+    for node in nodes:
+        if not isinstance(node, dict):
+            continue
+        children = node.get("children")
+        if isinstance(children, list) and children:
+            point_ids.extend(collect_test_point_ids(children))
+        else:
+            point_ids.extend(
+                str(point.get("id") or "")
+                for point in node.get("testPoints", [])
+                if isinstance(point, dict)
+            )
+    return point_ids
+
+
+def resolve_artifact_path(run_dir: Path, repo_root: Path, value: object) -> Path | None:
+    if not isinstance(value, str) or not value.strip():
+        return None
+    path = Path(value)
+    if path.is_absolute():
+        return path
+    run_relative = run_dir / path
+    if run_relative.exists():
+        return run_relative
+    return repo_root / path
+
+
+def validate_done_work_items(
+    data: dict,
+    expected_ids: list[str],
+    id_key: str,
+    label: str,
+    run_dir: Path,
+    repo_root: Path,
+) -> list[str]:
+    errors: list[str] = []
+    items = data.get("workItems", [])
+    actual_ids = [str(item.get(id_key) or "") for item in items if isinstance(item, dict)]
+    if actual_ids != expected_ids:
+        errors.append(f"{label} workItems 与上游冻结 ID 不一致，期望 {expected_ids}，实际 {actual_ids}")
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        item_id = str(item.get(id_key) or "")
+        if item.get("status") != "done":
+            errors.append(f"{label} {item_id} 状态不是 done: {item.get('status')}")
+        slice_path = resolve_artifact_path(run_dir, repo_root, item.get("slicePath"))
+        if slice_path is None:
+            errors.append(f"{label} {item_id} 缺少 slicePath")
+        elif not slice_path.exists():
+            errors.append(f"{label} {item_id} slicePath 不存在: {item.get('slicePath')}")
+    return errors
+
+
+def validate_slice_reviews(
+    data: dict,
+    id_key: str,
+    label: str,
+    review_dir: Path,
+    run_dir: Path,
+    repo_root: Path,
+) -> list[str]:
+    errors: list[str] = []
+    for item in data.get("workItems", []):
+        if not isinstance(item, dict):
+            continue
+        item_id = str(item.get(id_key) or "")
+        if not item_id or item.get("status") != "done":
+            continue
+        review_path = review_dir / f"{item_id}.json"
+        if not review_path.exists():
+            errors.append(f"{label} {item_id} 缺少切片评审报告: {review_path.relative_to(run_dir)}")
+            continue
+        try:
+            review = load_json(review_path)
+        except Exception as exc:
+            errors.append(f"{label} {item_id} 切片评审报告不是合法 JSON: {exc}")
+            continue
+        if "generationContext" not in review:
+            errors.append(f"{label} {item_id} 切片评审报告缺少 generationContext")
+        target = resolve_artifact_path(run_dir, repo_root, review.get("targetArtifact"))
+        slice_path = resolve_artifact_path(run_dir, repo_root, item.get("slicePath"))
+        if target is None:
+            errors.append(f"{label} {item_id} 切片评审报告缺少 targetArtifact")
+        elif slice_path is not None and target.resolve() != slice_path.resolve():
+            errors.append(f"{label} {item_id} 切片评审 targetArtifact 未指向对应 slice")
+    return errors
+
+
+def validate_json_chain(run_dir: Path, repo_root: Path) -> list[str]:
+    errors: list[str] = []
+    scenario_tree_path = run_dir / "process" / "scenario-tree.json"
+    analysis_path = run_dir / "deliverables" / "test-analysis-solution.json"
+    design_path = run_dir / "deliverables" / "test-design-solution.json"
+    tp_work_items_path = run_dir / "process" / "test-point-work-items.json"
+    tc_work_items_path = run_dir / "process" / "test-case-work-items.json"
+
+    scenario_tree = load_json(scenario_tree_path) if scenario_tree_path.exists() else None
+    analysis = load_json(analysis_path) if analysis_path.exists() else None
+    design = load_json(design_path) if design_path.exists() else None
+
+    if scenario_tree and analysis:
+        frozen_tree = normalize_scenario_tree(scenario_tree.get("scenarios", []), include_points=False)
+        analysis_tree = normalize_scenario_tree(analysis.get("scenarios", []), include_points=False)
+        if frozen_tree != analysis_tree:
+            errors.append("deliverables/test-analysis-solution.json 的 SC 树与 process/scenario-tree.json 不一致")
+
+    if scenario_tree and tp_work_items_path.exists():
+        work_items = load_json(tp_work_items_path)
+        errors.extend(
+            validate_done_work_items(
+                work_items,
+                collect_leaf_ids(scenario_tree.get("scenarios", [])),
+                "leafScenarioId",
+                "test-point-work-items",
+                run_dir,
+                repo_root,
+            )
+        )
+        errors.extend(
+            validate_slice_reviews(
+                work_items,
+                "leafScenarioId",
+                "test-point-work-items",
+                run_dir / "reports" / "test-point-reviews",
+                run_dir,
+                repo_root,
+            )
+        )
+
+    if analysis and tc_work_items_path.exists():
+        work_items = load_json(tc_work_items_path)
+        errors.extend(
+            validate_done_work_items(
+                work_items,
+                collect_test_point_ids(analysis.get("scenarios", [])),
+                "testPointId",
+                "test-case-work-items",
+                run_dir,
+                repo_root,
+            )
+        )
+        errors.extend(
+            validate_slice_reviews(
+                work_items,
+                "testPointId",
+                "test-case-work-items",
+                run_dir / "reports" / "test-case-reviews",
+                run_dir,
+                repo_root,
+            )
+        )
+
+    if analysis and design:
+        analysis_basis = normalize_scenario_tree(analysis.get("scenarios", []), include_points=True)
+        design_basis = normalize_scenario_tree(design.get("scenarios", []), include_points=True)
+        if analysis_basis != design_basis:
+            errors.append("deliverables/test-design-solution.json 未完整继承 test-analysis-solution.json 的 SC/TP 基础字段")
+
+    return errors
+
+
 def main() -> int:
     configure_stdio()
     if len(sys.argv) != 2:
@@ -319,6 +532,26 @@ def main() -> int:
         ]
     ):
         errors.append("缺少测试设计任务清单 Markdown: process/design-task-list.md")
+    if solution_json_path.exists():
+        for relative in (
+            "process/scenario-tree.json",
+            "process/scenario-tree.md",
+            "process/test-point-work-items.json",
+            "process/test-point-work-items.md",
+            "reports/analysis-coverage-review.json",
+            "reports/analysis-coverage-review.md",
+        ):
+            if not (run_dir / relative).exists():
+                errors.append(f"测试分析 run 缺少分层冻结产物: {relative}")
+    if design_solution_json_path.exists():
+        for relative in (
+            "process/test-case-work-items.json",
+            "process/test-case-work-items.md",
+            "reports/design-coverage-review.json",
+            "reports/design-coverage-review.md",
+        ):
+            if not (run_dir / relative).exists():
+                errors.append(f"测试设计 run 缺少分层冻结产物: {relative}")
 
     if not solution_path.exists() and not design_solution_path.exists():
         errors.append("缺少主交付件: deliverables/test-analysis-solution.md 或 deliverables/test-design-solution.md")
@@ -347,6 +580,11 @@ def main() -> int:
         rules_errors, rules_warnings = validate_rules_pack(rules_pack_path)
         errors.extend(rules_errors)
         warnings.extend(rules_warnings)
+
+    try:
+        errors.extend(validate_json_chain(run_dir, repo_root))
+    except Exception as exc:
+        errors.append(f"跨产物 JSON 链路校验失败: {exc}")
 
     if solution_path.exists():
         points = collect_solution_points(solution_path)

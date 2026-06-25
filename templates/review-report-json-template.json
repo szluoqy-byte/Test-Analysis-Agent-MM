@@ -7,6 +7,7 @@
   "title": "测试方案语义评审",
   "result": "通过",
   "summary": "",
+  "targetArtifact": "",
   "findings": [
     {
       "id": "RV-001",
@@ -35,5 +36,16 @@
       "location": "",
       "note": ""
     }
-  ]
+  ],
+  "generationContext": {
+    "stage": "test-analysis-solution-review/test-design-solution-review",
+    "targetType": "test-analysis-solution-review/test-design-solution-review",
+    "targetId": "",
+    "inputArtifacts": [],
+    "applicableRules": [],
+    "visibleSources": [],
+    "relevantFacts": [],
+    "constraints": [],
+    "readPlan": []
+  }
 }

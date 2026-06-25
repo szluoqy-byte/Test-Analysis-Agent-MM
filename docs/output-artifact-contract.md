@@ -4,6 +4,10 @@
 
 - `deliverables/test-analysis-solution.json`：测试分析方案，schema `2.0`，结构为 `SC 场景树 -> TP 测试点`。
 - `deliverables/test-design-solution.json`：测试设计方案，schema `2.0`，结构为 `SC 场景树 -> TP 测试点 -> TC 测试用例`。
+- `process/scenario-tree.json`：测试分析中间事实源，schema `1.0`，只包含冻结 SC 树，不包含 `testPoints[]`。
+- `process/test-point-slices/<SC-ID>.json`：叶子 SC 的 TP 生成切片，schema `1.0`，通过脚本合并为分析方案。
+- `process/test-case-slices/<TP-ID>.json`：单个 TP 的 TC 生成切片，schema `1.0`，通过脚本合并为设计方案。
+- `generationContext`：写入 scenario-tree、slice、review 和 coverage JSON 的生成前工作包，包含阶段、目标、适用 rules 正文、可见动态来源、事实候选和读入计划；它不进入最终 deliverables。
 
 JSON 是 run 内过程产物、主交付件和 review/coverage 结果的唯一事实源；Markdown 是派生的人类阅读版，不手工维护。若 JSON 与 Markdown 不一致，以 JSON 为准，运行 `python bin/render-run-markdown.py outputs/runs/<run-id>` 重新渲染。
 
@@ -33,18 +37,34 @@ outputs/
         context-pack.md
         input-fact-model.json
         input-fact-model.md
+        scenario-tree.json
+        scenario-tree.md
+        test-point-work-items.json
+        test-point-work-items.md
+        test-point-slices/
+        test-case-work-items.json
+        test-case-work-items.md
+        test-case-slices/
       reports/
+        scenario-tree-review.json
+        scenario-tree-review.md
+        test-point-reviews/
+        test-case-reviews/
         test-analysis-solution-review.json
         test-analysis-solution-review.md
         test-design-solution-review.json
         test-design-solution-review.md
-        coverage-review.json
-        coverage-review.md
+        analysis-coverage-review.json
+        analysis-coverage-review.md
+        design-coverage-review.json
+        design-coverage-review.md
 ```
 
 Office 输入必须先通过 `@file-normalization-agent` 归一化为 Markdown。测试分析和测试设计 workflow 本身只消费已归一化 Markdown 或 JSON canonical 输入。
 
 `process/rules-pack.json` 是强制规则索引，独立记录 core/project/user rules 的路径、阶段可见性和加载策略；后续阶段必须筛选当前阶段可见的 `ruleSources[]` 并读取对应 Markdown 正文。`process/context-pack.json` 只索引 project/personal knowledge 和 memory 动态来源，不承载 rules 强制语义。
+
+生成阶段不得让 AI 自行拼装上下文。新 run 必须通过 `bin/init-scenario-tree.py`、`bin/init-test-point-slice.py`、`bin/init-test-case-slice.py`、`bin/build-generation-context.py` 或 `bin/init-report-artifact.py` 写入 `generationContext` 后再交给 AI 填写语义内容。coverage 缺口返工必须先运行 `bin/apply-coverage-gaps.py` 重开对应 work item。
 
 ## 测试分析主交付件
 

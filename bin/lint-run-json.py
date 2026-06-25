@@ -20,6 +20,37 @@ def has_any(run_dir: Path, relatives: list[str]) -> bool:
     return any((run_dir / relative).exists() for relative in relatives)
 
 
+def validate_coverage_gap_locations(run_dir: Path, relative: Path, data: dict) -> list[str]:
+    if data.get("artifactType") != "coverage-review":
+        return []
+    errors: list[str] = []
+    report_name = relative.as_posix()
+    scope = data.get("coverageScope")
+    if not scope:
+        if report_name.endswith("analysis-coverage-review.json"):
+            scope = "analysis"
+        elif report_name.endswith("design-coverage-review.json"):
+            scope = "design"
+    allowed_prefixes = {
+        "analysis": ("process/test-point-slices/",),
+        "design": ("process/test-case-slices/",),
+    }.get(scope, ("process/test-point-slices/", "process/test-case-slices/"))
+    for index, gap in enumerate(data.get("coverageGaps", []), start=1):
+        if not isinstance(gap, dict):
+            continue
+        location = str(gap.get("artifactLocation") or "").replace("\\", "/").strip()
+        if not location:
+            continue
+        if location.startswith(str(run_dir).replace("\\", "/").rstrip("/") + "/"):
+            location = location[len(str(run_dir).replace("\\", "/").rstrip("/") + "/") :]
+        if not any(location.startswith(prefix) for prefix in allowed_prefixes):
+            errors.append(f"{relative}: coverageGaps[{index}].artifactLocation 不符合 {scope or '未知'} 范围: {location}")
+            continue
+        if not (run_dir / location).exists():
+            errors.append(f"{relative}: coverageGaps[{index}].artifactLocation 指向的切片不存在: {location}")
+    return errors
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="校验 run 目录内 JSON canonical 产物")
     parser.add_argument("run_dir", type=Path, help="outputs/runs/<run-id>")
@@ -46,6 +77,12 @@ def main() -> int:
         errors.append("测试设计 run 缺少任务清单: process/design-task-list.json")
     if analysis_json.exists() and not (run_dir / "process" / "input-fact-model.json").exists():
         errors.append("测试分析 run 缺少固定 JSON 运行产物: process/input-fact-model.json")
+    if analysis_json.exists() and not (run_dir / "process" / "scenario-tree.json").exists():
+        errors.append("测试分析 run 缺少分层冻结产物: process/scenario-tree.json")
+    if analysis_json.exists() and not (run_dir / "process" / "test-point-work-items.json").exists():
+        errors.append("测试分析 run 缺少分层冻结产物: process/test-point-work-items.json")
+    if design_json.exists() and not (run_dir / "process" / "test-case-work-items.json").exists():
+        errors.append("测试设计 run 缺少分层冻结产物: process/test-case-work-items.json")
 
     json_files = [json_path for json_path, _markdown_path in collect_renderable_json_files(run_dir)]
     seen = set(json_files)
@@ -68,6 +105,7 @@ def main() -> int:
         artifact_errors, artifact_warnings = validate_artifact(data)
         errors.extend(f"{path.relative_to(run_dir)}: {error}" for error in artifact_errors)
         warnings.extend(f"{path.relative_to(run_dir)}: {warning}" for warning in artifact_warnings)
+        errors.extend(validate_coverage_gap_locations(run_dir, path.relative_to(run_dir), data))
 
     task_json = (
         run_dir / "process" / "analysis-task-list.json"

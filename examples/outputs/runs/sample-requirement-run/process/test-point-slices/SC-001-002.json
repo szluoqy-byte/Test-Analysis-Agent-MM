@@ -1,0 +1,91 @@
+{
+  "artifactType": "test-point-slice",
+  "schemaVersion": "1.0",
+  "title": "测试点切片 SC-001-002",
+  "runDir": "examples/outputs/runs/sample-requirement-run",
+  "workItemsSource": "examples/outputs/runs/sample-requirement-run/process/test-point-work-items.json",
+  "leafScenarioId": "SC-001-002",
+  "scenarioPath": [
+    {
+      "id": "SC-001",
+      "title": "订单取消业务流程"
+    },
+    {
+      "id": "SC-001-002",
+      "title": "重复取消与副作用控制"
+    }
+  ],
+  "instructions": [
+    "只在 scenario.testPoints[] 中填写本叶子 SC 的测试点。",
+    "不要新增、删除、合并或改写 SC。",
+    "testPoints[] 可以暂不填写全局 TP 编号，merge 脚本会统一重排。",
+    "每个叶子 SC 必须包含一个标题为 E2E场景测试 的测试点。"
+  ],
+  "scenario": {
+    "id": "SC-001-002",
+    "title": "重复取消与副作用控制",
+    "children": [],
+    "testPoints": [
+      {
+        "id": "TP-005",
+        "title": "E2E场景测试",
+        "objective": "验证订单首次取消成功后再次出现取消请求时，系统保持订单取消结果并控制库存释放副作用。",
+        "basisRefs": [
+          {
+            "source": "examples/requirements/sample-requirement.md",
+            "location": "重复取消",
+            "description": "重复提交取消请求不能重复释放库存。"
+          }
+        ]
+      },
+      {
+        "id": "TP-006",
+        "title": "取消请求幂等与库存副作用",
+        "objective": "验证同一订单重复或并发取消时，系统不会产生重复库存释放或重复取消记录等副作用。",
+        "basisRefs": [
+          {
+            "source": "examples/requirements/sample-requirement.md",
+            "location": "副作用控制",
+            "description": "库存不能重复释放。"
+          }
+        ]
+      }
+    ]
+  },
+  "rulesApplications": [],
+  "dynamicSourceApplications": [],
+  "generationContext": {
+    "stage": "test-analysis-solution-generation",
+    "targetType": "test-point-slice",
+    "targetId": "SC-001-002",
+    "coverageScope": "",
+    "inputArtifacts": [
+      "process/rules-pack.json",
+      "process/context-pack.json",
+      "process/input-fact-model.json"
+    ],
+    "applicableRules": [],
+    "visibleSources": [],
+    "relevantFacts": [
+      {
+        "事实ID": "FACT-003",
+        "来源": "需求：重复取消",
+        "对象/范围": "副作用控制",
+        "事实内容": "重复取消不能重复释放库存",
+        "约束/条件": "同一订单重复提交取消请求",
+        "可观察结果": "库存不重复释放"
+      }
+    ],
+    "constraints": [
+      "只填写当前叶子 SC 的 scenario.testPoints[]。",
+      "不得新增、删除、合并或改写 SC。",
+      "每个叶子 SC 必须包含一个标题为 E2E场景测试 的 TP。",
+      "TP 是验证目标，不输出 TC、步骤、测试数据或预期结果。"
+    ],
+    "readPlan": [
+      "读取 generationContext.applicableRules[] 中已内联的 test-analysis-solution-generation 适用 rules 正文并遵守。",
+      "按需读取 generationContext.visibleSources[] 指向的 project/personal 动态来源正文，并记录应用状态。",
+      "读取当前 test-point-slice 的 scenarioPath 与 relevantFacts[]，只生成当前叶子 SC 的 TP。"
+    ]
+  }
+}

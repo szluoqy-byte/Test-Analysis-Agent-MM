@@ -1,0 +1,69 @@
+{
+  "artifactType": "coverage-review",
+  "schemaVersion": "1.0",
+  "title": "测试设计覆盖审查结果",
+  "result": "通过",
+  "summary": "示例测试设计覆盖审查 JSON，确认每个 TP 已生成对应 TC，并保持对分析方案 SC/TP 的继承。",
+  "findings": [],
+  "blockingIssues": [],
+  "recommendations": [],
+  "evidenceRefs": [
+    "deliverables/test-design-solution.json",
+    "process/test-case-work-items.json",
+    "reports/test-design-solution-review.json"
+  ],
+  "generationContext": {
+    "stage": "coverage-review",
+    "targetType": "coverage-review",
+    "targetId": "coverage-review",
+    "coverageScope": "design",
+    "inputArtifacts": [
+      "process/rules-pack.json",
+      "process/context-pack.json",
+      "process/input-fact-model.json",
+      "examples/outputs/runs/sample-requirement-run/deliverables/test-design-solution.json"
+    ],
+    "applicableRules": [],
+    "visibleSources": [],
+    "relevantFacts": [
+      {
+        "事实ID": "FACT-001",
+        "来源": "需求：订单取消",
+        "对象/范围": "普通用户取消本人订单",
+        "事实内容": "用户在订单未完成前可以取消订单",
+        "约束/条件": "本人订单且订单未完成",
+        "可观察结果": "取消成功后订单不可继续支付，库存释放并记录取消原因"
+      },
+      {
+        "事实ID": "FACT-002",
+        "来源": "需求：订单取消",
+        "对象/范围": "权限控制",
+        "事实内容": "普通用户不能取消非本人订单",
+        "约束/条件": "订单归属不匹配",
+        "可观察结果": "取消失败"
+      }
+    ],
+    "constraints": [
+      "coverageGaps[].artifactLocation 必须指向可编辑 slice，不得指向 Markdown 或最终 deliverable。",
+      "coverage 只输出最终覆盖缺口和收口意见，不创建澄清流程。"
+    ],
+    "readPlan": [
+      "读取 generationContext.applicableRules[] 中已内联的 coverage-review 适用 rules 正文并遵守。",
+      "按需读取 generationContext.visibleSources[] 指向的 project/personal 动态来源正文，并记录应用状态。",
+      "读取主交付件、work items、slice 与 review 结果，输出覆盖收口结论。"
+    ]
+  },
+  "targetArtifact": "examples/outputs/runs/sample-requirement-run/deliverables/test-design-solution.json",
+  "coverageScope": "design",
+  "qualityGates": [
+    {
+      "gate": "确定性校验",
+      "result": "通过",
+      "description": "示例 fixture 已通过 lint/render/consistency。",
+      "recommendation": ""
+    }
+  ],
+  "rulesApplications": [],
+  "projectKnowledgeApplications": [],
+  "coverageGaps": []
+}

@@ -1,20 +1,22 @@
 ---
 name: test-design-solution-review
-description: 在确定性 lint 通过后，评审 schema 2.0 测试设计方案的 TC 粒度、步骤可执行性、测试数据明确性、预期依据和分析方案承接。
+description: 评审按 TP 生成的 TC 切片和最终 schema 2.0 测试设计方案的 TC 粒度、步骤可执行性、测试数据明确性、预期依据和分析方案承接。
 ---
 
 # 测试设计方案语义评审
 
-本 skill 是 `test-design-agent` 的产物级语义评审环节。结构、编号、JSON canonical 结构和 Markdown 语法以确定性脚本为准；本 skill 只评审语义质量。
+本 skill 是 `test-design-agent` 的产物级语义评审环节。结构、编号、JSON canonical 结构和 Markdown 语法以确定性脚本为准；本 skill 只评审语义质量。它先按 `process/test-case-slices/<TP-ID>.json` 评审单个 TP 下的 TC，再评审最终 `deliverables/test-design-solution.json`。
 
 ## 输入
 
 - `outputs/runs/<run-id>/deliverables/test-design-solution.json`
 - `outputs/runs/<run-id>/deliverables/test-analysis-solution.json`
+- `process/test-case-slices/<TP-ID>.json`
 - `bin/lint-run-json.py`、`bin/render-run-markdown.py --check` 和 `bin/lint-test-design-solution.py` 的执行结果
 - 归一化后的需求 Markdown 和可选设计方案 Markdown
 - `process/rules-pack.json`
 - `process/context-pack.json`
+- 目标评审 JSON 内的 `generationContext`；缺失时先运行 `bin/init-report-artifact.py`
 - `knowledge/test-design-solution-standard.md`
 
 ## 评审重点
@@ -34,4 +36,4 @@ description: 在确定性 lint 通过后，评审 schema 2.0 测试设计方案�
 
 ## 输出
 
-评审输出写入 `reports/test-design-solution-review.json`，结构以 `templates/review-report-json-template.json` 为准；如需人读版，由 `bin/render-run-markdown.py` 渲染。
+单个 TP 的 TC 切片评审写入 `reports/test-case-reviews/<TP-ID>.json`，汇总可写入 `reports/test-case-review.json`；最终设计方案评审写入 `reports/test-design-solution-review.json`。报告必须先由 `bin/init-report-artifact.py` 生成 skeleton 和 `generationContext`，AI 只填写语义结论字段；如需人读版，由 `bin/render-run-markdown.py` 渲染。

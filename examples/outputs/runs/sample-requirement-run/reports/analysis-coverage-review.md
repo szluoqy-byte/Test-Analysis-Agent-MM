@@ -3,6 +3,8 @@
 ## 1. 结论
 
 - result：通过
+- coverageScope：analysis
+- targetArtifact：examples/outputs/runs/sample-requirement-run/deliverables/test-analysis-solution.json
 - summary：示例覆盖审查 JSON，基于 JSON canonical 产物收口。
 
 ## 2. Findings
@@ -24,7 +26,9 @@
 
 ## 6. Quality Gates
 
-- 无记录
+| 门禁 | 结论 | 说明 | 建议 |
+|---|---|---|---|
+| 确定性校验 | 通过 | 示例 fixture 已通过 lint/render/consistency。 |  |
 
 ## 7. Rules Applications
 

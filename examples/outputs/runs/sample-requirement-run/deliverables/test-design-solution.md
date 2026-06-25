@@ -30,7 +30,7 @@
 | 字段 | 内容 |
 |---|---|
 | 验证目标 | 验证普通用户取消本人待支付订单时，取消请求、订单状态、支付限制、库存释放和取消原因记录能够形成完整业务闭环。 |
-| 依据引用 | 来源=deliverables/test-analysis-solution.json；位置=TP-001；说明=E2E场景测试 |
+| 依据引用 | 来源=examples/requirements/sample-requirement.md；位置=订单取消；说明=用户在订单未完成前可以取消订单，取消后不可继续支付并释放库存。 |
 
 ##### TC-001 普通用户取消本人待支付订单成功闭环
 
@@ -60,7 +60,7 @@
 | 字段 | 内容 |
 |---|---|
 | 验证目标 | 验证普通用户取消本人名下待支付订单时，系统允许取消并完成状态、库存和取消原因处理。 |
-| 依据引用 | 来源=deliverables/test-analysis-solution.json；位置=TP-002；说明=本人待支付订单允许取消 |
+| 依据引用 | 来源=examples/requirements/sample-requirement.md；位置=订单取消规则；说明=待支付本人订单允许取消。 |
 
 ##### TC-002 本人待支付订单取消被允许
 
@@ -90,7 +90,7 @@
 | 字段 | 内容 |
 |---|---|
 | 验证目标 | 验证普通用户尝试取消非本人订单时，系统能够识别订单归属不匹配并阻止取消。 |
-| 依据引用 | 来源=deliverables/test-analysis-solution.json；位置=TP-003；说明=非本人订单取消权限控制 |
+| 依据引用 | 来源=examples/requirements/sample-requirement.md；位置=权限约束；说明=普通用户只能取消自己的订单。 |
 
 ##### TC-003 用户 A 取消用户 B 的订单被拒绝
 
@@ -120,7 +120,7 @@
 | 字段 | 内容 |
 |---|---|
 | 验证目标 | 验证普通用户取消本人名下已发货订单时，系统按订单状态限制拒绝取消。 |
-| 依据引用 | 来源=deliverables/test-analysis-solution.json；位置=TP-004；说明=已发货订单取消状态限制 |
+| 依据引用 | 来源=examples/requirements/sample-requirement.md；位置=状态约束；说明=已发货订单不允许取消。 |
 
 ##### TC-004 本人已发货订单取消被拒绝
 
@@ -159,7 +159,7 @@
 | 字段 | 内容 |
 |---|---|
 | 验证目标 | 验证订单首次取消成功后再次出现取消请求时，系统保持订单取消结果并控制库存释放副作用。 |
-| 依据引用 | 来源=deliverables/test-analysis-solution.json；位置=TP-005；说明=重复取消 E2E |
+| 依据引用 | 来源=examples/requirements/sample-requirement.md；位置=重复取消；说明=重复提交取消请求不能重复释放库存。 |
 
 ##### TC-005 首次取消成功后重复取消不重复释放库存
 
@@ -189,7 +189,7 @@
 | 字段 | 内容 |
 |---|---|
 | 验证目标 | 验证同一订单重复或并发取消时，系统不会产生重复库存释放或重复取消记录等副作用。 |
-| 依据引用 | 来源=deliverables/test-analysis-solution.json；位置=TP-006；说明=取消请求幂等与库存副作用 |
+| 依据引用 | 来源=examples/requirements/sample-requirement.md；位置=副作用控制；说明=库存不能重复释放。 |
 
 ##### TC-006 同一订单并发取消只产生一次成功副作用
 
@@ -225,7 +225,7 @@
 | 字段 | 内容 |
 |---|---|
 | 验证目标 | 验证客服帮助用户对已支付未发货订单发起取消申请时，业务主流程可被完整追踪。 |
-| 依据引用 | 来源=deliverables/test-analysis-solution.json；位置=TP-007；说明=客服协助取消 E2E |
+| 依据引用 | 来源=examples/requirements/sample-requirement.md；位置=客服协助取消；说明=客服可以帮助用户对已支付未发货订单发起取消。 |
 
 #### TC-007 客服为已支付未发货订单发起取消申请
 
@@ -255,7 +255,7 @@
 | 字段 | 内容 |
 |---|---|
 | 验证目标 | 验证客服协助取消只覆盖已支付未发货订单，不扩大到需求未说明的售后、退款或物流拦截流程。 |
-| 依据引用 | 来源=deliverables/test-analysis-solution.json；位置=TP-008；说明=客服协助取消范围 |
+| 依据引用 | 来源=examples/requirements/sample-requirement.md；位置=客服协助取消；说明=已支付但未发货订单允许申请取消，需要客服审核。 |
 
 #### TC-008 客服不对已发货订单扩展协助取消范围
 

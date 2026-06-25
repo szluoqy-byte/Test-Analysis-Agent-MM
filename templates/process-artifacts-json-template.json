@@ -62,5 +62,100 @@
     "ruleSources": [],
     "unscannedProjectRules": [],
     "warnings": []
+  },
+  "scenarioTree": {
+    "artifactType": "scenario-tree",
+    "schemaVersion": "1.0",
+    "title": "冻结 SC 场景树",
+    "scope": [],
+    "scenarios": [],
+    "generationContext": {
+      "stage": "test-analysis-solution-generation",
+      "targetType": "scenario-tree",
+      "targetId": "scenario-tree",
+      "inputArtifacts": [],
+      "applicableRules": [],
+      "visibleSources": [],
+      "relevantFacts": [],
+      "constraints": [],
+      "readPlan": []
+    },
+    "rulesApplications": [],
+    "dynamicSourceApplications": []
+  },
+  "testPointWorkItems": {
+    "artifactType": "test-point-work-items",
+    "schemaVersion": "1.0",
+    "title": "测试点生成工作项索引",
+    "runDir": "",
+    "scenarioTreeSource": "process/scenario-tree.json",
+    "totalLeafScenarios": 0,
+    "workItems": []
+  },
+  "testPointSlice": {
+    "artifactType": "test-point-slice",
+    "schemaVersion": "1.0",
+    "title": "测试点切片 <SC-ID>",
+    "runDir": "",
+    "workItemsSource": "process/test-point-work-items.json",
+    "leafScenarioId": "<SC-ID>",
+    "scenarioPath": [],
+    "scenario": {
+      "id": "<SC-ID>",
+      "title": "",
+      "children": [],
+      "testPoints": []
+    },
+    "generationContext": {
+      "stage": "test-analysis-solution-generation",
+      "targetType": "test-point-slice",
+      "targetId": "<SC-ID>",
+      "inputArtifacts": [],
+      "applicableRules": [],
+      "visibleSources": [],
+      "relevantFacts": [],
+      "constraints": [],
+      "readPlan": []
+    },
+    "rulesApplications": [],
+    "dynamicSourceApplications": []
+  },
+  "testCaseWorkItems": {
+    "artifactType": "test-case-work-items",
+    "schemaVersion": "1.0",
+    "title": "测试用例生成工作项索引",
+    "runDir": "",
+    "analysisSource": "deliverables/test-analysis-solution.json",
+    "totalTestPoints": 0,
+    "workItems": []
+  },
+  "testCaseSlice": {
+    "artifactType": "test-case-slice",
+    "schemaVersion": "1.0",
+    "title": "测试用例切片 <TP-ID>",
+    "runDir": "",
+    "workItemsSource": "process/test-case-work-items.json",
+    "scenarioPath": [],
+    "leafScenarioId": "<SC-ID>",
+    "testPoint": {
+      "id": "<TP-ID>",
+      "title": "",
+      "objective": "",
+      "basisRefs": [],
+      "testCases": []
+    },
+    "generationContext": {
+      "stage": "test-design-solution-generation",
+      "targetType": "test-case-slice",
+      "targetId": "<TP-ID>",
+      "inputArtifacts": [],
+      "applicableRules": [],
+      "visibleSources": [],
+      "relevantFacts": [],
+      "constraints": [],
+      "readPlan": []
+    },
+    "rulesApplications": [],
+    "dynamicSourceApplications": []
   }
 }

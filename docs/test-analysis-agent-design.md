@@ -1,6 +1,6 @@
 # Test Analysis Agent 设计
 
-`test-analysis-agent` 基于已归一化 Markdown 需求文档和可选设计方案，生成 `SC 场景树 -> TP 测试点` 的测试分析方案。
+`test-analysis-agent` 基于已归一化 Markdown 需求文档和可选设计方案，生成 `SC 场景树 -> TP 测试点` 的测试分析方案。生成过程先冻结 SC 树，再按叶子 SC 生成 TP 切片。
 
 ## 边界
 
@@ -21,20 +21,36 @@ flowchart TD
   context --> facts["input-fact-modeling"]
   facts --> router["testing-method-router"]
   router --> methods["专项方法参考"]
-  methods --> generation["test-analysis-solution-generation"]
+  methods --> scenarioInit["init-scenario-tree / generationContext"]
+  scenarioInit --> scenario["scenario-tree.json"]
+  scenario --> scenarioReview["scenario-tree-review"]
+  scenarioReview --> slices["init-test-point-slice / generationContext"]
+  slices --> generation["merge test-analysis-solution.json"]
   generation --> lint["JSON/Markdown deterministic lint"]
-  lint --> review["test-analysis-solution-review"]
-  review --> coverage["coverage-review"]
+  lint --> reviewInit["init-report-artifact"]
+  reviewInit --> review["test-analysis-solution-review"]
+  review --> coverageInit["init-report-artifact"]
+  coverageInit --> coverage["coverage-review"]
+  coverage -->|apply-coverage-gaps 定位到 TP slice| slices
   coverage --> output["test-analysis-solution.json/.md"]
 ```
 
 ## 输出结构
 
-- `SC-*`：最多 3 层，只有叶子场景挂测试点。
-- `TP-*`：全局连续编号，每个叶子场景包含 `E2E场景测试`。
+- `SC-*`：最多 3 层，先在 `process/scenario-tree.json` 中冻结；该阶段不挂测试点。
+- `TP-*`：只在冻结后的叶子场景下生成，全局连续编号，每个叶子场景包含 `E2E场景测试`。
 - `basisRefs[]`：需求、设计、规则或动态来源依据。
 - 测试技术和专项方法只作为生成参考，不作为主交付字段；TP 通过 `basisRefs[]` 追溯需求、设计、规则或动态来源依据。
 - `process/rules-pack.json` 独立索引强制规则；后续阶段按 `ruleSources[]` 读取适用规则正文。`process/context-pack.json` 只索引 project/personal knowledge 和 memory 动态来源。
+- `generationContext`：由固定脚本写入 scenario-tree、TP slice 和 review/coverage JSON，只作为生成前工作包，不合并进最终交付件。
+
+## Coverage 返工闭环
+
+`coverage-review` 是最终全局门禁，不在中间切片阶段执行。若 `reports/analysis-coverage-review.json` 输出 `blockingIssues[]` 或 `coverageGaps[]`，必须通过 `coverageGaps[].artifactLocation` 定位到对应 `process/test-point-slices/<SC-ID>.json`，先运行 `bin/apply-coverage-gaps.py` 重开工作项后再修复。
+
+修复后重新执行：TP 切片 review -> `bin/merge-test-point-slice.py` -> deterministic lint/render -> 最终分析 review -> coverage-review -> `bin/check-artifact-consistency.py`。
+
+不得直接编辑最终 Markdown，也不得绕过切片回写直接手改 `deliverables/test-analysis-solution.json`。
 
 ## 校验
 

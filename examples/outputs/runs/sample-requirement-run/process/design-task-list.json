@@ -53,9 +53,9 @@
       "order": 6,
       "stage": "测试设计方案生成",
       "owner": "test-design-solution-generation",
-      "checkpoint": "deliverables/test-design-solution.json",
+      "checkpoint": "process/test-case-work-items.json、process/test-case-slices/<TP-ID>.json、deliverables/test-design-solution.json",
       "status": "done",
-      "evidence": "deliverables/test-design-solution.json"
+      "evidence": "process/test-case-work-items.json、process/test-case-slices/<TP-ID>.json、deliverables/test-design-solution.json"
     },
     {
       "order": 7,

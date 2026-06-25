@@ -22,8 +22,8 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 - 强制规则由 `process/rules-pack.json` 独立索引，后续每个阶段必须筛选当前阶段可见的 `ruleSources[]`，读取对应 Markdown 正文并遵守适用 rules。
 - project/personal knowledge 和 memory 扩展来源来自 `context-source-indexing` 生成的 `sources[]` 索引。
 - `input-fact-modeling` 负责建立统一输入事实模型。
-- `test-analysis-solution-generation` 负责生成 `SC-*` 场景树和 `TP-*` 测试点。
-- `test-analysis-solution-review` 负责语义评审，不重复结构、编号、字段和 Markdown 语法检查。
+- `test-analysis-solution-generation` 负责先生成并冻结 `SC-*` 场景树，再按每个叶子 SC 生成 `TP-*` 切片并合并。
+- `test-analysis-solution-review` 负责分段语义评审：先评审 SC 树，再评审 TP 覆盖和粒度，最后评审主交付件整体语义。
 - `coverage-review` 负责覆盖、追踪、rules-pack 和动态来源应用状态收口。
 - 主交付件事实源是 `outputs/runs/<run-id>/deliverables/test-analysis-solution.json`；人读版由 `bin/render-run-markdown.py` 生成。
 
@@ -31,18 +31,23 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 
 1. 校验输入至少包含一份 Markdown 需求文档；若发现 Office 输入，输出需先使用 `@file-normalization-agent` 的阻断说明，不创建测试分析 run。
 2. 固定 `PROJECT_ROOT`，运行 `python bin/generate-run-id.py` 生成本次运行 ID，并创建 `outputs/runs/<run-id>/deliverables/`、`process/`、`reports/` 和 `inputs/`。
-3. 使用 `templates/process-artifacts-json-template.json` 创建 `process/analysis-task-list.json`，并按阶段维护状态；不要覆盖历史 run 中可能由测试设计维护的 `process/design-task-list.json`。
+3. 使用 `templates/process-artifacts-json-template.json` 创建 `process/analysis-task-list.json`，并通过 `python bin/update-run-task.py outputs/runs/<run-id> --flow analysis ...` 维护状态；不要覆盖历史 run 中可能由测试设计维护的 `process/design-task-list.json`。
 4. 调用 `python bin/build-rules-pack.py ...` 生成 `process/rules-pack.json`，并把同一 `project-key` 传入脚本。
 5. 调用 `python skills/context-source-indexing/scripts/build-context-source-index.py ...` 生成 `process/context-pack.json`。
 6. 使用 `input-fact-modeling` 读取需求文档、可选设计方案文档、`process/rules-pack.json` 中当前阶段可见的规则正文，生成 `process/input-fact-model.json`。
 7. 使用 `testing-method-router` 基于输入事实模型和 `process/rules-pack.json` 中当前阶段可见的规则正文，对需求事实和设计事实进行测试技术路由。
-8. 使用路由选中的专项方法参考产出覆盖维度建议、测试点候选和按源补读记录；方法只作为生成参考，不要求最终 TP 完全来自或逐项绑定这些方法。
-9. 使用 `test-analysis-solution-generation` 读取 `process/rules-pack.json` 中当前阶段可见的规则正文后生成 `deliverables/test-analysis-solution.json`。主交付件使用 schema `2.0`，只包含 `SC-*` 和 `TP-*`。
-10. 运行 `bin/lint-run-json.py outputs/runs/<run-id>`。失败时先修正 JSON，不进入评审。
-11. 运行 `bin/render-run-markdown.py outputs/runs/<run-id>`，再运行 `bin/lint-test-analysis-solution.py outputs/runs/<run-id>/deliverables/test-analysis-solution.md`。
-12. 使用 `test-analysis-solution-review` 独立语义评审测试分析方案 JSON，评审结果写入 `reports/test-analysis-solution-review.json`。
-13. 使用 `coverage-review` 执行覆盖、追踪、rules-pack 应用、动态来源应用和过程门禁收口，结果写入 `reports/analysis-coverage-review.json`。
-14. 最终输出前刷新 `process/analysis-task-list.json`，运行 `bin/render-run-markdown.py` 和 `bin/check-artifact-consistency.py`。
+8. 使用路由选中的专项方法参考产出覆盖维度建议、候选 SC/TP 方向和按源补读记录；方法只作为生成参考，不要求最终 TP 完全来自或逐项绑定这些方法。
+9. 运行 `python bin/init-scenario-tree.py outputs/runs/<run-id>` 初始化带 `generationContext` 的 `process/scenario-tree.json`，再使用 `test-analysis-solution-generation` 读取 `generationContext` 和当前阶段可见来源，填写 `scope[]` 与 `scenarios[]`。该文件只允许 SC 树，不得包含 `testPoints[]`。
+10. 运行 `python bin/lint-scenario-tree.py outputs/runs/<run-id>/process/scenario-tree.json`，再运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type scenario-tree-review --force` 初始化评审骨架，并使用 `test-analysis-solution-review` 填写 `reports/scenario-tree-review.json`。SC review 通过后，后续阶段不得新增、删除、合并或改写 SC。
+11. 运行 `python bin/extract-test-point-work-items.py outputs/runs/<run-id>` 生成 `process/test-point-work-items.json`，再按每个叶子 SC 运行 `python bin/init-test-point-slice.py outputs/runs/<run-id> --leaf-sc <SC-ID>` 初始化 `process/test-point-slices/<SC-ID>.json`。
+12. 使用 `test-analysis-solution-generation` 逐个填写 `process/test-point-slices/<SC-ID>.json` 的 `scenario.testPoints[]`；每个切片必须读取当前阶段适用 rules 和动态来源，不得改写 SC。
+13. 对每个 TP 切片先运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-point-review --target outputs/runs/<run-id>/process/test-point-slices/<SC-ID>.json --output outputs/runs/<run-id>/reports/test-point-reviews/<SC-ID>.json --force` 初始化评审骨架，再使用 `test-analysis-solution-review` 执行覆盖和粒度评审；每个切片通过后运行 `python bin/merge-test-point-slice.py outputs/runs/<run-id> --slice outputs/runs/<run-id>/process/test-point-slices/<SC-ID>.json`，最终合并为 `deliverables/test-analysis-solution.json` 并统一全局 `TP-*` 编号。
+14. 所有叶子 SC 合并后，运行 `bin/lint-run-json.py outputs/runs/<run-id>`。失败时先修正 JSON，不进入最终评审。
+15. 运行 `bin/render-run-markdown.py outputs/runs/<run-id>`，再运行 `bin/lint-test-analysis-solution.py outputs/runs/<run-id>/deliverables/test-analysis-solution.md`。
+16. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-analysis-solution-review --force` 初始化最终评审骨架，再使用 `test-analysis-solution-review` 独立语义评审最终测试分析方案 JSON，评审结果写入 `reports/test-analysis-solution-review.json`。
+17. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind coverage --scope analysis --force` 初始化 coverage 骨架，再使用 `coverage-review` 执行覆盖、追踪、rules-pack 应用、动态来源应用和过程门禁收口，结果写入 `reports/analysis-coverage-review.json`。
+18. 如果 `reports/analysis-coverage-review.json` 中存在 `blockingIssues[]` 或 `coverageGaps[]`，必须先运行 `python bin/apply-coverage-gaps.py outputs/runs/<run-id> --scope analysis`，再按被重开的 `process/test-point-slices/<SC-ID>.json` 修复；不得直接编辑最终 Markdown，也不得跳过切片回写直接手改 `deliverables/test-analysis-solution.json`。修复后重新执行对应 TP 切片 review、`bin/merge-test-point-slice.py`、确定性校验、最终分析 review、coverage-review 和一致性检查。
+19. 最终输出前通过 `bin/update-run-task.py` 刷新 `process/analysis-task-list.json`，运行 `bin/render-run-markdown.py` 和 `bin/check-artifact-consistency.py`。
 
 ## 阶段产物契约
 
@@ -54,6 +59,8 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 | `input-fact-modeling` | `process/input-fact-model.json` | 测试技术路由、测试分析方案生成 |
 | `testing-method-router` | 测试技术路由表 | 专项方法参考、测试分析方案生成 |
 | 专项方法参考 | 覆盖维度建议、测试点候选 | 测试分析方案生成 |
+| `SC 树生成与评审` | `process/scenario-tree.json`、`reports/scenario-tree-review.json` | 叶子 SC 工作项生成 |
+| `TP 切片生成与评审` | `process/test-point-work-items.json`、`process/test-point-slices/<SC-ID>.json`、`reports/test-point-reviews/<SC-ID>.json`；可选汇总 `reports/test-point-review.json` | 测试分析方案合并 |
 | `test-analysis-solution-generation` | `deliverables/test-analysis-solution.json`、场景树、测试点 | JSON 校验 |
 | 确定性校验 | JSON lint、Markdown render、Markdown lint | 独立语义评审 |
 | `test-analysis-solution-review` | `reports/test-analysis-solution-review.json` | 覆盖审查 |
@@ -62,7 +69,8 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 ## 输出要求
 
 - 主输出使用 `templates/test-analysis-solution-json-template.json` 生成 JSON。
-- `scenarios[]` 是场景树，最多 3 层；非叶子场景只允许有 `children[]`，叶子场景必须有 `testPoints[]`。
+- `process/scenario-tree.json` 是冻结 SC 树，最多 3 层，任何层级都不得包含 `testPoints[]`。
+- `deliverables/test-analysis-solution.json` 的 `scenarios[]` 是场景树，最多 3 层；非叶子场景只允许有 `children[]`，叶子场景必须有 `testPoints[]`。
 - `TP-*` 全局连续编号，每个叶子场景必须包含 `E2E场景测试`。
 - `TP-*` 必须包含 `id`、`title`、`objective` 和 `basisRefs[]`。
 - 测试技术和专项方法是生成参考，不是主交付字段；不得在 `TP-*` 中输出 `methodRefs[]` 或方法字段表格。

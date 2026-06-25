@@ -19,8 +19,8 @@
 | 5 | 测试技术路由 | testing-method-router | 分析维度覆盖表、测试技术路由表、动态来源应用记录 | done | process/input-fact-model.json；process/rules-pack.json；process/context-pack.json |
 | 6 | 专项分析 | testing-method-router | 覆盖维度建议、测试点候选、补读记录 | done | deliverables/test-analysis-solution.json |
 | 7 | 按源补读 | testing-method-router | 按需补读记录、来源说明 | skipped | 示例未触发补读 |
-| 8 | 测试分析方案生成 | test-analysis-solution-generation | deliverables/test-analysis-solution.json、rules-pack 与动态来源应用记录 | done | deliverables/test-analysis-solution.json |
+| 8 | 测试分析方案生成 | test-analysis-solution-generation | process/scenario-tree.json、process/test-point-work-items.json、process/test-point-slices/{SC-ID}.json、deliverables/test-analysis-solution.json | done | deliverables/test-analysis-solution.json |
 | 9 | 确定性校验 | bin | lint-run-json.py、render-run-markdown.py、lint-test-analysis-solution.py 结果；失败不进入评审 | done | bin/lint-run-json.py；bin/render-run-markdown.py；bin/lint-test-analysis-solution.py |
 | 10 | 独立评审 | test-analysis-solution-review | 语义覆盖、测试点粒度、依据质量、事实溯源和分析边界 | done | reports/test-analysis-solution-review.json |
-| 11 | 覆盖审查 | coverage-review | 需求/方法/rules-pack/动态来源应用检查、阻断项；专家评分仅深度评估时执行 | done | reports/coverage-review.json |
+| 11 | 覆盖审查 | coverage-review | 需求/方法/rules-pack/动态来源应用检查、阻断项；专家评分仅深度评估时执行 | done | reports/analysis-coverage-review.json |
 | 12 | 输出收口 | test-analysis-workflow | 主交付件 JSON/Markdown 路径、review/coverage JSON 路径、check-artifact-consistency.py 结果 | done | deliverables/test-analysis-solution.json |

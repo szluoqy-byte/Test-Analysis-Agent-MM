@@ -63,9 +63,9 @@
               "objective": "验证普通用户取消本人待支付订单时，取消请求、订单状态、支付限制、库存释放和取消原因记录能够形成完整业务闭环。",
               "basisRefs": [
                 {
-                  "source": "deliverables/test-analysis-solution.json",
-                  "location": "TP-001",
-                  "description": "E2E场景测试"
+                  "source": "examples/requirements/sample-requirement.md",
+                  "location": "订单取消",
+                  "description": "用户在订单未完成前可以取消订单，取消后不可继续支付并释放库存。"
                 }
               ],
               "testCases": [
@@ -130,9 +130,9 @@
               "objective": "验证普通用户取消本人名下待支付订单时，系统允许取消并完成状态、库存和取消原因处理。",
               "basisRefs": [
                 {
-                  "source": "deliverables/test-analysis-solution.json",
-                  "location": "TP-002",
-                  "description": "本人待支付订单允许取消"
+                  "source": "examples/requirements/sample-requirement.md",
+                  "location": "订单取消规则",
+                  "description": "待支付本人订单允许取消。"
                 }
               ],
               "testCases": [
@@ -191,9 +191,9 @@
               "objective": "验证普通用户尝试取消非本人订单时，系统能够识别订单归属不匹配并阻止取消。",
               "basisRefs": [
                 {
-                  "source": "deliverables/test-analysis-solution.json",
-                  "location": "TP-003",
-                  "description": "非本人订单取消权限控制"
+                  "source": "examples/requirements/sample-requirement.md",
+                  "location": "权限约束",
+                  "description": "普通用户只能取消自己的订单。"
                 }
               ],
               "testCases": [
@@ -252,9 +252,9 @@
               "objective": "验证普通用户取消本人名下已发货订单时，系统按订单状态限制拒绝取消。",
               "basisRefs": [
                 {
-                  "source": "deliverables/test-analysis-solution.json",
-                  "location": "TP-004",
-                  "description": "已发货订单取消状态限制"
+                  "source": "examples/requirements/sample-requirement.md",
+                  "location": "状态约束",
+                  "description": "已发货订单不允许取消。"
                 }
               ],
               "testCases": [
@@ -337,9 +337,9 @@
               "objective": "验证订单首次取消成功后再次出现取消请求时，系统保持订单取消结果并控制库存释放副作用。",
               "basisRefs": [
                 {
-                  "source": "deliverables/test-analysis-solution.json",
-                  "location": "TP-005",
-                  "description": "重复取消 E2E"
+                  "source": "examples/requirements/sample-requirement.md",
+                  "location": "重复取消",
+                  "description": "重复提交取消请求不能重复释放库存。"
                 }
               ],
               "testCases": [
@@ -398,9 +398,9 @@
               "objective": "验证同一订单重复或并发取消时，系统不会产生重复库存释放或重复取消记录等副作用。",
               "basisRefs": [
                 {
-                  "source": "deliverables/test-analysis-solution.json",
-                  "location": "TP-006",
-                  "description": "取消请求幂等与库存副作用"
+                  "source": "examples/requirements/sample-requirement.md",
+                  "location": "副作用控制",
+                  "description": "库存不能重复释放。"
                 }
               ],
               "testCases": [
@@ -473,9 +473,9 @@
           "objective": "验证客服帮助用户对已支付未发货订单发起取消申请时，业务主流程可被完整追踪。",
           "basisRefs": [
             {
-              "source": "deliverables/test-analysis-solution.json",
-              "location": "TP-007",
-              "description": "客服协助取消 E2E"
+              "source": "examples/requirements/sample-requirement.md",
+              "location": "客服协助取消",
+              "description": "客服可以帮助用户对已支付未发货订单发起取消。"
             }
           ],
           "testCases": [
@@ -533,9 +533,9 @@
           "objective": "验证客服协助取消只覆盖已支付未发货订单，不扩大到需求未说明的售后、退款或物流拦截流程。",
           "basisRefs": [
             {
-              "source": "deliverables/test-analysis-solution.json",
-              "location": "TP-008",
-              "description": "客服协助取消范围"
+              "source": "examples/requirements/sample-requirement.md",
+              "location": "客服协助取消",
+              "description": "已支付但未发货订单允许申请取消，需要客服审核。"
             }
           ],
           "testCases": [
