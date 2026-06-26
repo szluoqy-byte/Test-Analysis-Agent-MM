@@ -7,6 +7,7 @@ import argparse
 import sys
 from pathlib import Path
 
+from encoding_utils import configure_stdio
 from run_artifacts import collect_renderable_json_files, load_json, validate_artifact
 
 
@@ -52,6 +53,7 @@ def validate_coverage_gap_locations(run_dir: Path, relative: Path, data: dict) -
 
 
 def main() -> int:
+    configure_stdio()
     parser = argparse.ArgumentParser(description="校验 run 目录内 JSON canonical 产物")
     parser.add_argument("run_dir", type=Path, help="outputs/runs/<run-id>")
     args = parser.parse_args()

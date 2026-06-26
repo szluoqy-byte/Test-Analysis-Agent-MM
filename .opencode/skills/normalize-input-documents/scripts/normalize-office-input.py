@@ -40,7 +40,7 @@ class ChineseArgumentParser(argparse.ArgumentParser):
 def configure_stdio() -> None:
     for stream in (sys.stdout, sys.stderr):
         try:
-            stream.reconfigure(encoding="utf-8")
+            stream.reconfigure(encoding="utf-8", errors="replace")
         except Exception:
             pass
 

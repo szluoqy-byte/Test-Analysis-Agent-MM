@@ -4,10 +4,11 @@
 from __future__ import annotations
 
 import argparse
-import os
 import subprocess
 import sys
 from pathlib import Path
+
+from encoding_utils import configure_stdio, utf8_env
 
 
 EXAMPLE_RUN_SUFFIX = "-run"
@@ -116,8 +117,7 @@ def example_run_dir(repo_root: Path, stem: str) -> Path:
 
 
 def run_command(cmd: list[str], cwd: Path) -> bool:
-    env = os.environ.copy()
-    env.setdefault("PYTHONIOENCODING", "utf-8")
+    env = utf8_env()
     result = subprocess.run(
         cmd,
         cwd=cwd,
@@ -171,6 +171,7 @@ def check_one_requirement(repo_root: Path, requirement: Path) -> bool:
 
 
 def main() -> int:
+    configure_stdio()
     parser = argparse.ArgumentParser(description="运行 Test Analysis Agent 的示例 smoke 检查")
     parser.add_argument("requirements", nargs="*", type=Path, help="需求 Markdown 路径，默认检查 examples/requirements/*.md")
     args = parser.parse_args()

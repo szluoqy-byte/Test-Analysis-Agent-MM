@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -52,7 +53,7 @@ class ChineseArgumentParser(argparse.ArgumentParser):
 def configure_stdio() -> None:
     for stream in (sys.stdout, sys.stderr):
         try:
-            stream.reconfigure(encoding="utf-8")
+            stream.reconfigure(encoding="utf-8", errors="replace")
         except Exception:
             pass
 
@@ -355,6 +356,9 @@ def render_markdown(run_dir: Path, root: Path) -> int:
         [sys.executable, str(script), str(run_dir)],
         cwd=root,
         text=True,
+        encoding="utf-8",
+        errors="replace",
+        env={**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"},
         capture_output=True,
     )
     if result.stdout.strip():

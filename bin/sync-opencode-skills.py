@@ -10,6 +10,8 @@ import shutil
 import sys
 from pathlib import Path
 
+from encoding_utils import configure_stdio
+
 
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 MIRROR_DIRS = (".opencode", ".testagent")
@@ -365,6 +367,7 @@ def mirror_secondary_static(root: Path, check: bool) -> int:
 
 
 def main() -> int:
+    configure_stdio()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="fail if mirror is stale")
     args = parser.parse_args()

@@ -7,6 +7,8 @@ import re
 import sys
 from pathlib import Path
 
+from encoding_utils import configure_stdio
+
 REQUIRED_SECTIONS = (
     "## 设计输入",
 )
@@ -37,6 +39,7 @@ def numbered_item_count(text: str) -> int:
 
 
 def main() -> int:
+    configure_stdio()
     if len(sys.argv) != 2:
         print("用法: lint-test-design-solution.py <test-design-solution.md>", file=sys.stderr)
         return 2
@@ -46,7 +49,7 @@ def main() -> int:
         print(f"失败: 文件不存在: {path}")
         return 1
 
-    text = path.read_text(encoding="utf-8")
+    text = path.read_text(encoding="utf-8", errors="replace")
     lines = text.splitlines()
     errors: list[str] = []
 

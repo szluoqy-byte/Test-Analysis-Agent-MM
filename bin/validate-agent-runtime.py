@@ -9,6 +9,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from encoding_utils import configure_stdio, subprocess_text_kwargs, utf8_env
+
 
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 PROJECT_KEY_RE = re.compile(r"^(?=.{1,64}$)[A-Za-z0-9](?:[A-Za-z0-9 _-]*[A-Za-z0-9])?$")
@@ -203,7 +205,8 @@ def validate_sync(root: Path, issues: list[str]) -> None:
     result = subprocess.run(
         [sys.executable, str(script), "--check"],
         cwd=root,
-        text=True,
+        env=utf8_env(),
+        **subprocess_text_kwargs(),
         capture_output=True,
     )
     if result.returncode != 0:
@@ -372,6 +375,7 @@ def validate_user_extension_dirs(root: Path, issues: list[str]) -> None:
 
 
 def main() -> int:
+    configure_stdio()
     root = Path(__file__).resolve().parents[1]
     issues: list[str] = []
 

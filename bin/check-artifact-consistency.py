@@ -452,7 +452,7 @@ def main() -> int:
         return 1
 
     repo_root = Path(__file__).resolve().parents[1]
-    child_env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+    child_env = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
     json_lint = subprocess.run(
         [sys.executable, str(repo_root / "bin" / "lint-run-json.py"), str(run_dir)],
         cwd=repo_root,

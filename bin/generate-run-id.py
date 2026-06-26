@@ -5,8 +5,11 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from encoding_utils import configure_stdio
+
 
 def main() -> int:
+    configure_stdio()
     print(datetime.now().strftime("%Y%m%d-%H%M%S"))
     return 0
 

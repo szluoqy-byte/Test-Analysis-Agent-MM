@@ -7,6 +7,8 @@ import re
 import sys
 from pathlib import Path
 
+from encoding_utils import configure_stdio
+
 REQUIRED_SECTIONS = (
     "## 1. 需求范围",
     "## 2. 测试场景与测试点",
@@ -47,6 +49,7 @@ def scenario_depth(scenario_id: str) -> int:
 
 
 def main() -> int:
+    configure_stdio()
     if len(sys.argv) != 2:
         print("用法: lint-test-analysis-solution.py <test-analysis-solution.md>", file=sys.stderr)
         return 2
@@ -56,7 +59,7 @@ def main() -> int:
         print(f"失败: 文件不存在: {path}")
         return 1
 
-    text = path.read_text(encoding="utf-8")
+    text = path.read_text(encoding="utf-8", errors="replace")
     lines = text.splitlines()
     errors: list[str] = []
 

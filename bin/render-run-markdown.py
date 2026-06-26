@@ -6,10 +6,12 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from encoding_utils import configure_stdio
 from run_artifacts import collect_renderable_json_files, load_json, render_json_artifact
 
 
 def main() -> int:
+    configure_stdio()
     parser = argparse.ArgumentParser(description="从 run JSON canonical 渲染 Markdown")
     parser.add_argument("run_dir", type=Path, help="outputs/runs/<run-id>")
     parser.add_argument("--check", action="store_true", help="只检查现有 Markdown 是否与 JSON 渲染结果一致")
@@ -38,7 +40,7 @@ def main() -> int:
             if not markdown_path.exists():
                 errors.append(f"缺少派生 Markdown: {markdown_path.relative_to(run_dir)}")
                 continue
-            current = markdown_path.read_text(encoding="utf-8")
+            current = markdown_path.read_text(encoding="utf-8", errors="replace")
             if current != rendered:
                 errors.append(f"派生 Markdown 已漂移: {markdown_path.relative_to(run_dir)}")
             continue
