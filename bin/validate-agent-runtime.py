@@ -41,6 +41,14 @@ FRAMEWORK_COMMANDS = {
     "commands/test-design-workflow.md": "test-design-workflow",
     "commands/normalize-input-documents.md": "normalize-input-documents",
 }
+REQUIRED_BIN_FILES = {
+    "apply-review-findings.py",
+    "check-staged-run.py",
+    "init-staged-slices.py",
+    "list-staged-work-items.py",
+    "merge-staged-slices.py",
+    "staged_workflow.py",
+}
 
 
 def fail(message: str, issues: list[str]) -> None:
@@ -198,6 +206,14 @@ def validate_frameworks(root: Path, issues: list[str]) -> None:
     for rules_file in ("AGENTS.md", "CLAUDE.md"):
         if not (root / rules_file).exists():
             fail(f"{rules_file} is missing", issues)
+
+
+def validate_bin_files(root: Path, issues: list[str]) -> None:
+    bin_dir = root / "bin"
+    for filename in sorted(REQUIRED_BIN_FILES):
+        path = bin_dir / filename
+        if not path.exists():
+            fail(f"required bin script {filename!r} is missing", issues)
 
 
 def validate_sync(root: Path, issues: list[str]) -> None:
@@ -383,6 +399,7 @@ def main() -> int:
     validate_agents(root, issues)
     validate_skills(root, issues)
     validate_frameworks(root, issues)
+    validate_bin_files(root, issues)
     validate_sync(root, issues)
     validate_rules_module(root, issues)
     validate_project_extension_dirs(root, issues)

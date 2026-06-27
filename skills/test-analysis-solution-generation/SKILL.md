@@ -5,7 +5,7 @@ description: 基于输入事实模型、测试技术路由参考、专项方法�
 
 # 测试分析方案生成
 
-本 skill 负责分析生成阶段，但不再一次性生成完整 SC+TP。它先生成 `process/scenario-tree.json` 冻结 SC 树，再按每个叶子 SC 填写 `process/test-point-slices/<SC-ID>.json`，最后通过固定脚本合并为 `deliverables/test-analysis-solution.json`。它不输出测试用例、测试数据、步骤或预期结果。
+本 skill 负责分析生成阶段，但不再一次性生成完整 SC+TP。它先生成 `process/scenario-tree.json` 冻结 SC 树，再按每个叶子 SC 填写 `process/test-point-slices/<SC-ID>.json`，最后由 workflow 调用 `bin/merge-staged-slices.py --scope analysis` 统一合并为 `deliverables/test-analysis-solution.json`。它不输出测试用例、测试数据、步骤或预期结果。
 
 ## 必读上下文
 
@@ -56,7 +56,7 @@ TP 阶段输出：
 outputs/runs/<run-id>/process/test-point-slices/<SC-ID>.json
 ```
 
-最终主输出由 `bin/merge-test-point-slice.py` 合并写入：
+最终主输出由 workflow 使用 `bin/merge-staged-slices.py --scope analysis` 合并写入：
 
 ```text
 outputs/runs/<run-id>/deliverables/test-analysis-solution.json

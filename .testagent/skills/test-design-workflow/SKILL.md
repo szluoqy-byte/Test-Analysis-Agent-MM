@@ -39,14 +39,14 @@ description: 当用户提供已评审测试分析方案，或要求从需求先�
 7. 读取或生成 `process/rules-pack.json`；如果缺失，必须调用 `bin/build-rules-pack.py` 生成，不能手工拼写 JSON。
 8. 读取或生成 `process/context-pack.json`；如果缺失，必须调用 `context-source-indexing` 脚本生成，不能手工拼写 JSON。
 9. 受控补读归一化后的原始需求 Markdown、设计方案 Markdown 或结构化过程记录中与当前分析方案相关的依据。
-10. 对每个 TP 运行 `python bin/init-test-case-slice.py outputs/runs/<run-id> --tp <TP-ID>` 初始化带 `generationContext` 的 `process/test-case-slices/<TP-ID>.json`。
+10. 运行 `python bin/init-staged-slices.py outputs/runs/<run-id> --scope design --pending` 批量初始化带 `generationContext` 的 `process/test-case-slices/<TP-ID>.json`；需要查看状态时运行 `python bin/list-staged-work-items.py outputs/runs/<run-id> --scope design --status all`。
 11. 使用 `test-design-solution-generation` 读取当前阶段可见 rules 正文和动态来源正文，只填写当前 TP 切片的 `testPoint.testCases[]`；不得新增、删除、合并或改写 SC/TP。
-12. 对每个 TC 切片先运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-case-review --target outputs/runs/<run-id>/process/test-case-slices/<TP-ID>.json --output outputs/runs/<run-id>/reports/test-case-reviews/<TP-ID>.json --force` 初始化评审骨架，再使用 `test-design-solution-review` 独立评审；通过后运行 `python bin/merge-test-case-slice.py outputs/runs/<run-id> --slice outputs/runs/<run-id>/process/test-case-slices/<TP-ID>.json`，合并进 `deliverables/test-design-solution.json` 并统一全局 `TC-*` 编号。
+12. 对每个 TC 切片先运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-case-review --target-id <TP-ID> --force` 初始化评审骨架，再使用 `test-design-solution-review` 独立评审；通过后可运行 `python bin/merge-staged-slices.py outputs/runs/<run-id> --scope design --ids <TP-ID>`，所有切片完成后运行 `python bin/merge-staged-slices.py outputs/runs/<run-id> --scope design --all`，合并进 `deliverables/test-design-solution.json` 并统一全局 `TC-*` 编号。
 13. 运行 `bin/lint-run-json.py`；失败时只修正 JSON canonical，不进入 Markdown 写作、最终独立评审或覆盖审查。
 14. 使用 `test-case-writing` 将 canonical JSON 写作为标准 Markdown，并运行 `bin/render-run-markdown.py --check` 和 `bin/lint-test-design-solution.py`；失败时回到 `test-design-solution.json` 修正后重新渲染，不手工编辑 Markdown。
 15. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-design-solution-review --force` 初始化最终评审骨架，再使用 `test-design-solution-review` 独立评审最终测试设计方案 JSON，结果写入 `reports/test-design-solution-review.json`；如发现必须修正的问题，回到第 11 步更新对应 TC 切片。
-16. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind coverage --scope design --force` 初始化 coverage 骨架，再使用 `coverage-review` 检查需求到测试点、测试点到测试用例的覆盖关系，结果写入 `reports/design-coverage-review.json`；如发现覆盖缺口，必须先运行 `python bin/apply-coverage-gaps.py outputs/runs/<run-id> --scope design`，再按被重开的 `process/test-case-slices/<TP-ID>.json` 修复。不得直接编辑最终 Markdown，也不得跳过切片回写直接手改 `deliverables/test-design-solution.json`；修复后重新执行对应 TC 切片 review、`bin/merge-test-case-slice.py`、确定性校验、最终设计 review、coverage-review 和一致性检查。
-17. 最终输出前通过 `bin/update-run-task.py` 刷新 `process/design-task-list.json`，运行 `test-case-writing` 的标准 Markdown 检查和 `bin/check-artifact-consistency.py`；失败时输出脚本失败项并修正对应 JSON 或 task-list，不停留在等待状态。
+16. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind coverage --scope design --force` 初始化 coverage 骨架，再使用 `coverage-review` 检查需求到测试点、测试点到测试用例的覆盖关系，结果写入 `reports/design-coverage-review.json`；如切片 review 或最终 review 存在 blocking findings/issues，先运行 `python bin/apply-review-findings.py outputs/runs/<run-id> --scope design --all` 重开对应工作项；如发现覆盖缺口，必须先运行 `python bin/apply-coverage-gaps.py outputs/runs/<run-id> --scope design`，再按被重开的 `process/test-case-slices/<TP-ID>.json` 修复。不得直接编辑最终 Markdown，也不得跳过切片回写直接手改 `deliverables/test-design-solution.json`；修复后重新执行对应 TC 切片 review、`bin/merge-staged-slices.py`、确定性校验、最终设计 review、coverage-review 和一致性检查。
+17. 最终输出前通过 `bin/update-run-task.py` 刷新 `process/design-task-list.json`，运行 `bin/check-staged-run.py outputs/runs/<run-id> --scope design`；失败时输出脚本失败项并修正对应 JSON 或 task-list，不停留在等待状态。
 
 ## 按 TP 切片模式
 
@@ -54,7 +54,7 @@ description: 当用户提供已评审测试分析方案，或要求从需求先�
 
 1. `process/test-case-work-items.json` 记录所有 TP 工作项。
 2. `process/test-case-slices/<TP-ID>.json` 是单个 TP 的可编辑 TC 骨架。
-3. `bin/merge-test-case-slice.py` 合并切片，并重新全局编号 `TC-*`。
+3. `bin/merge-staged-slices.py --scope design` 合并切片，并重新全局编号 `TC-*`。
 4. 所有 TP 工作项完成后，再进入 lint、Markdown render、review 和 coverage。
 
 旧的 design batch 过程产物不属于新流程兼容路径；新 run 不生成、不读取 `design-batch-decision.json`、`design-work-items.json` 或 `design-slices/`。
@@ -62,7 +62,7 @@ description: 当用户提供已评审测试分析方案，或要求从需求先�
 ## 脚本稳定性规则
 
 - design 流程不得临时创建 `.py`、`.js`、`.ps1`、`.bat` 或其他可执行脚本来拼接、修复或拆分 JSON。
-- 只能调用仓库固定脚本：`bin/build-rules-pack.py`、`bin/extract-test-case-work-items.py`、`bin/init-test-case-slice.py`、`bin/build-generation-context.py`、`bin/init-report-artifact.py`、`bin/apply-coverage-gaps.py`、`bin/update-run-task.py`、`bin/merge-test-case-slice.py`、`bin/lint-run-json.py`、`bin/render-run-markdown.py`、`bin/lint-test-design-solution.py` 和 `bin/check-artifact-consistency.py`。
+- 只能调用仓库固定脚本：`bin/build-rules-pack.py`、`bin/extract-test-case-work-items.py`、`bin/init-test-case-slice.py`、`bin/init-staged-slices.py`、`bin/list-staged-work-items.py`、`bin/build-generation-context.py`、`bin/init-report-artifact.py`、`bin/apply-review-findings.py`、`bin/apply-coverage-gaps.py`、`bin/update-run-task.py`、`bin/merge-test-case-slice.py`、`bin/merge-staged-slices.py`、`bin/check-staged-run.py`、`bin/lint-run-json.py`、`bin/render-run-markdown.py`、`bin/lint-test-design-solution.py` 和 `bin/check-artifact-consistency.py`。
 - 如果固定脚本能力不足，必须修改仓库 `bin/` 脚本并运行校验；不得在 `outputs/`、`process/`、`reports/`、临时目录或当前工作目录写一次性脚本。
 
 ## 防卡住规则

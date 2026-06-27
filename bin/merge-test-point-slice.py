@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from run_artifacts import dump_json, load_json
+from staged_workflow import render_markdown_for_json
 
 
 POINT_KEYS = {"id", "title", "objective", "basisRefs", "note"}
@@ -148,6 +149,7 @@ def update_work_items(run_dir: Path, leaf_id: str, slice_path: Path, root: Path)
             item["slicePath"] = rel_path(slice_path, root)
             item["mergedAt"] = now
     dump_json(path, data)
+    render_markdown_for_json(path)
     print(f"通过: 已更新 {rel_path(path, root)}")
 
 
@@ -187,6 +189,7 @@ def main() -> int:
         return 1
 
     dump_json(target_path, target)
+    render_markdown_for_json(target_path)
     print(f"通过: 已合并 {leaf_id} 到 {rel_path(target_path, root)}")
     update_work_items(run_dir, leaf_id, slice_path, root)
     return 0

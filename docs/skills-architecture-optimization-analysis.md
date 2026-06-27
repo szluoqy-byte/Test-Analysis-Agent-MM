@@ -15,10 +15,11 @@
 | 方法路由 | `testing-method-router` | 判断适用测试技术 | 方法参考记录 |
 | 分析生成 | `test-analysis-solution-generation` | 先生成冻结 SC 树，再按叶子 SC 生成 TP 切片并合并 | `scenario-tree.json` / 分析方案 |
 | 设计生成 | `test-design-solution-generation` | 按每个 `TP-*` 生成 TC 切片并合并 | `test-case-slices/` / 设计方案 |
+| 分段机械操作 | `bin/list-staged-work-items.py` / `bin/init-staged-slices.py` / `bin/merge-staged-slices.py` / `bin/check-staged-run.py` | 状态查看、批量初始化、批量合并和固定检查，避免临时脚本处理 JSON | work-items / slice / checks |
 | 用例写作 | `test-case-writing` | 从 canonical JSON 生成标准 Markdown 或扩展写作风格 | 派生阅读版/导出格式 |
 | 独立评审 | review skills | 语义质量评审 | review JSON |
 | 覆盖收口 | `coverage-review` | 需求到 TP、TP 到 TC 的覆盖审查 | coverage JSON |
-| 返工定位 | `bin/apply-coverage-gaps.py` | 将 coverage gap 定位到具体 slice 并重开 work item | work-items JSON |
+| 返工定位 | `bin/apply-review-findings.py` / `bin/apply-coverage-gaps.py` | 将 review blocking 或 coverage gap 定位到具体 slice 并重开 work item | work-items JSON |
 
 ## 核心原则
 
@@ -28,4 +29,4 @@
 - `generationContext` 是生成前工作包：脚本准备上下文，AI 只填当前工作单元的语义内容；它不进入最终 deliverables。
 - 分析阶段先冻结 SC 再展开 TP；设计阶段按 TP 展开 TC，且不改写分析层级。
 - 确定性结构问题交给 Python 脚本；模型评审只处理语义质量。
-- coverage-review 发现覆盖缺口后，必须先运行 `bin/apply-coverage-gaps.py`，通过 `coverageGaps[].artifactLocation` 回到对应 TP/TC 切片修复，再重新执行切片 review、脚本合并、最终 review、coverage 和一致性检查；不得直接编辑最终 Markdown 或绕过切片手改主交付件。
+- review 发现 blocking 或 coverage-review 发现覆盖缺口后，必须先运行 `bin/apply-review-findings.py` 或 `bin/apply-coverage-gaps.py`，通过结构化 location 回到对应 TP/TC 切片修复，再重新执行切片 review、脚本合并、最终 review、coverage 和一致性检查；不得直接编辑最终 Markdown、绕过切片手改主交付件或临时创建脚本处理 JSON。

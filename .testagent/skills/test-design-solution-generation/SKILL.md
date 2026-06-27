@@ -5,7 +5,7 @@ description: 基于已评审测试分析方案、需求/设计依据和可见动
 
 # 测试设计方案生成
 
-本 skill 负责测试设计生成阶段，但不再整包一次性生成所有 TC。它按 `process/test-case-work-items.json` 中的每个 `TP-*` 初始化并填写 `process/test-case-slices/<TP-ID>.json`，再由 `bin/merge-test-case-slice.py` 合并为 `deliverables/test-design-solution.json`。
+本 skill 负责测试设计生成阶段，但不再整包一次性生成所有 TC。它按 `process/test-case-work-items.json` 中的每个 `TP-*` 初始化并填写 `process/test-case-slices/<TP-ID>.json`，再由 workflow 调用 `bin/merge-staged-slices.py --scope design` 统一合并为 `deliverables/test-design-solution.json`。
 
 ## 必读上下文
 
@@ -67,7 +67,7 @@ outputs/runs/<run-id>/deliverables/test-design-solution.json
 - 叶子场景的 `testPoints[]` 继承 `id`、`title`、`objective`、`basisRefs[]`
 - 每个测试点下生成 `testCases[]`
 
-局部 JSON 由 `python bin/merge-test-case-slice.py outputs/runs/<run-id> --slice <slice-json>` 合并回主交付件；不要手工拼接主 JSON，不要临时创建 Python/JavaScript/PowerShell 脚本处理 JSON。
+局部 JSON 由 workflow 使用 `python bin/merge-staged-slices.py outputs/runs/<run-id> --scope design --ids <TP-ID>` 或 `--all` 合并回主交付件；不要手工拼接主 JSON，不要临时创建 Python/JavaScript/PowerShell 脚本处理 JSON。
 
 每个 TC 必须包含：
 

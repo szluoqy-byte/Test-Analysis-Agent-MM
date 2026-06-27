@@ -64,7 +64,7 @@ Office 输入必须先通过 `@file-normalization-agent` 归一化为 Markdown�
 
 `process/rules-pack.json` 是强制规则索引，独立记录 core/project/user rules 的路径、阶段可见性和加载策略；后续阶段必须筛选当前阶段可见的 `ruleSources[]` 并读取对应 Markdown 正文。`process/context-pack.json` 只索引 project/personal knowledge 和 memory 动态来源，不承载 rules 强制语义。
 
-生成阶段不得让 AI 自行拼装上下文。新 run 必须通过 `bin/init-scenario-tree.py`、`bin/init-test-point-slice.py`、`bin/init-test-case-slice.py`、`bin/build-generation-context.py` 或 `bin/init-report-artifact.py` 写入 `generationContext` 后再交给 AI 填写语义内容。coverage 缺口返工必须先运行 `bin/apply-coverage-gaps.py` 重开对应 work item。
+生成阶段不得让 AI 自行拼装上下文、循环处理切片或临时写脚本操作 JSON。新 run 必须通过 `bin/init-scenario-tree.py`、`bin/init-test-point-slice.py`、`bin/init-test-case-slice.py`、`bin/init-staged-slices.py`、`bin/build-generation-context.py` 或 `bin/init-report-artifact.py` 写入 `generationContext` 后再交给 AI 填写语义内容。review blocking 返工必须先运行 `bin/apply-review-findings.py` 重开对应 work item；coverage 缺口返工必须先运行 `bin/apply-coverage-gaps.py` 重开对应 work item。
 
 ## 测试分析主交付件
 

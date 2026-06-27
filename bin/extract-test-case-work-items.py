@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from run_artifacts import dump_json, load_json
+from staged_workflow import render_markdown_for_json
 
 
 def configure_stdio() -> None:
@@ -120,6 +121,7 @@ def main() -> int:
         "workItems": items,
     }
     dump_json(output_path, data)
+    render_markdown_for_json(output_path)
     print(f"通过: 已生成 {rel_path(output_path, root)}，TP {len(items)} 个")
     return 0
 

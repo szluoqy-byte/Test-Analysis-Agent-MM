@@ -39,15 +39,15 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 8. 使用路由选中的专项方法参考产出覆盖维度建议、候选 SC/TP 方向和按源补读记录；方法只作为生成参考，不要求最终 TP 完全来自或逐项绑定这些方法。
 9. 运行 `python bin/init-scenario-tree.py outputs/runs/<run-id>` 初始化带 `generationContext` 的 `process/scenario-tree.json`，再使用 `test-analysis-solution-generation` 读取 `generationContext` 和当前阶段可见来源，填写 `scope[]` 与 `scenarios[]`。该文件只允许 SC 树，不得包含 `testPoints[]`。
 10. 运行 `python bin/lint-scenario-tree.py outputs/runs/<run-id>/process/scenario-tree.json`，再运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type scenario-tree-review --force` 初始化评审骨架，并使用 `test-analysis-solution-review` 填写 `reports/scenario-tree-review.json`。SC review 通过后，后续阶段不得新增、删除、合并或改写 SC。
-11. 运行 `python bin/extract-test-point-work-items.py outputs/runs/<run-id>` 生成 `process/test-point-work-items.json`，再按每个叶子 SC 运行 `python bin/init-test-point-slice.py outputs/runs/<run-id> --leaf-sc <SC-ID>` 初始化 `process/test-point-slices/<SC-ID>.json`。
+11. 运行 `python bin/extract-test-point-work-items.py outputs/runs/<run-id>` 生成 `process/test-point-work-items.json`，再运行 `python bin/init-staged-slices.py outputs/runs/<run-id> --scope analysis --pending` 批量初始化 `process/test-point-slices/<SC-ID>.json`；需要查看状态时运行 `python bin/list-staged-work-items.py outputs/runs/<run-id> --scope analysis --status all`。
 12. 使用 `test-analysis-solution-generation` 逐个填写 `process/test-point-slices/<SC-ID>.json` 的 `scenario.testPoints[]`；每个切片必须读取当前阶段适用 rules 和动态来源，不得改写 SC。
-13. 对每个 TP 切片先运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-point-review --target outputs/runs/<run-id>/process/test-point-slices/<SC-ID>.json --output outputs/runs/<run-id>/reports/test-point-reviews/<SC-ID>.json --force` 初始化评审骨架，再使用 `test-analysis-solution-review` 执行覆盖和粒度评审；每个切片通过后运行 `python bin/merge-test-point-slice.py outputs/runs/<run-id> --slice outputs/runs/<run-id>/process/test-point-slices/<SC-ID>.json`，最终合并为 `deliverables/test-analysis-solution.json` 并统一全局 `TP-*` 编号。
+13. 对每个 TP 切片先运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-point-review --target-id <SC-ID> --force` 初始化评审骨架，再使用 `test-analysis-solution-review` 执行覆盖和粒度评审；切片通过后可运行 `python bin/merge-staged-slices.py outputs/runs/<run-id> --scope analysis --ids <SC-ID>`，所有切片完成后运行 `python bin/merge-staged-slices.py outputs/runs/<run-id> --scope analysis --all` 确保最终合并为 `deliverables/test-analysis-solution.json` 并统一全局 `TP-*` 编号。
 14. 所有叶子 SC 合并后，运行 `bin/lint-run-json.py outputs/runs/<run-id>`。失败时先修正 JSON，不进入最终评审。
 15. 运行 `bin/render-run-markdown.py outputs/runs/<run-id>`，再运行 `bin/lint-test-analysis-solution.py outputs/runs/<run-id>/deliverables/test-analysis-solution.md`。
 16. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-analysis-solution-review --force` 初始化最终评审骨架，再使用 `test-analysis-solution-review` 独立语义评审最终测试分析方案 JSON，评审结果写入 `reports/test-analysis-solution-review.json`。
 17. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind coverage --scope analysis --force` 初始化 coverage 骨架，再使用 `coverage-review` 执行覆盖、追踪、rules-pack 应用、动态来源应用和过程门禁收口，结果写入 `reports/analysis-coverage-review.json`。
-18. 如果 `reports/analysis-coverage-review.json` 中存在 `blockingIssues[]` 或 `coverageGaps[]`，必须先运行 `python bin/apply-coverage-gaps.py outputs/runs/<run-id> --scope analysis`，再按被重开的 `process/test-point-slices/<SC-ID>.json` 修复；不得直接编辑最终 Markdown，也不得跳过切片回写直接手改 `deliverables/test-analysis-solution.json`。修复后重新执行对应 TP 切片 review、`bin/merge-test-point-slice.py`、确定性校验、最终分析 review、coverage-review 和一致性检查。
-19. 最终输出前通过 `bin/update-run-task.py` 刷新 `process/analysis-task-list.json`，运行 `bin/render-run-markdown.py` 和 `bin/check-artifact-consistency.py`。
+18. 如果切片 review 或最终 review 存在 blocking findings/issues，先运行 `python bin/apply-review-findings.py outputs/runs/<run-id> --scope analysis --all` 重开对应工作项；如果 `reports/analysis-coverage-review.json` 中存在 `coverageGaps[]`，必须先运行 `python bin/apply-coverage-gaps.py outputs/runs/<run-id> --scope analysis`。之后按被重开的 `process/test-point-slices/<SC-ID>.json` 修复；不得直接编辑最终 Markdown，也不得跳过切片回写直接手改 `deliverables/test-analysis-solution.json`。修复后重新执行对应 TP 切片 review、`bin/merge-staged-slices.py`、确定性校验、最终分析 review、coverage-review 和一致性检查。
+19. 最终输出前通过 `bin/update-run-task.py` 刷新 `process/analysis-task-list.json`，运行 `bin/check-staged-run.py outputs/runs/<run-id> --scope analysis`。
 
 ## 阶段产物契约
 
@@ -65,6 +65,12 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 | 确定性校验 | JSON lint、Markdown render、Markdown lint | 独立语义评审 |
 | `test-analysis-solution-review` | `reports/test-analysis-solution-review.json` | 覆盖审查 |
 | `coverage-review` | `reports/analysis-coverage-review.json` | 输出收口 |
+
+## 脚本稳定性规则
+
+- analysis 流程不得临时创建 `.py`、`.js`、`.ps1`、`.bat` 或其他可执行脚本来拼接、修复、循环处理或拆分 JSON。
+- 只能调用仓库固定脚本：`bin/build-rules-pack.py`、`bin/extract-test-point-work-items.py`、`bin/init-test-point-slice.py`、`bin/init-staged-slices.py`、`bin/list-staged-work-items.py`、`bin/build-generation-context.py`、`bin/init-report-artifact.py`、`bin/apply-review-findings.py`、`bin/apply-coverage-gaps.py`、`bin/update-run-task.py`、`bin/merge-test-point-slice.py`、`bin/merge-staged-slices.py`、`bin/check-staged-run.py`、`bin/lint-run-json.py`、`bin/render-run-markdown.py`、`bin/lint-test-analysis-solution.py` 和 `bin/check-artifact-consistency.py`。
+- 如果固定脚本能力不足，必须修改仓库 `bin/` 脚本并运行校验；不得在 `outputs/`、`process/`、`reports/`、临时目录或当前工作目录写一次性脚本。
 
 ## 输出要求
 

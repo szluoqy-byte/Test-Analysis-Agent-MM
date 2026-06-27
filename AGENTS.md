@@ -54,7 +54,7 @@
 - 测试设计必须按每个已冻结 TP 生成 `process/test-case-slices/<TP-ID>.json`，评审后合并为 `deliverables/test-design-solution.json`。
 - `process/scenario-tree.json`、`process/test-point-slices/<SC-ID>.json`、`process/test-case-slices/<TP-ID>.json` 以及 review/coverage JSON 必须包含由固定脚本生成的 `generationContext`；它只用于生成前工作包、规则正文、动态来源索引和事实候选，不作为最终业务事实合并进 deliverables。
 - 测试设计流程固定按 `process/test-case-work-items.json` 和 `process/test-case-slices/<TP-ID>.json` 逐 TP 生成并合并，最终事实源仍是 `deliverables/test-design-solution.json`。
-- 测试设计流程不得临时生成 `.py`、`.js`、`.ps1`、`.bat` 或其他可执行脚本来处理 JSON；固定脚本能力不足时修改仓库 `bin/` 脚本并运行校验。
+- 测试分析和测试设计流程不得临时生成 `.py`、`.js`、`.ps1`、`.bat` 或其他可执行脚本来处理 JSON、循环切片、汇总状态或定位返工；固定脚本能力不足时修改仓库 `bin/` 脚本并运行校验。
 - 主交付件 schema 使用 `2.0`；process、review 和 coverage 产物继续使用各自当前 schema。
 - 新 run 只支持 schemaVersion 2.0；历史 run 需要按新模型重新生成。
 
@@ -74,6 +74,7 @@
 - 当用户要求把 `.docx` / `.xlsx` / `.md` 输入整理为可供下游读取的 Markdown 输入事实源时，使用 `@file-normalization-agent`。
 - 当用户要求基于需求和设计方案生成测试场景、测试点粒度的方案时，使用 `test-analysis-workflow`。该 workflow 只接受 Markdown 输入；Office 输入必须先归一化。
 - 测试分析阶段依次使用 `rules-pack`、`context-source-indexing`、`input-fact-modeling`、`testing-method-router`、路由选中的专项方法参考、`test-analysis-solution-generation` 生成冻结 SC 树、`test-analysis-solution-review` 评审 SC、按叶子 SC 生成并评审 TP 切片、合并分析方案、JSON lint、Markdown render、派生 Markdown lint、最终 `test-analysis-solution-review` 和 `coverage-review`。
+- 分段工作项状态查看、批量切片初始化、批量合并、review blocking 返工重开和分段 run 固定检查分别使用 `bin/list-staged-work-items.py`、`bin/init-staged-slices.py`、`bin/merge-staged-slices.py`、`bin/apply-review-findings.py` 和 `bin/check-staged-run.py`。
 - 覆盖审查产物按阶段拆分：测试分析写入 `reports/analysis-coverage-review.json/.md`，测试设计写入 `reports/design-coverage-review.json/.md`；历史 `reports/coverage-review.json/.md` 只作为兼容读取路径，不作为新流程写入目标。
 - coverage-review 发现覆盖缺口后，不直接编辑最终 Markdown 或主交付件 JSON；必须通过 `coverageGaps[].artifactLocation` 定位到 `process/test-point-slices/<SC-ID>.json` 或 `process/test-case-slices/<TP-ID>.json`，先运行 `bin/apply-coverage-gaps.py` 重开对应工作项，再修复切片并重新执行切片 review、脚本合并、最终 review、coverage 和一致性检查。
 - 当用户要求基于已评审测试分析方案生成测试用例时，使用 `test-design-workflow`。该 workflow 优先读取上游 `test-analysis-solution.json`。

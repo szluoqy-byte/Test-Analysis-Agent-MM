@@ -24,6 +24,7 @@
 - 测试分析生成必须先冻结 `process/scenario-tree.json`，再按叶子 SC 生成并合并 `process/test-point-slices/<SC-ID>.json`。
 - 测试设计生成必须按 TP 生成并合并 `process/test-case-slices/<TP-ID>.json`。
 - SC/TP/TC 过程 JSON 和 review/coverage JSON 必须包含固定脚本生成的 `generationContext`，用于生成前工作包、规则正文、动态来源索引和事实候选。
+- 分段工作项状态、批量切片初始化、批量合并、review blocking 返工重开和分段 run 固定检查使用仓库固定 `bin/` 脚本；不得临时创建脚本处理 JSON。
 - coverage 缺口必须先通过 `bin/apply-coverage-gaps.py` 重开对应 slice 工作项，再修复切片、评审、合并和收口。
 - `SC-*` 最多 3 层，只有叶子 SC 挂 `TP-*`；`TP-*` 全局连续；`TC-*` 全局连续。
 - 测试分析方案不输出测试用例、步骤、测试数据或预期结果。

@@ -15,8 +15,8 @@ flowchart TD
   rules --> context["context-source-indexing / reuse context-pack"]
   context --> basis["需求/设计依据补读"]
   basis --> workItems["test-case-work-items.json"]
-  workItems --> slices["init-test-case-slice / generationContext"]
-  slices --> generation["merge test-design-solution.json"]
+  workItems --> slices["init-staged-slices / generationContext"]
+  slices --> generation["merge-staged-slices / test-design-solution.json"]
   generation --> jsonlint["JSON deterministic lint"]
   jsonlint --> writing["test-case-writing"]
   writing --> lint["Markdown render/check"]
@@ -24,7 +24,7 @@ flowchart TD
   reviewInit --> review["test-design-solution-review"]
   review --> coverageInit["init-report-artifact"]
   coverageInit --> coverage["coverage-review"]
-  coverage -->|apply-coverage-gaps 定位到 TC slice| slices
+  coverage -->|apply-review-findings / apply-coverage-gaps 定位到 TC slice| slices
   coverage --> output["test-design-solution.json/.md"]
 ```
 
@@ -57,9 +57,9 @@ flowchart TD
 
 ## Coverage 返工闭环
 
-`coverage-review` 是最终全局门禁。若 `reports/design-coverage-review.json` 输出 `blockingIssues[]` 或 `coverageGaps[]`，必须通过 `coverageGaps[].artifactLocation` 定位到对应 `process/test-case-slices/<TP-ID>.json`，先运行 `bin/apply-coverage-gaps.py` 重开工作项后再修复。
+`coverage-review` 是最终全局门禁。若 review 输出 blocking findings/issues，必须先运行 `bin/apply-review-findings.py` 按 slice location 重开工作项；若 `reports/design-coverage-review.json` 输出 `coverageGaps[]`，必须通过 `coverageGaps[].artifactLocation` 定位到对应 `process/test-case-slices/<TP-ID>.json`，先运行 `bin/apply-coverage-gaps.py` 重开工作项后再修复。
 
-修复后重新执行：TC 切片 review -> `bin/merge-test-case-slice.py` -> deterministic lint/render -> 最终设计 review -> coverage-review -> `bin/check-artifact-consistency.py`。
+修复后重新执行：TC 切片 review -> `bin/merge-staged-slices.py --scope design` -> deterministic lint/render -> 最终设计 review -> coverage-review -> `bin/check-staged-run.py --scope design`。
 
 不得直接编辑最终 Markdown，也不得绕过切片回写直接手改 `deliverables/test-design-solution.json`。
 
@@ -69,3 +69,4 @@ flowchart TD
 - `python bin/render-run-markdown.py outputs/runs/<run-id> --check`
 - `python bin/lint-test-design-solution.py outputs/runs/<run-id>/deliverables/test-design-solution.md`
 - `python bin/check-artifact-consistency.py outputs/runs/<run-id>`
+- `python bin/check-staged-run.py outputs/runs/<run-id> --scope design`

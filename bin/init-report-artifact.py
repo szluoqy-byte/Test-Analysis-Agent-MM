@@ -15,6 +15,7 @@ from generation_context import (
     resolve_path,
 )
 from run_artifacts import dump_json
+from staged_workflow import render_markdown_for_json
 
 
 def configure_stdio() -> None:
@@ -39,6 +40,16 @@ def default_review_target(run_dir: Path, review_type: str) -> Path:
     raise ValueError(f"不支持的 review-type: {review_type}")
 
 
+def review_target_from_id(run_dir: Path, review_type: str, target_id: str) -> Path:
+    if not target_id:
+        return default_review_target(run_dir, review_type)
+    if review_type == "test-point-review":
+        return run_dir / "process" / "test-point-slices" / f"{target_id}.json"
+    if review_type == "test-case-review":
+        return run_dir / "process" / "test-case-slices" / f"{target_id}.json"
+    raise ValueError(f"{review_type} 不支持 --target-id")
+
+
 def default_coverage_target(run_dir: Path, scope: str) -> Path:
     if scope == "analysis":
         return run_dir / "deliverables" / "test-analysis-solution.json"
@@ -51,6 +62,16 @@ def default_output(run_dir: Path, kind: str, review_type: str, scope: str) -> Pa
     if kind == "review":
         return run_dir / "reports" / f"{review_type}.json"
     return run_dir / "reports" / f"{scope}-coverage-review.json"
+
+
+def review_output_from_id(run_dir: Path, review_type: str, target_id: str) -> Path:
+    if not target_id:
+        return default_output(run_dir, "review", review_type, "")
+    if review_type == "test-point-review":
+        return run_dir / "reports" / "test-point-reviews" / f"{target_id}.json"
+    if review_type == "test-case-review":
+        return run_dir / "reports" / "test-case-reviews" / f"{target_id}.json"
+    raise ValueError(f"{review_type} 不支持 --target-id")
 
 
 def review_title(review_type: str) -> str:
@@ -142,6 +163,7 @@ def main() -> int:
     parser.add_argument("--kind", required=True, choices=["review", "coverage"])
     parser.add_argument("--review-type", default="", choices=sorted(REVIEW_TYPES))
     parser.add_argument("--scope", default="", choices=["", "analysis", "design"])
+    parser.add_argument("--target-id", default="", help="切片评审目标 ID，例如 SC-001-001 或 TP-001")
     parser.add_argument("--target", type=Path, help="被评审/覆盖的 canonical JSON")
     parser.add_argument("--output", type=Path, help="输出报告 JSON")
     parser.add_argument("--force", action="store_true", help="覆盖已存在报告")
@@ -153,8 +175,16 @@ def main() -> int:
         if args.kind == "review":
             if not args.review_type:
                 raise ValueError("--kind review 必须提供 --review-type")
-            target = resolve_path(args.target, root) if args.target else default_review_target(run_dir, args.review_type)
-            output = resolve_path(args.output, root) if args.output else default_output(run_dir, "review", args.review_type, "")
+            target = (
+                resolve_path(args.target, root)
+                if args.target
+                else review_target_from_id(run_dir, args.review_type, args.target_id)
+            )
+            output = (
+                resolve_path(args.output, root)
+                if args.output
+                else review_output_from_id(run_dir, args.review_type, args.target_id)
+            )
             data = init_review(run_dir, root, args.review_type, target)
         else:
             if not args.scope:
@@ -173,6 +203,7 @@ def main() -> int:
         return 1
     output.parent.mkdir(parents=True, exist_ok=True)
     dump_json(output, data)
+    render_markdown_for_json(output)
     print(f"通过: 已生成 {rel_path(output, root)}")
     return 0
 

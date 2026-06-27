@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from run_artifacts import dump_json, load_json
+from staged_workflow import render_markdown_for_json
 
 
 def configure_stdio() -> None:
@@ -37,6 +38,9 @@ def rel_path(path: Path, root: Path) -> str:
 
 def normalize_location(location: str, run_dir: Path, root: Path) -> str:
     normalized = location.replace("\\", "/").strip()
+    run_abs_prefix = str(run_dir.resolve()).replace("\\", "/").rstrip("/") + "/"
+    if normalized.startswith(run_abs_prefix):
+        normalized = normalized[len(run_abs_prefix) :]
     run_rel_prefix = rel_path(run_dir, root).rstrip("/") + "/"
     if normalized.startswith(run_rel_prefix):
         normalized = normalized[len(run_rel_prefix) :]
@@ -164,6 +168,7 @@ def main() -> int:
     if errors:
         return 1
     if updated:
+        render_markdown_for_json(work_items_path(run_dir, scope))
         print("通过: 已重开工作项 " + "、".join(updated))
     else:
         print("通过: coverageGaps 为空，无需重开工作项")

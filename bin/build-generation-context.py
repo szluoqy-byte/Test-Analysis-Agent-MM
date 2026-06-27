@@ -16,6 +16,7 @@ from generation_context import (
     resolve_path,
 )
 from run_artifacts import dump_json
+from staged_workflow import render_markdown_for_json
 
 
 def configure_stdio() -> None:
@@ -98,6 +99,7 @@ def main() -> int:
             if args.kind == "coverage" and args.coverage_scope:
                 data["coverageScope"] = args.coverage_scope
             dump_json(target_path, data)
+        render_markdown_for_json(target_path)
     except ValueError as exc:
         print(f"失败: {exc}", file=sys.stderr)
         return 1

@@ -10,6 +10,7 @@ from typing import Any
 
 from generation_context import attach_generation_context, build_generation_context
 from run_artifacts import dump_json, load_json
+from staged_workflow import render_markdown_for_json
 
 
 def configure_stdio() -> None:
@@ -132,6 +133,7 @@ def main() -> int:
     if not args.no_generation_context:
         context = build_generation_context(run_dir, "test-case", output_path, target_id=tp_id)
         attach_generation_context(output_path, context)
+    render_markdown_for_json(output_path)
     print(f"通过: 已生成 {rel_path(output_path, root)}")
     return 0
 
