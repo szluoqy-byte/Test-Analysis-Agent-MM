@@ -23,13 +23,13 @@ description: 基于已评审测试分析方案、需求/设计依据和可见动
 ## 生成原则
 
 1. 完整继承分析方案的 `SC-*` 场景树和 `TP-*` 测试点，不新增、删除、合并或改写分析层级。
-2. 生成前必须确认当前 `process/test-case-slices/<TP-ID>.json` 已由固定脚本写入 `generationContext`；若缺失，先运行 `bin/init-test-case-slice.py` 或 `bin/build-generation-context.py` 生成，不手工拼写。
+2. 生成前必须确认当前 `process/test-case-slices/<TP-ID>.json` 已由固定脚本写入 `generationContext`；若缺失，先运行 `skills/test-design-solution-generation/scripts/init-test-case-slice.py` 或 `bin/build-generation-context.py` 生成，不手工拼写。
 3. 优先读取 `generationContext.applicableRules[]` 中已内联的本阶段 rules 正文；TC 粒度、覆盖策略、数据表达、预期依据和禁止项必须遵守适用 rules。
 4. 按 `generationContext.visibleSources[]` 判断本阶段可见动态来源；只读取与当前 TP 的测试用例设计有关的正文。
 5. 使用 `generationContext.relevantFacts[]` 作为当前 TP 的优先事实候选；如候选不足，可回读输入事实模型、需求或设计方案，但不得改写 SC/TP。
 6. 每次只处理一个 `process/test-case-slices/<TP-ID>.json`，只填写当前 `testPoint.testCases[]`。
 7. 每个 `TP-*` 至少生成 1 个 `TC-*`。
-8. `TC-*` 最终由 `bin/merge-test-case-slice.py` 全局连续编号，不按场景或测试点重置；切片内不得依赖局部编号作为事实。
+8. `TC-*` 最终由 `skills/test-design-solution-generation/scripts/merge-test-case-slice.py` 全局连续编号，不按场景或测试点重置；切片内不得依赖局部编号作为事实。
 9. TC 必须具体到可执行实例：明确用例级别、前置条件、测试数据、操作步骤、步骤预期和最终预期。
 10. 每个 TC 必须填写 `level`，取值只能是 `Level 0`、`Level 1`、`Level 2`、`Level 3`、`Level 4`，定义以 `knowledge/test-design-solution-standard.md` 为准。
 11. `testData[]` 使用 `{name, value, description}` 数组，必须给出具体值或稳定数据槽位。
@@ -52,7 +52,7 @@ description: 基于已评审测试分析方案、需求/设计依据和可见动
 outputs/runs/<run-id>/process/test-case-slices/<TP-ID>.json
 ```
 
-最终主输出由 `bin/merge-test-case-slice.py` 合并写入：
+最终主输出由 workflow 使用 `bin/merge-staged-slices.py --scope design` 调用底层切片合并脚本后写入：
 
 ```text
 outputs/runs/<run-id>/deliverables/test-design-solution.json

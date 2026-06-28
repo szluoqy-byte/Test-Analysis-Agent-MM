@@ -8,6 +8,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
+BIN_DIR = Path(__file__).resolve().parents[3] / "bin"
+if str(BIN_DIR) not in sys.path:
+    sys.path.insert(0, str(BIN_DIR))
+
 from generation_context import attach_generation_context, build_generation_context
 from run_artifacts import dump_json, load_json
 from staged_workflow import render_markdown_for_json
@@ -22,7 +26,7 @@ def configure_stdio() -> None:
 
 
 def repo_root() -> Path:
-    return Path(__file__).resolve().parents[1]
+    return Path(__file__).resolve().parents[3]
 
 
 def resolve_path(path: Path, root: Path) -> Path:
@@ -81,7 +85,8 @@ def main() -> int:
     if not work_items_path.exists():
         print(
             "失败: 工作项索引不存在，请先运行 "
-            f"python bin/extract-test-case-work-items.py {rel_path(run_dir, root)}",
+            "python skills/test-design-solution-generation/scripts/extract-test-case-work-items.py "
+            f"{rel_path(run_dir, root)}",
             file=sys.stderr,
         )
         return 1

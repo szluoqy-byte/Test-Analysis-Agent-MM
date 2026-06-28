@@ -24,7 +24,7 @@ description: 基于输入事实模型、测试技术路由参考、专项方法�
 
 ## 生成原则
 
-1. 每个内部阶段开始前，必须先确认目标 JSON 已由固定脚本写入 `generationContext`；若缺失，先运行 `bin/init-scenario-tree.py`、`bin/init-test-point-slice.py` 或 `bin/build-generation-context.py` 生成，不手工拼写。
+1. 每个内部阶段开始前，必须先确认目标 JSON 已由固定脚本写入 `generationContext`；若缺失，先运行 `skills/test-analysis-solution-generation/scripts/init-scenario-tree.py`、`skills/test-analysis-solution-generation/scripts/init-test-point-slice.py` 或 `bin/build-generation-context.py` 生成，不手工拼写。
 2. 优先读取 `generationContext.applicableRules[]` 中已内联的本阶段 rules 正文；这些 rules 是强制约束。
 3. 按 `generationContext.visibleSources[]` 判断本阶段可见动态来源；只读取与 SC 建模或 TP 生成有关的正文，并在过程产物或 review/coverage 中记录应用状态。
 4. 使用 `generationContext.relevantFacts[]` 作为当前工作单元的优先事实候选；如候选不足，可回读 `process/input-fact-model.json` 和输入 Markdown，但不得跳出当前 SC/TP 工作边界。
@@ -34,7 +34,7 @@ description: 基于输入事实模型、测试技术路由参考、专项方法�
 8. 运行固定脚本生成 `process/test-point-work-items.json`，每个叶子 SC 对应一个 TP 切片。
 9. 每个 `process/test-point-slices/<SC-ID>.json` 只填写当前叶子 SC 的 `scenario.testPoints[]`。
 10. 每个叶子场景必须包含一个 `E2E场景测试` 测试点。
-11. `TP-*` 最终由 `bin/merge-test-point-slice.py` 全局连续编号，不按场景重置；切片内不得依赖局部编号作为事实。
+11. `TP-*` 最终由 `skills/test-analysis-solution-generation/scripts/merge-test-point-slice.py` 全局连续编号，不按场景重置；切片内不得依赖局部编号作为事实。
 12. `TP-*` 是验证目标，不是具体测试用例标题；它表达规则、路径、状态、权限、接口契约或风险。
 13. 接口类场景下的非 E2E `TP-*` 应先定位接口、端点、消息、回调或集成点，再表达契约关注点。
 14. 不输出 `expectedResult`。具体预期属于设计阶段 TC。

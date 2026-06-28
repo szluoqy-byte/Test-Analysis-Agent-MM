@@ -9,6 +9,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
+BIN_DIR = Path(__file__).resolve().parents[3] / "bin"
+if str(BIN_DIR) not in sys.path:
+    sys.path.insert(0, str(BIN_DIR))
+
 from run_artifacts import load_json
 
 

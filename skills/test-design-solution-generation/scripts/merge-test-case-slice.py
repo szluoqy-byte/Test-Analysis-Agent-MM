@@ -10,6 +10,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
+BIN_DIR = Path(__file__).resolve().parents[3] / "bin"
+if str(BIN_DIR) not in sys.path:
+    sys.path.insert(0, str(BIN_DIR))
+
 from run_artifacts import dump_json, load_json
 from staged_workflow import render_markdown_for_json
 
@@ -27,7 +31,7 @@ def configure_stdio() -> None:
 
 
 def repo_root() -> Path:
-    return Path(__file__).resolve().parents[1]
+    return Path(__file__).resolve().parents[3]
 
 
 def resolve_path(path: Path, root: Path) -> Path:
