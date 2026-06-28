@@ -1,0 +1,1409 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SC-TP-TC JSON Editor Prototype</title>
+  <style>
+    :root {
+      --bg: #f7f8fa;
+      --panel: #ffffff;
+      --line: #d8dde6;
+      --text: #1f2937;
+      --muted: #667085;
+      --primary: #0f766e;
+      --primary-dark: #115e59;
+      --danger: #b42318;
+      --warn-bg: #fff7ed;
+      --warn-line: #fed7aa;
+      --focus: #99f6e4;
+      --code: #111827;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      overflow: hidden;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    .app {
+      height: 100vh;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      overflow: hidden;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .brand {
+      min-width: 0;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 650;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .json-panel {
+      border-bottom: 1px solid var(--line);
+      background: #0f172a;
+    }
+
+    .json-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 16px;
+      color: #e5e7eb;
+    }
+
+    .json-panel-header strong {
+      font-size: 13px;
+    }
+
+    .json-panel .json-view {
+      max-height: 44vh;
+      min-height: 240px;
+      margin: 0 16px 16px;
+      border-color: #334155;
+    }
+
+    .shell {
+      min-height: 0;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: minmax(280px, 34vw) 1fr;
+    }
+
+    .tree-pane {
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      border-right: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .tree-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .tree-header strong {
+      font-size: 13px;
+    }
+
+    .tree {
+      min-height: 0;
+      overflow: auto;
+      padding: 8px 8px 24px;
+      overscroll-behavior: contain;
+    }
+
+    .tree-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .tree-list .tree-list {
+      margin-left: 18px;
+      border-left: 1px solid #e5e7eb;
+      padding-left: 8px;
+    }
+
+    .tree-row {
+      min-height: 34px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 4px;
+      margin: 2px 0;
+      border: 1px solid transparent;
+      border-radius: 6px;
+    }
+
+    .tree-row.selected {
+      background: #ecfdf5;
+      border-color: #99f6e4;
+    }
+
+    .node-main {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 6px;
+      border: 0;
+      background: transparent;
+      text-align: left;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .tree-toggle {
+      width: 22px;
+      height: 26px;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 12px;
+      line-height: 1;
+    }
+
+    .tree-toggle:hover {
+      background: #f3f4f6;
+      color: var(--text);
+    }
+
+    .node-main:focus-visible,
+    .icon-button:focus-visible,
+    .button:focus-visible,
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: 2px solid var(--focus);
+      outline-offset: 1px;
+    }
+
+    .node-id {
+      flex: 0 0 auto;
+      min-width: 58px;
+      color: var(--primary-dark);
+      font-size: 12px;
+      font-weight: 650;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .node-title {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .node-kind {
+      flex: 0 0 auto;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .node-actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      padding-right: 4px;
+    }
+
+    .icon-button,
+    .button {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--text);
+      cursor: pointer;
+      border-radius: 6px;
+    }
+
+    .icon-button {
+      width: 28px;
+      height: 26px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      font-weight: 650;
+      line-height: 1;
+    }
+
+    .button {
+      min-height: 32px;
+      padding: 5px 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .button.primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #ffffff;
+    }
+
+    .button.danger,
+    .icon-button.danger {
+      color: var(--danger);
+    }
+
+    .button:hover,
+    .icon-button:hover {
+      border-color: #9ca3af;
+      background: #f9fafb;
+    }
+
+    .button.primary:hover {
+      background: var(--primary-dark);
+      border-color: var(--primary-dark);
+    }
+
+    .detail-pane {
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      overflow: hidden;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 2px;
+      padding: 8px 12px 0;
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .tab {
+      min-height: 34px;
+      padding: 6px 12px;
+      border: 1px solid transparent;
+      border-bottom: 0;
+      background: transparent;
+      border-radius: 6px 6px 0 0;
+      cursor: pointer;
+      color: var(--muted);
+    }
+
+    .tab.active {
+      color: var(--text);
+      background: var(--bg);
+      border-color: var(--line);
+      font-weight: 650;
+    }
+
+    .object-link {
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: var(--primary-dark);
+      cursor: pointer;
+      font-weight: 650;
+    }
+
+    .object-link:hover {
+      text-decoration: underline;
+    }
+
+    .content {
+      min-height: 0;
+      overflow: auto;
+      padding: 16px;
+      overscroll-behavior: contain;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: minmax(160px, 220px) 1fr;
+      gap: 12px 14px;
+      align-items: start;
+      max-width: 1100px;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 12px;
+      padding-top: 8px;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #ffffff;
+      color: var(--text);
+      padding: 7px 9px;
+    }
+
+    textarea {
+      min-height: 84px;
+      resize: vertical;
+    }
+
+    .section {
+      max-width: 1100px;
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+      border: 1px solid var(--line);
+    }
+
+    .table th,
+    .table td {
+      border-bottom: 1px solid var(--line);
+      padding: 8px;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    .table th {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      background: #f9fafb;
+    }
+
+    .table tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .empty {
+      padding: 20px;
+      color: var(--muted);
+      border: 1px dashed var(--line);
+      border-radius: 6px;
+      background: #ffffff;
+    }
+
+    .json-view {
+      min-height: calc(100vh - 160px);
+      margin: 0;
+      padding: 14px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--code);
+      color: #e5e7eb;
+      font-size: 12px;
+      line-height: 1.45;
+      white-space: pre;
+    }
+
+    .notice {
+      max-width: 1100px;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      border: 1px solid var(--warn-line);
+      border-radius: 6px;
+      background: var(--warn-bg);
+      color: #7c2d12;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 860px) {
+      .shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(260px, 42vh) 1fr;
+      }
+
+      .tree-pane {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      label {
+        padding-top: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <h1>测试分析设计编辑器</h1>
+        <p>左侧维护场景树与测试设计层级，右侧编辑当前节点详情</p>
+      </div>
+      <div class="toolbar">
+        <input id="fileInput" class="hidden" type="file" accept="application/json,.json">
+        <button class="button" id="importButton" type="button">导入 JSON</button>
+        <button class="button" id="exportButton" type="button">导出 JSON</button>
+        <button class="button" id="copyButton" type="button">复制 JSON</button>
+        <button class="button" id="toggleJsonButton" type="button">JSON 预览</button>
+        <button class="button" id="resetButton" type="button">新建空白</button>
+      </div>
+    </header>
+
+    <section class="json-panel hidden" id="jsonPanel">
+      <div class="json-panel-header">
+        <strong>JSON 预览</strong>
+        <button class="button" id="closeJsonButton" type="button">关闭</button>
+      </div>
+      <pre id="jsonView" class="json-view"></pre>
+    </section>
+
+    <main class="shell">
+      <aside class="tree-pane">
+        <div class="tree-header">
+          <strong>结构树</strong>
+          <button class="button primary" id="addRootSc" type="button">+ SC</button>
+        </div>
+        <div class="tree" id="tree"></div>
+      </aside>
+
+      <section class="detail-pane">
+        <nav class="tabs" id="detailTabs"></nav>
+        <div class="content">
+          <div id="detailView"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const emptyData = {
+      artifactType: "test-design-solution",
+      schemaVersion: "2.0",
+      title: "",
+      inputs: [],
+      scenarios: []
+    };
+
+    const draftStorageKey = "test-analysis-design-editor:draft:v1";
+    const savedDraft = loadDraft();
+
+    let data = savedDraft ? savedDraft.data : clone(emptyData);
+    let selected = savedDraft ? savedDraft.selected : null;
+    let activeDetailTab = savedDraft ? savedDraft.activeDetailTab : "detail";
+    const collapsedNodes = new Set(savedDraft ? savedDraft.collapsedNodes : []);
+
+    const treeEl = document.getElementById("tree");
+    const detailTabs = document.getElementById("detailTabs");
+    const detailView = document.getElementById("detailView");
+    const jsonView = document.getElementById("jsonView");
+    const jsonPanel = document.getElementById("jsonPanel");
+
+    if (savedDraft && savedDraft.jsonPanelOpen) {
+      jsonPanel.classList.remove("hidden");
+    }
+
+    function clone(value) {
+      return JSON.parse(JSON.stringify(value));
+    }
+
+    function loadDraft() {
+      try {
+        const raw = localStorage.getItem(draftStorageKey);
+        if (!raw) return null;
+        const draft = JSON.parse(raw);
+        if (!draft || !draft.data || !Array.isArray(draft.data.scenarios)) return null;
+        return {
+          data: draft.data,
+          selected: draft.selected || null,
+          activeDetailTab: draft.activeDetailTab || "detail",
+          collapsedNodes: Array.isArray(draft.collapsedNodes) ? draft.collapsedNodes : [],
+          jsonPanelOpen: Boolean(draft.jsonPanelOpen)
+        };
+      } catch (error) {
+        console.warn("无法读取本地草稿", error);
+        return null;
+      }
+    }
+
+    function saveDraft() {
+      try {
+        localStorage.setItem(draftStorageKey, JSON.stringify({
+          data,
+          selected,
+          activeDetailTab,
+          collapsedNodes: Array.from(collapsedNodes),
+          jsonPanelOpen: !jsonPanel.classList.contains("hidden"),
+          savedAt: new Date().toISOString()
+        }));
+      } catch (error) {
+        console.warn("无法保存本地草稿", error);
+      }
+    }
+
+    function walkScenarios(callback, nodes = data.scenarios, parent = null) {
+      for (const node of nodes) {
+        callback(node, parent, nodes);
+        if (Array.isArray(node.children) && node.children.length) {
+          walkScenarios(callback, node.children, node);
+        }
+      }
+    }
+
+    function findScenario(id) {
+      let result = null;
+      walkScenarios((node, parent, siblings) => {
+        if (node.id === id) result = { node, parent, siblings };
+      });
+      return result;
+    }
+
+    function findTestPoint(id) {
+      let result = null;
+      walkScenarios((scenario) => {
+        for (const point of scenario.testPoints || []) {
+          if (point.id === id) result = { node: point, scenario };
+        }
+      });
+      return result;
+    }
+
+    function findTestCase(id) {
+      let result = null;
+      walkScenarios((scenario) => {
+        for (const point of scenario.testPoints || []) {
+          for (const testCase of point.testCases || []) {
+            if (testCase.id === id) result = { node: testCase, point, scenario };
+          }
+        }
+      });
+      return result;
+    }
+
+    function selectedNode() {
+      if (!selected) return null;
+      if (selected.type === "scenario") return findScenario(selected.id);
+      if (selected.type === "testPoint") return findTestPoint(selected.id);
+      if (selected.type === "testCase") return findTestCase(selected.id);
+      return null;
+    }
+
+    function nodeKey(type, id) {
+      return type + ":" + id;
+    }
+
+    function resetCollapseDefaults() {
+      collapsedNodes.clear();
+      walkScenarios((scenario) => {
+        for (const point of scenario.testPoints || []) {
+          collapsedNodes.add(nodeKey("testPoint", point.id));
+        }
+      });
+    }
+
+    function isCollapsed(type, id) {
+      return collapsedNodes.has(nodeKey(type, id));
+    }
+
+    function toggleCollapsed(type, id) {
+      const key = nodeKey(type, id);
+      if (collapsedNodes.has(key)) collapsedNodes.delete(key);
+      else collapsedNodes.add(key);
+      renderTree();
+      saveDraft();
+    }
+
+    function expandScenarioPath(id) {
+      function visit(nodes) {
+        for (const scenario of nodes || []) {
+          if (scenario.id === id) return true;
+          if (visit(scenario.children || [])) {
+            collapsedNodes.delete(nodeKey("scenario", scenario.id));
+            return true;
+          }
+        }
+        return false;
+      }
+      visit(data.scenarios || []);
+    }
+
+    function expandPathToSelection(type, id) {
+      if (type === "scenario") {
+        expandScenarioPath(id);
+        collapsedNodes.delete(nodeKey("scenario", id));
+      }
+      if (type === "testPoint") {
+        const ref = findTestPoint(id);
+        if (ref) expandScenarioPath(ref.scenario.id);
+      }
+      if (type === "testCase") {
+        const ref = findTestCase(id);
+        if (ref) {
+          expandScenarioPath(ref.scenario.id);
+          collapsedNodes.delete(nodeKey("testPoint", ref.point.id));
+        }
+      }
+    }
+
+    function selectNode(type, id, tab = "detail") {
+      selected = { type, id };
+      activeDetailTab = tab;
+      expandPathToSelection(type, id);
+      render();
+    }
+
+    function nextScenarioId(parent) {
+      const base = parent ? parent.id + "-" : "SC-";
+      const used = new Set();
+      if (parent) {
+        for (const child of parent.children || []) used.add(child.id);
+      } else {
+        for (const scenario of data.scenarios) used.add(scenario.id);
+      }
+      for (let index = 1; index < 1000; index += 1) {
+        const id = base + String(index).padStart(3, "0");
+        if (!used.has(id)) return id;
+      }
+      return base + "999";
+    }
+
+    function nextGlobalId(prefix, collector) {
+      const used = new Set();
+      collector((id) => used.add(id));
+      for (let index = 1; index < 1000; index += 1) {
+        const id = prefix + "-" + String(index).padStart(3, "0");
+        if (!used.has(id)) return id;
+      }
+      return prefix + "-999";
+    }
+
+    function nextTestPointId() {
+      return nextGlobalId("TP", (add) => {
+        walkScenarios((scenario) => {
+          for (const point of scenario.testPoints || []) add(point.id);
+        });
+      });
+    }
+
+    function nextTestCaseId() {
+      return nextGlobalId("TC", (add) => {
+        walkScenarios((scenario) => {
+          for (const point of scenario.testPoints || []) {
+            for (const testCase of point.testCases || []) add(testCase.id);
+          }
+        });
+      });
+    }
+
+    function isLeafScenario(scenario) {
+      return !Array.isArray(scenario.children) || scenario.children.length === 0;
+    }
+
+    function addScenario(parentId = "") {
+      const parentRef = parentId ? findScenario(parentId) : null;
+      const parent = parentRef ? parentRef.node : null;
+      if (parent && parent.id.split("-").length >= 4) return;
+      const id = nextScenarioId(parent);
+      const node = {
+        id,
+        title: "新测试场景",
+        children: [],
+        testPoints: []
+      };
+      if (parent) {
+        parent.children = parent.children || [];
+        parent.children.push(node);
+        delete parent.testPoints;
+        collapsedNodes.delete(nodeKey("scenario", parent.id));
+      } else {
+        data.scenarios.push(node);
+      }
+      selectNode("scenario", id);
+    }
+
+    function addTestPoint(scenarioId) {
+      const ref = findScenario(scenarioId);
+      if (!ref || !isLeafScenario(ref.node)) return;
+      const id = nextTestPointId();
+      ref.node.testPoints = ref.node.testPoints || [];
+      ref.node.testPoints.push({
+        id,
+        title: "新测试点",
+        objective: "",
+        basisRefs: [],
+        testCases: []
+      });
+      collapsedNodes.add(nodeKey("testPoint", id));
+      selectNode("testPoint", id);
+    }
+
+    function addTestCase(pointId) {
+      const ref = findTestPoint(pointId);
+      if (!ref) return;
+      const id = nextTestCaseId();
+      ref.node.testCases = ref.node.testCases || [];
+      ref.node.testCases.push({
+        id,
+        title: "新测试用例",
+        level: "Level 2",
+        preconditions: [],
+        testData: [],
+        steps: [],
+        expectedResult: "",
+        sourceRefs: []
+      });
+      collapsedNodes.delete(nodeKey("testPoint", pointId));
+      selectNode("testCase", id);
+    }
+
+    function removeSelected() {
+      const ref = selectedNode();
+      if (!ref) return;
+      if (!confirm("确认删除当前节点？")) return;
+      if (selected.type === "scenario") {
+        ref.siblings.splice(ref.siblings.indexOf(ref.node), 1);
+      }
+      if (selected.type === "testPoint") {
+        ref.scenario.testPoints.splice(ref.scenario.testPoints.indexOf(ref.node), 1);
+      }
+      if (selected.type === "testCase") {
+        ref.point.testCases.splice(ref.point.testCases.indexOf(ref.node), 1);
+      }
+      selected = data.scenarios[0] ? { type: "scenario", id: data.scenarios[0].id } : null;
+      render();
+    }
+
+    function nodeButton(type, id, title, kind) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "node-main";
+      button.innerHTML = `<span class="node-id">${escapeHtml(id)}</span><span class="node-title">${escapeHtml(title || "未命名")}</span><span class="node-kind">${kind}</span>`;
+      button.addEventListener("click", () => {
+        selectNode(type, id);
+      });
+      return button;
+    }
+
+    function toggleButton(type, id, hasChildren) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "tree-toggle";
+      button.textContent = hasChildren ? (isCollapsed(type, id) ? "▶" : "▼") : "";
+      button.title = hasChildren ? "折叠/展开" : "";
+      button.disabled = !hasChildren;
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        toggleCollapsed(type, id);
+      });
+      return button;
+    }
+
+    function actionButton(label, title, handler, className = "") {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "icon-button " + className;
+      button.textContent = label;
+      button.title = title;
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        handler();
+      });
+      return button;
+    }
+
+    function renderScenario(scenario) {
+      const li = document.createElement("li");
+      const row = document.createElement("div");
+      row.className = "tree-row" + (selected && selected.type === "scenario" && selected.id === scenario.id ? " selected" : "");
+      const hasChildren = Boolean((scenario.children || []).length || (scenario.testPoints || []).length);
+      row.appendChild(toggleButton("scenario", scenario.id, hasChildren));
+      row.appendChild(nodeButton("scenario", scenario.id, scenario.title, "SC"));
+      const actions = document.createElement("div");
+      actions.className = "node-actions";
+      if (scenario.id.split("-").length < 4) actions.appendChild(actionButton("+S", "新增子场景", () => addScenario(scenario.id)));
+      if (isLeafScenario(scenario)) actions.appendChild(actionButton("+T", "新增测试点", () => addTestPoint(scenario.id)));
+      row.appendChild(actions);
+      li.appendChild(row);
+
+      if (hasChildren && !isCollapsed("scenario", scenario.id)) {
+        const children = document.createElement("ul");
+        children.className = "tree-list";
+        for (const child of scenario.children || []) children.appendChild(renderScenario(child));
+        for (const point of scenario.testPoints || []) children.appendChild(renderTestPoint(point));
+        if (children.children.length) li.appendChild(children);
+      }
+      return li;
+    }
+
+    function renderTestPoint(point) {
+      const li = document.createElement("li");
+      const row = document.createElement("div");
+      row.className = "tree-row" + (selected && selected.type === "testPoint" && selected.id === point.id ? " selected" : "");
+      const hasChildren = Boolean((point.testCases || []).length);
+      row.appendChild(toggleButton("testPoint", point.id, hasChildren));
+      row.appendChild(nodeButton("testPoint", point.id, point.title, "TP"));
+      const actions = document.createElement("div");
+      actions.className = "node-actions";
+      actions.appendChild(actionButton("+C", "新增测试用例", () => addTestCase(point.id)));
+      row.appendChild(actions);
+      li.appendChild(row);
+      if (hasChildren && !isCollapsed("testPoint", point.id)) {
+        const children = document.createElement("ul");
+        children.className = "tree-list";
+        for (const testCase of point.testCases || []) children.appendChild(renderTestCase(testCase));
+        if (children.children.length) li.appendChild(children);
+      }
+      return li;
+    }
+
+    function renderTestCase(testCase) {
+      const li = document.createElement("li");
+      const row = document.createElement("div");
+      row.className = "tree-row" + (selected && selected.type === "testCase" && selected.id === testCase.id ? " selected" : "");
+      row.appendChild(toggleButton("testCase", testCase.id, false));
+      row.appendChild(nodeButton("testCase", testCase.id, testCase.title, "TC"));
+      row.appendChild(document.createElement("div"));
+      li.appendChild(row);
+      return li;
+    }
+
+    function renderTree() {
+      treeEl.innerHTML = "";
+      if (!data.scenarios.length) {
+        treeEl.innerHTML = '<div class="empty">暂无 SC，点击左上角新增，或通过顶部导入 JSON。</div>';
+        return;
+      }
+      const list = document.createElement("ul");
+      list.className = "tree-list";
+      for (const scenario of data.scenarios) list.appendChild(renderScenario(scenario));
+      treeEl.appendChild(list);
+    }
+
+    function inputField(label, value, onInput, placeholder = "") {
+      return `<label>${label}</label><input value="${escapeAttr(value || "")}" placeholder="${escapeAttr(placeholder)}" data-bind="${onInput}">`;
+    }
+
+    function textareaField(label, value, onInput, placeholder = "") {
+      return `<label>${label}</label><textarea placeholder="${escapeAttr(placeholder)}" data-bind="${onInput}">${escapeHtml(value || "")}</textarea>`;
+    }
+
+    function tabsForSelection() {
+      if (!selected) return [{ id: "detail", label: "详情编辑" }];
+      if (selected.type === "scenario") return [
+        { id: "detail", label: "详情编辑" },
+        { id: "test-points", label: "TP 列表" }
+      ];
+      if (selected.type === "testPoint") return [
+        { id: "detail", label: "详情编辑" },
+        { id: "test-cases", label: "TC 列表" }
+      ];
+      return [{ id: "detail", label: "详情编辑" }];
+    }
+
+    function renderDetailTabs() {
+      const tabs = tabsForSelection();
+      if (!tabs.some((tab) => tab.id === activeDetailTab)) activeDetailTab = "detail";
+      detailTabs.innerHTML = "";
+      for (const tab of tabs) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "tab" + (tab.id === activeDetailTab ? " active" : "");
+        button.textContent = tab.label;
+        button.addEventListener("click", () => {
+          activeDetailTab = tab.id;
+          renderDetail();
+          saveDraft();
+        });
+        detailTabs.appendChild(button);
+      }
+    }
+
+    function renderDetail() {
+      renderDetailTabs();
+      const ref = selectedNode();
+      if (!ref) {
+        detailView.innerHTML = '<div class="empty">请选择左侧节点。</div>';
+        return;
+      }
+      if (selected.type === "scenario" && activeDetailTab === "test-points") {
+        renderScenarioTestPoints(ref.node);
+        return;
+      }
+      if (selected.type === "testPoint" && activeDetailTab === "test-cases") {
+        renderTestPointTestCases(ref.node);
+        return;
+      }
+      if (selected.type === "scenario") renderScenarioDetail(ref.node);
+      if (selected.type === "testPoint") renderTestPointDetail(ref.node);
+      if (selected.type === "testCase") renderTestCaseDetail(ref.node);
+    }
+
+    function renderScenarioDetail(node) {
+      const depth = node.id.split("-").length - 1;
+      const leaf = isLeafScenario(node);
+      detailView.innerHTML = `
+        <div class="notice">SC 是业务场景树节点，最多 3 层；只有叶子 SC 挂 TP。</div>
+        <div class="form-grid">
+          ${inputField("SC 编号", node.id, "scenario.id", "SC-001")}
+          ${inputField("场景标题", node.title, "scenario.title")}
+          <label>场景层级</label><input value="${depth}" disabled>
+          <label>是否叶子场景</label><input value="${leaf ? "是，可挂 TP" : "否，仅挂子 SC"}" disabled>
+        </div>
+        <div class="section">
+          <div class="section-title">
+            <h2>场景字段</h2>
+            <button class="button" type="button" data-action="add-field">+ 字段</button>
+          </div>
+          ${renderKeyValueTable(node.fields || [], "fields")}
+        </div>
+        <div class="section">
+          <button class="button danger" type="button" data-action="delete">删除当前节点</button>
+        </div>
+      `;
+      bindCommonInputs(node, "scenario");
+      bindKeyValueTable(node, "fields");
+    }
+
+    function renderTestPointDetail(node) {
+      detailView.innerHTML = `
+        <div class="notice">TP 表达验证目标、规则点、路径点、状态点、权限点、接口契约点或风险点；TC 才写具体数据和步骤。</div>
+        <div class="form-grid">
+          ${inputField("TP 编号", node.id, "testPoint.id", "TP-001")}
+          ${inputField("测试点标题", node.title, "testPoint.title")}
+          ${textareaField("验证目标", node.objective, "testPoint.objective")}
+          ${textareaField("依据引用", formatRefs(node.basisRefs || []), "testPoint.basisRefs", "格式：来源 | 位置 | 依据摘要，一行一个")}
+          ${textareaField("备注", node.note || "", "testPoint.note")}
+        </div>
+        <div class="section">
+          <button class="button primary" type="button" data-action="add-tc">+ 新增 TC</button>
+          <button class="button danger" type="button" data-action="delete">删除当前节点</button>
+        </div>
+      `;
+      bindCommonInputs(node, "testPoint");
+    }
+
+    function collectScenarioTestPoints(scenario, path = []) {
+      const currentPath = [...path, scenario.id];
+      const rows = [];
+      for (const point of scenario.testPoints || []) {
+        rows.push({ scenario, point, path: currentPath.join(" / ") });
+      }
+      for (const child of scenario.children || []) {
+        rows.push(...collectScenarioTestPoints(child, currentPath));
+      }
+      return rows;
+    }
+
+    function renderScenarioTestPoints(node) {
+      const rows = collectScenarioTestPoints(node);
+      if (!rows.length) {
+        detailView.innerHTML = '<div class="empty">当前 SC 及其子场景下暂无 TP。</div>';
+        return;
+      }
+      detailView.innerHTML = `
+        <div class="notice">这里汇总当前 SC 范围下的 TP。点击 TP 编号或标题会跳转到对应节点，并展开左侧树。</div>
+        <table class="table">
+          <thead><tr><th>场景路径</th><th>TP</th><th>测试点标题</th><th>TC 数量</th></tr></thead>
+          <tbody>
+            ${rows.map(({ point, path }) => `
+              <tr>
+                <td>${escapeHtml(path)}</td>
+                <td><button class="object-link" type="button" data-jump-type="testPoint" data-jump-id="${escapeAttr(point.id)}">${escapeHtml(point.id)}</button></td>
+                <td><button class="object-link" type="button" data-jump-type="testPoint" data-jump-id="${escapeAttr(point.id)}">${escapeHtml(point.title || "未命名")}</button></td>
+                <td>${(point.testCases || []).length}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+      bindObjectJumps();
+    }
+
+    function renderTestPointTestCases(node) {
+      const rows = node.testCases || [];
+      if (!rows.length) {
+        detailView.innerHTML = `
+          <div class="empty">当前 TP 下暂无 TC。</div>
+          <div class="section"><button class="button primary" type="button" data-action="add-tc">+ 新增 TC</button></div>
+        `;
+        bindCommonInputs(node, "testPoint");
+        return;
+      }
+      detailView.innerHTML = `
+        <div class="notice">这里展示当前 TP 下的 TC。点击 TC 编号或标题会跳转到对应节点，并展开左侧树。</div>
+        <table class="table">
+          <thead><tr><th>TC</th><th>用例标题</th><th>级别</th><th>步骤数</th></tr></thead>
+          <tbody>
+            ${rows.map((testCase) => `
+              <tr>
+                <td><button class="object-link" type="button" data-jump-type="testCase" data-jump-id="${escapeAttr(testCase.id)}">${escapeHtml(testCase.id)}</button></td>
+                <td><button class="object-link" type="button" data-jump-type="testCase" data-jump-id="${escapeAttr(testCase.id)}">${escapeHtml(testCase.title || "未命名")}</button></td>
+                <td>${escapeHtml(testCase.level || "")}</td>
+                <td>${(testCase.steps || []).length}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+        <div class="section"><button class="button primary" type="button" data-action="add-tc">+ 新增 TC</button></div>
+      `;
+      bindObjectJumps();
+      bindCommonInputs(node, "testPoint");
+    }
+
+    function renderTestCaseDetail(node) {
+      detailView.innerHTML = `
+        <div class="notice">TC 是一个可独立执行、独立判定的测试实例；不同输入条件、角色、状态、配置、异常类型或数据组合应拆成独立 TC。</div>
+        <div class="form-grid">
+          ${inputField("TC 编号", node.id, "testCase.id", "TC-001")}
+          ${inputField("用例标题", node.title, "testCase.title")}
+          <label>用例级别</label>
+          <select data-bind="testCase.level">
+            ${["Level 0", "Level 1", "Level 2", "Level 3", "Level 4"].map(level => `<option ${node.level === level ? "selected" : ""}>${level}</option>`).join("")}
+          </select>
+          ${textareaField("前置条件", (node.preconditions || []).join("\\n"), "testCase.preconditions", "一行一个前置条件")}
+          ${textareaField("最终预期", node.expectedResult || "", "testCase.expectedResult")}
+          ${textareaField("来源引用", formatRefs(node.sourceRefs || []), "testCase.sourceRefs", "格式：来源 | 位置 | 依据摘要，一行一个")}
+        </div>
+        <div class="section">
+          <div class="section-title">
+            <h2>测试数据</h2>
+            <button class="button" type="button" data-action="add-data">+ 数据</button>
+          </div>
+          ${renderTestDataTable(node.testData || [])}
+        </div>
+        <div class="section">
+          <div class="section-title">
+            <h2>测试步骤</h2>
+            <button class="button" type="button" data-action="add-step">+ 步骤</button>
+          </div>
+          ${renderStepsTable(node.steps || [])}
+        </div>
+        <div class="section">
+          <button class="button danger" type="button" data-action="delete">删除当前节点</button>
+        </div>
+      `;
+      bindCommonInputs(node, "testCase");
+      bindTestData(node);
+      bindSteps(node);
+    }
+
+    function renderKeyValueTable(items, key) {
+      if (!items.length) return '<div class="empty">暂无字段。</div>';
+      return `
+        <table class="table">
+          <thead><tr><th>名称</th><th>内容</th><th></th></tr></thead>
+          <tbody>
+            ${items.map((item, index) => `
+              <tr>
+                <td><input value="${escapeAttr(fieldLabel(item))}" data-kv="${key}.${index}.field"></td>
+                <td><input value="${escapeAttr(fieldContent(item))}" data-kv="${key}.${index}.content"></td>
+                <td><button class="icon-button danger" type="button" data-kv-remove="${key}.${index}">×</button></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function renderTestDataTable(items) {
+      if (!items.length) return '<div class="empty">暂无测试数据。</div>';
+      return `
+        <table class="table">
+          <thead><tr><th>名称</th><th>值</th><th>说明</th><th></th></tr></thead>
+          <tbody>
+            ${items.map((item, index) => `
+              <tr>
+                <td><input value="${escapeAttr(item.name || "")}" data-data="${index}.name"></td>
+                <td><input value="${escapeAttr(item.value || "")}" data-data="${index}.value"></td>
+                <td><input value="${escapeAttr(item.description || "")}" data-data="${index}.description"></td>
+                <td><button class="icon-button danger" type="button" data-data-remove="${index}">×</button></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function renderStepsTable(items) {
+      if (!items.length) return '<div class="empty">暂无测试步骤。</div>';
+      return `
+        <table class="table">
+          <thead><tr><th style="width:72px">序号</th><th>操作</th><th>步骤预期</th><th></th></tr></thead>
+          <tbody>
+            ${items.map((item, index) => `
+              <tr>
+                <td><input type="number" min="1" value="${escapeAttr(item.stepNo || index + 1)}" data-step="${index}.stepNo"></td>
+                <td><textarea data-step="${index}.action">${escapeHtml(item.action || "")}</textarea></td>
+                <td><textarea data-step="${index}.expected">${escapeHtml(item.expected || "")}</textarea></td>
+                <td><button class="icon-button danger" type="button" data-step-remove="${index}">×</button></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function fieldLabel(item) {
+      return item.field || item.name || "";
+    }
+
+    function fieldContent(item) {
+      return item.content || item.value || "";
+    }
+
+    function formatRefs(items) {
+      return (items || []).map((item) => {
+        if (typeof item === "string") return item;
+        if (!item || typeof item !== "object") return "";
+        return [item.source || "", item.location || "", item.description || ""]
+          .filter(Boolean)
+          .join(" | ");
+      }).filter(Boolean).join("\n");
+    }
+
+    function parseRefs(value) {
+      return value.split(/\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => {
+          const parts = line.split("|").map((part) => part.trim());
+          if (parts.length >= 3) {
+            return {
+              source: parts[0],
+              location: parts[1],
+              description: parts.slice(2).join(" | ")
+            };
+          }
+          return {
+            source: "",
+            location: "",
+            description: line
+          };
+        });
+    }
+
+    function bindCommonInputs(node, prefix) {
+      detailView.querySelectorAll("[data-bind]").forEach((field) => {
+        field.addEventListener("input", () => {
+          const key = field.dataset.bind.replace(prefix + ".", "");
+          if (["basisRefs", "sourceRefs"].includes(key)) {
+            node[key] = parseRefs(field.value);
+          } else if (["preconditions"].includes(key)) {
+            node[key] = field.value.split(/\n/).map(item => item.trim()).filter(Boolean);
+          } else {
+            node[key] = field.value;
+          }
+          renderTree();
+          updateJsonView();
+        });
+      });
+      detailView.querySelectorAll("[data-action]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const action = button.dataset.action;
+          if (action === "delete") removeSelected();
+          if (action === "add-field") {
+            node.fields = node.fields || [];
+            node.fields.push({ field: "", content: "" });
+            render();
+          }
+          if (action === "add-tc") addTestCase(node.id);
+          if (action === "add-data") {
+            node.testData = node.testData || [];
+            node.testData.push({ name: "", value: "", description: "" });
+            render();
+          }
+          if (action === "add-step") {
+            node.steps = node.steps || [];
+            node.steps.push({ stepNo: node.steps.length + 1, action: "", expected: "" });
+            render();
+          }
+        });
+      });
+    }
+
+    function bindObjectJumps() {
+      detailView.querySelectorAll("[data-jump-type][data-jump-id]").forEach((button) => {
+        button.addEventListener("click", () => {
+          selectNode(button.dataset.jumpType, button.dataset.jumpId);
+        });
+      });
+    }
+
+    function bindKeyValueTable(node, key) {
+      detailView.querySelectorAll("[data-kv]").forEach((field) => {
+        field.addEventListener("input", () => {
+          const [, index, prop] = field.dataset.kv.split(".");
+          node[key][Number(index)][prop] = field.value;
+          if (prop === "field") delete node[key][Number(index)].name;
+          if (prop === "content") delete node[key][Number(index)].value;
+          updateJsonView();
+        });
+      });
+      detailView.querySelectorAll("[data-kv-remove]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const [, index] = button.dataset.kvRemove.split(".");
+          node[key].splice(Number(index), 1);
+          render();
+        });
+      });
+    }
+
+    function bindTestData(node) {
+      detailView.querySelectorAll("[data-data]").forEach((field) => {
+        field.addEventListener("input", () => {
+          const [index, prop] = field.dataset.data.split(".");
+          node.testData[Number(index)][prop] = field.value;
+          updateJsonView();
+        });
+      });
+      detailView.querySelectorAll("[data-data-remove]").forEach((button) => {
+        button.addEventListener("click", () => {
+          node.testData.splice(Number(button.dataset.dataRemove), 1);
+          render();
+        });
+      });
+    }
+
+    function bindSteps(node) {
+      detailView.querySelectorAll("[data-step]").forEach((field) => {
+        field.addEventListener("input", () => {
+          const [index, prop] = field.dataset.step.split(".");
+          node.steps[Number(index)][prop] = prop === "stepNo" ? Number(field.value) : field.value;
+          updateJsonView();
+        });
+      });
+      detailView.querySelectorAll("[data-step-remove]").forEach((button) => {
+        button.addEventListener("click", () => {
+          node.steps.splice(Number(button.dataset.stepRemove), 1);
+          node.steps.forEach((step, index) => step.stepNo = index + 1);
+          render();
+        });
+      });
+    }
+
+    function updateJsonView() {
+      jsonView.textContent = JSON.stringify(data, null, 2);
+      saveDraft();
+    }
+
+    function render() {
+      renderTree();
+      renderDetail();
+      updateJsonView();
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replaceAll("'", "&#39;");
+    }
+
+    document.getElementById("addRootSc").addEventListener("click", () => addScenario());
+    document.getElementById("toggleJsonButton").addEventListener("click", () => {
+      jsonPanel.classList.toggle("hidden");
+      updateJsonView();
+    });
+    document.getElementById("closeJsonButton").addEventListener("click", () => {
+      jsonPanel.classList.add("hidden");
+      saveDraft();
+    });
+    document.getElementById("resetButton").addEventListener("click", () => {
+      try {
+        localStorage.removeItem(draftStorageKey);
+      } catch (error) {
+        console.warn("无法清理本地草稿", error);
+      }
+      data = clone(emptyData);
+      selected = null;
+      activeDetailTab = "detail";
+      resetCollapseDefaults();
+      render();
+    });
+    document.getElementById("copyButton").addEventListener("click", async () => {
+      await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+    });
+    document.getElementById("exportButton").addEventListener("click", () => {
+      const blob = new Blob([JSON.stringify(data, null, 2) + "\n"], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "test-design-solution.json";
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+    document.getElementById("importButton").addEventListener("click", () => document.getElementById("fileInput").click());
+    document.getElementById("fileInput").addEventListener("change", async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      const text = await file.text();
+      data = JSON.parse(text);
+      selected = data.scenarios && data.scenarios[0] ? { type: "scenario", id: data.scenarios[0].id } : null;
+      activeDetailTab = "detail";
+      resetCollapseDefaults();
+      render();
+      event.target.value = "";
+    });
+
+    if (!savedDraft) resetCollapseDefaults();
+    render();
+  </script>
+</body>
+</html>
