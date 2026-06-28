@@ -1,6 +1,6 @@
 # Test Design Agent 设计
 
-`test-design-agent` 承接已评审 `测试分析方案`，输出 `SC 场景树 -> TP 测试点 -> TC 测试用例` 的测试设计方案。
+`test-design-agent` 承接已评审 `测试分析方案`，输出 `SC 场景树 -> TP 测试点 -> TC 测试用例` 的测试设计方案。设计入口必须已有完整 `test-analysis-solution.json`：优先使用用户显式指定的分析方案；未指定时只使用当前 run 已存在的 `deliverables/test-analysis-solution.json`；两者都不存在时失败，不自动调用测试分析 workflow。
 
 ## 边界
 
@@ -10,7 +10,10 @@
 
 ```mermaid
 flowchart TD
-  analysis["test-analysis-solution.json"] --> check["analysis-solution-check"]
+  explicit["显式 test-analysis-solution.json"] --> bind["bind-analysis-solution"]
+  current["当前 run deliverables/test-analysis-solution.json"] --> check["analysis-solution-check"]
+  bind --> check
+  missing["无完整分析方案"] --> fail["失败：先提供或生成分析方案"]
   check --> rules["rules-pack / reuse rules-pack"]
   rules --> context["context-source-indexing / reuse context-pack"]
   context --> basis["需求/设计依据补读"]

@@ -104,6 +104,7 @@ REQUIRED_FILES = [
     "bin/list-staged-work-items.py",
     "skills/test-analysis-solution-generation/scripts/merge-test-point-slice.py",
     "bin/merge-staged-slices.py",
+    "skills/test-design-solution-generation/scripts/bind-analysis-solution.py",
     "skills/test-design-solution-generation/scripts/extract-test-case-work-items.py",
     "skills/test-design-solution-generation/scripts/init-test-case-slice.py",
     "skills/test-design-solution-generation/scripts/merge-test-case-slice.py",

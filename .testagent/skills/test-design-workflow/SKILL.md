@@ -1,6 +1,6 @@
 ---
 name: test-design-workflow
-description: 当用户提供已评审测试分析方案，或要求从需求先生成分析方案再扩展 TC 测试用例时使用；该 skill 编排测试分析方案校验、依据补读、测试设计方案 JSON 生成、写作渲染和独立评审。
+description: 当用户提供已评审测试分析方案并要求扩展 TC 测试用例时使用；该 skill 编排测试分析方案校验、依据补读、测试设计方案 JSON 生成、写作渲染和独立评审。
 ---
 
 # 测试分析方案到测试设计方案主入口
@@ -11,9 +11,9 @@ description: 当用户提供已评审测试分析方案，或要求从需求先�
 
 ## 必需输入
 
-- `$ARGUMENTS`：优先是一份 `test-analysis-solution.json`。
+- `$ARGUMENTS`：可显式指定一份 `test-analysis-solution.json`；若指定，必须优先使用该文件。
 - 可选：原始需求文档路径、设计方案文档路径或 `project=<project-key>`；personal rules 来自 `rules/user/**/*.md`，personal 动态补充来源来自 `knowledge/user/**/*.md` 和 `memory/user/**/*.md`。
-- 如果用户只提供需求文档和可选设计方案文档，并明确要求生成测试设计方案，本 skill 必须先使用 `test-analysis-workflow` 生成分析方案。
+- 如果用户只提供需求文档和可选设计方案文档，并明确要求生成测试设计方案，本 skill 不自动调用 `test-analysis-workflow`；必须失败并提示用户先提供或生成 `test-analysis-solution.json`。
 - 如果输入包含 `.docx` 或 `.xlsx`，不得在本 workflow 中转换；必须先由 `@file-normalization-agent` 归一化为 Markdown。
 - 新模型不支持旧格式自动迁移；输入分析方案必须符合 schema `2.0`。
 
@@ -31,8 +31,11 @@ description: 当用户提供已评审测试分析方案，或要求从需求先�
 ## 执行流程
 
 1. 校验输入：识别测试分析方案、Markdown 需求文档和可选 Markdown 设计方案文档。
-2. 如果没有测试分析方案，先调用 `test-analysis-workflow` 生成分析方案；分析流程成功产出 `deliverables/test-analysis-solution.json` 后继续当前设计流程，不等待用户再次确认。
-3. 固定 `PROJECT_ROOT` 和 `<run-id>`；优先复用上游分析方案所在 run，否则新建 run。
+2. 固定 `PROJECT_ROOT` 和 `<run-id>`；如果显式分析方案位于已有 run 的 `deliverables/test-analysis-solution.json`，优先复用该 run，否则新建或使用用户指定 run。
+3. 绑定分析方案输入：
+   - 如果用户显式指定 `test-analysis-solution.json`，运行 `python skills/test-design-solution-generation/scripts/bind-analysis-solution.py outputs/runs/<run-id> --analysis <analysis-json>`，将它校验并写入当前 run 的 `deliverables/test-analysis-solution.json`。
+   - 如果用户未显式指定，则只检查当前 run 是否已存在 `deliverables/test-analysis-solution.json`。
+   - 如果两者都不存在，停止流程并输出失败原因：测试设计必须先取得完整 `test-analysis-solution.json`，本 workflow 不自动生成测试分析方案。
 4. 创建或刷新 `process/design-task-list.json`，并通过 `python bin/update-run-task.py outputs/runs/<run-id> --flow design ...` 维护状态；复用分析 run 时不得覆盖 `process/analysis-task-list.json`。
 5. 读取并校验 `deliverables/test-analysis-solution.json`；未通过 schema `2.0` 时不进入测试设计生成，直接输出失败原因和“需用当前测试分析 workflow 重新生成分析方案”的建议，不尝试旧格式迁移。
 6. 运行 `python skills/test-design-solution-generation/scripts/extract-test-case-work-items.py outputs/runs/<run-id>` 写入 `process/test-case-work-items.json`；每个 `TP-*` 都必须成为独立 TC 生成工作项。
@@ -62,7 +65,7 @@ description: 当用户提供已评审测试分析方案，或要求从需求先�
 ## 脚本稳定性规则
 
 - design 流程不得临时创建 `.py`、`.js`、`.ps1`、`.bat` 或其他可执行脚本来拼接、修复或拆分 JSON。
-- 只能调用仓库固定脚本：`bin/build-rules-pack.py`、`skills/test-design-solution-generation/scripts/extract-test-case-work-items.py`、`skills/test-design-solution-generation/scripts/init-test-case-slice.py`、`bin/init-staged-slices.py`、`bin/list-staged-work-items.py`、`bin/build-generation-context.py`、`bin/init-report-artifact.py`、`bin/apply-review-findings.py`、`bin/apply-coverage-gaps.py`、`bin/update-run-task.py`、`skills/test-design-solution-generation/scripts/merge-test-case-slice.py`、`bin/merge-staged-slices.py`、`bin/check-staged-run.py`、`bin/lint-run-json.py`、`bin/render-run-markdown.py`、`bin/lint-test-design-solution.py` 和 `bin/check-artifact-consistency.py`。
+- 只能调用仓库固定脚本：`bin/build-rules-pack.py`、`skills/test-design-solution-generation/scripts/bind-analysis-solution.py`、`skills/test-design-solution-generation/scripts/extract-test-case-work-items.py`、`skills/test-design-solution-generation/scripts/init-test-case-slice.py`、`bin/init-staged-slices.py`、`bin/list-staged-work-items.py`、`bin/build-generation-context.py`、`bin/init-report-artifact.py`、`bin/apply-review-findings.py`、`bin/apply-coverage-gaps.py`、`bin/update-run-task.py`、`skills/test-design-solution-generation/scripts/merge-test-case-slice.py`、`bin/merge-staged-slices.py`、`bin/check-staged-run.py`、`bin/lint-run-json.py`、`bin/render-run-markdown.py`、`bin/lint-test-design-solution.py` 和 `bin/check-artifact-consistency.py`。
 - 如果固定脚本能力不足，必须修改仓库 `bin/` 或对应 skill `scripts/` 下的固定脚本并运行校验；不得在 `outputs/`、`process/`、`reports/`、临时目录或当前工作目录写一次性脚本。
 
 ## 防卡住规则

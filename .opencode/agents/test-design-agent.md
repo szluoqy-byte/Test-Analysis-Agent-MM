@@ -32,7 +32,7 @@ permission:
 | 基于已评审测试分析方案生成测试设计方案 | 使用 `test-design-workflow` 主流程 |
 | 基于已有测试设计 JSON 输出不同写作风格或交付格式 | 使用 `test-case-writing`，不改写 canonical JSON |
 | 输入需求、设计依据或外部分析方案是 `.docx` / `.xlsx` | 先切换到 `@file-normalization-agent` 归一化为 Markdown；本 Agent 只消费归一化后的 Markdown 或 JSON 路径 |
-| 只有需求/设计方案但要求直接生成测试设计方案 | 先通过 `test-analysis-workflow` 生成分析方案，再由 `test-design-workflow` 扩展测试用例 |
+| 只有需求/设计方案但要求直接生成测试设计方案 | 不自动生成分析方案；提示用户先提供或生成 `test-analysis-solution.json` |
 | 评审测试用例粒度、步骤、数据或预期 | 使用 `test-design-solution-review`，以 `knowledge/test-design-solution-standard.md` 和 lint 结果为准 |
 | 只咨询测试设计方法、测试技术或测试用例粒度 | 读取相关 `knowledge/`、`docs/` 或 skill，先给分析建议；除非用户要求，不改文件 |
 | 记录个人偏好 | 写入 `memory/user/preferences.md` |
@@ -45,6 +45,7 @@ permission:
 ## 生成测试设计方案时
 
 - 测试分析方案是设计主账本，提供场景树和测试点。
+- 入口优先级为：用户显式指定的 `test-analysis-solution.json` > 当前 run 已存在的 `deliverables/test-analysis-solution.json`；缺少完整分析方案时不进入测试设计。
 - 测试设计主交付件事实源固定为 `outputs/runs/<run-id>/deliverables/test-design-solution.json`；`test-design-solution.md` 由 `test-case-writing` 调用脚本渲染，不手工维护。
 - 需求文档和设计方案是校验依据，用于确认阈值、状态、错误处理、接口契约、字段规则和预期结果。
 - 主交付件继承 `SC-*` 场景树和 `TP-*` 测试点，在每个测试点下生成 `testCases[]`。

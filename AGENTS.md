@@ -77,9 +77,9 @@
 - 分段工作项状态查看、批量切片初始化、批量合并、review blocking 返工重开和分段 run 固定检查分别使用 `bin/list-staged-work-items.py`、`bin/init-staged-slices.py`、`bin/merge-staged-slices.py`、`bin/apply-review-findings.py` 和 `bin/check-staged-run.py`。
 - 覆盖审查产物按阶段拆分：测试分析写入 `reports/analysis-coverage-review.json/.md`，测试设计写入 `reports/design-coverage-review.json/.md`；历史 `reports/coverage-review.json/.md` 只作为兼容读取路径，不作为新流程写入目标。
 - coverage-review 发现覆盖缺口后，不直接编辑最终 Markdown 或主交付件 JSON；必须通过 `coverageGaps[].artifactLocation` 定位到 `process/test-point-slices/<SC-ID>.json` 或 `process/test-case-slices/<TP-ID>.json`，先运行 `bin/apply-coverage-gaps.py` 重开对应工作项，再修复切片并重新执行切片 review、脚本合并、最终 review、coverage 和一致性检查。
-- 当用户要求基于已评审测试分析方案生成测试用例时，使用 `test-design-workflow`。该 workflow 优先读取上游 `test-analysis-solution.json`。
+- 当用户要求基于已评审测试分析方案生成测试用例时，使用 `test-design-workflow`。该 workflow 优先使用用户显式指定的 `test-analysis-solution.json`，否则只读取当前 run 已存在的 `deliverables/test-analysis-solution.json`。
 - 测试设计阶段使用 `test-design-solution-generation` 按 TP 生成 TC 切片，`test-design-solution-review` 按切片评审，切片通过后由固定脚本合并并统一 TC 编号。
-- 如果用户只提供需求/设计方案且要求测试设计，必须先生成或取得测试分析方案，再进入测试设计。
+- 如果用户只提供需求/设计方案且要求测试设计，不得自动调用测试分析 workflow；必须先取得完整 `test-analysis-solution.json`，再进入测试设计。
 - 设计方案输入用于补充接口、字段、状态、权限、数据依赖、配置开关、异常处理和非功能指标；没有设计方案时继续生成，预期结果只写输入可支撑的保守判定。
 - 不编造业务事实、状态、角色、接口契约、阈值、错误码、错误提示或状态变化。
 - 每个叶子测试场景下必须包含一个 `E2E场景测试` 测试点，用于覆盖该场景端到端业务主流程是否按预期完整闭环。
