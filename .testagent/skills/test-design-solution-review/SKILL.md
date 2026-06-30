@@ -18,6 +18,8 @@ description: 评审按 TP 生成的 TC 切片和最终 schema 2.0 测试设计�
 - `process/context-pack.json`
 - 目标评审 JSON 内的 `generationContext`；缺失时先运行 `bin/init-report-artifact.py`
 - `knowledge/test-design-solution-standard.md`
+- `knowledge/test-case-writing-standard.md`
+- `knowledge/test-case-writing-styles/README.md` 及当前 TC 主执行形态对应的 GUI/API/CLI 风格文件
 
 ## 评审重点
 
@@ -27,8 +29,13 @@ description: 评审按 TP 生成的 TC 切片和最终 schema 2.0 测试设计�
 | 用例覆盖 | 每个 TP 是否至少有一个 TC，关键规则是否有代表性 TC |
 | 用例粒度 | TC 是否具体到可执行实例，而不是抽象条件标签；是否把多个独立输入条件、数据组合、等价类、边界点、角色、权限、状态、配置、外部依赖返回、消息顺序或异常类型合并进一个 TC |
 | 用例级别 | `level` 是否符合 `Level 0` 到 `Level 4` 定义，是否与失败后果、风险和覆盖优先级匹配 |
+| 公共写作规范 | 是否遵守 `knowledge/test-case-writing-standard.md`，包括标题、前置条件、测试数据、步骤动作、步骤预期、最终预期和来源引用的公共写法 |
 | 测试数据 | `testData[]` 是否给出具体值或稳定数据槽位，并说明含义 |
+| 执行形态风格 | 是否按当前 TC 主执行形态读取并遵守 `knowledge/test-case-writing-styles/` 下的 GUI、API 或 CLI 风格；混合场景是否按测试人员实际发起动作确定主风格 |
 | 步骤可执行性 | `steps[]` 是否按顺序表达同一个测试实例内由用户、测试人员、外部调用方或测试工具执行的动作和步骤预期，而不是枚举多个互斥请求、多组替代数据、多种角色/状态/配置切换或多条独立路径；`action` 是否只写可执行动作或取数动作，没有把检查项、断言项、观察结论或系统内部行为单独写成步骤 |
+| GUI 表达 | GUI 用例是否明确页面/菜单路径、控件类型、控件可见文本、输入值和页面可观察结果；没有依据时是否避免编造菜单或控件 |
+| API 表达 | API 用例是否使用 `接口=METHOD /path`、Header、Query、Body 等字段片段，expected 是否写响应状态、响应字段、错误码、幂等结果或数据副作用 |
+| CLI 表达 | CLI 用例是否写明主机/容器/工作目录、用户或环境变量、执行命令，expected 是否写退出码、stdout/stderr、文件、日志或状态查询结果 |
 | 最终预期 | `expectedResult` 是否有需求、设计、规则或分析方案依据 |
 | 接口表达 | 接口类用例是否拆成字段片段，避免完整裸 URL |
 | Rules 应用 | 是否从 `process/rules-pack.json` 的 `ruleSources[]` 筛选并读取了适用 rules 正文，是否已遵守，冲突时是否说明规则覆盖输入的原因 |
