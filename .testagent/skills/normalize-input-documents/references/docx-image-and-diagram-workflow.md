@@ -6,6 +6,8 @@
 
 当 `skills/normalize-input-documents/scripts/normalize-office-input.py` 的 metadata 出现图片数量或转换警告时，进入本流程。
 
+执行本流程时，不通过模型自我认知判断是否支持多模态。OpenCode 独立归一化命令默认视为已具备多模态能力；只有图片不可访问、格式无法读取、转换工具缺失、用户明确跳过视觉处理，或用户/平台明确说明视觉能力不可用时，才记录未执行原因。
+
 常见需要补充分析的内容包括：
 
 - 架构图、流程图、时序图、状态图、部署图。
@@ -79,7 +81,9 @@ libreoffice --headless --convert-to png --outdir <media-dir> <media-dir>/image2.
 
 - `已处理`：已写入 Mermaid 或结构化事实。
 - `无需处理`：已说明跳过原因，例如 logo、页眉页脚或装饰图。
-- `未执行原因`：已说明当前模型或环境无法处理的原因。
+- `未执行原因`：已说明标准原因，例如 `image_not_accessible`、`unsupported_image_format`、`conversion_tool_missing`、`user_skipped_vision` 或 `model_vision_unavailable`。
+
+`model_vision_unavailable` 只能在用户明确说明当前模型不支持多模态，或平台/工具明确返回视觉能力不可用错误时使用；不得因为无法确认模型名称而使用。
 
 9. 全部批次完成后，扫描归一化 Markdown。任何占位块仍为 `补充状态：待处理` 时，归一化不能标记完成。
 

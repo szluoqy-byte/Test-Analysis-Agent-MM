@@ -20,6 +20,7 @@ $ARGUMENTS
 - 支持一次传入多个输入文件。路径包含空格或中文时必须使用引号包裹。
 - 可选强制刷新：`--force`。
 - 可选机器可读输出：`--json`。
+- 可选视觉处理语义：`--vision-enabled` 表示明确执行 DOCX 图片/图形理解；`--skip-vision` 表示用户只要求基础转换并跳过图片理解。未传时，本 OpenCode 命令默认按 `--vision-enabled` 处理。
 
 从仓库根目录执行：
 
@@ -29,7 +30,17 @@ python skills/normalize-input-documents/scripts/normalize-office-input.py <argum
 
 固定使用 `outputs/input-cache/<sha256-12>/` 作为全局缓存位置。输出时说明归一化 Markdown 路径、转换 metadata 路径、缓存复用状态和转换警告。测试分析或测试设计 workflow 后续直接读取本命令输出的归一化 Markdown 路径；本独立命令不得创建或修改 run-local 绑定。
 
-如果转换 metadata 报告图片或转换警告，读取 `skills/normalize-input-documents/references/docx-image-and-diagram-workflow.md`。当当前模型支持多模态图片理解时，在下游分析或设计使用归一化输入前，补充图片、图形、流程图、架构图、截图、EMF 或 Visio 中承载的事实。补充事实必须替换归一化 Markdown 中对应的 `DOCX_IMAGE_START` / `DOCX_IMAGE_END` 原位占位块，不能只保存在单独文件、文末章节、过程记录或最终回复中；如果当前模型不支持多模态，必须在对应占位块记录未执行原因。
+如果转换 metadata 报告图片或转换警告，读取 `skills/normalize-input-documents/references/docx-image-and-diagram-workflow.md`。OpenCode 执行本命令时默认视为已经具备多模态图片理解能力；不得仅因无法确认当前模型名称或上下文中没有显式模型状态，就写“当前模型不支持多模态”。在下游分析或设计使用归一化输入前，必须补充图片、图形、流程图、架构图、截图、EMF 或 Visio 中承载的事实。补充事实必须替换归一化 Markdown 中对应的 `DOCX_IMAGE_START` / `DOCX_IMAGE_END` 原位占位块，不能只保存在单独文件、文末章节、过程记录或最终回复中。
+
+只有以下情况允许写 `未执行原因`：
+
+- `image_not_accessible`：图片文件、占位块或解压后的媒体文件不可访问。
+- `unsupported_image_format`：图片格式无法读取，且转换或降级提取失败。
+- `conversion_tool_missing`：缺少 LibreOffice 或其他必要转换工具，导致 EMF/WMF 等格式无法转换。
+- `user_skipped_vision`：用户显式传入 `--skip-vision` 或明确只要求基础转换。
+- `model_vision_unavailable`：用户明确说明当前模型不支持多模态，或平台/工具明确返回视觉能力不可用错误。
+
+除 `model_vision_unavailable` 有明确用户或平台依据外，不得把处理失败笼统归因为“当前模型不支持多模态”。
 
 当输入是大型或复杂 Excel 知识源时，先读取 `skills/normalize-input-documents/references/xlsx-to-markdown.md` 和 `skills/normalize-input-documents/references/xlsx-to-ai-knowledge-base.md`，再判断基础表格转换是否足够。
 

@@ -90,6 +90,7 @@ python skills/normalize-input-documents/scripts/normalize-office-input.py --json
 - `.xlsx` 转换会裁剪每行尾部空单元格，避免 Excel 样式污染造成 Markdown 表格异常变宽。
 - `.xlsx` 中的合并单元格会在 metadata warnings 中记录；复杂多级表头或测试因子库仍应按内置 Excel 参考做人工增强或项目知识归档。
 - 若 `.docx` metadata 报告图片数量或图形风险，不得直接进入后续分析/设计并假设图中无信息；需要执行图片补充流程，并把相关图片/图形事实合并回归一化 Markdown 的原始图片占位位置；如果无法处理，必须在对应占位块和过程产物中记录未补充原因。
+- 在 OpenCode 独立命令或用户已切换到多模态模型的上下文中，默认按已具备图片理解能力处理 DOCX 图片/图形；不得仅因无法确认模型名称或模型状态而写“当前模型不支持多模态”。
 
 ## 完成判定
 
@@ -101,7 +102,7 @@ python skills/normalize-input-documents/scripts/normalize-office-input.py --json
 4. 所有 metadata warnings 都已处理或记录收口状态：
    - `已处理`：例如已补充图片/图形事实并合并回归一化 Markdown、已人工确认复杂 Excel 表头、已增强测试因子库归档。
    - `无需处理`：例如图片仅为 logo、页眉页脚装饰图，或 Excel 合并单元格不影响可读性。
-   - `未执行原因`：例如当前模型不支持多模态、缺少 LibreOffice 转图能力、用户只要求基础转换。
+   - `未执行原因`：只能写标准原因，例如图片不可访问、图片格式无法读取、缺少 LibreOffice 转图能力、用户明确跳过视觉处理，或用户/平台明确说明当前模型不支持多模态。
 5. 如果 DOCX 存在图片、图形、EMF、Visio 或截图风险，必须读取 `references/docx-image-and-diagram-workflow.md`，并将相关图片补充事实合并回归一化 Markdown 的原始图片占位位置；无法处理时，也必须在对应占位块中写明未补充原因。
 6. 如果 XLSX 存在合并单元格、多级表头、大型测试因子库或 checklist 风险，必须读取 `references/xlsx-to-markdown.md`；若它是项目知识源，还必须读取 `references/xlsx-to-ai-knowledge-base.md`，并说明基础表格转换是否足够。
 7. 最终回复或过程产物必须包含“归一化完成摘要”，列出源文件、归一化 Markdown、metadata、run-local Markdown（如有）、缓存状态、warning 收口状态和下游应读取的路径。
@@ -179,6 +180,23 @@ DOCX 图片抽取和占位可以一次完成，但图片理解、Mermaid 转换�
 5. 每批处理完成后，立即替换对应 Markdown 占位块，并把该批图片状态更新为 `已处理`、`无需处理` 或 `未执行原因`。
 6. 每批完成后重新读取当前 Markdown 或 metadata 状态，继续下一批；不要依赖模型记忆保存前一批结果。
 7. 全部批次完成后，检查所有 `DOCX_IMAGE_START` 块内不得仍为 `补充状态：待处理`。如果仍有待处理、无法定位或未执行原因未写清，归一化结论为 `需补充处理`。
+
+### 多模态能力判定
+
+- 不通过模型自我认知判断是否支持多模态；以用户明确指令、命令入口语义和实际图片读取/分析结果为准。
+- OpenCode 的独立 `normalize-input-documents` 命令默认等价于 `--vision-enabled`，必须尝试处理业务相关图片。
+- 只有用户显式要求跳过、图片或转换工具实际不可用、或平台/工具明确返回视觉能力不可用时，才允许写 `未执行原因`。
+- `model_vision_unavailable` 只能在用户明确说明当前模型不支持多模态，或平台/工具明确报错时使用；不得因为“不知道当前模型名称”而使用。
+
+标准 `未执行原因` 建议使用：
+
+| 原因 | 使用条件 |
+|---|---|
+| `image_not_accessible` | 图片文件、占位块或解压后的媒体文件不可访问 |
+| `unsupported_image_format` | 图片格式无法读取，且转换或降级提取失败 |
+| `conversion_tool_missing` | 缺少 LibreOffice 或其他必要转换工具 |
+| `user_skipped_vision` | 用户明确只要求基础转换或传入 `--skip-vision` |
+| `model_vision_unavailable` | 用户或平台明确说明视觉能力不可用 |
 
 过程产物或最终回复可以记录批次状态摘要，但不得把批次分析结果作为独立事实源；事实源必须是原位回写后的 Markdown。
 
