@@ -39,12 +39,25 @@ SC 场景树 -> TP 测试点 -> TC 测试用例
 
 设计阶段内部按每个 TP 生成 TC 切片并合并。TC 阶段不得修改 SC 或 TP。
 
+## 全流程阶段
+
+`test-e2e-analysis-design-agent` 负责从需求/设计输入一次性编排测试分析和测试设计。
+
+输出：
+
+```text
+测试分析方案 + 测试设计方案 + analysis/design final-report
+```
+
+全流程阶段只做高层编排和阶段交接：先执行 `test-analysis-workflow`，再把完整 `deliverables/test-analysis-solution.json` 显式传给 `test-design-workflow`。它不复制分析或设计阶段内部校验、review、coverage 或 final-report 逻辑。
+
 ## 触发关系
 
 - 用户要求“测试分析方案”：进入 `test-analysis-workflow`。
 - 用户要求“测试设计方案”“测试用例”“用例步骤”：进入 `test-design-workflow`。
+- 用户要求“全流程”“测试分析和测试设计”“一次性生成分析方案和设计方案”：进入 `test-analysis-design-workflow`。
 - 用户只提供 Office 输入：先进入 `file-normalization-agent`。
-- 用户只有需求/设计方案但要求测试设计：先生成测试分析方案，再生成测试设计方案。
+- 用户只有需求/设计方案但要求测试设计：`test-design-workflow` 本身不得自动生成分析方案；应先提供或生成完整 `test-analysis-solution.json`，或切换到 `test-analysis-design-workflow` 先分析再设计。
 
 ## 自动闭环
 

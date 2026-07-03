@@ -20,6 +20,7 @@ description: 测试分析方案门面 Agent；当用户希望生成 SC/TP 测试
 | 用户意图 | 处理方式 |
 |---|---|
 | 基于需求文档和可选设计方案生成测试分析方案 | 使用 `test-analysis-workflow` 主流程 |
+| 基于需求文档和可选设计方案一次性生成测试分析方案和测试设计方案 | 建议切换到 `@test-e2e-analysis-design-agent`，由 `test-analysis-design-workflow` 编排全流程 |
 | 输入需求文档或设计方案是 `.docx` / `.xlsx` | 先切换到 `@file-normalization-agent` 归一化为 Markdown；本 Agent 只消费归一化后的 Markdown 路径 |
 | 基于已评审测试分析方案生成测试设计方案或测试用例 | 建议切换到 `@test-design-agent`，由 `test-design-workflow` 生成 `TC-*` |
 | 只分析需求、设计、测试点或测试技术方案 | 读取相关 `knowledge/`、`docs/` 或 skill，先给分析建议；除非用户要求，不改文件 |

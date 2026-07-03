@@ -27,7 +27,7 @@ description: 文件归一化门面 Agent；当用户提供 .docx / .xlsx / .md �
 | 只检查 `.md` 输入能否作为下游输入 | 标记为无需转换，报告可直接交给分析/设计流程的 Markdown 路径 |
 | DOCX 图片/图形 warning 收口 | 分批理解图片或记录未执行原因，必须替换原位 `DOCX_IMAGE_START` / `DOCX_IMAGE_END` 占位块 |
 | XLSX 复杂表格或知识源增强 | 判断基础 Markdown 是否足够；不足时给出增强或归档建议，但不自动进入测试分析/设计 |
-| 用户要求生成测试分析方案或测试设计方案 | 先完成文件归一化，再提示使用 `@test-analysis-agent` 或 `@test-design-agent` 并传入归一化后的 Markdown 路径 |
+| 用户要求生成测试分析方案、测试设计方案或全流程分析设计 | 先完成文件归一化，再提示使用 `@test-analysis-agent`、`@test-design-agent` 或 `@test-e2e-analysis-design-agent` 并传入归一化后的 Markdown 路径 |
 
 ## 执行规则
 
@@ -49,10 +49,10 @@ description: 文件归一化门面 Agent；当用户提供 .docx / .xlsx / .md �
 - conversion metadata 路径。
 - run-local Markdown 路径和 manifest 路径，如本次绑定了 run。
 - warning 收口状态。
-- 下游应传给 `@test-analysis-agent` 或 `@test-design-agent` 的 Markdown 路径。
+- 下游应传给 `@test-analysis-agent`、`@test-design-agent` 或 `@test-e2e-analysis-design-agent` 的 Markdown 路径。
 
 ## 与分析/设计 Agent 的关系
 
-- `@test-analysis-agent` 和 `@test-design-agent` 只消费已归一化 Markdown 或 JSON canonical 输入。
+- `@test-analysis-agent`、`@test-design-agent` 和 `@test-e2e-analysis-design-agent` 只消费已归一化 Markdown 或 JSON canonical 输入。
 - 如果用户直接把 `.docx` / `.xlsx` 交给分析或设计 Agent，应先切换到本 Agent 完成归一化，再把输出 Markdown 路径交回分析或设计 Agent。
 - 本 Agent 不维护分析/设计 run 的 `process/analysis-task-list.json` 或 `process/design-task-list.json` 阶段状态；归一化状态以缓存 metadata、可选 run-local manifest 和最终摘要为准。历史 `process/task-list.json` 只作为兼容读取路径。

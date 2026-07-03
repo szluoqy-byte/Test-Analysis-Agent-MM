@@ -17,6 +17,7 @@ PROJECT_KEY_RE = re.compile(r"^(?=.{1,64}$)[A-Za-z0-9](?:[A-Za-z0-9 _-]*[A-Za-z0
 MAIN_SKILLS = {
     "analysis": "test-analysis-workflow",
     "design": "test-design-workflow",
+    "analysis-design": "test-analysis-design-workflow",
 }
 REQUIRED_SKILLS = {
     *MAIN_SKILLS.values(),
@@ -34,11 +35,13 @@ REQUIRED_AGENTS = {
     "file-normalization-agent": ("normalize-input-documents", "outputs/input-cache", "file-normalization-agent"),
     "test-analysis-agent": ("test-analysis-workflow", "file-normalization-agent", "context-capture"),
     "test-design-agent": ("test-design-workflow", "file-normalization-agent", "test-design-solution-generation", "test-case-writing", "context-capture"),
+    "test-e2e-analysis-design-agent": ("test-analysis-design-workflow", "test-analysis-workflow", "test-design-workflow", "file-normalization-agent"),
 }
 RUNTIME_CONFIGS = ("opencode.json", "codearts.json")
 FRAMEWORK_MIRRORS = (".opencode", ".testagent")
 FRAMEWORK_COMMANDS = {
     "commands/test-analysis-workflow.md": "test-analysis-workflow",
+    "commands/test-analysis-design-workflow.md": "test-analysis-design-workflow",
     "commands/test-design-workflow.md": "test-design-workflow",
     "commands/normalize-input-documents.md": "normalize-input-documents",
 }

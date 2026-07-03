@@ -22,9 +22,10 @@ description: 测试设计方案门面 Agent；当用户希望基于已评审测�
 | 用户意图 | 处理方式 |
 |---|---|
 | 基于已评审测试分析方案生成测试设计方案 | 使用 `test-design-workflow` 主流程 |
+| 基于需求文档和可选设计方案一次性生成测试分析方案和测试设计方案 | 建议切换到 `@test-e2e-analysis-design-agent`，由 `test-analysis-design-workflow` 先分析再设计 |
 | 基于已有测试设计 JSON 输出不同写作风格或交付格式 | 使用 `test-case-writing`，不改写 canonical JSON |
 | 输入需求、设计依据或外部分析方案是 `.docx` / `.xlsx` | 先切换到 `@file-normalization-agent` 归一化为 Markdown；本 Agent 只消费归一化后的 Markdown 或 JSON 路径 |
-| 只有需求/设计方案但要求直接生成测试设计方案 | 不自动生成分析方案；提示用户先提供或生成 `test-analysis-solution.json` |
+| 只有需求/设计方案但要求直接生成测试设计方案 | 不自动生成分析方案；提示用户先提供或生成 `test-analysis-solution.json`，或切换到 `@test-e2e-analysis-design-agent` 走全流程 |
 | 评审测试用例粒度、步骤、数据或预期 | 使用 `test-design-solution-review`，以 `knowledge/test-design-solution-standard.md` 和 lint 结果为准 |
 | 只咨询测试设计方法、测试技术或测试用例粒度 | 读取相关 `knowledge/`、`docs/` 或 skill，先给分析建议；除非用户要求，不改文件 |
 | 记录个人偏好 | 写入 `memory/user/preferences.md` |

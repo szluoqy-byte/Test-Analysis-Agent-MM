@@ -5,10 +5,11 @@
 简版规则：
 
 - Claude Code 加载 `.claude-plugin/plugin.json`、根目录 `agents/` 和根目录 `skills/`。
-- 用户主入口 Agent 包括 `@file-normalization-agent`、`@test-analysis-agent` 和 `@test-design-agent`。
+- 用户主入口 Agent 包括 `@file-normalization-agent`、`@test-analysis-agent`、`@test-design-agent` 和 `@test-e2e-analysis-design-agent`。
 - 文件归一化入口是 `@file-normalization-agent`，用于把 `.docx` / `.xlsx` / `.md` 输入整理为后续分析或设计可读取的 Markdown 输入事实源。
 - 测试分析主流程 skill 入口是 `skills/test-analysis-workflow/SKILL.md`。
 - 测试设计主流程 skill 入口是 `skills/test-design-workflow/SKILL.md`。
+- 全流程编排 skill 入口是 `skills/test-analysis-design-workflow/SKILL.md`，只串联 analysis/design，不复制两边内部校验逻辑。
 - 测试用例写作 skill 入口是 `skills/test-case-writing/SKILL.md`。
 - 最终人审报告 skill 入口是 `skills/final-report-generation/SKILL.md`。
 - `agents/` 是唯一手工维护的 Agent 门面源；`skills/` 是唯一手工维护的 skill 源。
