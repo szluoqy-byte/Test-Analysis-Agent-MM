@@ -10,6 +10,7 @@
 - 测试分析主流程 skill 入口是 `skills/test-analysis-workflow/SKILL.md`。
 - 测试设计主流程 skill 入口是 `skills/test-design-workflow/SKILL.md`。
 - 测试用例写作 skill 入口是 `skills/test-case-writing/SKILL.md`。
+- 最终人审报告 skill 入口是 `skills/final-report-generation/SKILL.md`。
 - `agents/` 是唯一手工维护的 Agent 门面源；`skills/` 是唯一手工维护的 skill 源。
 - `.opencode/agents/` 和 `.opencode/skills/` 由根目录源生成，不要直接编辑。
 - 修改 agents 或 skills 后，运行 `python bin/sync-opencode-skills.py`。
@@ -26,6 +27,7 @@
 - SC/TP/TC 过程 JSON 和 review/coverage JSON 必须包含固定脚本生成的 `generationContext`，用于生成前工作包、规则正文、动态来源索引和事实候选。
 - 分段工作项状态、批量切片初始化、批量合并、review blocking 返工重开和分段 run 固定检查使用仓库固定 `bin/` 脚本；不得临时创建脚本处理 JSON。
 - coverage 缺口必须先通过 `bin/apply-coverage-gaps.py` 重开对应 slice 工作项，再修复切片、评审、合并和收口。
+- final-report 只展示输入 FACT 最终被哪些 SC/TP/TC 覆盖，不输出 `coverageGaps[]`，不触发自动返工。
 - `SC-*` 最多 3 层，只有叶子 SC 挂 `TP-*`；`TP-*` 全局连续；`TC-*` 全局连续。
 - 测试分析方案不输出测试用例、步骤、测试数据或预期结果。
 - 测试设计方案输出完整步骤级测试用例，包含前置条件、测试数据、步骤、步骤预期和最终预期。

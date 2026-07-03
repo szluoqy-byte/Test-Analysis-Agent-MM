@@ -540,6 +540,8 @@ def main() -> int:
             "process/test-point-work-items.md",
             "reports/analysis-coverage-review.json",
             "reports/analysis-coverage-review.md",
+            "reports/analysis-final-report.json",
+            "reports/analysis-final-report.md",
         ):
             if not (run_dir / relative).exists():
                 errors.append(f"测试分析 run 缺少分层冻结产物: {relative}")
@@ -549,6 +551,8 @@ def main() -> int:
             "process/test-case-work-items.md",
             "reports/design-coverage-review.json",
             "reports/design-coverage-review.md",
+            "reports/design-final-report.json",
+            "reports/design-final-report.md",
         ):
             if not (run_dir / relative).exists():
                 errors.append(f"测试设计 run 缺少分层冻结产物: {relative}")

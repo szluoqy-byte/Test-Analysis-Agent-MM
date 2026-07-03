@@ -29,7 +29,7 @@ python skills/context-source-indexing/scripts/build-context-source-index.py \
 - 不扫描、不摘录、不动态索引 core 层文件：根目录 `knowledge/*.md`、`templates/` 和各 skill 私有参考文件由 workflow 或对应 skill 固定引用。
 - 不读取动态来源正文来判断具体测试点、测试用例、覆盖缺口或专项方法命中。
 - 不把来源内容复制到 context pack；context pack 只记录路径、名称、描述、阶段可见性、绑定状态和告警。
-- 不把 `applied`、`not_applicable`、`conflict_with_requirement` 等应用状态写入 `sources[]`；应用状态只能写入后续阶段的过程 JSON、review JSON 或 coverage JSON。
+- 不把 `applied`、`not_applicable`、`conflict_with_requirement` 等应用状态写入 `sources[]`；应用状态只能写入后续阶段的过程 JSON、review JSON、coverage JSON 或 final-report 审阅说明。
 - 不把绝对路径写入 `sources[].path`；脚本输出统一使用仓库相对路径。
 - 不修改 `rules/`、`knowledge/` 或 `memory/` 下的长期来源文件。
 
@@ -96,6 +96,7 @@ stages:
   - input-fact-modeling
   - testing-method-router
   - coverage-review
+  - final-report-generation
 ---
 ```
 
@@ -117,6 +118,7 @@ stages:
 - `test-case-writing`
 - `test-design-solution-review`
 - `coverage-review`
+- `final-report-generation`
 
 ## 输出结构
 
@@ -171,7 +173,7 @@ stages:
 后续 skill 根据当前阶段过滤 `sources[]`：
 
 - `availableStages` 包含当前阶段，或包含 `"*"`，才允许读取对应来源正文。
-- 被读取的动态来源必须在本阶段的过程 JSON、review JSON 或 coverage JSON 中记录应用状态。
+- 被读取的动态来源必须在本阶段的过程 JSON、review JSON、coverage JSON 或 final-report 审阅说明中记录应用状态。
 - 应用状态只能使用 `applied`、`not_applicable`、`insufficient_evidence`、`conflict_with_requirement` 或 `deferred_to_review`。
 - 如果动态来源与当前用户明确指令、`process/rules-pack.json` 中当前阶段可见且已读取正文的适用 rules 或输入文档冲突，不在 context pack 中裁决；由读取该来源的阶段记录冲突和处理依据。
 

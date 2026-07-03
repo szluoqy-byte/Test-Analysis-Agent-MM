@@ -101,7 +101,7 @@
       "order": 12,
       "stage": "输出收口",
       "owner": "test-analysis-workflow",
-      "checkpoint": "主交付件 JSON/Markdown 路径、review/coverage JSON 路径、check-artifact-consistency.py 结果",
+      "checkpoint": "主交付件 JSON/Markdown 路径、review/coverage/final-report JSON 路径、check-artifact-consistency.py 结果",
       "status": "done",
       "evidence": "deliverables/test-analysis-solution.json"
     }

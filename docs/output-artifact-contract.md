@@ -8,8 +8,9 @@
 - `process/test-point-slices/<SC-ID>.json`：叶子 SC 的 TP 生成切片，schema `1.0`，通过脚本合并为分析方案。
 - `process/test-case-slices/<TP-ID>.json`：单个 TP 的 TC 生成切片，schema `1.0`，通过脚本合并为设计方案。
 - `generationContext`：写入 scenario-tree、slice、review 和 coverage JSON 的生成前工作包，包含阶段、目标、适用 rules 正文、可见动态来源、事实候选和读入计划；它不进入最终 deliverables。
+- `reports/analysis-final-report.json` / `reports/design-final-report.json`：最终人审报告，schema `1.0`，展示输入 FACT 最终被哪些 SC/TP/TC 覆盖；它不是过程门禁，不输出 `coverageGaps[]`，不触发自动返工。
 
-JSON 是 run 内过程产物、主交付件和 review/coverage 结果的唯一事实源；Markdown 是派生的人类阅读版，不手工维护。若 JSON 与 Markdown 不一致，以 JSON 为准，运行 `python bin/render-run-markdown.py outputs/runs/<run-id>` 重新渲染。
+JSON 是 run 内过程产物、主交付件、review、coverage 和 final-report 结果的唯一事实源；Markdown 是派生的人类阅读版，不手工维护。若 JSON 与 Markdown 不一致，以 JSON 为准，运行 `python bin/render-run-markdown.py outputs/runs/<run-id>` 重新渲染。
 
 派生 Markdown 必须保留 JSON 层级。测试分析 Markdown 保留章节层级：`SC-001` 渲染为 `###`，`SC-001-001` 渲染为 `####`，`SC-001-001-001` 渲染为 `#####`；叶子 SC 下的 `TP-*` 比父级 SC 低一层。测试设计 Markdown 面向脑图导入优化，不额外增加“测试场景与测试设计”章节层级：`SC-001` 渲染为 `##`，`SC-001-001` 渲染为 `###`，常规叶子 SC 下 `TP-*` 渲染为 `####`，`TC-*` 渲染为 `#####`；如 3 层 SC 导致 TP 已是 `#####`，TC 使用 TP 下的列表节点兜底，避免 6 级标题在 emmx/脑图解析中截断。
 
@@ -58,13 +59,53 @@ outputs/
         analysis-coverage-review.md
         design-coverage-review.json
         design-coverage-review.md
+        analysis-final-report.json
+        analysis-final-report.md
+        design-final-report.json
+        design-final-report.md
 ```
 
 Office 输入必须先通过 `@file-normalization-agent` 归一化为 Markdown。测试分析和测试设计 workflow 本身只消费已归一化 Markdown 或 JSON canonical 输入。
 
 `process/rules-pack.json` 是强制规则索引，独立记录 core/project/user rules 的路径、阶段可见性和加载策略；后续阶段必须筛选当前阶段可见的 `ruleSources[]` 并读取对应 Markdown 正文。`process/context-pack.json` 只索引 project/personal knowledge 和 memory 动态来源，不承载 rules 强制语义。
 
-生成阶段不得让 AI 自行拼装上下文、循环处理切片或临时写脚本操作 JSON。新 run 必须通过 `skills/test-analysis-solution-generation/scripts/init-scenario-tree.py`、`skills/test-analysis-solution-generation/scripts/init-test-point-slice.py`、`skills/test-design-solution-generation/scripts/init-test-case-slice.py`、`bin/init-staged-slices.py`、`bin/build-generation-context.py` 或 `bin/init-report-artifact.py` 写入 `generationContext` 后再交给 AI 填写语义内容。review blocking 返工必须先运行 `bin/apply-review-findings.py` 重开对应 work item；coverage 缺口返工必须先运行 `bin/apply-coverage-gaps.py` 重开对应 work item。
+生成阶段不得让 AI 自行拼装上下文、循环处理切片或临时写脚本操作 JSON。新 run 必须通过 `skills/test-analysis-solution-generation/scripts/init-scenario-tree.py`、`skills/test-analysis-solution-generation/scripts/init-test-point-slice.py`、`skills/test-design-solution-generation/scripts/init-test-case-slice.py`、`bin/init-staged-slices.py`、`bin/build-generation-context.py` 或 `bin/init-report-artifact.py` 写入 `generationContext` 后再交给 AI 填写语义内容。review blocking 返工必须先运行 `bin/apply-review-findings.py` 重开对应 work item；coverage 缺口返工必须先运行 `bin/apply-coverage-gaps.py` 重开对应 work item。final-report 骨架和 summary 由 `bin/build-final-report.py` 生成和刷新，AI 只填写覆盖关系与审阅说明。
+
+## 最终人审报告
+
+`reports/analysis-final-report.json` 和 `reports/design-final-report.json` 结构一致，通过 `reportScope` 区分范围。分析最终报告展示 `FACT -> SC -> TP`；设计最终报告展示 `FACT -> SC -> TP -> TC`。一个 FACT 可以对应多个 SC、TP 和 TC。
+
+```json
+{
+  "artifactType": "final-report",
+  "schemaVersion": "1.0",
+  "title": "测试设计最终报告",
+  "reportScope": "design",
+  "summary": {
+    "totalFacts": 1,
+    "coveredFacts": 1,
+    "partialFacts": 0,
+    "missingFacts": 0,
+    "notApplicableFacts": 0
+  },
+  "factCoverage": [
+    {
+      "factId": "FACT-001",
+      "inputSource": {"type": "需求", "source": "requirements.md", "location": "支付创建", "description": "需求 / requirements.md / 支付创建"},
+      "factSummary": "用户可以创建支付单",
+      "condition": "支付参数有效",
+      "observableResult": "支付单创建成功",
+      "coveredScenarios": ["SC-001 用户发起支付"],
+      "coveredTestPoints": ["TP-001 创建支付单接口契约"],
+      "coveredTestCases": ["TC-001 创建支付单成功"],
+      "coverageStatus": "covered",
+      "reviewNote": "SC/TP/TC 均覆盖该事实"
+    }
+  ]
+}
+```
+
+Markdown 渲染按 `inputSource.type + inputSource.source` 分段，再按 `inputSource.location` 分小节，以表格展示 FACT 与 SC/TP/TC 覆盖关系。
 
 ## 测试分析主交付件
 

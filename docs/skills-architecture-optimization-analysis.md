@@ -19,6 +19,7 @@
 | 用例写作 | `test-case-writing` | 从 canonical JSON 生成标准 Markdown 或扩展写作风格 | 派生阅读版/导出格式 |
 | 独立评审 | review skills | 语义质量评审 | review JSON |
 | 覆盖收口 | `coverage-review` | 需求到 TP、TP 到 TC 的覆盖审查 | coverage JSON |
+| 最终人审报告 | `final-report-generation` / `bin/build-final-report.py` | 展示 FACT 最终被哪些 SC/TP/TC 覆盖，不触发返工 | final-report JSON/Markdown |
 | 返工定位 | `bin/apply-review-findings.py` / `bin/apply-coverage-gaps.py` | 将 review blocking 或 coverage gap 定位到具体 slice 并重开 work item | work-items JSON |
 
 ## 核心原则
@@ -30,3 +31,4 @@
 - 分析阶段先冻结 SC 再展开 TP；设计阶段按 TP 展开 TC，且不改写分析层级。
 - 确定性结构问题交给 Python 脚本；模型评审只处理语义质量。
 - review 发现 blocking 或 coverage-review 发现覆盖缺口后，必须先运行 `bin/apply-review-findings.py` 或 `bin/apply-coverage-gaps.py`，通过结构化 location 回到对应 TP/TC 切片修复，再重新执行切片 review、脚本合并、最终 review、coverage 和一致性检查；不得直接编辑最终 Markdown、绕过切片手改主交付件或临时创建脚本处理 JSON。
+- final-report 是最终人审件，位于 coverage-review 通过并返工闭环之后；它只展示输入 FACT 与最终 SC/TP/TC 覆盖关系，不输出 `coverageGaps[]`，不参与自动返工链路。

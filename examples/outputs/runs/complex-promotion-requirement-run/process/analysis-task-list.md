@@ -23,4 +23,4 @@
 | 9 | 确定性校验 | bin | lint-run-json.py、render-run-markdown.py、lint-test-analysis-solution.py 结果；失败不进入评审 | done | bin/lint-run-json.py；bin/render-run-markdown.py；bin/lint-test-analysis-solution.py |
 | 10 | 独立评审 | test-analysis-solution-review | 语义覆盖、测试点粒度、依据质量、事实溯源和分析边界 | done | reports/test-analysis-solution-review.json |
 | 11 | 覆盖审查 | coverage-review | 需求/方法/rules-pack/动态来源应用检查、阻断项；专家评分仅深度评估时执行 | done | reports/analysis-coverage-review.json |
-| 12 | 输出收口 | test-analysis-workflow | 主交付件 JSON/Markdown 路径、review/coverage JSON 路径、check-artifact-consistency.py 结果 | done | deliverables/test-analysis-solution.json |
+| 12 | 输出收口 | test-analysis-workflow | 主交付件 JSON/Markdown 路径、review/coverage/final-report JSON 路径、check-artifact-consistency.py 结果 | done | deliverables/test-analysis-solution.json |

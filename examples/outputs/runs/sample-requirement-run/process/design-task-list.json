@@ -85,7 +85,7 @@
       "order": 10,
       "stage": "输出收口",
       "owner": "test-design-workflow",
-      "checkpoint": "check-artifact-consistency",
+      "checkpoint": "final-report 与 check-artifact-consistency",
       "status": "done",
       "evidence": "bin/check-artifact-consistency.py"
     }

@@ -1,0 +1,38 @@
+{
+  "artifactType": "final-report",
+  "schemaVersion": "1.0",
+  "title": "测试分析最终报告/测试设计最终报告",
+  "reportScope": "analysis",
+  "targetArtifacts": {
+    "inputFactModel": "process/input-fact-model.json",
+    "analysisSolution": "deliverables/test-analysis-solution.json",
+    "designSolution": "deliverables/test-design-solution.json",
+    "coverageReview": "reports/analysis-coverage-review.json"
+  },
+  "summary": {
+    "totalFacts": 0,
+    "coveredFacts": 0,
+    "partialFacts": 0,
+    "missingFacts": 0,
+    "notApplicableFacts": 0
+  },
+  "factCoverage": [
+    {
+      "factId": "FACT-001",
+      "inputSource": {
+        "type": "需求",
+        "source": "",
+        "location": "",
+        "description": ""
+      },
+      "factSummary": "",
+      "condition": "",
+      "observableResult": "",
+      "coveredScenarios": [],
+      "coveredTestPoints": [],
+      "coveredTestCases": [],
+      "coverageStatus": "missing",
+      "reviewNote": ""
+    }
+  ]
+}

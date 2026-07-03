@@ -26,6 +26,7 @@ description: 当用户提供已评审测试分析方案并要求扩展 TC 测试
 - `test-design-solution-generation` 负责按每个已冻结 `TP-*` 生成 `test-case-slice`，再合并为 `testCases[]`。
 - `test-case-writing` 负责把 canonical JSON 写作为标准 Markdown 或后续扩展的不同交付风格，不改变测试用例事实。
 - `test-design-solution-review` 负责独立评审测试用例步骤、测试数据、预期结果依据和分析方案承接。
+- `final-report-generation` 负责在 coverage-review 闭环后填写最终人审报告，只展示 FACT 到 SC/TP/TC 的最终覆盖关系，不触发返工。
 - 主交付件事实源是 `outputs/runs/<run-id>/deliverables/test-design-solution.json`；人读版由 `test-case-writing` 调用 `bin/render-run-markdown.py` 生成。
 
 ## 执行流程
@@ -49,7 +50,8 @@ description: 当用户提供已评审测试分析方案并要求扩展 TC 测试
 14. 使用 `test-case-writing` 将 canonical JSON 写作为标准 Markdown，并运行 `bin/render-run-markdown.py --check` 和 `bin/lint-test-design-solution.py`；失败时回到 `test-design-solution.json` 修正后重新渲染，不手工编辑 Markdown。
 15. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-design-solution-review --force` 初始化最终评审骨架，再使用 `test-design-solution-review` 独立评审最终测试设计方案 JSON，结果写入 `reports/test-design-solution-review.json`；如发现必须修正的问题，回到第 11 步更新对应 TC 切片。
 16. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind coverage --scope design --force` 初始化 coverage 骨架，再使用 `coverage-review` 检查需求到测试点、测试点到测试用例的覆盖关系，结果写入 `reports/design-coverage-review.json`；如切片 review 或最终 review 存在 blocking findings/issues，先运行 `python bin/apply-review-findings.py outputs/runs/<run-id> --scope design --all` 重开对应工作项；如发现覆盖缺口，必须先运行 `python bin/apply-coverage-gaps.py outputs/runs/<run-id> --scope design`，再按被重开的 `process/test-case-slices/<TP-ID>.json` 修复。不得直接编辑最终 Markdown，也不得跳过切片回写直接手改 `deliverables/test-design-solution.json`；修复后重新执行对应 TC 切片 review、`bin/merge-staged-slices.py`、确定性校验、最终设计 review、coverage-review 和一致性检查。
-17. 最终输出前通过 `bin/update-run-task.py` 刷新 `process/design-task-list.json`，运行 `bin/check-staged-run.py outputs/runs/<run-id> --scope design`；失败时输出脚本失败项并修正对应 JSON 或 task-list，不停留在等待状态。
+17. coverage-review 通过且返工闭环完成后，运行 `python bin/build-final-report.py outputs/runs/<run-id> --scope design` 生成 `reports/design-final-report.json` 骨架，再使用 `final-report-generation` 填写 `coveredScenarios[]`、`coveredTestPoints[]`、`coveredTestCases[]`、`coverageStatus` 和 `reviewNote`；填写后再次运行同一脚本重新计算 `summary` 并渲染 `reports/design-final-report.md`。最终报告只供人工审阅，不输出 `coverageGaps[]`，不触发返工。
+18. 最终输出前通过 `bin/update-run-task.py` 刷新 `process/design-task-list.json`，运行 `bin/check-staged-run.py outputs/runs/<run-id> --scope design`；失败时输出脚本失败项并修正对应 JSON 或 task-list，不停留在等待状态。
 
 ## 按 TP 切片模式
 
@@ -65,7 +67,7 @@ description: 当用户提供已评审测试分析方案并要求扩展 TC 测试
 ## 脚本稳定性规则
 
 - design 流程不得临时创建 `.py`、`.js`、`.ps1`、`.bat` 或其他可执行脚本来拼接、修复或拆分 JSON。
-- 只能调用仓库固定脚本：`bin/build-rules-pack.py`、`skills/test-design-solution-generation/scripts/bind-analysis-solution.py`、`skills/test-design-solution-generation/scripts/extract-test-case-work-items.py`、`skills/test-design-solution-generation/scripts/init-test-case-slice.py`、`bin/init-staged-slices.py`、`bin/list-staged-work-items.py`、`bin/build-generation-context.py`、`bin/init-report-artifact.py`、`bin/apply-review-findings.py`、`bin/apply-coverage-gaps.py`、`bin/update-run-task.py`、`skills/test-design-solution-generation/scripts/merge-test-case-slice.py`、`bin/merge-staged-slices.py`、`bin/check-staged-run.py`、`bin/lint-run-json.py`、`bin/render-run-markdown.py`、`bin/lint-test-design-solution.py` 和 `bin/check-artifact-consistency.py`。
+- 只能调用仓库固定脚本：`bin/build-rules-pack.py`、`skills/test-design-solution-generation/scripts/bind-analysis-solution.py`、`skills/test-design-solution-generation/scripts/extract-test-case-work-items.py`、`skills/test-design-solution-generation/scripts/init-test-case-slice.py`、`bin/init-staged-slices.py`、`bin/list-staged-work-items.py`、`bin/build-generation-context.py`、`bin/init-report-artifact.py`、`bin/build-final-report.py`、`bin/apply-review-findings.py`、`bin/apply-coverage-gaps.py`、`bin/update-run-task.py`、`skills/test-design-solution-generation/scripts/merge-test-case-slice.py`、`bin/merge-staged-slices.py`、`bin/check-staged-run.py`、`bin/lint-run-json.py`、`bin/render-run-markdown.py`、`bin/lint-test-design-solution.py` 和 `bin/check-artifact-consistency.py`。
 - 如果固定脚本能力不足，必须修改仓库 `bin/` 或对应 skill `scripts/` 下的固定脚本并运行校验；不得在 `outputs/`、`process/`、`reports/`、临时目录或当前工作目录写一次性脚本。
 
 ## 防卡住规则

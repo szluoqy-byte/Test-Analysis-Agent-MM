@@ -7,6 +7,8 @@ description: 对测试分析/测试设计运行结果执行覆盖审查，检查
 
 本 skill 是测试分析与测试设计链路的覆盖收口环节。它读取 JSON canonical、确定性 lint 结果、独立评审结果、`process/rules-pack.json` 中当前阶段可见的规则索引及对应 Markdown 正文、动态来源应用状态和必要的私有参考。测试分析输出 `reports/analysis-coverage-review.json`；测试设计输出 `reports/design-coverage-review.json`。历史 `reports/coverage-review.json` 只作为兼容读取路径，不作为新流程写入目标。
 
+coverage-review 是过程门禁；发现缺口时通过 `coverageGaps[]` 触发切片返工。最终人审展示由 `final-report-generation` 负责，输出 `reports/analysis-final-report.json` 或 `reports/design-final-report.json`，不在本 skill 中生成。
+
 ## 必读输入
 
 - `process/input-fact-model.json`

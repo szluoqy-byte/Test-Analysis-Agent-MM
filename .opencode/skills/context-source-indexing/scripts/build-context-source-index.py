@@ -24,6 +24,7 @@ ALLOWED_STAGES = {
     "test-case-writing",
     "test-design-solution-review",
     "coverage-review",
+    "final-report-generation",
 }
 PROJECT_INFERENCE_ROOTS = (
     "rules/projects",

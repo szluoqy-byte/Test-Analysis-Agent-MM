@@ -28,6 +28,7 @@ REQUIRED_SKILLS = {
     "test-case-writing",
     "test-design-solution-generation",
     "test-design-solution-review",
+    "final-report-generation",
 }
 REQUIRED_AGENTS = {
     "file-normalization-agent": ("normalize-input-documents", "outputs/input-cache", "file-normalization-agent"),
@@ -273,6 +274,7 @@ def validate_context_source_metadata(root: Path, files: list[Path], issues: list
         "test-design-solution-generation",
         "test-design-solution-review",
         "coverage-review",
+        "final-report-generation",
     }
 
     for markdown_file in files:

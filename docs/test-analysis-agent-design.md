@@ -32,7 +32,8 @@ flowchart TD
   review --> coverageInit["init-report-artifact"]
   coverageInit --> coverage["coverage-review"]
   coverage -->|apply-review-findings / apply-coverage-gaps 定位到 TP slice| slices
-  coverage --> output["test-analysis-solution.json/.md"]
+  coverage --> finalReport["analysis-final-report"]
+  finalReport --> output["test-analysis-solution.json/.md + final-report.md"]
 ```
 
 ## 输出结构
@@ -48,7 +49,9 @@ flowchart TD
 
 `coverage-review` 是最终全局门禁，不在中间切片阶段执行。若 review 输出 blocking findings/issues，必须先运行 `bin/apply-review-findings.py` 按 slice location 重开工作项；若 `reports/analysis-coverage-review.json` 输出 `coverageGaps[]`，必须通过 `coverageGaps[].artifactLocation` 定位到对应 `process/test-point-slices/<SC-ID>.json`，先运行 `bin/apply-coverage-gaps.py` 重开工作项后再修复。
 
-修复后重新执行：TP 切片 review -> `bin/merge-staged-slices.py --scope analysis` -> deterministic lint/render -> 最终分析 review -> coverage-review -> `bin/check-staged-run.py --scope analysis`。
+修复后重新执行：TP 切片 review -> `bin/merge-staged-slices.py --scope analysis` -> deterministic lint/render -> 最终分析 review -> coverage-review -> final-report -> `bin/check-staged-run.py --scope analysis`。
+
+coverage-review 通过并完成返工闭环后，运行 `bin/build-final-report.py --scope analysis` 生成 `reports/analysis-final-report.json/.md`，由 `final-report-generation` 填写 FACT 到 SC/TP 的最终覆盖关系。final-report 只供人工审阅，不输出 `coverageGaps[]`，不触发自动返工。
 
 不得直接编辑最终 Markdown，也不得绕过切片回写直接手改 `deliverables/test-analysis-solution.json`。
 

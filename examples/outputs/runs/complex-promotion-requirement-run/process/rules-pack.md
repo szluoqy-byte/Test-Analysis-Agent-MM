@@ -16,7 +16,7 @@
 |---|---|
 | indexOnly | rules-pack 只索引规则元数据，不内联规则正文。 |
 | stageRequired | 后续阶段必须筛选 availableStages 包含当前阶段或 `*` 的 ruleSources，并读取对应 Markdown 正文后再执行。 |
-| applicationRecord | 读取、应用、未应用或被当前用户指令覆盖的 rules，必须在阶段产物、review 或 coverage 中留痕。 |
+| applicationRecord | 读取、应用、未应用或被当前用户指令覆盖的 rules，必须在阶段产物、review、coverage 或 final-report 中留痕。 |
 
 ## 规则来源索引
 

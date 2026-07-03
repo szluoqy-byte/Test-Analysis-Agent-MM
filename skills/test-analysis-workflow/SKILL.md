@@ -25,6 +25,7 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 - `test-analysis-solution-generation` 负责先生成并冻结 `SC-*` 场景树，再按每个叶子 SC 生成 `TP-*` 切片并合并。
 - `test-analysis-solution-review` 负责分段语义评审：先评审 SC 树，再评审 TP 覆盖和粒度，最后评审主交付件整体语义。
 - `coverage-review` 负责覆盖、追踪、rules-pack 和动态来源应用状态收口。
+- `final-report-generation` 负责在 coverage-review 闭环后填写最终人审报告，只展示 FACT 到 SC/TP 的最终覆盖关系，不触发返工。
 - 主交付件事实源是 `outputs/runs/<run-id>/deliverables/test-analysis-solution.json`；人读版由 `bin/render-run-markdown.py` 生成。
 
 ## 执行流程
@@ -47,7 +48,8 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 16. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-analysis-solution-review --force` 初始化最终评审骨架，再使用 `test-analysis-solution-review` 独立语义评审最终测试分析方案 JSON，评审结果写入 `reports/test-analysis-solution-review.json`。
 17. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind coverage --scope analysis --force` 初始化 coverage 骨架，再使用 `coverage-review` 执行覆盖、追踪、rules-pack 应用、动态来源应用和过程门禁收口，结果写入 `reports/analysis-coverage-review.json`。
 18. 如果切片 review 或最终 review 存在 blocking findings/issues，先运行 `python bin/apply-review-findings.py outputs/runs/<run-id> --scope analysis --all` 重开对应工作项；如果 `reports/analysis-coverage-review.json` 中存在 `coverageGaps[]`，必须先运行 `python bin/apply-coverage-gaps.py outputs/runs/<run-id> --scope analysis`。之后按被重开的 `process/test-point-slices/<SC-ID>.json` 修复；不得直接编辑最终 Markdown，也不得跳过切片回写直接手改 `deliverables/test-analysis-solution.json`。修复后重新执行对应 TP 切片 review、`bin/merge-staged-slices.py`、确定性校验、最终分析 review、coverage-review 和一致性检查。
-19. 最终输出前通过 `bin/update-run-task.py` 刷新 `process/analysis-task-list.json`，运行 `bin/check-staged-run.py outputs/runs/<run-id> --scope analysis`。
+19. coverage-review 通过且返工闭环完成后，运行 `python bin/build-final-report.py outputs/runs/<run-id> --scope analysis` 生成 `reports/analysis-final-report.json` 骨架，再使用 `final-report-generation` 填写 `coveredScenarios[]`、`coveredTestPoints[]`、`coverageStatus` 和 `reviewNote`；填写后再次运行同一脚本重新计算 `summary` 并渲染 `reports/analysis-final-report.md`。最终报告只供人工审阅，不输出 `coverageGaps[]`，不触发返工。
+20. 最终输出前通过 `bin/update-run-task.py` 刷新 `process/analysis-task-list.json`，运行 `bin/check-staged-run.py outputs/runs/<run-id> --scope analysis`。
 
 ## 阶段产物契约
 
@@ -65,11 +67,12 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 | 确定性校验 | JSON lint、Markdown render、Markdown lint | 独立语义评审 |
 | `test-analysis-solution-review` | `reports/test-analysis-solution-review.json` | 覆盖审查 |
 | `coverage-review` | `reports/analysis-coverage-review.json` | 输出收口 |
+| `final-report-generation` | `reports/analysis-final-report.json`、派生 `reports/analysis-final-report.md` | 最终人审 |
 
 ## 脚本稳定性规则
 
 - analysis 流程不得临时创建 `.py`、`.js`、`.ps1`、`.bat` 或其他可执行脚本来拼接、修复、循环处理或拆分 JSON。
-- 只能调用仓库固定脚本：`bin/build-rules-pack.py`、`skills/test-analysis-solution-generation/scripts/init-scenario-tree.py`、`skills/test-analysis-solution-generation/scripts/lint-scenario-tree.py`、`skills/test-analysis-solution-generation/scripts/extract-test-point-work-items.py`、`skills/test-analysis-solution-generation/scripts/init-test-point-slice.py`、`bin/init-staged-slices.py`、`bin/list-staged-work-items.py`、`bin/build-generation-context.py`、`bin/init-report-artifact.py`、`bin/apply-review-findings.py`、`bin/apply-coverage-gaps.py`、`bin/update-run-task.py`、`skills/test-analysis-solution-generation/scripts/merge-test-point-slice.py`、`bin/merge-staged-slices.py`、`bin/check-staged-run.py`、`bin/lint-run-json.py`、`bin/render-run-markdown.py`、`bin/lint-test-analysis-solution.py` 和 `bin/check-artifact-consistency.py`。
+- 只能调用仓库固定脚本：`bin/build-rules-pack.py`、`skills/test-analysis-solution-generation/scripts/init-scenario-tree.py`、`skills/test-analysis-solution-generation/scripts/lint-scenario-tree.py`、`skills/test-analysis-solution-generation/scripts/extract-test-point-work-items.py`、`skills/test-analysis-solution-generation/scripts/init-test-point-slice.py`、`bin/init-staged-slices.py`、`bin/list-staged-work-items.py`、`bin/build-generation-context.py`、`bin/init-report-artifact.py`、`bin/build-final-report.py`、`bin/apply-review-findings.py`、`bin/apply-coverage-gaps.py`、`bin/update-run-task.py`、`skills/test-analysis-solution-generation/scripts/merge-test-point-slice.py`、`bin/merge-staged-slices.py`、`bin/check-staged-run.py`、`bin/lint-run-json.py`、`bin/render-run-markdown.py`、`bin/lint-test-analysis-solution.py` 和 `bin/check-artifact-consistency.py`。
 - 如果固定脚本能力不足，必须修改仓库 `bin/` 或对应 skill `scripts/` 下的固定脚本并运行校验；不得在 `outputs/`、`process/`、`reports/`、临时目录或当前工作目录写一次性脚本。
 
 ## 输出要求

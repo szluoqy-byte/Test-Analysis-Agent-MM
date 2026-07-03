@@ -36,6 +36,7 @@ ARTIFACT_TITLES = {
     "test-point-review": "测试点评审结果",
     "test-case-review": "测试用例评审结果",
     "coverage-review": "覆盖审查结果",
+    "final-report": "最终审阅报告",
 }
 GENERIC_METADATA_KEYS = {"artifactType", "alternateArtifactTypes", "schemaVersion", "title", "sections", "generationContext"}
 ANALYSIS_REQUIRED_STAGES = [
@@ -491,6 +492,10 @@ def render_rules_pack(data: dict[str, Any]) -> str:
 
 
 def render_input_fact_model(data: dict[str, Any]) -> str:
+    if data.get("sections"):
+        fact_blocks = table_blocks_for_heading(data, "事实清单")
+        if fact_blocks:
+            return render_grouped_input_fact_model(data)
     return render_structured_sections(
         data,
         "输入事实模型",
@@ -515,6 +520,135 @@ def render_input_fact_model(data: dict[str, Any]) -> str:
             "applications": "来源与应用说明",
         },
     )
+
+
+def table_blocks_for_heading(data: dict[str, Any], heading_keyword: str) -> list[dict[str, Any]]:
+    blocks: list[dict[str, Any]] = []
+    for section in data.get("sections", []):
+        if not isinstance(section, dict) or heading_keyword not in normalize_text(section.get("heading")):
+            continue
+        for block in section.get("content", []):
+            if isinstance(block, dict) and block.get("type") == "table":
+                blocks.append(block)
+    return blocks
+
+
+def table_rows_as_dicts(block: dict[str, Any]) -> list[dict[str, str]]:
+    columns = [normalize_text(column) for column in block.get("columns", [])]
+    rows: list[dict[str, str]] = []
+    for raw_row in block.get("rows", []):
+        if not isinstance(raw_row, list):
+            continue
+        rows.append({columns[index]: normalize_text(raw_row[index]) for index in range(min(len(columns), len(raw_row)))})
+    return rows
+
+
+def input_source_lookup_from_model(data: dict[str, Any]) -> dict[str, dict[str, str]]:
+    lookup: dict[str, dict[str, str]] = {}
+    for block in table_blocks_for_heading(data, "输入来源"):
+        for row in table_rows_as_dicts(block):
+            source_type = row.get("来源类型") or row.get("类型") or ""
+            if not source_type:
+                continue
+            lookup[source_type] = {
+                "type": source_type,
+                "source": row.get("文件/来源") or row.get("来源") or "未记录",
+                "location": row.get("位置/章节") or row.get("范围") or "未记录",
+                "description": row.get("说明") or "",
+            }
+    return lookup
+
+
+def fact_input_source_from_row(row: dict[str, str], lookup: dict[str, dict[str, str]] | None = None) -> dict[str, str]:
+    lookup = lookup or {}
+    source_text = row.get("来源", "")
+    source_type = row.get("来源类型", "")
+    source_file = row.get("文件/来源", "")
+    location = row.get("位置/章节", "")
+    if not source_type and "：" in source_text:
+        source_type, _, inferred_location = source_text.partition("：")
+        location = location or inferred_location
+    if not source_file and source_type in lookup:
+        source_file = lookup[source_type].get("source", "")
+    if not source_file:
+        source_file = source_text if source_text and "：" not in source_text else ""
+    if (not location or location == "未记录") and source_type in lookup:
+        location = lookup[source_type].get("location", "")
+    return {
+        "type": source_type or "未记录",
+        "source": source_file or "未记录",
+        "location": location or "未记录",
+        "description": source_text,
+    }
+
+
+def fact_rows_from_input_model(data: dict[str, Any]) -> list[dict[str, Any]]:
+    facts: list[dict[str, Any]] = []
+    source_lookup = input_source_lookup_from_model(data)
+    for block in table_blocks_for_heading(data, "事实清单"):
+        for row in table_rows_as_dicts(block):
+            fact_id = row.get("事实ID", "")
+            if not fact_id:
+                continue
+            facts.append(
+                {
+                    "factId": fact_id,
+                    "inputSource": fact_input_source_from_row(row, source_lookup),
+                    "factSummary": row.get("事实内容", ""),
+                    "condition": row.get("约束/条件", ""),
+                    "observableResult": row.get("可观察结果", ""),
+                    "objectScope": row.get("对象/范围", ""),
+                }
+            )
+    return facts
+
+
+def render_grouped_input_fact_model(data: dict[str, Any]) -> str:
+    lines = [f"# {artifact_title(data, '输入事实模型')}", ""]
+    input_blocks = table_blocks_for_heading(data, "输入来源")
+    if input_blocks:
+        lines.extend(["## 1. 输入来源", ""])
+        for block in input_blocks:
+            lines.extend(markdown_table(block.get("columns", []), block.get("rows", [])))
+            lines.append("")
+
+    facts = fact_rows_from_input_model(data)
+    lines.extend(["## 2. 事实清单", ""])
+    if not facts:
+        lines.append("- 无事实记录")
+        lines.append("")
+    else:
+        grouped: dict[tuple[str, str], dict[str, list[dict[str, Any]]]] = {}
+        for fact in facts:
+            source = fact["inputSource"]
+            source_key = (source.get("type", "未记录"), source.get("source", "未记录"))
+            grouped.setdefault(source_key, {}).setdefault(source.get("location", "未记录"), []).append(fact)
+        for (source_type, source), by_location in grouped.items():
+            lines.extend([f"### {source_type}：{source}", ""])
+            for location, location_facts in by_location.items():
+                lines.extend([f"#### {location}", ""])
+                rows = [
+                    [
+                        fact.get("factId", ""),
+                        fact.get("objectScope", ""),
+                        fact.get("factSummary", ""),
+                        fact.get("condition", ""),
+                        fact.get("observableResult", ""),
+                    ]
+                    for fact in location_facts
+                ]
+                lines.extend(markdown_table(["事实ID", "对象/范围", "事实内容", "约束/条件", "可观察结果"], rows))
+                lines.append("")
+
+    for keyword, title in (("需求-设计映射", "## 3. 需求-设计映射"), ("来源与应用说明", "## 4. 来源与应用说明")):
+        blocks = table_blocks_for_heading(data, keyword)
+        if not blocks:
+            continue
+        lines.extend([title, ""])
+        for block in blocks:
+            lines.extend(markdown_table(block.get("columns", []), block.get("rows", [])))
+            lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
 
 
 def render_process_artifact(data: dict[str, Any]) -> str:
@@ -806,6 +940,89 @@ def render_coverage_report(data: dict[str, Any]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+def final_report_values(values: Any, empty: str = "未覆盖") -> str:
+    if isinstance(values, list):
+        normalized = [normalize_text(value) for value in values if normalize_text(value)]
+        return "<br>".join(normalized) if normalized else empty
+    value = normalize_text(values)
+    return value or empty
+
+
+def final_report_input_source_key(item: dict[str, Any]) -> tuple[str, str, str]:
+    input_source = item.get("inputSource") if isinstance(item.get("inputSource"), dict) else {}
+    source_type = normalize_text(input_source.get("type") or "未记录")
+    source = normalize_text(input_source.get("source") or "未记录")
+    location = normalize_text(input_source.get("location") or "未记录")
+    return source_type, source, location
+
+
+def render_final_report(data: dict[str, Any]) -> str:
+    title = data.get("title") or "最终审阅报告"
+    scope = normalize_text(data.get("reportScope") or "analysis")
+    include_cases = scope == "design"
+    lines = [f"# {title}", "", "## 1. 汇总", ""]
+    summary = data.get("summary") if isinstance(data.get("summary"), dict) else {}
+    summary_rows = [
+        ["totalFacts", summary.get("totalFacts", 0)],
+        ["coveredFacts", summary.get("coveredFacts", 0)],
+        ["partialFacts", summary.get("partialFacts", 0)],
+        ["missingFacts", summary.get("missingFacts", 0)],
+        ["notApplicableFacts", summary.get("notApplicableFacts", 0)],
+    ]
+    lines.extend(markdown_table(["指标", "数量"], summary_rows))
+    lines.append("")
+    lines.extend(["## 2. FACT 覆盖明细", ""])
+
+    fact_coverage = data.get("factCoverage") if isinstance(data.get("factCoverage"), list) else []
+    grouped: dict[tuple[str, str], dict[str, list[dict[str, Any]]]] = {}
+    for item in fact_coverage:
+        if not isinstance(item, dict):
+            continue
+        source_type, source, location = final_report_input_source_key(item)
+        grouped.setdefault((source_type, source), {}).setdefault(location, []).append(item)
+
+    if not grouped:
+        lines.append("无 FACT 覆盖记录。")
+        return "\n".join(lines).rstrip() + "\n"
+
+    for (source_type, source), by_location in grouped.items():
+        lines.extend([f"### {source_type}：{source}", ""])
+        for location, items in by_location.items():
+            lines.extend([f"#### {location}", ""])
+            columns = [
+                "FACT",
+                "输入来源",
+                "事实内容",
+                "约束/条件",
+                "可观察结果",
+                "覆盖 SC",
+                "覆盖 TP",
+            ]
+            if include_cases:
+                columns.append("覆盖 TC")
+            columns.extend(["覆盖状态", "审阅说明"])
+            rows: list[list[str]] = []
+            for item in items:
+                input_source = item.get("inputSource") if isinstance(item.get("inputSource"), dict) else {}
+                source_desc = normalize_text(input_source.get("description") or "")
+                row = [
+                    item.get("factId", ""),
+                    source_desc or f"{source_type} / {source} / {location}",
+                    item.get("factSummary", ""),
+                    item.get("condition", ""),
+                    item.get("observableResult", ""),
+                    final_report_values(item.get("coveredScenarios")),
+                    final_report_values(item.get("coveredTestPoints")),
+                ]
+                if include_cases:
+                    row.append(final_report_values(item.get("coveredTestCases")))
+                row.extend([item.get("coverageStatus", ""), item.get("reviewNote", "")])
+                rows.append(row)
+            lines.extend(markdown_table(columns, rows))
+            lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
+
+
 RENDERERS = {
     "task-list": render_task_list,
     "rules-pack": render_rules_pack,
@@ -824,6 +1041,7 @@ RENDERERS = {
     "test-point-review": render_review_report,
     "test-case-review": render_review_report,
     "coverage-review": render_coverage_report,
+    "final-report": render_final_report,
 }
 
 
@@ -856,6 +1074,8 @@ def collect_renderable_json_files(run_dir: Path) -> list[tuple[Path, Path]]:
         (run_dir / "reports" / "analysis-coverage-review.json", run_dir / "reports" / "analysis-coverage-review.md"),
         (run_dir / "reports" / "design-coverage-review.json", run_dir / "reports" / "design-coverage-review.md"),
         (run_dir / "reports" / "coverage-review.json", run_dir / "reports" / "coverage-review.md"),
+        (run_dir / "reports" / "analysis-final-report.json", run_dir / "reports" / "analysis-final-report.md"),
+        (run_dir / "reports" / "design-final-report.json", run_dir / "reports" / "design-final-report.md"),
     ]
     for directory in (
         run_dir / "process" / "test-point-slices",
@@ -1470,6 +1690,72 @@ def validate_review_json(data: dict[str, Any]) -> tuple[list[str], list[str]]:
     return errors, warnings
 
 
+def validate_final_report_json(data: dict[str, Any]) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    if data.get("reportScope") not in {"analysis", "design"}:
+        errors.append("final-report reportScope 必须为 analysis 或 design")
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        errors.append("final-report 缺少 summary 对象")
+    else:
+        for key in ("totalFacts", "coveredFacts", "partialFacts", "missingFacts", "notApplicableFacts"):
+            if key not in summary:
+                errors.append(f"final-report summary 缺少 {key}")
+            elif not isinstance(summary.get(key), int):
+                errors.append(f"final-report summary.{key} 必须是整数")
+    fact_coverage = data.get("factCoverage")
+    if not isinstance(fact_coverage, list):
+        return errors + ["final-report factCoverage 必须是数组"], warnings
+    status_values = {"covered", "partial", "missing", "not_applicable"}
+    seen_fact_ids: set[str] = set()
+    for index, item in enumerate(fact_coverage, start=1):
+        if not isinstance(item, dict):
+            errors.append(f"final-report factCoverage[{index}] 必须是对象")
+            continue
+        fact_id = normalize_text(item.get("factId"))
+        if not re.fullmatch(r"FACT-\d{3}", fact_id):
+            errors.append(f"final-report factCoverage[{index}].factId 不是合法 FACT 编号")
+        if fact_id in seen_fact_ids:
+            errors.append(f"final-report factCoverage 重复 FACT: {fact_id}")
+        seen_fact_ids.add(fact_id)
+        input_source = item.get("inputSource")
+        if not isinstance(input_source, dict):
+            errors.append(f"final-report {fact_id or index} inputSource 必须是对象")
+        else:
+            for key in ("type", "source", "location", "description"):
+                if key not in input_source:
+                    errors.append(f"final-report {fact_id or index} inputSource 缺少 {key}")
+        for key in ("factSummary", "condition", "observableResult", "coverageStatus", "reviewNote"):
+            if key not in item:
+                errors.append(f"final-report {fact_id or index} 缺少 {key}")
+        for key in ("coveredScenarios", "coveredTestPoints", "coveredTestCases"):
+            if key not in item:
+                errors.append(f"final-report {fact_id or index} 缺少 {key}")
+            elif not isinstance(item.get(key), list):
+                errors.append(f"final-report {fact_id or index} {key} 必须是数组")
+        status = item.get("coverageStatus")
+        if status not in status_values:
+            errors.append(f"final-report {fact_id or index} coverageStatus 非法: {status}")
+        if data.get("reportScope") == "design" and "coveredTestCases" not in item:
+            errors.append(f"final-report {fact_id or index} reportScope=design 时必须包含 coveredTestCases")
+    if isinstance(summary, dict) and isinstance(fact_coverage, list):
+        total = len(fact_coverage)
+        counted = {
+            "totalFacts": total,
+            "coveredFacts": sum(1 for item in fact_coverage if isinstance(item, dict) and item.get("coverageStatus") == "covered"),
+            "partialFacts": sum(1 for item in fact_coverage if isinstance(item, dict) and item.get("coverageStatus") == "partial"),
+            "missingFacts": sum(1 for item in fact_coverage if isinstance(item, dict) and item.get("coverageStatus") == "missing"),
+            "notApplicableFacts": sum(1 for item in fact_coverage if isinstance(item, dict) and item.get("coverageStatus") == "not_applicable"),
+        }
+        for key, expected in counted.items():
+            if summary.get(key) != expected:
+                errors.append(f"final-report summary.{key} 应为 {expected}，实际为 {summary.get(key)}")
+    if not fact_coverage:
+        warnings.append("final-report factCoverage 为空")
+    return errors, warnings
+
+
 def validate_artifact(data: dict[str, Any]) -> tuple[list[str], list[str]]:
     artifact_type = data.get("artifactType")
     errors: list[str] = []
@@ -1538,6 +1824,10 @@ def validate_artifact(data: dict[str, Any]) -> tuple[list[str], list[str]]:
         review_errors, review_warnings = validate_review_json(data)
         errors.extend(review_errors)
         warnings.extend(review_warnings)
+    elif artifact_type == "final-report":
+        final_errors, final_warnings = validate_final_report_json(data)
+        errors.extend(final_errors)
+        warnings.extend(final_warnings)
     else:
         errors.append(f"不支持的 artifactType: {artifact_type}")
     context_errors, context_warnings = validate_generation_context(data, artifact_type)

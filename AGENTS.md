@@ -23,6 +23,7 @@
 - 测试分析主流程 skill 入口是 `skills/test-analysis-workflow/SKILL.md`。
 - 测试设计主流程 skill 入口是 `skills/test-design-workflow/SKILL.md`。
 - 测试用例写作 skill 入口是 `skills/test-case-writing/SKILL.md`，用于把 canonical 测试设计 JSON 写作为标准 Markdown 或后续扩展的不同交付风格。
+- 最终人审报告 skill 入口是 `skills/final-report-generation/SKILL.md`，用于在 coverage-review 闭环后填写输入事实到 SC/TP/TC 的最终覆盖关系。
 - OpenCode 独立文档归一化命令入口是 `.opencode/commands/normalize-input-documents.md`。
 - Agent 门面负责用户意图识别和路由；具体流程动作仍放在 skills、knowledge、templates 或对应 skill 私有参考中。
 
@@ -73,12 +74,14 @@
 
 - 当用户要求把 `.docx` / `.xlsx` / `.md` 输入整理为可供下游读取的 Markdown 输入事实源时，使用 `@file-normalization-agent`。
 - 当用户要求基于需求和设计方案生成测试场景、测试点粒度的方案时，使用 `test-analysis-workflow`。该 workflow 只接受 Markdown 输入；Office 输入必须先归一化。
-- 测试分析阶段依次使用 `rules-pack`、`context-source-indexing`、`input-fact-modeling`、`testing-method-router`、路由选中的专项方法参考、`test-analysis-solution-generation` 生成冻结 SC 树、`test-analysis-solution-review` 评审 SC、按叶子 SC 生成并评审 TP 切片、合并分析方案、JSON lint、Markdown render、派生 Markdown lint、最终 `test-analysis-solution-review` 和 `coverage-review`。
+- 测试分析阶段依次使用 `rules-pack`、`context-source-indexing`、`input-fact-modeling`、`testing-method-router`、路由选中的专项方法参考、`test-analysis-solution-generation` 生成冻结 SC 树、`test-analysis-solution-review` 评审 SC、按叶子 SC 生成并评审 TP 切片、合并分析方案、JSON lint、Markdown render、派生 Markdown lint、最终 `test-analysis-solution-review`、`coverage-review` 和 `final-report-generation`。
 - 分段工作项状态查看、批量切片初始化、批量合并、review blocking 返工重开和分段 run 固定检查分别使用 `bin/list-staged-work-items.py`、`bin/init-staged-slices.py`、`bin/merge-staged-slices.py`、`bin/apply-review-findings.py` 和 `bin/check-staged-run.py`。
 - 覆盖审查产物按阶段拆分：测试分析写入 `reports/analysis-coverage-review.json/.md`，测试设计写入 `reports/design-coverage-review.json/.md`；历史 `reports/coverage-review.json/.md` 只作为兼容读取路径，不作为新流程写入目标。
 - coverage-review 发现覆盖缺口后，不直接编辑最终 Markdown 或主交付件 JSON；必须通过 `coverageGaps[].artifactLocation` 定位到 `process/test-point-slices/<SC-ID>.json` 或 `process/test-case-slices/<TP-ID>.json`，先运行 `bin/apply-coverage-gaps.py` 重开对应工作项，再修复切片并重新执行切片 review、脚本合并、最终 review、coverage 和一致性检查。
+- 最终审阅报告产物按阶段拆分：测试分析写入 `reports/analysis-final-report.json/.md`，测试设计写入 `reports/design-final-report.json/.md`。final-report 只展示输入 FACT 最终被哪些 SC/TP/TC 覆盖，不输出 `coverageGaps[]`，不触发 `apply-coverage-gaps.py`，也不参与自动返工链路。
 - 当用户要求基于已评审测试分析方案生成测试用例时，使用 `test-design-workflow`。该 workflow 优先使用用户显式指定的 `test-analysis-solution.json`，否则只读取当前 run 已存在的 `deliverables/test-analysis-solution.json`。
 - 测试设计阶段使用 `test-design-solution-generation` 按 TP 生成 TC 切片，`test-design-solution-review` 按切片评审，切片通过后由固定脚本合并并统一 TC 编号。
+- 测试设计 coverage-review 闭环后使用 `final-report-generation` 填写 `reports/design-final-report.json`，最终 Markdown 仍由脚本从 JSON 渲染。
 - 如果用户只提供需求/设计方案且要求测试设计，不得自动调用测试分析 workflow；必须先取得完整 `test-analysis-solution.json`，再进入测试设计。
 - 设计方案输入用于补充接口、字段、状态、权限、数据依赖、配置开关、异常处理和非功能指标；没有设计方案时继续生成，预期结果只写输入可支撑的保守判定。
 - 不编造业务事实、状态、角色、接口契约、阈值、错误码、错误提示或状态变化。
