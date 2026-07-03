@@ -49,7 +49,11 @@ SC 场景树 -> TP 测试点 -> TC 测试用例
 测试分析方案 + 测试设计方案 + analysis/design final-report
 ```
 
-全流程阶段只做高层编排和阶段交接：先执行 `test-analysis-workflow`，再把完整 `deliverables/test-analysis-solution.json` 显式传给 `test-design-workflow`。它不复制分析或设计阶段内部校验、review、coverage 或 final-report 逻辑。
+全流程阶段只做高层编排和阶段交接：优先启动独立 analysis subagent 执行 `test-analysis-workflow`，再把完整 `deliverables/test-analysis-solution.json` 显式传给独立 design subagent 执行 `test-design-workflow`。它不复制分析或设计阶段内部校验、review、coverage 或 final-report 逻辑。
+
+如果运行环境不支持真实独立 subagent，可以 fallback 为同会话串联 `test-analysis-workflow` 和 `test-design-workflow`，但必须说明未获得会话隔离收益。只有真实独立会话才视为 subagent 隔离；在同一会话里提到 `@test-analysis-agent` 或 `@test-design-agent` 不视为隔离执行。
+
+analysis/design 阶段之间只通过 run 目录下的 canonical JSON 和固定报告文件交接，不通过聊天上下文、自然语言总结或隐式记忆传递业务事实。analysis subagent 不输出 TC；design subagent 不重新分析或改写 SC/TP。
 
 ## 触发关系
 

@@ -202,7 +202,7 @@ Markdown 渲染按 `inputSource.type + inputSource.source` 分段，再按 `inpu
 规则：
 
 - 设计方案完整继承分析方案中的 `SC-*` 和 `TP-*`。
-- 每个 `TP-*` 下至少有 1 个 `TC-*`。
+- 每个 `TP-*` 下至少有 1 个 `TC-*`，且应覆盖该 TP 适用测试设计因子的最小充分 TC 集合。
 - `TC-*` 全局连续编号。
 - `level` 使用 `Level 0` 到 `Level 4`。
 - `testData[]` 使用 `{name, value, description}`。

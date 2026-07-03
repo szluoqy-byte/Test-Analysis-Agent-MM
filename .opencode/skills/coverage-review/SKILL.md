@@ -33,7 +33,7 @@ coverage-review 是过程门禁；发现缺口时通过 `coverageGaps[]` 触发�
 3. 优先读取 `generationContext.applicableRules[]` 中已内联的 coverage-review 适用 rules 正文，并检查 rules 与动态来源应用状态。
 4. 检查需求事实、设计事实和高风险点是否能追踪到已冻结 `SC-*`，以及叶子 SC 是否都有 TP 切片承接。
 5. 检查每个叶子 SC 是否至少有一个 `E2E场景测试`，且非 E2E TP 没有重复泛化主流程闭环。
-6. 如果存在测试设计方案，检查每个 `TP-*` 是否有 TC 工作项、TC 切片和至少一个 `TC-*` 承接。
+6. 如果存在测试设计方案，检查每个 `TP-*` 是否有 TC 工作项和 TC 切片承接；`至少一个 TC` 只是最低结构门槛，还必须检查该 TP 下是否形成覆盖适用测试设计因子的最小充分 TC 集合。
 7. 检查 TC 的测试数据、步骤和最终预期是否有依据。
 8. 输出结构化 findings、blockingIssues、recommendations、evidenceRefs、qualityGates 和 coverageGaps。
 9. 对需要返工的 `coverageGaps[]`，`artifactLocation` 必须优先定位到可编辑 canonical slice：分析缺口写 `process/test-point-slices/<SC-ID>.json`，设计缺口写 `process/test-case-slices/<TP-ID>.json`；`suggestedFix` 必须说明回到对应 slice 修复、重新 slice review、脚本合并、最终 review、coverage 和一致性检查。

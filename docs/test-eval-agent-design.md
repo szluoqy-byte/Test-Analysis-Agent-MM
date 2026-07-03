@@ -12,7 +12,7 @@
 | 产物 | 评估重点 |
 |---|---|
 | `deliverables/test-analysis-solution.json` | 场景树是否合理、测试点是否覆盖需求事实和风险 |
-| `deliverables/test-design-solution.json` | 每个测试点是否有具体测试用例，测试数据、步骤和预期是否可执行且有依据 |
+| `deliverables/test-design-solution.json` | 每个测试点是否形成覆盖适用测试设计因子的最小充分 TC 集合，测试数据、步骤和预期是否可执行且有依据 |
 | `reports/*review.json` | 语义评审问题是否可定位、建议是否可执行 |
 | `reports/analysis-coverage-review.json` / `reports/design-coverage-review.json` | 需求到测试点、测试点到测试用例的覆盖关系是否闭环 |
 

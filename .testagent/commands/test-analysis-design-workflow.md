@@ -19,7 +19,9 @@ Supported argument hints:
 
 This command only accepts normalized Markdown inputs. If the user provides `.docx` or `.xlsx`, stop and ask them to run `@file-normalization-agent` or `/normalize-input-documents` first, then pass the normalized Markdown path back to this command.
 
-The command is a high-level orchestrator. It must first run `test-analysis-workflow`, wait for that workflow to finish its own lint, render, review, coverage, final-report, and consistency checks, then pass the generated `deliverables/test-analysis-solution.json` explicitly into `test-design-workflow`. Do not duplicate the detailed validation logic from either workflow.
+The command is a high-level orchestrator. When the runtime supports true independent subagents, prefer an analysis subagent to run `test-analysis-workflow`, wait for that workflow to finish its own lint, render, review, coverage, final-report, and consistency checks, then pass the generated `deliverables/test-analysis-solution.json` explicitly into a design subagent running `test-design-workflow`. Do not duplicate the detailed validation logic from either workflow.
+
+If true subagents are unavailable, fall back to the same-session workflow sequence and say so in the final response. Stage handoff must use canonical JSON files and fixed report paths only, not chat history or natural-language summaries.
 
 Example:
 

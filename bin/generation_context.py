@@ -191,6 +191,8 @@ def default_constraints(kind: str) -> list[str]:
         return [
             "只填写当前 TP 的 testPoint.testCases[]。",
             "不得新增、删除、合并或改写 SC/TP。",
+            "填写 TC 前先识别当前 TP 的测试设计因子，并生成覆盖适用因子的最小充分 TC 集合。",
+            "每个 TP 至少 1 个 TC 只是最低门槛；只有输入依据确实只支持一个独立测试实例时，才允许该 TP 下只有 1 个 TC。",
             "一个 TC 只覆盖一个可独立执行、独立判定的测试实例。",
             "steps[].action 只写可执行动作或取数动作，检查项写入同一步 expected。",
         ]

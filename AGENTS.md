@@ -22,7 +22,7 @@
 - 文件归一化入口是 `agents/file-normalization-agent.md`，用于把 `.docx` / `.xlsx` / `.md` 输入整理为后续分析或设计可读取的 Markdown 输入事实源。
 - 测试分析主流程 skill 入口是 `skills/test-analysis-workflow/SKILL.md`。
 - 测试设计主流程 skill 入口是 `skills/test-design-workflow/SKILL.md`。
-- 测试分析与测试设计全流程编排入口是 `skills/test-analysis-design-workflow/SKILL.md`，用于先执行分析 workflow，再将完整分析 JSON 显式交给设计 workflow。
+- 测试分析与测试设计全流程编排入口是 `skills/test-analysis-design-workflow/SKILL.md`，优先用独立 subagent 分别执行分析和设计阶段，再将完整分析 JSON 显式交给设计阶段。
 - 测试用例写作 skill 入口是 `skills/test-case-writing/SKILL.md`，用于把 canonical 测试设计 JSON 写作为标准 Markdown 或后续扩展的不同交付风格。
 - 最终人审报告 skill 入口是 `skills/final-report-generation/SKILL.md`，用于在 coverage-review 闭环后填写输入事实到 SC/TP/TC 的最终覆盖关系。
 - OpenCode 独立文档归一化命令入口是 `.opencode/commands/normalize-input-documents.md`。
@@ -75,7 +75,7 @@
 
 - 当用户要求把 `.docx` / `.xlsx` / `.md` 输入整理为可供下游读取的 Markdown 输入事实源时，使用 `@file-normalization-agent`。
 - 当用户要求基于需求和设计方案生成测试场景、测试点粒度的方案时，使用 `test-analysis-workflow`。该 workflow 只接受 Markdown 输入；Office 输入必须先归一化。
-- 当用户要求从需求和设计方案一次性完成测试分析与测试设计时，使用 `test-analysis-design-workflow`。该 workflow 只做全流程编排和阶段交接，不复制 analysis/design 内部校验、review、coverage 或 final-report 逻辑。
+- 当用户要求从需求和设计方案一次性完成测试分析与测试设计时，使用 `test-analysis-design-workflow`。该 workflow 优先用独立 subagent 隔离执行 analysis/design，只做全流程编排和阶段交接，不复制 analysis/design 内部校验、review、coverage 或 final-report 逻辑；若运行环境不支持真实 subagent，才 fallback 为同会话 workflow 串联并在最终回复说明。
 - 测试分析阶段依次使用 `rules-pack`、`context-source-indexing`、`input-fact-modeling`、`testing-method-router`、路由选中的专项方法参考、`test-analysis-solution-generation` 生成冻结 SC 树、`test-analysis-solution-review` 评审 SC、按叶子 SC 生成并评审 TP 切片、合并分析方案、JSON lint、Markdown render、派生 Markdown lint、最终 `test-analysis-solution-review`、`coverage-review` 和 `final-report-generation`。
 - 分段工作项状态查看、批量切片初始化、批量合并、review blocking 返工重开和分段 run 固定检查分别使用 `bin/list-staged-work-items.py`、`bin/init-staged-slices.py`、`bin/merge-staged-slices.py`、`bin/apply-review-findings.py` 和 `bin/check-staged-run.py`。
 - 覆盖审查产物按阶段拆分：测试分析写入 `reports/analysis-coverage-review.json/.md`，测试设计写入 `reports/design-coverage-review.json/.md`；历史 `reports/coverage-review.json/.md` 只作为兼容读取路径，不作为新流程写入目标。
@@ -85,12 +85,13 @@
 - 测试设计阶段使用 `test-design-solution-generation` 按 TP 生成 TC 切片，`test-design-solution-review` 按切片评审，切片通过后由固定脚本合并并统一 TC 编号。
 - 测试设计 coverage-review 闭环后使用 `final-report-generation` 填写 `reports/design-final-report.json`，最终 Markdown 仍由脚本从 JSON 渲染。
 - 如果用户只提供需求/设计方案且要求测试设计，不得自动调用测试分析 workflow；必须先取得完整 `test-analysis-solution.json`，再进入测试设计。
-- 只有 `test-analysis-design-workflow` 可以在同一全流程中先运行分析再运行设计；`test-design-workflow` 本身不得自动运行分析。
+- 只有 `test-analysis-design-workflow` 可以在同一全流程中先运行分析再运行设计；`test-design-workflow` 本身不得自动运行分析。全流程阶段之间只通过 canonical JSON 和固定报告文件交接，不通过聊天上下文、自然语言总结或隐式记忆交接业务事实。
 - 设计方案输入用于补充接口、字段、状态、权限、数据依赖、配置开关、异常处理和非功能指标；没有设计方案时继续生成，预期结果只写输入可支撑的保守判定。
 - 不编造业务事实、状态、角色、接口契约、阈值、错误码、错误提示或状态变化。
 - 每个叶子测试场景下必须包含一个 `E2E场景测试` 测试点，用于覆盖该场景端到端业务主流程是否按预期完整闭环。
 - 接口测试或集成覆盖场景下的非 E2E `TP-*` 必须先按接口、端点、消息、回调或集成点组织；字段、状态码、错误码、鉴权、幂等、超时和重试作为该接口测试点的用例覆盖重点。
 - 测试用例必须包含 `level`，取值为 `Level 0` 到 `Level 4`；`testData[]` 使用 `{name, value, description}` 数组；`steps[]` 使用 `{stepNo, action, expected}` 数组。
+- 设计阶段不得把“每个 TP 至少 1 个 TC”当作充分覆盖；每个 TP 是验证目标簇，必须先识别适用测试设计因子，再生成覆盖这些因子的最小充分 TC 集合。
 - 测试用例公共写作必须遵守 `knowledge/test-case-writing-standard.md`，包括标题、前置条件、测试数据、步骤动作、步骤预期、最终预期和来源引用的写法。
 - 测试步骤的 `action` 只写可执行动作或取数动作；字段、状态、记录、事件、响应内容等检查要求写入对应 `expected`，不要把“检查响应体字段”这类检查项单独写成步骤。
 - GUI、API、CLI 测试用例必须按 `knowledge/test-case-writing-styles/` 中对应执行形态风格生成和评审；混合场景按测试人员实际发起动作确定主风格。

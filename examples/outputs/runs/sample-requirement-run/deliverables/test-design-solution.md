@@ -7,7 +7,7 @@
 | 测试分析方案来源 | deliverables/test-analysis-solution.json |
 | 需求来源 | examples/requirements/sample-requirement.md |
 | 设计方案来源 | 未提供 |
-| 设计范围 | 为每个测试点生成代表性完整测试用例。 |
+| 设计范围 | 按每个测试点的适用测试设计因子生成最小充分 TC 集合。 |
 | 不覆盖内容 | 退款、售后、物流拦截和客服审核后台详细流程。 |
 
 ## SC-001 订单取消业务流程

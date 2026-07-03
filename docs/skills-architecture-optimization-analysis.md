@@ -8,7 +8,7 @@
 |---|---|---|---|
 | 入口编排 | `test-analysis-workflow` | 创建 run、编排分析链路 | `test-analysis-solution.json` |
 | 入口编排 | `test-design-workflow` | 复用或创建 run、编排设计链路 | `test-design-solution.json` |
-| 全流程编排 | `test-analysis-design-workflow` | 先执行分析 workflow，再显式传入分析 JSON 执行设计 workflow | 分析/设计交付件与 final-report |
+| 全流程编排 | `test-analysis-design-workflow` | 优先用独立 subagent 执行分析和设计，通过分析 JSON 显式交接；不支持 subagent 时 fallback 为 workflow 串联 | 分析/设计交付件与 final-report |
 | 强制规则索引 | `bin/build-rules-pack.py` | 索引 core/project/user rules 元数据；后续阶段按 `ruleSources[]` 读取适用规则正文并形成强约束事实 | `rules-pack.json` |
 | 生成前工作包 | `bin/build-generation-context.py` / 初始化脚本 | 按阶段把适用 rules 正文、可见动态来源、事实候选和读入计划写入 `generationContext` | process/review/coverage JSON |
 | 输入建模 | `input-fact-modeling` | 抽取需求事实、设计事实和来源应用 | `input-fact-model.json` |
@@ -33,3 +33,4 @@
 - 确定性结构问题交给 Python 脚本；模型评审只处理语义质量。
 - review 发现 blocking 或 coverage-review 发现覆盖缺口后，必须先运行 `bin/apply-review-findings.py` 或 `bin/apply-coverage-gaps.py`，通过结构化 location 回到对应 TP/TC 切片修复，再重新执行切片 review、脚本合并、最终 review、coverage 和一致性检查；不得直接编辑最终 Markdown、绕过切片手改主交付件或临时创建脚本处理 JSON。
 - final-report 是最终人审件，位于 coverage-review 通过并返工闭环之后；它只展示输入 FACT 与最终 SC/TP/TC 覆盖关系，不输出 `coverageGaps[]`，不参与自动返工链路。
+- e2e 全流程推荐 subagent-first：analysis 和 design 放入独立会话以降低上下文互相影响；workflow skill 仍是执行契约，阶段交接只依赖 canonical JSON 和固定报告文件。

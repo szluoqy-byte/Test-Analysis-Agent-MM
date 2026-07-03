@@ -2,6 +2,8 @@
 
 `test-design-agent` 承接已评审 `测试分析方案`，输出 `SC 场景树 -> TP 测试点 -> TC 测试用例` 的测试设计方案。设计入口必须已有完整 `test-analysis-solution.json`：优先使用用户显式指定的分析方案；未指定时只使用当前 run 已存在的 `deliverables/test-analysis-solution.json`；两者都不存在时失败，不自动调用测试分析 workflow。
 
+在 e2e 全流程中，设计阶段优先由独立 design subagent 执行，并显式接收 analysis subagent 生成的 `deliverables/test-analysis-solution.json`、同一 run 目录、需求 Markdown 和可选设计 Markdown。design subagent 不读取 analysis subagent 的聊天上下文，不重新分析或改写 SC/TP。
+
 ## 边界
 
 设计阶段继承分析方案中已冻结的 `SC-*` 和 `TP-*`，不新增、删除、合并或改写分析层级。它按每个测试点生成 `process/test-case-slices/<TP-ID>.json`，评审后合并为完整步骤级 `TC-*`。
@@ -52,7 +54,7 @@ flowchart TD
 ## 约束
 
 - `TC-*` 全局连续编号。
-- 每个 `TP-*` 至少生成 1 个 TC。
+- 每个 `TP-*` 至少生成 1 个 TC，但该数量只是最低结构门槛；设计阶段应先识别当前 TP 的测试设计因子，再生成覆盖这些因子的最小充分 TC 集合。
 - 接口类 TC 不写完整裸 URL。
 - 不输出自动化脚本或真实生产数据。
 - 依据不足时使用输入可支撑的保守预期，不补写未说明具体值。

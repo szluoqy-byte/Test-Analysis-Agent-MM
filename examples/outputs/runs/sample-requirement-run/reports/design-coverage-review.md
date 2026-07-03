@@ -5,7 +5,7 @@
 - result：通过
 - coverageScope：design
 - targetArtifact：examples/outputs/runs/sample-requirement-run/deliverables/test-design-solution.json
-- summary：示例测试设计覆盖审查 JSON，确认每个 TP 已生成对应 TC，并保持对分析方案 SC/TP 的继承。
+- summary：示例测试设计覆盖审查 JSON，确认每个 TP 已形成覆盖适用测试设计因子的 TC 集合，并保持对分析方案 SC/TP 的继承。
 
 ## 2. Findings
 

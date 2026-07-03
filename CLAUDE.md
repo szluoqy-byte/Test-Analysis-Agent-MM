@@ -9,7 +9,7 @@
 - 文件归一化入口是 `@file-normalization-agent`，用于把 `.docx` / `.xlsx` / `.md` 输入整理为后续分析或设计可读取的 Markdown 输入事实源。
 - 测试分析主流程 skill 入口是 `skills/test-analysis-workflow/SKILL.md`。
 - 测试设计主流程 skill 入口是 `skills/test-design-workflow/SKILL.md`。
-- 全流程编排 skill 入口是 `skills/test-analysis-design-workflow/SKILL.md`，只串联 analysis/design，不复制两边内部校验逻辑。
+- 全流程编排 skill 入口是 `skills/test-analysis-design-workflow/SKILL.md`，优先用独立 subagent 隔离执行 analysis/design；不支持真实 subagent 时才 fallback 为同会话 workflow 串联，不复制两边内部校验逻辑。
 - 测试用例写作 skill 入口是 `skills/test-case-writing/SKILL.md`。
 - 最终人审报告 skill 入口是 `skills/final-report-generation/SKILL.md`。
 - `agents/` 是唯一手工维护的 Agent 门面源；`skills/` 是唯一手工维护的 skill 源。
@@ -29,6 +29,7 @@
 - 分段工作项状态、批量切片初始化、批量合并、review blocking 返工重开和分段 run 固定检查使用仓库固定 `bin/` 脚本；不得临时创建脚本处理 JSON。
 - coverage 缺口必须先通过 `bin/apply-coverage-gaps.py` 重开对应 slice 工作项，再修复切片、评审、合并和收口。
 - final-report 只展示输入 FACT 最终被哪些 SC/TP/TC 覆盖，不输出 `coverageGaps[]`，不触发自动返工。
+- e2e 全流程阶段只通过 canonical JSON 和固定报告文件交接；不得依赖 analysis/design subagent 的聊天上下文或自然语言总结传递业务事实。
 - `SC-*` 最多 3 层，只有叶子 SC 挂 `TP-*`；`TP-*` 全局连续；`TC-*` 全局连续。
 - 测试分析方案不输出测试用例、步骤、测试数据或预期结果。
 - 测试设计方案输出完整步骤级测试用例，包含前置条件、测试数据、步骤、步骤预期和最终预期。

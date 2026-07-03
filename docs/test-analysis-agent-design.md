@@ -9,8 +9,11 @@
 | `@file-normalization-agent` | 文件归一化 | `.docx` / `.xlsx` / `.md` | Markdown 输入事实源 |
 | `@test-analysis-agent` | what to test | 已归一化需求和可选设计方案 | `test-analysis-solution.json` |
 | `@test-design-agent` | how to test | 已评审测试分析方案 | `test-design-solution.json` |
+| `@test-e2e-analysis-design-agent` | 全流程编排 | 已归一化需求和可选设计方案 | 分析/设计交付件与 final-report |
 
 分析方案不生成测试用例、步骤、测试数据或预期结果。设计阶段在 `TP-*` 下生成 `TC-*`。
+
+全流程入口优先用独立 analysis subagent 执行本分析流程，完成后仅通过 `deliverables/test-analysis-solution.json` 和固定报告文件交接给设计阶段；不得把分析阶段聊天上下文作为设计依据。
 
 ## 流程
 
