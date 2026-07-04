@@ -6,9 +6,10 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
+from typing import Any
 
 from encoding_utils import configure_stdio
-from run_artifacts import collect_renderable_json_files, load_json, validate_artifact
+from run_artifacts import collect_renderable_json_files, load_json, normalize_text, validate_artifact
 
 
 REQUIRED_PROCESS_JSON = [
@@ -49,6 +50,110 @@ def validate_coverage_gap_locations(run_dir: Path, relative: Path, data: dict) -
             continue
         if not (run_dir / location).exists():
             errors.append(f"{relative}: coverageGaps[{index}].artifactLocation 指向的切片不存在: {location}")
+    return errors
+
+
+def solution_index(run_dir: Path, scope: str) -> dict[str, Any]:
+    solution_path = run_dir / "deliverables" / ("test-design-solution.json" if scope == "design" else "test-analysis-solution.json")
+    if not solution_path.exists():
+        return {
+            "leafScenarios": set(),
+            "testPointToLeaf": {},
+            "testCaseToTestPoint": {},
+        }
+    solution = load_json(solution_path)
+    index: dict[str, Any] = {
+        "leafScenarios": set(),
+        "testPointToLeaf": {},
+        "testCaseToTestPoint": {},
+    }
+
+    def walk(scenarios: list[Any]) -> None:
+        for scenario in scenarios:
+            if not isinstance(scenario, dict):
+                continue
+            scenario_id = normalize_text(scenario.get("id"))
+            children = scenario.get("children")
+            if isinstance(children, list) and children:
+                walk(children)
+                continue
+            if scenario_id:
+                index["leafScenarios"].add(scenario_id)
+            for test_point in scenario.get("testPoints", []):
+                if not isinstance(test_point, dict):
+                    continue
+                tp_id = normalize_text(test_point.get("id"))
+                if tp_id and scenario_id:
+                    index["testPointToLeaf"][tp_id] = scenario_id
+                for test_case in test_point.get("testCases", []):
+                    if not isinstance(test_case, dict):
+                        continue
+                    tc_id = normalize_text(test_case.get("id"))
+                    if tc_id and tp_id:
+                        index["testCaseToTestPoint"][tc_id] = tp_id
+
+    scenarios = solution.get("scenarios")
+    if isinstance(scenarios, list):
+        walk(scenarios)
+    return index
+
+
+def validate_final_report_links(run_dir: Path, relative: Path, data: dict) -> list[str]:
+    if data.get("artifactType") != "final-report":
+        return []
+    errors: list[str] = []
+    scope = normalize_text(data.get("reportScope") or "analysis")
+    if scope not in {"analysis", "design"}:
+        return errors
+    index = solution_index(run_dir, scope)
+    if not index["leafScenarios"]:
+        errors.append(f"{relative}: 无法读取 {scope} 最终方案用于校验 coverageTree")
+        return errors
+    for row_index, row in enumerate(data.get("factCoverage", []), start=1):
+        if not isinstance(row, dict):
+            continue
+        fact_id = normalize_text(row.get("factId")) or f"factCoverage[{row_index}]"
+        status = normalize_text(row.get("coverageStatus"))
+        tree = row.get("coverageTree") if isinstance(row.get("coverageTree"), list) else []
+        tp_count = 0
+        tc_count = 0
+        for scenario_ref in tree:
+            if not isinstance(scenario_ref, dict):
+                continue
+            leaf_id = normalize_text(scenario_ref.get("leafScenarioId"))
+            if leaf_id and leaf_id not in index["leafScenarios"]:
+                errors.append(f"{relative}: {fact_id} coverageTree 引用了不存在或非叶子的 SC: {leaf_id}")
+            test_points = scenario_ref.get("testPoints") if isinstance(scenario_ref.get("testPoints"), list) else []
+            for test_point_ref in test_points:
+                if not isinstance(test_point_ref, dict):
+                    continue
+                tp_id = normalize_text(test_point_ref.get("testPointId"))
+                if not tp_id:
+                    continue
+                tp_count += 1
+                actual_leaf = index["testPointToLeaf"].get(tp_id)
+                if not actual_leaf:
+                    errors.append(f"{relative}: {fact_id} coverageTree 引用了不存在的 TP: {tp_id}")
+                elif actual_leaf != leaf_id:
+                    errors.append(f"{relative}: {fact_id} {tp_id} 属于 {actual_leaf}，不能挂在 {leaf_id}")
+                test_cases = test_point_ref.get("testCases") if isinstance(test_point_ref.get("testCases"), list) else []
+                for raw_tc in test_cases:
+                    tc_id = normalize_text(raw_tc)
+                    if not tc_id:
+                        continue
+                    tc_count += 1
+                    actual_tp = index["testCaseToTestPoint"].get(tc_id)
+                    if scope == "analysis":
+                        errors.append(f"{relative}: {fact_id} analysis final-report 不应包含 TC: {tc_id}")
+                    elif not actual_tp:
+                        errors.append(f"{relative}: {fact_id} coverageTree 引用了不存在的 TC: {tc_id}")
+                    elif actual_tp != tp_id:
+                        errors.append(f"{relative}: {fact_id} {tc_id} 属于 {actual_tp}，不能挂在 {tp_id}")
+        if status == "covered":
+            if tp_count == 0:
+                errors.append(f"{relative}: {fact_id} covered 状态必须至少有一条 SC/TP 覆盖链路")
+            if scope == "design" and tc_count == 0:
+                errors.append(f"{relative}: {fact_id} design covered 状态必须至少有一个 TC")
     return errors
 
 
@@ -108,6 +213,7 @@ def main() -> int:
         errors.extend(f"{path.relative_to(run_dir)}: {error}" for error in artifact_errors)
         warnings.extend(f"{path.relative_to(run_dir)}: {warning}" for warning in artifact_warnings)
         errors.extend(validate_coverage_gap_locations(run_dir, path.relative_to(run_dir), data))
+        errors.extend(validate_final_report_links(run_dir, path.relative_to(run_dir), data))
 
     task_json = (
         run_dir / "process" / "analysis-task-list.json"

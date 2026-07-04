@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 from pathlib import Path
 from typing import Any
 
@@ -13,6 +14,19 @@ from staged_workflow import render_markdown_for_json
 
 
 STATUS_VALUES = {"covered", "partial", "missing", "not_applicable"}
+
+
+ID_PATTERNS = {
+    "scenario": re.compile(r"SC-\d{3}(?:-\d{3}){0,2}"),
+    "testPoint": re.compile(r"TP-\d{3}"),
+    "testCase": re.compile(r"TC-\d{3}"),
+}
+
+
+def extract_id(value: Any, kind: str) -> str:
+    text = normalize_text(value)
+    match = ID_PATTERNS[kind].search(text)
+    return match.group(0) if match else ""
 
 
 def table_rows(data: dict[str, Any], heading_keyword: str) -> list[dict[str, str]]:
@@ -123,22 +137,145 @@ def existing_coverage(report_path: Path) -> dict[str, dict[str, Any]]:
     }
 
 
+def solution_index(run_dir: Path, scope: str) -> dict[str, Any]:
+    solution_path = run_dir / "deliverables" / ("test-design-solution.json" if scope == "design" else "test-analysis-solution.json")
+    if not solution_path.exists() and scope == "design":
+        solution_path = run_dir / "deliverables" / "test-analysis-solution.json"
+    index: dict[str, Any] = {
+        "leafScenarios": set(),
+        "testPointToLeaf": {},
+        "testCaseToTestPoint": {},
+    }
+    if not solution_path.exists():
+        return index
+    solution = load_json(solution_path)
+
+    def walk(scenarios: list[Any]) -> None:
+        for scenario in scenarios:
+            if not isinstance(scenario, dict):
+                continue
+            scenario_id = normalize_text(scenario.get("id"))
+            children = scenario.get("children")
+            has_children = isinstance(children, list) and bool(children)
+            if has_children:
+                walk(children)
+                continue
+            if scenario_id:
+                index["leafScenarios"].add(scenario_id)
+            for test_point in scenario.get("testPoints", []):
+                if not isinstance(test_point, dict):
+                    continue
+                tp_id = normalize_text(test_point.get("id"))
+                if tp_id and scenario_id:
+                    index["testPointToLeaf"][tp_id] = scenario_id
+                for test_case in test_point.get("testCases", []):
+                    if not isinstance(test_case, dict):
+                        continue
+                    tc_id = normalize_text(test_case.get("id"))
+                    if tc_id and tp_id:
+                        index["testCaseToTestPoint"][tc_id] = tp_id
+
+    scenarios = solution.get("scenarios")
+    if isinstance(scenarios, list):
+        walk(scenarios)
+    return index
+
+
+def normalize_coverage_tree(tree: Any) -> list[dict[str, Any]]:
+    if not isinstance(tree, list):
+        return []
+    grouped: dict[str, dict[str, set[str]]] = {}
+    for scenario_ref in tree:
+        if not isinstance(scenario_ref, dict):
+            continue
+        leaf_id = extract_id(scenario_ref.get("leafScenarioId"), "scenario")
+        if not leaf_id:
+            continue
+        grouped.setdefault(leaf_id, {})
+        test_points = scenario_ref.get("testPoints")
+        if not isinstance(test_points, list):
+            continue
+        for test_point_ref in test_points:
+            if not isinstance(test_point_ref, dict):
+                continue
+            tp_id = extract_id(test_point_ref.get("testPointId"), "testPoint")
+            if not tp_id:
+                continue
+            cases = test_point_ref.get("testCases")
+            case_ids = {extract_id(value, "testCase") for value in cases} if isinstance(cases, list) else set()
+            grouped[leaf_id].setdefault(tp_id, set()).update(value for value in case_ids if value)
+    return [
+        {
+            "leafScenarioId": leaf_id,
+            "testPoints": [
+                {"testPointId": tp_id, "testCases": sorted(case_ids)}
+                for tp_id, case_ids in sorted(test_points.items())
+            ],
+        }
+        for leaf_id, test_points in sorted(grouped.items())
+        if test_points
+    ]
+
+
+def coverage_tree_from_legacy(existing: dict[str, Any], index: dict[str, Any]) -> list[dict[str, Any]]:
+    if isinstance(existing.get("coverageTree"), list):
+        return normalize_coverage_tree(existing.get("coverageTree"))
+    grouped: dict[str, dict[str, set[str]]] = {}
+
+    def add_link(leaf_id: str, tp_id: str, tc_id: str = "") -> None:
+        if not leaf_id or not tp_id:
+            return
+        grouped.setdefault(leaf_id, {}).setdefault(tp_id, set())
+        if tc_id:
+            grouped[leaf_id][tp_id].add(tc_id)
+
+    for raw_tc in existing.get("coveredTestCases", []):
+        tc_id = extract_id(raw_tc, "testCase")
+        tp_id = index.get("testCaseToTestPoint", {}).get(tc_id, "")
+        leaf_id = index.get("testPointToLeaf", {}).get(tp_id, "")
+        add_link(leaf_id, tp_id, tc_id)
+
+    for raw_tp in existing.get("coveredTestPoints", []):
+        tp_id = extract_id(raw_tp, "testPoint")
+        leaf_id = index.get("testPointToLeaf", {}).get(tp_id, "")
+        add_link(leaf_id, tp_id)
+
+    for raw_sc in existing.get("coveredScenarios", []):
+        leaf_id = extract_id(raw_sc, "scenario")
+        if leaf_id in index.get("leafScenarios", set()):
+            grouped.setdefault(leaf_id, {})
+
+    return [
+        {
+            "leafScenarioId": leaf_id,
+            "testPoints": [
+                {"testPointId": tp_id, "testCases": sorted(case_ids)}
+                for tp_id, case_ids in sorted(test_points.items())
+            ],
+        }
+        for leaf_id, test_points in sorted(grouped.items())
+        if test_points
+    ]
+
+
 def coverage_row(fact: dict[str, Any], existing: dict[str, Any] | None, scope: str) -> dict[str, Any]:
     existing = existing or {}
     status = existing.get("coverageStatus", "missing")
     if status not in STATUS_VALUES:
         status = "missing"
+    coverage_tree = normalize_coverage_tree(existing.get("coverageTree"))
+    reason = normalize_text(existing.get("coverageReason"))
+    if not reason and status != "covered":
+        reason = normalize_text(existing.get("reviewNote"))
     return {
         "factId": fact["factId"],
         "inputSource": fact["inputSource"],
         "factSummary": fact.get("factSummary", ""),
         "condition": fact.get("condition", ""),
         "observableResult": fact.get("observableResult", ""),
-        "coveredScenarios": existing.get("coveredScenarios", []) if isinstance(existing.get("coveredScenarios", []), list) else [],
-        "coveredTestPoints": existing.get("coveredTestPoints", []) if isinstance(existing.get("coveredTestPoints", []), list) else [],
-        "coveredTestCases": existing.get("coveredTestCases", []) if isinstance(existing.get("coveredTestCases", []), list) else [],
+        "coverageTree": coverage_tree,
         "coverageStatus": status,
-        "reviewNote": existing.get("reviewNote", "待最终审阅填写覆盖结论"),
+        "coverageReason": "" if status == "covered" else reason,
     }
 
 
@@ -164,7 +301,14 @@ def build_report(run_dir: Path, scope: str) -> Path:
     report_path, _ = report_paths(run_dir, scope)
     facts = collect_facts(load_json(input_fact_path))
     existing = existing_coverage(report_path)
-    rows = [coverage_row(fact, existing.get(fact["factId"]), scope) for fact in facts]
+    index = solution_index(run_dir, scope)
+    rows: list[dict[str, Any]] = []
+    for fact in facts:
+        existing_row = existing.get(fact["factId"], {})
+        row = coverage_row(fact, existing_row, scope)
+        if not row["coverageTree"]:
+            row["coverageTree"] = coverage_tree_from_legacy(existing_row, index)
+        rows.append(row)
     report = {
         "artifactType": "final-report",
         "schemaVersion": "1.0",

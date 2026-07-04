@@ -46,4 +46,4 @@
 - 动态来源文件必须声明 frontmatter：`name`、`description`，可选 `stages`。
 - `stages` 未配置时，`availableStages` 写 `["*"]`，`availability` 写 `all`；配置后仅对对应阶段可见，`availability` 写 `restricted`。
 - `sources[]` 不写 `sourceType`、`layer`、`projectKey` 或 personal 专属字段；这些信息由 `path` 推断，project 绑定只写在顶层 `projectBinding`，personal 来源只通过 `knowledge/user/**`、`memory/user/**` 路径表达。
-- 后续 skill 只读取对当前阶段可见的 `sources[]` 文件正文，并在本阶段过程 JSON、review JSON、coverage JSON 或 final-report 审阅说明中记录应用状态。
+- 后续 skill 只读取对当前阶段可见的 `sources[]` 文件正文，并在本阶段过程 JSON、review JSON、coverage JSON 或 final-report 覆盖原因中记录应用状态。

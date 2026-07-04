@@ -107,7 +107,7 @@ def render_markdown_for_json(json_path: Path) -> Path:
     markdown_path = json_path.with_suffix(".md")
     markdown_path.parent.mkdir(parents=True, exist_ok=True)
     with markdown_path.open("w", encoding="utf-8", newline="\n") as handle:
-        handle.write(render_json_artifact(load_json(json_path)))
+        handle.write(render_json_artifact(load_json(json_path), json_path))
     return markdown_path
 
 

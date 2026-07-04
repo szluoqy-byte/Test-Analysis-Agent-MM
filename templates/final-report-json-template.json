@@ -28,11 +28,19 @@
       "factSummary": "",
       "condition": "",
       "observableResult": "",
-      "coveredScenarios": [],
-      "coveredTestPoints": [],
-      "coveredTestCases": [],
+      "coverageTree": [
+        {
+          "leafScenarioId": "SC-001-001",
+          "testPoints": [
+            {
+              "testPointId": "TP-001",
+              "testCases": []
+            }
+          ]
+        }
+      ],
       "coverageStatus": "missing",
-      "reviewNote": ""
+      "coverageReason": ""
     }
   ]
 }

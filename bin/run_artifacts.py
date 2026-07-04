@@ -940,14 +940,6 @@ def render_coverage_report(data: dict[str, Any]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
-def final_report_values(values: Any, empty: str = "未覆盖") -> str:
-    if isinstance(values, list):
-        normalized = [normalize_text(value) for value in values if normalize_text(value)]
-        return "<br>".join(normalized) if normalized else empty
-    value = normalize_text(values)
-    return value or empty
-
-
 def final_report_input_source_key(item: dict[str, Any]) -> tuple[str, str, str]:
     input_source = item.get("inputSource") if isinstance(item.get("inputSource"), dict) else {}
     source_type = normalize_text(input_source.get("type") or "未记录")
@@ -956,10 +948,108 @@ def final_report_input_source_key(item: dict[str, Any]) -> tuple[str, str, str]:
     return source_type, source, location
 
 
-def render_final_report(data: dict[str, Any]) -> str:
+def _solution_label_maps(source_path: Path | None) -> dict[str, dict[str, str]]:
+    maps: dict[str, dict[str, str]] = {
+        "scenario_paths": {},
+        "test_points": {},
+        "test_cases": {},
+    }
+    if source_path is None:
+        return maps
+    try:
+        run_dir = source_path.resolve().parents[1]
+    except IndexError:
+        return maps
+    solution_path = run_dir / "deliverables" / "test-design-solution.json"
+    if not solution_path.exists():
+        solution_path = run_dir / "deliverables" / "test-analysis-solution.json"
+    if not solution_path.exists():
+        return maps
+    try:
+        solution = load_json(solution_path)
+    except Exception:
+        return maps
+
+    def walk_scenarios(scenarios: list[Any], parent_labels: list[str]) -> None:
+        for scenario in scenarios:
+            if not isinstance(scenario, dict):
+                continue
+            scenario_id = normalize_text(scenario.get("id"))
+            title = normalize_text(scenario.get("title"))
+            current_label = f"{scenario_id} {title}".strip()
+            current_path = parent_labels + ([current_label] if current_label else [])
+            if scenario_id:
+                maps["scenario_paths"][scenario_id] = " > ".join(current_path) or scenario_id
+            children = scenario.get("children")
+            if isinstance(children, list) and children:
+                walk_scenarios(children, current_path)
+            for test_point in scenario.get("testPoints", []):
+                if not isinstance(test_point, dict):
+                    continue
+                tp_id = normalize_text(test_point.get("id"))
+                tp_title = normalize_text(test_point.get("title"))
+                if tp_id:
+                    maps["test_points"][tp_id] = f"{tp_id} {tp_title}".strip()
+                for test_case in test_point.get("testCases", []):
+                    if not isinstance(test_case, dict):
+                        continue
+                    tc_id = normalize_text(test_case.get("id"))
+                    tc_title = normalize_text(test_case.get("title"))
+                    if tc_id:
+                        maps["test_cases"][tc_id] = f"{tc_id} {tc_title}".strip()
+
+    scenarios = solution.get("scenarios")
+    if isinstance(scenarios, list):
+        walk_scenarios(scenarios, [])
+    return maps
+
+
+def _coverage_tree_lines(item: dict[str, Any], include_cases: bool, label_maps: dict[str, dict[str, str]]) -> list[str]:
+    tree = item.get("coverageTree")
+    if not isinstance(tree, list):
+        return []
+    lines: list[str] = []
+    scenario_labels = label_maps.get("scenario_paths", {})
+    tp_labels = label_maps.get("test_points", {})
+    tc_labels = label_maps.get("test_cases", {})
+    for scenario_ref in tree:
+        if not isinstance(scenario_ref, dict):
+            continue
+        leaf_id = normalize_text(scenario_ref.get("leafScenarioId"))
+        if not leaf_id:
+            continue
+        scenario_label = scenario_labels.get(leaf_id, leaf_id)
+        test_points = scenario_ref.get("testPoints")
+        if not isinstance(test_points, list) or not test_points:
+            lines.append(scenario_label)
+            continue
+        for test_point_ref in test_points:
+            if not isinstance(test_point_ref, dict):
+                continue
+            tp_id = normalize_text(test_point_ref.get("testPointId"))
+            if not tp_id:
+                continue
+            tp_label = tp_labels.get(tp_id, tp_id)
+            prefix = f"{scenario_label} / {tp_label}"
+            test_cases = test_point_ref.get("testCases")
+            case_ids = [normalize_text(value) for value in test_cases] if isinstance(test_cases, list) else []
+            case_ids = [value for value in case_ids if value]
+            if include_cases:
+                if case_ids:
+                    for tc_id in case_ids:
+                        lines.append(f"{prefix} / {tc_labels.get(tc_id, tc_id)}")
+                else:
+                    lines.append(f"{prefix} / 未覆盖 TC")
+            else:
+                lines.append(prefix)
+    return lines
+
+
+def render_final_report(data: dict[str, Any], source_path: Path | None = None) -> str:
     title = data.get("title") or "最终审阅报告"
     scope = normalize_text(data.get("reportScope") or "analysis")
     include_cases = scope == "design"
+    label_maps = _solution_label_maps(source_path)
     lines = [f"# {title}", "", "## 1. 汇总", ""]
     summary = data.get("summary") if isinstance(data.get("summary"), dict) else {}
     summary_rows = [
@@ -971,9 +1061,34 @@ def render_final_report(data: dict[str, Any]) -> str:
     ]
     lines.extend(markdown_table(["指标", "数量"], summary_rows))
     lines.append("")
-    lines.extend(["## 2. FACT 覆盖明细", ""])
 
     fact_coverage = data.get("factCoverage") if isinstance(data.get("factCoverage"), list) else []
+    attention_rows: list[list[str]] = []
+    for item in fact_coverage:
+        if not isinstance(item, dict):
+            continue
+        status = normalize_text(item.get("coverageStatus"))
+        if status == "covered":
+            continue
+        input_source = item.get("inputSource") if isinstance(item.get("inputSource"), dict) else {}
+        attention_rows.append(
+            [
+                item.get("factId", ""),
+                normalize_text(input_source.get("description") or ""),
+                item.get("factSummary", ""),
+                status,
+                item.get("coverageReason", ""),
+            ]
+        )
+    if attention_rows:
+        lines.extend(["## 2. 需关注项", ""])
+        lines.extend(markdown_table(["FACT", "输入来源", "事实内容", "覆盖状态", "原因"], attention_rows))
+        lines.append("")
+        detail_heading = "## 3. FACT 覆盖明细"
+    else:
+        detail_heading = "## 2. FACT 覆盖明细"
+
+    lines.extend([detail_heading, ""])
     grouped: dict[tuple[str, str], dict[str, list[dict[str, Any]]]] = {}
     for item in fact_coverage:
         if not isinstance(item, dict):
@@ -989,34 +1104,23 @@ def render_final_report(data: dict[str, Any]) -> str:
         lines.extend([f"### {source_type}：{source}", ""])
         for location, items in by_location.items():
             lines.extend([f"#### {location}", ""])
-            columns = [
-                "FACT",
-                "输入来源",
-                "事实内容",
-                "约束/条件",
-                "可观察结果",
-                "覆盖 SC",
-                "覆盖 TP",
-            ]
-            if include_cases:
-                columns.append("覆盖 TC")
-            columns.extend(["覆盖状态", "审阅说明"])
+            columns = ["FACT", "输入来源", "事实内容", "约束/条件", "可观察结果", "覆盖链路", "覆盖状态"]
             rows: list[list[str]] = []
             for item in items:
                 input_source = item.get("inputSource") if isinstance(item.get("inputSource"), dict) else {}
                 source_desc = normalize_text(input_source.get("description") or "")
+                link_lines = _coverage_tree_lines(item, include_cases, label_maps)
+                status = normalize_text(item.get("coverageStatus"))
+                empty_links = "不适用" if status == "not_applicable" else "未覆盖"
                 row = [
                     item.get("factId", ""),
                     source_desc or f"{source_type} / {source} / {location}",
                     item.get("factSummary", ""),
                     item.get("condition", ""),
                     item.get("observableResult", ""),
-                    final_report_values(item.get("coveredScenarios")),
-                    final_report_values(item.get("coveredTestPoints")),
+                    "<br>".join(link_lines) if link_lines else empty_links,
+                    item.get("coverageStatus", ""),
                 ]
-                if include_cases:
-                    row.append(final_report_values(item.get("coveredTestCases")))
-                row.extend([item.get("coverageStatus", ""), item.get("reviewNote", "")])
                 rows.append(row)
             lines.extend(markdown_table(columns, rows))
             lines.append("")
@@ -1045,8 +1149,10 @@ RENDERERS = {
 }
 
 
-def render_json_artifact(data: dict[str, Any]) -> str:
+def render_json_artifact(data: dict[str, Any], source_path: Path | None = None) -> str:
     artifact_type = data.get("artifactType")
+    if artifact_type == "final-report":
+        return sanitize_markdown_angle_tokens(render_final_report(data, source_path))
     renderer = RENDERERS.get(artifact_type)
     if renderer is None:
         raise ValueError(f"unsupported artifactType: {artifact_type}")
@@ -1732,19 +1838,64 @@ def validate_final_report_json(data: dict[str, Any]) -> tuple[list[str], list[st
             for key in ("type", "source", "location", "description"):
                 if key not in input_source:
                     errors.append(f"final-report {fact_id or index} inputSource 缺少 {key}")
-        for key in ("factSummary", "condition", "observableResult", "coverageStatus", "reviewNote"):
+        for key in ("factSummary", "condition", "observableResult", "coverageStatus", "coverageTree", "coverageReason"):
             if key not in item:
                 errors.append(f"final-report {fact_id or index} 缺少 {key}")
-        for key in ("coveredScenarios", "coveredTestPoints", "coveredTestCases"):
-            if key not in item:
-                errors.append(f"final-report {fact_id or index} 缺少 {key}")
-            elif not isinstance(item.get(key), list):
-                errors.append(f"final-report {fact_id or index} {key} 必须是数组")
+        for legacy_key in ("coveredScenarios", "coveredTestPoints", "coveredTestCases", "reviewNote"):
+            if legacy_key in item:
+                errors.append(f"final-report {fact_id or index} 不再允许旧字段 {legacy_key}，请使用 coverageTree/coverageReason")
+        coverage_tree = item.get("coverageTree")
+        if not isinstance(coverage_tree, list):
+            errors.append(f"final-report {fact_id or index} coverageTree 必须是数组")
+            coverage_tree = []
+        link_count = 0
+        case_count = 0
+        for tree_index, scenario_ref in enumerate(coverage_tree, start=1):
+            if not isinstance(scenario_ref, dict):
+                errors.append(f"final-report {fact_id or index} coverageTree[{tree_index}] 必须是对象")
+                continue
+            leaf_scenario_id = normalize_text(scenario_ref.get("leafScenarioId"))
+            if not re.fullmatch(r"SC-\d{3}(?:-\d{3}){0,2}", leaf_scenario_id):
+                errors.append(f"final-report {fact_id or index} coverageTree[{tree_index}].leafScenarioId 不是合法叶子 SC 编号")
+            test_points = scenario_ref.get("testPoints")
+            if not isinstance(test_points, list):
+                errors.append(f"final-report {fact_id or index} coverageTree[{tree_index}].testPoints 必须是数组")
+                continue
+            if not test_points:
+                errors.append(f"final-report {fact_id or index} coverageTree[{tree_index}].testPoints 不能为空")
+            for tp_index, test_point_ref in enumerate(test_points, start=1):
+                if not isinstance(test_point_ref, dict):
+                    errors.append(f"final-report {fact_id or index} coverageTree[{tree_index}].testPoints[{tp_index}] 必须是对象")
+                    continue
+                test_point_id = normalize_text(test_point_ref.get("testPointId"))
+                if not re.fullmatch(r"TP-\d{3}", test_point_id):
+                    errors.append(
+                        f"final-report {fact_id or index} coverageTree[{tree_index}].testPoints[{tp_index}].testPointId 不是合法 TP 编号"
+                    )
+                test_cases = test_point_ref.get("testCases")
+                if not isinstance(test_cases, list):
+                    errors.append(f"final-report {fact_id or index} coverageTree[{tree_index}].testPoints[{tp_index}].testCases 必须是数组")
+                    continue
+                link_count += 1
+                normalized_cases = [normalize_text(value) for value in test_cases if normalize_text(value)]
+                case_count += len(normalized_cases)
+                for tc_id in normalized_cases:
+                    if not re.fullmatch(r"TC-\d{3}", tc_id):
+                        errors.append(f"final-report {fact_id or index} testCases 包含非法 TC 编号: {tc_id}")
         status = item.get("coverageStatus")
         if status not in status_values:
             errors.append(f"final-report {fact_id or index} coverageStatus 非法: {status}")
-        if data.get("reportScope") == "design" and "coveredTestCases" not in item:
-            errors.append(f"final-report {fact_id or index} reportScope=design 时必须包含 coveredTestCases")
+        reason = normalize_text(item.get("coverageReason"))
+        if status == "covered":
+            if link_count == 0:
+                errors.append(f"final-report {fact_id or index} coverageStatus=covered 时 coverageTree 必须至少包含一条 SC/TP 链路")
+            if data.get("reportScope") == "design" and case_count == 0:
+                errors.append(f"final-report {fact_id or index} reportScope=design 且 covered 时必须至少包含一个 TC")
+        elif status in {"partial", "missing", "not_applicable"}:
+            if not reason or "待最终审阅" in reason:
+                errors.append(f"final-report {fact_id or index} coverageStatus={status} 时 coverageReason 必须填写明确原因")
+            if status in {"missing", "not_applicable"} and link_count:
+                errors.append(f"final-report {fact_id or index} coverageStatus={status} 时 coverageTree 必须为空")
     if isinstance(summary, dict) and isinstance(fact_coverage, list):
         total = len(fact_coverage)
         counted = {

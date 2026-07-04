@@ -31,7 +31,7 @@ def main() -> int:
     rendered_count = 0
     for json_path, markdown_path in pairs:
         try:
-            rendered = render_json_artifact(load_json(json_path))
+            rendered = render_json_artifact(load_json(json_path), json_path)
         except Exception as exc:
             errors.append(f"{json_path.relative_to(run_dir)} 渲染失败: {exc}")
             continue

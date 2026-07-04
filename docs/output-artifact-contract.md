@@ -70,11 +70,11 @@ Office 输入必须先通过 `@file-normalization-agent` 归一化为 Markdown�
 
 `process/rules-pack.json` 是强制规则索引，独立记录 core/project/user rules 的路径、阶段可见性和加载策略；后续阶段必须筛选当前阶段可见的 `ruleSources[]` 并读取对应 Markdown 正文。`process/context-pack.json` 只索引 project/personal knowledge 和 memory 动态来源，不承载 rules 强制语义。
 
-生成阶段不得让 AI 自行拼装上下文、循环处理切片或临时写脚本操作 JSON。新 run 必须通过 `skills/test-analysis-solution-generation/scripts/init-scenario-tree.py`、`skills/test-analysis-solution-generation/scripts/init-test-point-slice.py`、`skills/test-design-solution-generation/scripts/init-test-case-slice.py`、`bin/init-staged-slices.py`、`bin/build-generation-context.py` 或 `bin/init-report-artifact.py` 写入 `generationContext` 后再交给 AI 填写语义内容。review blocking 返工必须先运行 `bin/apply-review-findings.py` 重开对应 work item；coverage 缺口返工必须先运行 `bin/apply-coverage-gaps.py` 重开对应 work item。final-report 骨架和 summary 由 `bin/build-final-report.py` 生成和刷新，AI 只填写覆盖关系与审阅说明。
+生成阶段不得让 AI 自行拼装上下文、循环处理切片或临时写脚本操作 JSON。新 run 必须通过 `skills/test-analysis-solution-generation/scripts/init-scenario-tree.py`、`skills/test-analysis-solution-generation/scripts/init-test-point-slice.py`、`skills/test-design-solution-generation/scripts/init-test-case-slice.py`、`bin/init-staged-slices.py`、`bin/build-generation-context.py` 或 `bin/init-report-artifact.py` 写入 `generationContext` 后再交给 AI 填写语义内容。review blocking 返工必须先运行 `bin/apply-review-findings.py` 重开对应 work item；coverage 缺口返工必须先运行 `bin/apply-coverage-gaps.py` 重开对应 work item。final-report 骨架和 summary 由 `bin/build-final-report.py` 生成和刷新，AI 只填写覆盖树与异常覆盖原因。
 
 ## 最终人审报告
 
-`reports/analysis-final-report.json` 和 `reports/design-final-report.json` 结构一致，通过 `reportScope` 区分范围。分析最终报告展示 `FACT -> SC -> TP`；设计最终报告展示 `FACT -> SC -> TP -> TC`。一个 FACT 可以对应多个 SC、TP 和 TC。
+`reports/analysis-final-report.json` 和 `reports/design-final-report.json` 结构一致，通过 `reportScope` 区分范围。最终报告使用 `coverageTree[]` 表达覆盖链路：`FACT -> leaf SC -> TP -> TC`。分析最终报告的 `testCases[]` 保持空数组；设计最终报告必须填到 TC。一个 FACT 可以对应多个叶子 SC、TP 和 TC。
 
 ```json
 {
@@ -96,17 +96,25 @@ Office 输入必须先通过 `@file-normalization-agent` 归一化为 Markdown�
       "factSummary": "用户可以创建支付单",
       "condition": "支付参数有效",
       "observableResult": "支付单创建成功",
-      "coveredScenarios": ["SC-001 用户发起支付"],
-      "coveredTestPoints": ["TP-001 创建支付单接口契约"],
-      "coveredTestCases": ["TC-001 创建支付单成功"],
+      "coverageTree": [
+        {
+          "leafScenarioId": "SC-001",
+          "testPoints": [
+            {
+              "testPointId": "TP-001",
+              "testCases": ["TC-001"]
+            }
+          ]
+        }
+      ],
       "coverageStatus": "covered",
-      "reviewNote": "SC/TP/TC 均覆盖该事实"
+      "coverageReason": ""
     }
   ]
 }
 ```
 
-Markdown 渲染按 `inputSource.type + inputSource.source` 分段，再按 `inputSource.location` 分小节，以表格展示 FACT 与 SC/TP/TC 覆盖关系。
+Markdown 渲染按 `inputSource.type + inputSource.source` 分段，再按 `inputSource.location` 分小节，以表格展示 FACT 与覆盖链路；非 `covered` 项会先进入“需关注项”，并展示 `coverageReason`。
 
 ## 测试分析主交付件
 

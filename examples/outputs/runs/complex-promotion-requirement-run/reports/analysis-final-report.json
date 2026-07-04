@@ -27,17 +27,27 @@
       "factSummary": "活动时间内、库存充足且未重复领取时允许领取",
       "condition": "活动开始和结束时间之间；库存充足；同一用户未领取",
       "observableResult": "领取成功",
-      "coveredScenarios": [
-        "SC-001-001 普通用户领取优惠券"
+      "coverageTree": [
+        {
+          "leafScenarioId": "SC-001-001",
+          "testPoints": [
+            {
+              "testPointId": "TP-001",
+              "testCases": []
+            },
+            {
+              "testPointId": "TP-002",
+              "testCases": []
+            },
+            {
+              "testPointId": "TP-003",
+              "testCases": []
+            }
+          ]
+        }
       ],
-      "coveredTestPoints": [
-        "TP-001 E2E场景测试",
-        "TP-002 活动时间窗口",
-        "TP-003 库存与单用户领取次数"
-      ],
-      "coveredTestCases": [],
       "coverageStatus": "covered",
-      "reviewNote": "活动时间、库存和单用户领取次数均已在领取场景 TP 中覆盖。"
+      "coverageReason": ""
     },
     {
       "factId": "FACT-002",
@@ -50,17 +60,27 @@
       "factSummary": "商品范围、金额门槛、会员等级和过期状态影响优惠券可用性",
       "condition": "订单商品、订单金额、会员等级、优惠券有效期",
       "observableResult": "优惠券可用或不可用",
-      "coveredScenarios": [
-        "SC-002-001 订单试算"
+      "coverageTree": [
+        {
+          "leafScenarioId": "SC-002-001",
+          "testPoints": [
+            {
+              "testPointId": "TP-004",
+              "testCases": []
+            },
+            {
+              "testPointId": "TP-005",
+              "testCases": []
+            },
+            {
+              "testPointId": "TP-006",
+              "testCases": []
+            }
+          ]
+        }
       ],
-      "coveredTestPoints": [
-        "TP-004 E2E场景测试",
-        "TP-005 商品范围与最低门槛",
-        "TP-006 会员折扣叠加资格"
-      ],
-      "coveredTestCases": [],
       "coverageStatus": "covered",
-      "reviewNote": "商品范围、门槛、会员等级和优惠可用性已在订单试算 TP 中覆盖。"
+      "coverageReason": ""
     },
     {
       "factId": "FACT-003",
@@ -73,17 +93,27 @@
       "factSummary": "重复支付不能重复扣减优惠券和库存",
       "condition": "同一订单重复提交支付请求",
       "observableResult": "不重复扣减优惠券和库存",
-      "coveredScenarios": [
-        "SC-003-001 优惠券支付闭环"
+      "coverageTree": [
+        {
+          "leafScenarioId": "SC-003-001",
+          "testPoints": [
+            {
+              "testPointId": "TP-007",
+              "testCases": []
+            },
+            {
+              "testPointId": "TP-008",
+              "testCases": []
+            },
+            {
+              "testPointId": "TP-009",
+              "testCases": []
+            }
+          ]
+        }
       ],
-      "coveredTestPoints": [
-        "TP-007 E2E场景测试",
-        "TP-008 已支付订单重复使用限制",
-        "TP-009 支付超时释放优惠券"
-      ],
-      "coveredTestCases": [],
       "coverageStatus": "covered",
-      "reviewNote": "重复支付和支付超时副作用已在支付闭环 TP 中覆盖。"
+      "coverageReason": ""
     }
   ]
 }

@@ -28,21 +28,33 @@
       "factSummary": "用户在订单未完成前可以取消订单",
       "condition": "本人订单且订单未完成",
       "observableResult": "取消成功后订单不可继续支付，库存释放并记录取消原因",
-      "coveredScenarios": [
-        "SC-001-001 普通用户取消订单"
-      ],
-      "coveredTestPoints": [
-        "TP-001 E2E场景测试",
-        "TP-002 本人待支付订单允许取消",
-        "TP-004 已发货订单取消状态限制"
-      ],
-      "coveredTestCases": [
-        "TC-001 普通用户取消本人待支付订单成功闭环",
-        "TC-002 本人待支付订单取消被允许",
-        "TC-004 本人已发货订单取消被拒绝"
+      "coverageTree": [
+        {
+          "leafScenarioId": "SC-001-001",
+          "testPoints": [
+            {
+              "testPointId": "TP-001",
+              "testCases": [
+                "TC-001"
+              ]
+            },
+            {
+              "testPointId": "TP-002",
+              "testCases": [
+                "TC-002"
+              ]
+            },
+            {
+              "testPointId": "TP-004",
+              "testCases": [
+                "TC-004"
+              ]
+            }
+          ]
+        }
       ],
       "coverageStatus": "covered",
-      "reviewNote": "成功取消、允许取消和已发货状态限制均有 TC 覆盖。"
+      "coverageReason": ""
     },
     {
       "factId": "FACT-002",
@@ -55,17 +67,21 @@
       "factSummary": "普通用户不能取消非本人订单",
       "condition": "订单归属不匹配",
       "observableResult": "取消失败",
-      "coveredScenarios": [
-        "SC-001-001 普通用户取消订单"
-      ],
-      "coveredTestPoints": [
-        "TP-003 非本人订单取消权限控制"
-      ],
-      "coveredTestCases": [
-        "TC-003 用户 A 取消用户 B 的订单被拒绝"
+      "coverageTree": [
+        {
+          "leafScenarioId": "SC-001-001",
+          "testPoints": [
+            {
+              "testPointId": "TP-003",
+              "testCases": [
+                "TC-003"
+              ]
+            }
+          ]
+        }
       ],
       "coverageStatus": "covered",
-      "reviewNote": "非本人订单拒绝路径已由独立 TC 覆盖。"
+      "coverageReason": ""
     },
     {
       "factId": "FACT-003",
@@ -78,19 +94,27 @@
       "factSummary": "重复取消不能重复释放库存",
       "condition": "同一订单重复提交取消请求",
       "observableResult": "库存不重复释放",
-      "coveredScenarios": [
-        "SC-001-002 重复取消与副作用控制"
-      ],
-      "coveredTestPoints": [
-        "TP-005 E2E场景测试",
-        "TP-006 取消请求幂等与库存副作用"
-      ],
-      "coveredTestCases": [
-        "TC-005 首次取消成功后重复取消不重复释放库存",
-        "TC-006 同一订单并发取消只产生一次成功副作用"
+      "coverageTree": [
+        {
+          "leafScenarioId": "SC-001-002",
+          "testPoints": [
+            {
+              "testPointId": "TP-005",
+              "testCases": [
+                "TC-005"
+              ]
+            },
+            {
+              "testPointId": "TP-006",
+              "testCases": [
+                "TC-006"
+              ]
+            }
+          ]
+        }
       ],
       "coverageStatus": "covered",
-      "reviewNote": "重复取消和并发取消副作用均有独立 TC 覆盖。"
+      "coverageReason": ""
     }
   ]
 }
