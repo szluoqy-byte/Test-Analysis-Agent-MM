@@ -128,7 +128,7 @@ Office 输入必须先通过 `@file-normalization-agent` 归一化为 Markdown�
 }
 ```
 
-Markdown 渲染按 `inputSource.type + inputSource.source` 分段，再按 `inputSource.location` 分小节，以表格展示 FACT 与覆盖链路；非 `covered` 项会先进入“需关注项”，并展示 `coverageReason`。
+Markdown 渲染按 `inputSource.type + inputSource.source` 分段，再按 `inputSource.location` 分小节。JSON 中的 `coverageTree[]` 仍保持真实层级；Markdown 为便于人工审阅会展开为平铺关系表：分析报告展示 `FACT / 输入来源 / 事实 / 约束 / 结果 / 覆盖SC / 覆盖TP / 覆盖状态`，设计报告额外展示 `覆盖TC`。一个 FACT 对应多条 SC/TP/TC 覆盖关系时，Markdown 展开为多行。
 
 ## 测试分析主交付件
 
