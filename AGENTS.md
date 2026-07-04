@@ -35,6 +35,9 @@
 - `.opencode/agents/`、`.opencode/skills/`、`.testagent/agents/` 和 `.testagent/skills/` 是生成镜像，不直接手工编辑。
 - 修改任何 `agents/*.md`、`skills/*/SKILL.md` 或根目录 `codearts.json` 后，运行 `python bin/sync-opencode-skills.py`。
 - 修改运行时 wiring 后，运行 `python bin/validate-agent-runtime.py`。
+- 每个 `skills/<skill-name>/SKILL.md` 必须保持 Agent Skills 兼容 frontmatter：`name` 与目录名一致，`description` 说明做什么和何时使用，正文保持核心指令而不是长篇资料。
+- 每个 skill 正文必须能快速定位：何时使用、输入、执行步骤、输出、验证闭环和约束/易错点；详细参考放入该 skill 的 `references/`，可执行 helper 放入该 skill 的 `scripts/`，并在正文说明何时读取或调用。
+- 本仓库命令仍从仓库根目录执行，因此命令示例使用仓库相对路径；skill 私有参考资料在说明中优先使用 `references/...`、`scripts/...` 的相对写法。
 
 ## 路径规则
 

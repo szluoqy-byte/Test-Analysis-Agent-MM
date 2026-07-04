@@ -7,6 +7,10 @@ description: 基于输入事实模型、测试技术路由参考、专项方法�
 
 本 skill 负责分析生成阶段，但不再一次性生成完整 SC+TP。它先生成 `process/scenario-tree.json` 冻结 SC 树，再按每个叶子 SC 填写 `process/test-point-slices/<SC-ID>.json`，最后由 workflow 调用 `bin/merge-staged-slices.py --scope analysis` 统一合并为 `deliverables/test-analysis-solution.json`。它不输出测试用例、测试数据、步骤或预期结果。
 
+## 何时使用
+
+在 `input-fact-modeling` 和 `testing-method-router` 完成后使用。先用于 SC 树生成，再用于每个叶子 SC 的 TP 切片生成；不要在设计阶段或 TC 写作阶段使用。
+
 ## 必读上下文
 
 - `process/input-fact-model.json`
@@ -22,7 +26,7 @@ description: 基于输入事实模型、测试技术路由参考、专项方法�
 - `templates/test-analysis-solution-json-template.json`
 - 对本阶段可见的 project/personal 动态来源
 
-## 生成原则
+## 执行步骤与生成原则
 
 1. 每个内部阶段开始前，必须先确认目标 JSON 已由固定脚本写入 `generationContext`；若缺失，先运行 `skills/test-analysis-solution-generation/scripts/init-scenario-tree.py`、`skills/test-analysis-solution-generation/scripts/init-test-point-slice.py` 或 `bin/build-generation-context.py` 生成，不手工拼写。
 2. 优先读取 `generationContext.applicableRules[]` 中已内联的本阶段 rules 正文；这些 rules 是强制约束。
@@ -86,3 +90,7 @@ outputs/runs/<run-id>/deliverables/test-analysis-solution.json
 - 不把测试技术名称直接塞进测试点标题。
 - 不把“功能正常”“异常流程”这类空泛词作为测试点主体。
 - 不手工写 Markdown；由 `bin/render-run-markdown.py` 渲染。
+
+## 验证闭环
+
+SC 阶段填写后运行 `python skills/test-analysis-solution-generation/scripts/lint-scenario-tree.py outputs/runs/<run-id>/process/scenario-tree.json` 并进入 SC review。TP 切片填写后先做切片 review，再运行 `python bin/merge-staged-slices.py outputs/runs/<run-id> --scope analysis --ids <SC-ID>` 或 `--all`。合并后运行 `python bin/lint-run-json.py outputs/runs/<run-id>`；失败时回到对应 JSON 或切片修复。

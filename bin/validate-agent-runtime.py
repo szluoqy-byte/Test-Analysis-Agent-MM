@@ -53,6 +53,14 @@ REQUIRED_BIN_FILES = {
     "merge-staged-slices.py",
     "staged_workflow.py",
 }
+SKILL_STRUCTURE_MARKERS = {
+    "usage trigger": ("## 何时使用", "## 触发信号", "## 触发条件", "## 必需输入"),
+    "inputs": ("## 输入", "## 必需输入", "## 必读输入", "## 必读上下文"),
+    "procedure": ("## 执行流程", "## 执行方式", "## 审查步骤", "## 生成步骤", "## 分析步骤", "## 建模步骤", "## 写入流程", "## 执行命令", "## 执行步骤"),
+    "outputs": ("## 输出", "## 输出要求", "## 阶段产物契约", "## JSON 结构", "## 完成判定"),
+    "validation": ("## 校验", "## 验证", "## 验证闭环", "## 防卡住规则", "## 脚本稳定性规则", "## 完成判定"),
+    "constraints": ("## 约束", "## 禁止项", "## 冲突处理", "## 防卡住规则", "## 脚本稳定性规则", "## 稳定执行要求"),
+}
 
 
 def fail(message: str, issues: list[str]) -> None:
@@ -76,6 +84,16 @@ def parse_frontmatter(path: Path) -> dict[str, str]:
             data[key.strip()] = value.strip()
 
     raise ValueError("unterminated YAML frontmatter")
+
+
+def frontmatter_body(text: str) -> str:
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return text
+    for index, line in enumerate(lines[1:], start=1):
+        if line.strip() == "---":
+            return "\n".join(lines[index + 1 :])
+    return ""
 
 
 def validate_plugin(root: Path, issues: list[str]) -> None:
@@ -114,12 +132,19 @@ def validate_skills(root: Path, issues: list[str]) -> None:
 
         name = meta.get("name", "")
         description = meta.get("description", "")
+        text = skill_file.read_text(encoding="utf-8")
+        body = frontmatter_body(text)
         if name != skill_dir.name:
             fail(f"{skill_file.relative_to(root)} name must match directory name", issues)
         if not NAME_RE.fullmatch(name):
             fail(f"{skill_file.relative_to(root)} has invalid skill name {name!r}", issues)
         if not (1 <= len(description) <= 1024):
             fail(f"{skill_file.relative_to(root)} description must be 1-1024 characters", issues)
+        if len(text.splitlines()) > 500:
+            fail(f"{skill_file.relative_to(root)} should stay under 500 lines; move details to references/", issues)
+        for marker_name, markers in SKILL_STRUCTURE_MARKERS.items():
+            if not any(marker in body for marker in markers):
+                fail(f"{skill_file.relative_to(root)} should include a {marker_name} section for skill usability", issues)
 
     for skill_name in sorted(REQUIRED_SKILLS):
         if not (skills_dir / skill_name / "SKILL.md").exists():

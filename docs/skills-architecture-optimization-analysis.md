@@ -35,3 +35,15 @@
 - review 发现 blocking 或 coverage-review 发现覆盖缺口后，必须先运行 `bin/apply-review-findings.py` 或 `bin/apply-coverage-gaps.py`，通过结构化 location 回到对应 TP/TC 切片修复，再重新执行切片 review、脚本合并、最终 review、fact-coverage-map、coverage 和一致性检查；不得直接编辑最终 Markdown、绕过切片手改主交付件或临时创建脚本处理 JSON。
 - final-report 是最终人审件，位于 coverage-review 通过并返工闭环之后；它只从已审查的 fact-coverage-map 展示输入 FACT 与最终 SC/TP/TC 覆盖关系，不输出 `coverageGaps[]`，不参与自动返工链路。
 - e2e 全流程推荐 subagent-first：analysis 和 design 放入独立会话以降低上下文互相影响；workflow skill 仍是执行契约，阶段交接只依赖 canonical JSON 和固定报告文件。
+
+## Skill 编写契约
+
+本项目的 `SKILL.md` 兼容 Agent Skills 的目录和 frontmatter 约定：
+
+- skill 目录至少包含 `SKILL.md`，可选 `scripts/`、`references/` 和其他资源目录。
+- frontmatter 必须包含 `name` 和 `description`；`name` 与目录名一致，`description` 同时说明“做什么”和“何时使用”。
+- `SKILL.md` 保持核心流程和高价值易错点，详细标准、矩阵、参考资料或脚本放到 `references/`、`scripts/`，并在正文说明何时读取或调用。
+- 每个 skill 正文至少提供：何时使用、输入、执行步骤、输出、验证闭环、约束/易错点，便于 agent 激活后按步骤推进和自检。
+- 命令从仓库根目录执行，因此命令示例使用仓库相对路径；skill 私有资源说明优先使用 `references/...`、`scripts/...` 的相对写法。
+
+`bin/validate-agent-runtime.py` 会校验 skill frontmatter、行数和正文结构；修改 skill 后必须运行 `python bin/sync-opencode-skills.py` 同步 `.opencode` 和 `.testagent` 镜像。

@@ -16,6 +16,7 @@
 - `.opencode/agents/` 和 `.opencode/skills/` 由根目录源生成，不要直接编辑。
 - 修改 agents 或 skills 后，运行 `python bin/sync-opencode-skills.py`。
 - 修改运行时 wiring 后，运行 `python bin/validate-agent-runtime.py`。
+- `SKILL.md` 必须保持 Agent Skills 兼容：frontmatter 的 `name` 匹配目录名，`description` 说明做什么和何时用；正文保留核心流程，并包含何时使用、输入、执行步骤、输出、验证闭环和约束/易错点。
 - 从仓库根目录解析路径，不要从 `.claude-plugin/`、`.opencode/`、skill 目录或输入文件目录解析。
 - `test-analysis-workflow` 和 `test-design-workflow` 不直接处理 `.docx` / `.xlsx`；它们只消费已归一化 Markdown 或 JSON canonical 输入。
 - 每次 run 必须维护任务清单，以及 `process/rules-pack.json/.md`、`process/context-pack.json/.md` 和 `process/input-fact-model.json/.md`。

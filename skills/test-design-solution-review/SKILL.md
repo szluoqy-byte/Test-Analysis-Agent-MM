@@ -7,6 +7,10 @@ description: 评审按 TP 生成的 TC 切片和最终 schema 2.0 测试设计�
 
 本 skill 是 `test-design-agent` 的产物级语义评审环节。结构、编号、JSON canonical 结构和 Markdown 语法以确定性脚本为准；本 skill 只评审语义质量。它先按 `process/test-case-slices/<TP-ID>.json` 评审单个 TP 下的 TC，再评审最终 `deliverables/test-design-solution.json`。
 
+## 何时使用
+
+在单个 TC 切片或最终设计方案已经生成、且评审 JSON skeleton 已由 `bin/init-report-artifact.py` 初始化后使用。不要用本 skill 做 deterministic lint，也不要直接改写测试用例事实。
+
 ## 输入
 
 - `outputs/runs/<run-id>/deliverables/test-design-solution.json`
@@ -21,7 +25,7 @@ description: 评审按 TP 生成的 TC 切片和最终 schema 2.0 测试设计�
 - `knowledge/test-case-writing-standard.md`
 - `knowledge/test-case-writing-styles/README.md` 及当前 TC 主执行形态对应的 GUI/API/CLI 风格文件
 
-## 评审重点
+## 审查步骤与重点
 
 | 维度 | 检查内容 |
 |---|---|
@@ -44,3 +48,13 @@ description: 评审按 TP 生成的 TC 切片和最终 schema 2.0 测试设计�
 ## 输出
 
 单个 TP 的 TC 切片评审写入 `process/reviews/test-case-reviews/<TP-ID>.json`，汇总可写入 `process/reviews/test-case-review.json`；最终设计方案评审写入 `process/reviews/test-design-solution-review.json`。报告必须先由 `bin/init-report-artifact.py` 生成 skeleton 和 `generationContext`，AI 只填写语义结论字段；如需人读版，由 `bin/render-run-markdown.py` 渲染。
+
+## 验证闭环
+
+评审输出后确认 `result`、`findings[]`、`blockingIssues[]`、`recommendations[]` 和 `evidenceRefs[]` 已填写。若存在 blocking 项，workflow 必须运行 `python bin/apply-review-findings.py outputs/runs/<run-id> --scope design --all` 重开对应 TP 工作项，再回到 TC 切片修复、合并和最终评审。
+
+## 约束
+
+- 不重复 deterministic lint 已覆盖的结构、编号和 Markdown 检查。
+- 不新增、删除或改写 SC/TP。
+- 不把 coverage 缺口判断写成最终报告；覆盖门禁交给 `coverage-review`。

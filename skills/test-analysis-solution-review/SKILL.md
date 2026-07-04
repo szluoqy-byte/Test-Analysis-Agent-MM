@@ -7,6 +7,10 @@ description: 在分析链路中分段评审冻结 SC 树、TP 切片和最终 sc
 
 本 skill 是 `test-analysis-agent` 的语义评审环节。结构、编号、JSON canonical 结构和 Markdown 语法以确定性脚本为准；本 skill 只评审语义质量。它在同一个 skill 内承担三类评审：SC 树评审、TP 切片评审和最终分析方案评审。
 
+## 何时使用
+
+在对应 JSON 已由固定脚本初始化评审 skeleton 和 `generationContext` 后使用。不要用本 skill 修复 JSON 结构、编号或 Markdown 语法；这些问题交给确定性脚本。
+
 ## 输入
 
 - `process/scenario-tree.json`，用于 SC 树评审。
@@ -19,7 +23,7 @@ description: 在分析链路中分段评审冻结 SC 树、TP 切片和最终 sc
 - 目标评审 JSON 内的 `generationContext`；缺失时先运行 `bin/init-report-artifact.py`
 - `knowledge/test-analysis-solution-standard.md`
 
-## 评审重点
+## 审查步骤与重点
 
 | 维度 | 检查内容 |
 |---|---|
@@ -37,3 +41,13 @@ description: 在分析链路中分段评审冻结 SC 树、TP 切片和最终 sc
 ## 输出
 
 SC 树评审写入 `process/reviews/scenario-tree-review.json`；TP 切片评审写入 `process/reviews/test-point-reviews/<SC-ID>.json`，汇总可写入 `process/reviews/test-point-review.json`；最终分析方案评审写入 `process/reviews/test-analysis-solution-review.json`。报告必须先由 `bin/init-report-artifact.py` 生成 skeleton 和 `generationContext`，AI 只填写语义结论字段；如需人读版，由 `bin/render-run-markdown.py` 渲染。
+
+## 验证闭环
+
+评审输出后确认 `result`、`findings[]`、`blockingIssues[]`、`recommendations[]` 和 `evidenceRefs[]` 已填写。若存在 blocking 项，workflow 必须运行 `python bin/apply-review-findings.py outputs/runs/<run-id> --scope analysis --all` 重开对应工作项，再回到切片修复和合并流程。
+
+## 约束
+
+- 不重复 deterministic lint 已覆盖的结构、编号和 Markdown 检查。
+- 不新增 SC/TP，也不直接修改主交付件。
+- 不把 coverage 缺口判断写成最终报告；覆盖门禁交给 `coverage-review`。

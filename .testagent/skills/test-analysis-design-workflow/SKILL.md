@@ -63,6 +63,10 @@ description: 编排测试分析与测试设计全流程；优先以独立 subage
 - 分析阶段和设计阶段各自的收口状态。
 - 是否使用真实 subagent；如果使用 fallback，说明未获得会话隔离收益。
 
+## 验证闭环
+
+分析 subagent 完成后只检查交接文件是否存在，不重复实现分析内部 review、coverage 或 final-report。设计 subagent 完成后检查最终四类路径均存在，并确认 `test-design-solution.json` 使用的是同一 run 下的完整 `test-analysis-solution.json`。如果 fallback 为同会话串联，最终回复必须明确说明。
+
 ## 约束
 
 - 不直接处理 `.docx` / `.xlsx`。

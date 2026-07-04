@@ -9,6 +9,10 @@ description: 在测试分析 workflow 中读取需求文档和可选设计方案
 
 `input-fact-modeling` 只回答“输入材料说了什么、哪些事实可验证、需求与设计如何对应”。它不判断应该使用哪种测试技术，不给出必选/可选路由，不生成测试点、测试用例、测试步骤、确认类问题清单或完整预期结果。
 
+## 何时使用
+
+在测试分析 workflow 已生成 `process/rules-pack.json` 和 `process/context-pack.json` 后使用。不要在文件归一化前直接读取 Office 文件，也不要在测试设计阶段用它重建或改写已评审的 SC/TP。
+
 ## 输入
 
 - run-local 需求 Markdown。
@@ -36,6 +40,10 @@ description: 在测试分析 workflow 中读取需求文档和可选设计方案
 8. 对模糊、缺失、冲突和不可验证内容不生成问题清单；只在事实、映射或来源说明中保持输入可证据化的原文语义，不补造未说明规则。
 9. 记录来源与应用说明，尤其是本阶段读取的 rules 和动态来源、应用状态和影响范围。
 10. 按 `templates/input-fact-model-json-template.json` 输出 `process/input-fact-model.json`，交给 `testing-method-router` 和测试分析方案生成阶段使用；不要手工维护 `process/input-fact-model.md`。
+
+## 验证闭环
+
+生成 `process/input-fact-model.json` 后运行 `python bin/render-run-markdown.py outputs/runs/<run-id>`，必要时运行 `python bin/lint-run-json.py outputs/runs/<run-id>` 检查 JSON canonical。若发现事实字段缺失，只修 JSON，再重新渲染 Markdown。
 
 ## 输出
 

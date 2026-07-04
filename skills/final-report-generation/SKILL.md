@@ -9,6 +9,10 @@ description: 在测试分析或测试设计 coverage-review 已闭环后，基�
 
 `final-report-generation` 不是质量门禁，不输出 `coverageGaps[]`，不调用 `bin/apply-coverage-gaps.py`，不直接修改 slice、主交付件 JSON、覆盖证据图或派生 Markdown。最终报告里的 `missing` 只能来自覆盖证据图中的 `gap`，不得在 final-report 阶段新增覆盖缺口判断。
 
+## 何时使用
+
+仅在对应范围的 coverage-review 已通过或已明确收口、且覆盖证据图已经完成审查后使用。不要在 coverage-review 之前使用，也不要用本 skill 判断是否需要返工。
+
 ## 输入
 
 - `process/input-fact-model.json`。
@@ -27,6 +31,16 @@ description: 在测试分析或测试设计 coverage-review 已闭环后，基�
 3. 确认覆盖证据图中每个 `factCoverage[]` 行已经完成 coverage-review 判断；如仍有 `coverageStatus=gap`，必须确认对应 coverage-review 已明确允许保留为最终人审缺口，否则回到 coverage-review。
 4. 运行 `python bin/build-final-report.py outputs/runs/<run-id> --scope analysis|design`，由脚本从覆盖证据图生成 `reports/*-final-report.json` 并渲染 Markdown。
 5. 不手写 `reports/*-final-report.json` 或 `.md`；最终报告只能由脚本从覆盖证据图生成。
+
+## 输出
+
+- 分析范围输出 `reports/analysis-final-report.json` 和 `reports/analysis-final-report.md`。
+- 设计范围输出 `reports/design-final-report.json` 和 `reports/design-final-report.md`。
+- Markdown 只由脚本从 JSON 渲染，供人工审阅，不作为后续流程事实源。
+
+## 验证闭环
+
+运行 `python bin/build-final-report.py outputs/runs/<run-id> --scope analysis|design` 后，再运行 `python bin/render-run-markdown.py outputs/runs/<run-id> --check` 和 `python bin/lint-run-json.py outputs/runs/<run-id>`。若 final-report 出现新的 `missing` 判断，说明流程错误，应回到 coverage-review 和 fact-coverage-map。
 
 ## 覆盖状态定义
 

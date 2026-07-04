@@ -20,6 +20,10 @@ python skills/context-source-indexing/scripts/build-context-source-index.py \
   --project <project-key>
 ```
 
+## 何时使用
+
+在 `test-analysis-workflow` 或 `test-design-workflow` 已创建 run 目录、且需要建立 project/personal knowledge 与 memory 动态来源索引时使用。不要在仅需读取 core knowledge、rules 或 templates 时使用；rules 由 `process/rules-pack.json` 单独处理。
+
 如果没有显式 `project-key`，不要传 `--project`。脚本会基于需求标题、需求路径和 `--keyword` 与现有 project 目录名做轻量推断；只有唯一命中时才绑定并扫描 project 来源。无法唯一命中时可用 `--project-reason` 写明未绑定原因。脚本会默认渲染 `process/context-pack.md`；只需要 JSON 时才使用 `--no-render`。
 
 ## 职责边界
@@ -49,6 +53,10 @@ python skills/context-source-indexing/scripts/build-context-source-index.py \
 3. 检查脚本输出的 `warnings[]`。frontmatter 缺失、非法 `stages` 或非法 `project-key` 都保留在 JSON 中，不静默忽略。
 4. 不手工编辑 `process/context-pack.md`；如果需要刷新人读版，重新运行脚本或 `python bin/render-run-markdown.py outputs/runs/<run-id>`。
 
+## 验证闭环
+
+执行脚本后检查 `process/context-pack.json` 存在且可由 `python bin/lint-run-json.py outputs/runs/<run-id>` 读取。若修改了 context source 元数据或本 skill 文本，再运行 `python bin/validate-agent-runtime.py` 和 `python bin/sync-opencode-skills.py --check`。
+
 常用命令：
 
 ```bash
@@ -67,6 +75,13 @@ python skills/context-source-indexing/scripts/build-context-source-index.py \
   --requirement <requirement.md> \
   --project <project-key>
 ```
+
+## 约束
+
+- 不手工拼写 `process/context-pack.json`。
+- 不读取 rules 正文，不读取 core knowledge 正文。
+- 不把动态来源正文复制进 context pack。
+- 不在 project-key 未唯一确定时扫描所有 project 目录正文。
 
 ## 动态来源范围
 

@@ -11,6 +11,10 @@ coverage-review 是过程门禁；发现缺口时通过 `coverageGaps[]` 触发�
 
 coverage-review 必须基于对应范围的 FACT 覆盖证据图执行门禁：测试分析读取 `process/analysis-fact-coverage-map.json`，测试设计读取 `process/design-fact-coverage-map.json`。覆盖证据图是过程件，不是最终报告；它把每条 FACT 到叶子 SC、TP、TC 的候选覆盖链路列清楚，coverage-review 再判断这些链路是否充分。不得等到 final-report 阶段才新增 `missing` 判断。
 
+## 何时使用
+
+在分析或设计主交付件已经完成确定性校验、Markdown 渲染和最终语义评审后使用。不要把本 skill 用作最终人审报告生成器；最终展示交给 `final-report-generation`。
+
 ## 必读输入
 
 - `process/input-fact-model.json`
@@ -25,9 +29,9 @@ coverage-review 必须基于对应范围的 FACT 覆盖证据图执行门禁：�
 - `process/reviews/test-analysis-solution-review.json`
 - 可选 `process/reviews/test-design-solution-review.json`
 - 当前 coverage JSON 内的 `generationContext`；缺失时先运行 `bin/init-report-artifact.py`
-- `skills/coverage-review/references/coverage-check.md`
-- `skills/coverage-review/references/review-gates.md`
-- `skills/coverage-review/references/context-application-gates.md`
+- `references/coverage-check.md`
+- `references/review-gates.md`
+- `references/context-application-gates.md`
 
 ## 审查步骤
 
@@ -50,3 +54,14 @@ coverage-review 必须基于对应范围的 FACT 覆盖证据图执行门禁：�
 coverage-review 不重复执行 deterministic lint 已覆盖的编号、字段、Markdown 语法和 JSON 结构检查。
 
 coverage-review 可以修改对应的 `process/<scope>-fact-coverage-map.json` 覆盖状态和原因，但不直接修改主交付件。发现覆盖缺口时，只输出结构化返工位置和建议；对应 workflow 必须先运行 `bin/apply-coverage-gaps.py` 重开工作项，再回到切片产物修复后合并。返工合并后，必须重新运行 `bin/build-fact-coverage-map.py` 刷新覆盖证据图，再重新执行 coverage-review。
+
+## 验证闭环
+
+输出 coverage JSON 后运行 `python bin/lint-run-json.py outputs/runs/<run-id>`。若有 `coverageGaps[]`，必须确认 `artifactLocation` 指向可编辑切片；若结果为 `通过`，后续 workflow 必须生成对应 final-report。不要用本 skill 修复 deterministic lint 已能发现的字段、编号或 Markdown 漂移问题。
+
+## 约束
+
+- 不直接编辑 `deliverables/*.json` 或 Markdown。
+- 不把最终人审报告逻辑前移到本 skill；本 skill 只做过程门禁。
+- 不在缺少 fact-coverage-map 时凭最终交付件直接生成 coverage 结论。
+- 不重复 deterministic lint 已覆盖的字段、编号和 Markdown 检查。

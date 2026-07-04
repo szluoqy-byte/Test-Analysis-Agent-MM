@@ -7,6 +7,10 @@ description: 当用户要求记住、记录、收录、归档或沉淀个人偏�
 
 本 skill 负责把用户明确要求长期保留的信息分类写入 `rules/`、`memory/` 或 `knowledge/`。它不是一次运行的 context pack 构建器，而是长期上下文维护入口。
 
+## 何时使用
+
+当用户明确要求“记住、归档、沉淀、以后都按某规则执行、保存为项目知识或个人偏好”时使用本 skill。仅当用户是在讨论当前 run、要求临时分析某份输入、或让 agent 解释现有规则时，不落盘，只给出建议或说明。
+
 ## 触发信号
 
 - “记住我的偏好”
@@ -18,6 +22,12 @@ description: 当用户要求记住、记录、收录、归档或沉淀个人偏�
 - “这个约束优先于需求/设计输入”
 - “归档到 personal / project / knowledge / memory”
 - “归档到 rules”
+
+## 输入
+
+- 用户明确要求长期保留的规则、偏好、项目事实、测试经验、checklist 或知识片段。
+- 可选 `project-key` 或用户明确指定的 personal/project/core 层级。
+- 现有 `rules/`、`memory/`、`knowledge/` 目标文件内容，用于追加前判断重复和冲突。
 
 ## 分类规则
 
@@ -47,6 +57,16 @@ description: 当用户要求记住、记录、收录、归档或沉淀个人偏�
    - 内容。
    - 使用方式或不应使用的边界。
 7. 写入后简要告诉用户写入位置和归档理由。
+
+## 输出
+
+- 若需要落盘，输出写入文件路径、归档层级、归档类型和追加内容摘要。
+- 若不应落盘，输出不落盘原因和建议归档位置。
+- 若缺少 `project-key` 且必须写入 project 层，先问一个简短问题，不猜测项目。
+
+## 验证闭环
+
+写入后重新读取目标 Markdown，确认新增条目存在、frontmatter 仍包含 `name` 和 `description`，并确认没有直接编辑 `.opencode/` 或 `.testagent/` 镜像。若写入 rules、knowledge 或 memory 的 project/personal 动态来源，运行 `python bin/validate-agent-runtime.py` 检查元数据格式。
 
 ## 冲突处理
 

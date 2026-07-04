@@ -12,6 +12,10 @@ description: 当用户通过 file-normalization-agent 或独立命令要求处�
 - 在用户明确提供 `--run-dir` 或已有 run 绑定需求时，可在 `outputs/runs/<run-id>/inputs/` 下保存本次实际使用的归一化输入副本和 manifest。
 - DOCX 中相关图片、流程图、架构图、状态图、截图或 EMF/Visio 图形被解析后，必须追加到同一个归一化 Markdown 中；不得只维护单独的图片补充文件、过程记录或 context-pack。
 
+## 何时使用
+
+当用户要求把 `.docx`、`.xlsx` 或外部 Markdown 输入整理为测试分析/测试设计可读取的 Markdown 输入事实源时使用。若用户已经提供可直接使用的 `.md` 输入且不需要缓存、绑定 run 或图片图形收口，不需要执行 Office 转换，只需确认下游应读取的路径。
+
 ## 触发条件
 
 当 `$ARGUMENTS`、用户消息或 `@file-normalization-agent` 过程输入中出现以下文件时，执行本 skill：
@@ -21,6 +25,13 @@ description: 当用户通过 file-normalization-agent 或独立命令要求处�
 - 外部已评审测试分析方案：优先要求 `.md`；如果用户只给 Office 文件，也先归一化。
 
 `.md` 文件不需要转换，直接作为下游输入。
+
+## 输入
+
+- 一个或多个 `.docx`、`.xlsx` 或 `.md` 文件路径。
+- 可选 `--run-dir outputs/runs/<run-id>` 或 `--run-input-dir`，用于把归一化结果绑定到既有 run。
+- 可选 `--force`，用于源文件缓存已存在但需要重新转换的场景。
+- 可选 `--json`，用于输出机器可读摘要。
 
 ## 归档路径
 
@@ -108,6 +119,10 @@ python skills/normalize-input-documents/scripts/normalize-office-input.py --json
 7. 最终回复或过程产物必须包含“归一化完成摘要”，列出源文件、归一化 Markdown、metadata、run-local Markdown（如有）、缓存状态、warning 收口状态和下游应读取的路径。
 
 如果任一项未满足，本 skill 的结论必须写 `未完成` 或 `需补充处理`，不得说“完成”。
+
+## 验证闭环
+
+每次归一化后检查全局缓存 Markdown、`.conversion.json` 和可选 run-local manifest 是否存在。若处理了 DOCX 图片或 XLSX 复杂表格，重新读取最终 Markdown，确认补充事实已经原位写回。不要创建新的临时转换脚本；脚本能力不足时修改 `scripts/normalize-office-input.py` 或相关参考文件。
 
 ## DOCX 转换边界
 

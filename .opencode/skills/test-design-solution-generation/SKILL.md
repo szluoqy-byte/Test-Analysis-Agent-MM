@@ -7,6 +7,10 @@ description: 基于已评审测试分析方案、需求/设计依据和可见动
 
 本 skill 负责测试设计生成阶段，但不再整包一次性生成所有 TC。它按 `process/test-case-work-items.json` 中的每个 `TP-*` 初始化并填写 `process/test-case-slices/<TP-ID>.json`，再由 workflow 调用 `bin/merge-staged-slices.py --scope design` 统一合并为 `deliverables/test-design-solution.json`。
 
+## 何时使用
+
+在 `test-design-workflow` 已绑定并校验 `deliverables/test-analysis-solution.json`、且已生成 `process/test-case-work-items.json` 后使用。不要在缺少完整分析 JSON 时使用，也不要用它重新生成 SC/TP。
+
 ## 必读上下文
 
 - `deliverables/test-analysis-solution.json`
@@ -22,7 +26,7 @@ description: 基于已评审测试分析方案、需求/设计依据和可见动
 - `templates/test-design-solution-json-template.json`
 - 对本阶段可见的 project/personal 动态来源
 
-## 生成原则
+## 执行步骤与生成原则
 
 1. 完整继承分析方案的 `SC-*` 场景树和 `TP-*` 测试点，不新增、删除、合并或改写分析层级。
 2. 生成前必须确认当前 `process/test-case-slices/<TP-ID>.json` 已由固定脚本写入 `generationContext`；若缺失，先运行 `skills/test-design-solution-generation/scripts/init-test-case-slice.py` 或 `bin/build-generation-context.py` 生成，不手工拼写。
@@ -98,3 +102,7 @@ outputs/runs/<run-id>/deliverables/test-design-solution.json
 - 不输出自动化脚本或真实生产数据。
 - 不在生成过程中创建临时 `.py`、`.js`、`.ps1` 或其他可执行脚本。
 - 派生表达由 `test-case-writing` 读取 canonical JSON 后生成。
+
+## 验证闭环
+
+每个 TP 切片填写后先进入 `test-design-solution-review`。评审通过后运行 `python bin/merge-staged-slices.py outputs/runs/<run-id> --scope design --ids <TP-ID>`；全部完成后运行 `--all` 合并并统一 TC 编号，再运行 `python bin/lint-run-json.py outputs/runs/<run-id>`。失败时回到对应切片或 canonical JSON 修复，不手工编辑 Markdown。

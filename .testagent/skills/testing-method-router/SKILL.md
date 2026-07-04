@@ -11,6 +11,10 @@ description: 在需求结构化之后使用，用于根据需求片段的分析�
 
 测试技术和专项方法是生成参考，不是最终交付件的固定来源清单。后续生成可以综合多个方法、跳出单一方法模板，或基于输入事实补充更合适的测试点；最终主交付件只要求业务依据可追溯，不输出 `methodRefs[]`。
 
+## 何时使用
+
+在 `input-fact-modeling` 完成后、`test-analysis-solution-generation` 之前使用。不要在 SC/TP/TC 已生成后倒推方法引用，也不要把本 skill 当作 coverage-review。
+
 ## 输入
 
 - 输入事实模型。
@@ -18,8 +22,8 @@ description: 在需求结构化之后使用，用于根据需求片段的分析�
 - 上下文来源索引。
 - `process/context-pack.json` 中 `sources[]` 对 `testing-method-router` 可见的 project/personal 覆盖策略、风险画像、个人关注点和路由补充。
 - `knowledge/test-workflow-boundaries.md`。
-- `skills/testing-method-router/references/test-method-routing-matrix.md`。
-- `skills/testing-method-router/references/*.md` 中的专项方法参考。
+- `references/test-method-routing-matrix.md`。
+- `references/*.md` 中的专项方法参考。
 - `skills/coverage-review/references/coverage-check.md`。
 
 ## 分析步骤
@@ -64,7 +68,7 @@ description: 在需求结构化之后使用，用于根据需求片段的分析�
 
 - 工作流术语和分析/设计边界以 `knowledge/test-workflow-boundaries.md` 为准。
 - 强制规则以 `process/rules-pack.json` 为准；rules 与输入文档冲突时，默认遵守 rules 并记录覆盖原因。
-- 分析维度和路由矩阵以 `skills/testing-method-router/references/test-method-routing-matrix.md` 为准。
+- 分析维度和路由矩阵以 `references/test-method-routing-matrix.md` 为准。
 - 覆盖要求以 `skills/coverage-review/references/coverage-check.md` 为准。
 - project/personal 动态来源补充以当前 run 的 `process/context-pack.json` `sources[]` 为准，只能补充关注点和原因；personal 层不能覆盖 project 层或 core 层约束。
 - 对本阶段可见且被读取的动态来源必须留痕；如果未应用，必须使用 `not_applicable`、`insufficient_evidence`、`conflict_with_requirement` 或 `deferred_to_review` 解释。
@@ -78,6 +82,10 @@ description: 在需求结构化之后使用，用于根据需求片段的分析�
 - 被标记为 `必选` 的测试技术表示该维度需要被重点参考；最终应通过有依据的场景或测试点体现其关注对象，但不要求输出独立方法记录或 `methodRefs[]`。
 - 专项方法参考不得限制最终测试点的表达方式；如果输入事实支持更直接的业务测试点，优先输出业务可读的 TP。
 - 性能、安全、兼容等范围不确定时，默认标记为 `可选` 或 `不适用`，不创建问题队列。
+
+## 验证闭环
+
+路由结果交给 `test-analysis-solution-generation` 前，检查每条被标记为 `必选` 的技术都有明确事实依据和说明；被跳过的明显相关技术必须有原因。若读取了 project/personal 动态来源，记录应用状态，避免后续阶段误以为所有来源都已被正文读取。
 - 本 skill 不直接向用户提问。
 - 不直接生成最终测试点，只输出测试技术路由和动态来源应用记录。
 - 如果可见动态来源中的 project/personal 覆盖策略不足，只能按 `sources[]` 记录的可见来源或当前需求明确指向的文件补读相关章节，并在路由说明中记录来源；不得全目录搜索或全量复制大文件。
