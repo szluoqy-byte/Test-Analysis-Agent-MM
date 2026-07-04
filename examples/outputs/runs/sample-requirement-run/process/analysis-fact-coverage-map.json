@@ -1,20 +1,18 @@
 {
-  "artifactType": "final-report",
+  "artifactType": "fact-coverage-map",
   "schemaVersion": "1.0",
-  "title": "测试设计最终报告",
-  "reportScope": "design",
+  "title": "测试分析 FACT 覆盖证据图",
+  "coverageScope": "analysis",
   "targetArtifacts": {
     "inputFactModel": "process/input-fact-model.json",
     "analysisSolution": "deliverables/test-analysis-solution.json",
-    "designSolution": "deliverables/test-design-solution.json",
-    "factCoverageMap": "process/design-fact-coverage-map.json",
-    "coverageReview": "process/reviews/design-coverage-review.json"
+    "coverageReview": "process/reviews/analysis-coverage-review.json"
   },
   "summary": {
     "totalFacts": 3,
     "coveredFacts": 3,
     "partialFacts": 0,
-    "missingFacts": 0,
+    "gapFacts": 0,
     "notApplicableFacts": 0
   },
   "factCoverage": [
@@ -35,21 +33,15 @@
           "testPoints": [
             {
               "testPointId": "TP-001",
-              "testCases": [
-                "TC-001"
-              ]
+              "testCases": []
             },
             {
               "testPointId": "TP-002",
-              "testCases": [
-                "TC-002"
-              ]
+              "testCases": []
             },
             {
               "testPointId": "TP-004",
-              "testCases": [
-                "TC-004"
-              ]
+              "testCases": []
             }
           ]
         }
@@ -74,9 +66,7 @@
           "testPoints": [
             {
               "testPointId": "TP-003",
-              "testCases": [
-                "TC-003"
-              ]
+              "testCases": []
             }
           ]
         }
@@ -101,15 +91,11 @@
           "testPoints": [
             {
               "testPointId": "TP-005",
-              "testCases": [
-                "TC-005"
-              ]
+              "testCases": []
             },
             {
               "testPointId": "TP-006",
-              "testCases": [
-                "TC-006"
-              ]
+              "testCases": []
             }
           ]
         }

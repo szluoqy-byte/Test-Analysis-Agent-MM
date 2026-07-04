@@ -8,7 +8,8 @@
 - `process/test-point-slices/<SC-ID>.json`：叶子 SC 的 TP 生成切片，schema `1.0`，通过脚本合并为分析方案。
 - `process/test-case-slices/<TP-ID>.json`：单个 TP 的 TC 生成切片，schema `1.0`，通过脚本合并为设计方案。
 - `generationContext`：写入 scenario-tree、slice、review 和 coverage JSON 的生成前工作包，包含阶段、目标、适用 rules 正文、可见动态来源、事实候选和读入计划；它不进入最终 deliverables。
-- `reports/analysis-final-report.json` / `reports/design-final-report.json`：最终人审报告，schema `1.0`，展示输入 FACT 最终被哪些 SC/TP/TC 覆盖；它不是过程门禁，不输出 `coverageGaps[]`，不触发自动返工。
+- `process/analysis-fact-coverage-map.json` / `process/design-fact-coverage-map.json`：coverage-review 使用的 FACT 覆盖证据过程件，schema `1.0`，逐 FACT 记录候选覆盖链路和门禁状态；它不是最终报告。
+- `reports/analysis-final-report.json` / `reports/design-final-report.json`：最终人审报告，schema `1.0`，从已审查的 fact-coverage-map 生成，展示输入 FACT 最终被哪些 SC/TP/TC 覆盖；它不是过程门禁，不输出 `coverageGaps[]`，不触发自动返工。
 
 JSON 是 run 内过程产物、主交付件、review、coverage 和 final-report 结果的唯一事实源；Markdown 是派生的人类阅读版，不手工维护。若 JSON 与 Markdown 不一致，以 JSON 为准，运行 `python bin/render-run-markdown.py outputs/runs/<run-id>` 重新渲染。
 
@@ -42,6 +43,10 @@ outputs/
         scenario-tree.md
         test-point-work-items.json
         test-point-work-items.md
+        analysis-fact-coverage-map.json
+        analysis-fact-coverage-map.md
+        design-fact-coverage-map.json
+        design-fact-coverage-map.md
         test-point-slices/
         test-case-work-items.json
         test-case-work-items.md
@@ -70,11 +75,20 @@ Office 输入必须先通过 `@file-normalization-agent` 归一化为 Markdown�
 
 `process/rules-pack.json` 是强制规则索引，独立记录 core/project/user rules 的路径、阶段可见性和加载策略；后续阶段必须筛选当前阶段可见的 `ruleSources[]` 并读取对应 Markdown 正文。`process/context-pack.json` 只索引 project/personal knowledge 和 memory 动态来源，不承载 rules 强制语义。
 
-生成阶段不得让 AI 自行拼装上下文、循环处理切片或临时写脚本操作 JSON。新 run 必须通过 `skills/test-analysis-solution-generation/scripts/init-scenario-tree.py`、`skills/test-analysis-solution-generation/scripts/init-test-point-slice.py`、`skills/test-design-solution-generation/scripts/init-test-case-slice.py`、`bin/init-staged-slices.py`、`bin/build-generation-context.py` 或 `bin/init-report-artifact.py` 写入 `generationContext` 后再交给 AI 填写语义内容。review blocking 返工必须先运行 `bin/apply-review-findings.py` 重开对应 work item；coverage 缺口返工必须先运行 `bin/apply-coverage-gaps.py` 重开对应 work item。final-report 骨架和 summary 由 `bin/build-final-report.py` 生成和刷新，AI 只填写覆盖树与异常覆盖原因。
+生成阶段不得让 AI 自行拼装上下文、循环处理切片或临时写脚本操作 JSON。新 run 必须通过 `skills/test-analysis-solution-generation/scripts/init-scenario-tree.py`、`skills/test-analysis-solution-generation/scripts/init-test-point-slice.py`、`skills/test-design-solution-generation/scripts/init-test-case-slice.py`、`bin/init-staged-slices.py`、`bin/build-generation-context.py` 或 `bin/init-report-artifact.py` 写入 `generationContext` 后再交给 AI 填写语义内容。review blocking 返工必须先运行 `bin/apply-review-findings.py` 重开对应 work item；coverage 缺口返工必须先运行 `bin/apply-coverage-gaps.py` 重开对应 work item。coverage-review 前由 `bin/build-fact-coverage-map.py` 生成 FACT 覆盖证据图，coverage-review 审查并维护覆盖状态；final-report 由 `bin/build-final-report.py` 从已审查的覆盖证据图生成和刷新。
+
+## FACT 覆盖证据图
+
+`process/analysis-fact-coverage-map.json` 和 `process/design-fact-coverage-map.json` 是过程门禁工作底稿，通过 `coverageScope` 区分范围。它们使用 `coverageTree[]` 表达覆盖链路，状态只允许 `covered`、`partial`、`gap`、`not_applicable`。
+
+- `covered`：覆盖充分；分析范围至少有叶子 SC/TP，设计范围还必须有 TC。
+- `partial`：已有覆盖证据，但 coverage-review 需要判断是否足以放行。
+- `gap`：过程门禁缺口，coverage-review 必须转成 `coverageGaps[]` 或明确改为 `not_applicable`。
+- `not_applicable`：该 FACT 不需要由 SC/TP/TC 覆盖。
 
 ## 最终人审报告
 
-`reports/analysis-final-report.json` 和 `reports/design-final-report.json` 结构一致，通过 `reportScope` 区分范围。最终报告使用 `coverageTree[]` 表达覆盖链路：`FACT -> leaf SC -> TP -> TC`。分析最终报告的 `testCases[]` 保持空数组；设计最终报告必须填到 TC。一个 FACT 可以对应多个叶子 SC、TP 和 TC。
+`reports/analysis-final-report.json` 和 `reports/design-final-report.json` 结构一致，通过 `reportScope` 区分范围。最终报告只从已审查的 fact-coverage-map 生成，不在 final-report 阶段新增覆盖判断。最终报告使用 `coverageTree[]` 表达覆盖链路：`FACT -> leaf SC -> TP -> TC`。分析最终报告的 `testCases[]` 保持空数组；设计最终报告必须填到 TC。一个 FACT 可以对应多个叶子 SC、TP 和 TC。
 
 ```json
 {

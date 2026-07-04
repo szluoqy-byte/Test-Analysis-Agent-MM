@@ -20,15 +20,15 @@
 - `test-analysis-workflow` 和 `test-design-workflow` 不直接处理 `.docx` / `.xlsx`；它们只消费已归一化 Markdown 或 JSON canonical 输入。
 - 每次 run 必须维护任务清单，以及 `process/rules-pack.json/.md`、`process/context-pack.json/.md` 和 `process/input-fact-model.json/.md`。
 - `process/rules-pack.json` 是强制规则索引；后续阶段必须筛选当前阶段可见的 `ruleSources[]` 并读取对应 Markdown 正文。`process/context-pack.json` 只索引 project/personal knowledge 和 memory 动态来源。
-- JSON 是 run 过程产物、主交付件、review 和 coverage 的事实源；Markdown 是 `bin/render-run-markdown.py` 派生的人读版，不手工维护。
+- JSON 是 run 过程产物、主交付件、review、coverage 和 final-report 的事实源；Markdown 是 `bin/render-run-markdown.py` 派生的人读版，不手工维护。
 - 测试分析主交付件固定为 `deliverables/test-analysis-solution.json/.md`，输出粒度是 `SC 场景树 -> TP 测试点`。
 - 测试设计主交付件固定为 `deliverables/test-design-solution.json/.md`，输出粒度是 `SC 场景树 -> TP 测试点 -> TC 测试用例`。
 - 测试分析生成必须先冻结 `process/scenario-tree.json`，再按叶子 SC 生成并合并 `process/test-point-slices/<SC-ID>.json`。
 - 测试设计生成必须按 TP 生成并合并 `process/test-case-slices/<TP-ID>.json`。
 - SC/TP/TC 过程 JSON 和 review/coverage JSON 必须包含固定脚本生成的 `generationContext`，用于生成前工作包、规则正文、动态来源索引和事实候选。
 - 分段工作项状态、批量切片初始化、批量合并、review blocking 返工重开和分段 run 固定检查使用仓库固定 `bin/` 脚本；不得临时创建脚本处理 JSON。
-- coverage 缺口必须先通过 `bin/apply-coverage-gaps.py` 重开对应 slice 工作项，再修复切片、评审、合并和收口。
-- final-report 只展示输入 FACT 最终被哪些 SC/TP/TC 覆盖，不输出 `coverageGaps[]`，不触发自动返工。
+- coverage-review 前必须生成并审查 `process/analysis-fact-coverage-map.json` 或 `process/design-fact-coverage-map.json`；coverage 缺口必须先通过 `bin/apply-coverage-gaps.py` 重开对应 slice 工作项，再修复切片、评审、合并和收口。
+- final-report 只消费已审查的 fact-coverage-map，展示输入 FACT 最终被哪些 SC/TP/TC 覆盖，不输出 `coverageGaps[]`，不触发自动返工。
 - e2e 全流程阶段只通过 canonical JSON 和固定报告文件交接；不得依赖 analysis/design subagent 的聊天上下文或自然语言总结传递业务事实。
 - `SC-*` 最多 3 层，只有叶子 SC 挂 `TP-*`；`TP-*` 全局连续；`TC-*` 全局连续。
 - 测试分析方案不输出测试用例、步骤、测试数据或预期结果。

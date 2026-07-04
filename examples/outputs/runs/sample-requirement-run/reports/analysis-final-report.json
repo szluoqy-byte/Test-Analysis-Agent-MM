@@ -6,6 +6,7 @@
   "targetArtifacts": {
     "inputFactModel": "process/input-fact-model.json",
     "analysisSolution": "deliverables/test-analysis-solution.json",
+    "factCoverageMap": "process/analysis-fact-coverage-map.json",
     "coverageReview": "process/reviews/analysis-coverage-review.json"
   },
   "summary": {

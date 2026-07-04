@@ -131,6 +131,10 @@ def init_coverage(run_dir: Path, root: Path, scope: str, target: Path) -> dict:
         "summary": "待覆盖审查填写。",
         "coverageScope": scope,
         "targetArtifact": rel_path(target, root),
+        "targetArtifacts": {
+            "targetArtifact": rel_path(target, root),
+            "factCoverageMap": rel_path(run_dir / "process" / f"{scope}-fact-coverage-map.json", root),
+        },
         "findings": [],
         "blockingIssues": [],
         "recommendations": [],

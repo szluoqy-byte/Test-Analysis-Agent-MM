@@ -538,6 +538,8 @@ def main() -> int:
             "process/scenario-tree.md",
             "process/test-point-work-items.json",
             "process/test-point-work-items.md",
+            "process/analysis-fact-coverage-map.json",
+            "process/analysis-fact-coverage-map.md",
             "process/reviews/analysis-coverage-review.json",
             "process/reviews/analysis-coverage-review.md",
             "reports/analysis-final-report.json",
@@ -549,6 +551,8 @@ def main() -> int:
         for relative in (
             "process/test-case-work-items.json",
             "process/test-case-work-items.md",
+            "process/design-fact-coverage-map.json",
+            "process/design-fact-coverage-map.md",
             "process/reviews/design-coverage-review.json",
             "process/reviews/design-coverage-review.md",
             "reports/design-final-report.json",

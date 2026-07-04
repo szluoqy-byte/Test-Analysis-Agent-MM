@@ -1,20 +1,19 @@
 {
-  "artifactType": "final-report",
+  "artifactType": "fact-coverage-map",
   "schemaVersion": "1.0",
-  "title": "测试设计最终报告",
-  "reportScope": "design",
+  "title": "测试设计 FACT 覆盖证据图",
+  "coverageScope": "design",
   "targetArtifacts": {
     "inputFactModel": "process/input-fact-model.json",
     "analysisSolution": "deliverables/test-analysis-solution.json",
     "designSolution": "deliverables/test-design-solution.json",
-    "factCoverageMap": "process/design-fact-coverage-map.json",
     "coverageReview": "process/reviews/design-coverage-review.json"
   },
   "summary": {
     "totalFacts": 3,
     "coveredFacts": 3,
     "partialFacts": 0,
-    "missingFacts": 0,
+    "gapFacts": 0,
     "notApplicableFacts": 0
   },
   "factCoverage": [

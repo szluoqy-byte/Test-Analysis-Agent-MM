@@ -36,6 +36,7 @@ ARTIFACT_TITLES = {
     "test-point-review": "测试点评审结果",
     "test-case-review": "测试用例评审结果",
     "coverage-review": "覆盖审查结果",
+    "fact-coverage-map": "FACT 覆盖证据图",
     "final-report": "最终审阅报告",
 }
 GENERIC_METADATA_KEYS = {"artifactType", "alternateArtifactTypes", "schemaVersion", "title", "sections", "generationContext"}
@@ -1127,6 +1128,89 @@ def render_final_report(data: dict[str, Any], source_path: Path | None = None) -
     return "\n".join(lines).rstrip() + "\n"
 
 
+def render_fact_coverage_map(data: dict[str, Any], source_path: Path | None = None) -> str:
+    title = data.get("title") or "FACT 覆盖证据图"
+    scope = normalize_text(data.get("coverageScope") or "analysis")
+    include_cases = scope == "design"
+    label_maps = _solution_label_maps(source_path)
+    lines = [f"# {title}", "", "## 1. 汇总", ""]
+    summary = data.get("summary") if isinstance(data.get("summary"), dict) else {}
+    summary_rows = [
+        ["totalFacts", summary.get("totalFacts", 0)],
+        ["coveredFacts", summary.get("coveredFacts", 0)],
+        ["partialFacts", summary.get("partialFacts", 0)],
+        ["gapFacts", summary.get("gapFacts", 0)],
+        ["notApplicableFacts", summary.get("notApplicableFacts", 0)],
+    ]
+    lines.extend(markdown_table(["指标", "数量"], summary_rows))
+    lines.append("")
+
+    fact_coverage = data.get("factCoverage") if isinstance(data.get("factCoverage"), list) else []
+    gap_rows: list[list[str]] = []
+    for item in fact_coverage:
+        if not isinstance(item, dict):
+            continue
+        status = normalize_text(item.get("coverageStatus"))
+        if status not in {"partial", "gap"}:
+            continue
+        input_source = item.get("inputSource") if isinstance(item.get("inputSource"), dict) else {}
+        gap_rows.append(
+            [
+                item.get("factId", ""),
+                normalize_text(input_source.get("description") or ""),
+                item.get("factSummary", ""),
+                status,
+                item.get("coverageReason", ""),
+            ]
+        )
+    if gap_rows:
+        lines.extend(["## 2. 门禁关注项", ""])
+        lines.extend(markdown_table(["FACT", "输入来源", "事实内容", "覆盖状态", "原因"], gap_rows))
+        lines.append("")
+        detail_heading = "## 3. FACT 覆盖证据"
+    else:
+        detail_heading = "## 2. FACT 覆盖证据"
+
+    lines.extend([detail_heading, ""])
+    grouped: dict[tuple[str, str], dict[str, list[dict[str, Any]]]] = {}
+    for item in fact_coverage:
+        if not isinstance(item, dict):
+            continue
+        source_type, source, location = final_report_input_source_key(item)
+        grouped.setdefault((source_type, source), {}).setdefault(location, []).append(item)
+
+    if not grouped:
+        lines.append("无 FACT 覆盖证据记录。")
+        return "\n".join(lines).rstrip() + "\n"
+
+    for (source_type, source), by_location in grouped.items():
+        lines.extend([f"### {source_type}：{source}", ""])
+        for location, items in by_location.items():
+            lines.extend([f"#### {location}", ""])
+            rows: list[list[str]] = []
+            for item in items:
+                input_source = item.get("inputSource") if isinstance(item.get("inputSource"), dict) else {}
+                source_desc = normalize_text(input_source.get("description") or "")
+                link_lines = _coverage_tree_lines(item, include_cases, label_maps)
+                status = normalize_text(item.get("coverageStatus"))
+                empty_links = "不适用" if status == "not_applicable" else "无覆盖证据"
+                rows.append(
+                    [
+                        item.get("factId", ""),
+                        source_desc or f"{source_type} / {source} / {location}",
+                        item.get("factSummary", ""),
+                        item.get("condition", ""),
+                        item.get("observableResult", ""),
+                        "<br>".join(link_lines) if link_lines else empty_links,
+                        status,
+                        item.get("coverageReason", ""),
+                    ]
+                )
+            lines.extend(markdown_table(["FACT", "输入来源", "事实内容", "约束/条件", "可观察结果", "覆盖证据链路", "覆盖状态", "原因"], rows))
+            lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
+
+
 RENDERERS = {
     "task-list": render_task_list,
     "rules-pack": render_rules_pack,
@@ -1145,6 +1229,7 @@ RENDERERS = {
     "test-point-review": render_review_report,
     "test-case-review": render_review_report,
     "coverage-review": render_coverage_report,
+    "fact-coverage-map": render_fact_coverage_map,
     "final-report": render_final_report,
 }
 
@@ -1153,6 +1238,8 @@ def render_json_artifact(data: dict[str, Any], source_path: Path | None = None) 
     artifact_type = data.get("artifactType")
     if artifact_type == "final-report":
         return sanitize_markdown_angle_tokens(render_final_report(data, source_path))
+    if artifact_type == "fact-coverage-map":
+        return sanitize_markdown_angle_tokens(render_fact_coverage_map(data, source_path))
     renderer = RENDERERS.get(artifact_type)
     if renderer is None:
         raise ValueError(f"unsupported artifactType: {artifact_type}")
@@ -1170,6 +1257,8 @@ def collect_renderable_json_files(run_dir: Path) -> list[tuple[Path, Path]]:
         (run_dir / "process" / "scenario-tree.json", run_dir / "process" / "scenario-tree.md"),
         (run_dir / "process" / "test-point-work-items.json", run_dir / "process" / "test-point-work-items.md"),
         (run_dir / "process" / "test-case-work-items.json", run_dir / "process" / "test-case-work-items.md"),
+        (run_dir / "process" / "analysis-fact-coverage-map.json", run_dir / "process" / "analysis-fact-coverage-map.md"),
+        (run_dir / "process" / "design-fact-coverage-map.json", run_dir / "process" / "design-fact-coverage-map.md"),
         (run_dir / "deliverables" / "test-analysis-solution.json", run_dir / "deliverables" / "test-analysis-solution.md"),
         (run_dir / "deliverables" / "test-design-solution.json", run_dir / "deliverables" / "test-design-solution.md"),
         (run_dir / "process" / "reviews" / "scenario-tree-review.json", run_dir / "process" / "reviews" / "scenario-tree-review.md"),
@@ -1913,6 +2002,113 @@ def validate_final_report_json(data: dict[str, Any]) -> tuple[list[str], list[st
     return errors, warnings
 
 
+def validate_fact_coverage_map_json(data: dict[str, Any]) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    if data.get("coverageScope") not in {"analysis", "design"}:
+        errors.append("fact-coverage-map coverageScope 必须为 analysis 或 design")
+    summary = data.get("summary")
+    if not isinstance(summary, dict):
+        errors.append("fact-coverage-map 缺少 summary 对象")
+    else:
+        for key in ("totalFacts", "coveredFacts", "partialFacts", "gapFacts", "notApplicableFacts"):
+            if key not in summary:
+                errors.append(f"fact-coverage-map summary 缺少 {key}")
+            elif not isinstance(summary.get(key), int):
+                errors.append(f"fact-coverage-map summary.{key} 必须是整数")
+    fact_coverage = data.get("factCoverage")
+    if not isinstance(fact_coverage, list):
+        return errors + ["fact-coverage-map factCoverage 必须是数组"], warnings
+    status_values = {"covered", "partial", "gap", "not_applicable"}
+    seen_fact_ids: set[str] = set()
+    for index, item in enumerate(fact_coverage, start=1):
+        if not isinstance(item, dict):
+            errors.append(f"fact-coverage-map factCoverage[{index}] 必须是对象")
+            continue
+        fact_id = normalize_text(item.get("factId"))
+        if not re.fullmatch(r"FACT-\d{3}", fact_id):
+            errors.append(f"fact-coverage-map factCoverage[{index}].factId 不是合法 FACT 编号")
+        if fact_id in seen_fact_ids:
+            errors.append(f"fact-coverage-map 重复 FACT: {fact_id}")
+        seen_fact_ids.add(fact_id)
+        input_source = item.get("inputSource")
+        if not isinstance(input_source, dict):
+            errors.append(f"fact-coverage-map {fact_id or index} inputSource 必须是对象")
+        else:
+            for key in ("type", "source", "location", "description"):
+                if key not in input_source:
+                    errors.append(f"fact-coverage-map {fact_id or index} inputSource 缺少 {key}")
+        for key in ("factSummary", "condition", "observableResult", "coverageStatus", "coverageTree", "coverageReason"):
+            if key not in item:
+                errors.append(f"fact-coverage-map {fact_id or index} 缺少 {key}")
+        coverage_tree = item.get("coverageTree")
+        if not isinstance(coverage_tree, list):
+            errors.append(f"fact-coverage-map {fact_id or index} coverageTree 必须是数组")
+            coverage_tree = []
+        link_count = 0
+        case_count = 0
+        for tree_index, scenario_ref in enumerate(coverage_tree, start=1):
+            if not isinstance(scenario_ref, dict):
+                errors.append(f"fact-coverage-map {fact_id or index} coverageTree[{tree_index}] 必须是对象")
+                continue
+            leaf_scenario_id = normalize_text(scenario_ref.get("leafScenarioId"))
+            if not re.fullmatch(r"SC-\d{3}(?:-\d{3}){0,2}", leaf_scenario_id):
+                errors.append(f"fact-coverage-map {fact_id or index} coverageTree[{tree_index}].leafScenarioId 不是合法叶子 SC 编号")
+            test_points = scenario_ref.get("testPoints")
+            if not isinstance(test_points, list):
+                errors.append(f"fact-coverage-map {fact_id or index} coverageTree[{tree_index}].testPoints 必须是数组")
+                continue
+            if not test_points:
+                errors.append(f"fact-coverage-map {fact_id or index} coverageTree[{tree_index}].testPoints 不能为空")
+            for tp_index, test_point_ref in enumerate(test_points, start=1):
+                if not isinstance(test_point_ref, dict):
+                    errors.append(f"fact-coverage-map {fact_id or index} coverageTree[{tree_index}].testPoints[{tp_index}] 必须是对象")
+                    continue
+                test_point_id = normalize_text(test_point_ref.get("testPointId"))
+                if not re.fullmatch(r"TP-\d{3}", test_point_id):
+                    errors.append(
+                        f"fact-coverage-map {fact_id or index} coverageTree[{tree_index}].testPoints[{tp_index}].testPointId 不是合法 TP 编号"
+                    )
+                test_cases = test_point_ref.get("testCases")
+                if not isinstance(test_cases, list):
+                    errors.append(f"fact-coverage-map {fact_id or index} coverageTree[{tree_index}].testPoints[{tp_index}].testCases 必须是数组")
+                    continue
+                link_count += 1
+                normalized_cases = [normalize_text(value) for value in test_cases if normalize_text(value)]
+                case_count += len(normalized_cases)
+                for tc_id in normalized_cases:
+                    if not re.fullmatch(r"TC-\d{3}", tc_id):
+                        errors.append(f"fact-coverage-map {fact_id or index} testCases 包含非法 TC 编号: {tc_id}")
+        status = item.get("coverageStatus")
+        if status not in status_values:
+            errors.append(f"fact-coverage-map {fact_id or index} coverageStatus 非法: {status}")
+        reason = normalize_text(item.get("coverageReason"))
+        if status == "covered":
+            if link_count == 0:
+                errors.append(f"fact-coverage-map {fact_id or index} coverageStatus=covered 时 coverageTree 必须至少包含一条 SC/TP 链路")
+            if data.get("coverageScope") == "design" and case_count == 0:
+                errors.append(f"fact-coverage-map {fact_id or index} coverageScope=design 且 covered 时必须至少包含一个 TC")
+        elif status in {"partial", "gap", "not_applicable"}:
+            if not reason or "待覆盖审查" in reason:
+                errors.append(f"fact-coverage-map {fact_id or index} coverageStatus={status} 时 coverageReason 必须填写明确原因")
+            if status in {"gap", "not_applicable"} and link_count:
+                errors.append(f"fact-coverage-map {fact_id or index} coverageStatus={status} 时 coverageTree 必须为空")
+    if isinstance(summary, dict) and isinstance(fact_coverage, list):
+        counted = {
+            "totalFacts": len(fact_coverage),
+            "coveredFacts": sum(1 for item in fact_coverage if isinstance(item, dict) and item.get("coverageStatus") == "covered"),
+            "partialFacts": sum(1 for item in fact_coverage if isinstance(item, dict) and item.get("coverageStatus") == "partial"),
+            "gapFacts": sum(1 for item in fact_coverage if isinstance(item, dict) and item.get("coverageStatus") == "gap"),
+            "notApplicableFacts": sum(1 for item in fact_coverage if isinstance(item, dict) and item.get("coverageStatus") == "not_applicable"),
+        }
+        for key, expected in counted.items():
+            if summary.get(key) != expected:
+                errors.append(f"fact-coverage-map summary.{key} 应为 {expected}，实际为 {summary.get(key)}")
+    if not fact_coverage:
+        warnings.append("fact-coverage-map factCoverage 为空")
+    return errors, warnings
+
+
 def validate_artifact(data: dict[str, Any]) -> tuple[list[str], list[str]]:
     artifact_type = data.get("artifactType")
     errors: list[str] = []
@@ -1985,6 +2181,10 @@ def validate_artifact(data: dict[str, Any]) -> tuple[list[str], list[str]]:
         final_errors, final_warnings = validate_final_report_json(data)
         errors.extend(final_errors)
         warnings.extend(final_warnings)
+    elif artifact_type == "fact-coverage-map":
+        map_errors, map_warnings = validate_fact_coverage_map_json(data)
+        errors.extend(map_errors)
+        warnings.extend(map_warnings)
     else:
         errors.append(f"不支持的 artifactType: {artifact_type}")
     context_errors, context_warnings = validate_generation_context(data, artifact_type)

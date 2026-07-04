@@ -157,6 +157,177 @@ def validate_final_report_links(run_dir: Path, relative: Path, data: dict) -> li
     return errors
 
 
+def normalize_tree_for_compare(tree: Any) -> list[dict[str, Any]]:
+    if not isinstance(tree, list):
+        return []
+    grouped: dict[str, dict[str, set[str]]] = {}
+    for scenario_ref in tree:
+        if not isinstance(scenario_ref, dict):
+            continue
+        leaf_id = normalize_text(scenario_ref.get("leafScenarioId"))
+        if not leaf_id:
+            continue
+        grouped.setdefault(leaf_id, {})
+        test_points = scenario_ref.get("testPoints") if isinstance(scenario_ref.get("testPoints"), list) else []
+        for test_point_ref in test_points:
+            if not isinstance(test_point_ref, dict):
+                continue
+            tp_id = normalize_text(test_point_ref.get("testPointId"))
+            if not tp_id:
+                continue
+            test_cases = test_point_ref.get("testCases") if isinstance(test_point_ref.get("testCases"), list) else []
+            grouped[leaf_id].setdefault(tp_id, set()).update(normalize_text(value) for value in test_cases if normalize_text(value))
+    return [
+        {
+            "leafScenarioId": leaf_id,
+            "testPoints": [
+                {"testPointId": tp_id, "testCases": sorted(case_ids)}
+                for tp_id, case_ids in sorted(test_points.items())
+            ],
+        }
+        for leaf_id, test_points in sorted(grouped.items())
+        if test_points
+    ]
+
+
+def validate_final_report_matches_map(run_dir: Path, relative: Path, data: dict) -> list[str]:
+    if data.get("artifactType") != "final-report":
+        return []
+    errors: list[str] = []
+    scope = normalize_text(data.get("reportScope"))
+    if scope not in {"analysis", "design"}:
+        return errors
+    map_path = run_dir / "process" / f"{scope}-fact-coverage-map.json"
+    if not map_path.exists():
+        errors.append(f"{relative}: 缺少对应 FACT 覆盖证据图: {map_path.relative_to(run_dir)}")
+        return errors
+    try:
+        coverage_map = load_json(map_path)
+    except Exception as exc:
+        errors.append(f"{relative}: 无法读取对应 FACT 覆盖证据图: {exc}")
+        return errors
+    status_map = {"covered": "covered", "partial": "partial", "gap": "missing", "not_applicable": "not_applicable"}
+    map_rows = {
+        normalize_text(item.get("factId")): item
+        for item in coverage_map.get("factCoverage", [])
+        if isinstance(item, dict) and item.get("factId")
+    }
+    final_rows = {
+        normalize_text(item.get("factId")): item
+        for item in data.get("factCoverage", [])
+        if isinstance(item, dict) and item.get("factId")
+    }
+    if set(final_rows) != set(map_rows):
+        missing = sorted(set(map_rows) - set(final_rows))
+        extra = sorted(set(final_rows) - set(map_rows))
+        if missing:
+            errors.append(f"{relative}: final-report 缺少 fact-coverage-map 中的 FACT: {', '.join(missing)}")
+        if extra:
+            errors.append(f"{relative}: final-report 包含 fact-coverage-map 中不存在的 FACT: {', '.join(extra)}")
+    for fact_id, final_row in final_rows.items():
+        map_row = map_rows.get(fact_id)
+        if not isinstance(map_row, dict):
+            continue
+        expected_status = status_map.get(normalize_text(map_row.get("coverageStatus")), "missing")
+        if final_row.get("coverageStatus") != expected_status:
+            errors.append(f"{relative}: {fact_id} coverageStatus 应从 fact-coverage-map 映射为 {expected_status}，实际为 {final_row.get('coverageStatus')}")
+        if normalize_tree_for_compare(final_row.get("coverageTree")) != normalize_tree_for_compare(map_row.get("coverageTree")):
+            errors.append(f"{relative}: {fact_id} coverageTree 与 fact-coverage-map 不一致")
+    return errors
+
+
+def validate_fact_coverage_map_links(run_dir: Path, relative: Path, data: dict) -> list[str]:
+    if data.get("artifactType") != "fact-coverage-map":
+        return []
+    errors: list[str] = []
+    scope = normalize_text(data.get("coverageScope") or "analysis")
+    if scope not in {"analysis", "design"}:
+        return errors
+    index = solution_index(run_dir, scope)
+    if not index["leafScenarios"]:
+        errors.append(f"{relative}: 无法读取 {scope} 最终方案用于校验 coverageTree")
+        return errors
+    for row_index, row in enumerate(data.get("factCoverage", []), start=1):
+        if not isinstance(row, dict):
+            continue
+        fact_id = normalize_text(row.get("factId")) or f"factCoverage[{row_index}]"
+        status = normalize_text(row.get("coverageStatus"))
+        tree = row.get("coverageTree") if isinstance(row.get("coverageTree"), list) else []
+        tp_count = 0
+        tc_count = 0
+        for scenario_ref in tree:
+            if not isinstance(scenario_ref, dict):
+                continue
+            leaf_id = normalize_text(scenario_ref.get("leafScenarioId"))
+            if leaf_id and leaf_id not in index["leafScenarios"]:
+                errors.append(f"{relative}: {fact_id} coverageTree 引用了不存在或非叶子的 SC: {leaf_id}")
+            test_points = scenario_ref.get("testPoints") if isinstance(scenario_ref.get("testPoints"), list) else []
+            for test_point_ref in test_points:
+                if not isinstance(test_point_ref, dict):
+                    continue
+                tp_id = normalize_text(test_point_ref.get("testPointId"))
+                if not tp_id:
+                    continue
+                tp_count += 1
+                actual_leaf = index["testPointToLeaf"].get(tp_id)
+                if not actual_leaf:
+                    errors.append(f"{relative}: {fact_id} coverageTree 引用了不存在的 TP: {tp_id}")
+                elif actual_leaf != leaf_id:
+                    errors.append(f"{relative}: {fact_id} {tp_id} 属于 {actual_leaf}，不能挂在 {leaf_id}")
+                test_cases = test_point_ref.get("testCases") if isinstance(test_point_ref.get("testCases"), list) else []
+                for raw_tc in test_cases:
+                    tc_id = normalize_text(raw_tc)
+                    if not tc_id:
+                        continue
+                    tc_count += 1
+                    actual_tp = index["testCaseToTestPoint"].get(tc_id)
+                    if scope == "analysis":
+                        errors.append(f"{relative}: {fact_id} analysis fact-coverage-map 不应包含 TC: {tc_id}")
+                    elif not actual_tp:
+                        errors.append(f"{relative}: {fact_id} coverageTree 引用了不存在的 TC: {tc_id}")
+                    elif actual_tp != tp_id:
+                        errors.append(f"{relative}: {fact_id} {tc_id} 属于 {actual_tp}，不能挂在 {tp_id}")
+        if status == "covered":
+            if tp_count == 0:
+                errors.append(f"{relative}: {fact_id} covered 状态必须至少有一条 SC/TP 覆盖链路")
+            if scope == "design" and tc_count == 0:
+                errors.append(f"{relative}: {fact_id} design covered 状态必须至少有一个 TC")
+    return errors
+
+
+def validate_coverage_review_consistency(run_dir: Path, relative: Path, data: dict) -> list[str]:
+    if data.get("artifactType") != "coverage-review":
+        return []
+    errors: list[str] = []
+    scope = normalize_text(data.get("coverageScope"))
+    if scope not in {"analysis", "design"}:
+        return errors
+    result = normalize_text(data.get("result"))
+    gaps = data.get("coverageGaps") if isinstance(data.get("coverageGaps"), list) else []
+    map_path = run_dir / "process" / f"{scope}-fact-coverage-map.json"
+    if not map_path.exists():
+        errors.append(f"{relative}: 缺少对应 FACT 覆盖证据图: {map_path.relative_to(run_dir)}")
+        return errors
+    try:
+        coverage_map = load_json(map_path)
+    except Exception as exc:
+        errors.append(f"{relative}: 无法读取对应 FACT 覆盖证据图: {exc}")
+        return errors
+    map_gaps = [
+        normalize_text(item.get("factId"))
+        for item in coverage_map.get("factCoverage", [])
+        if isinstance(item, dict) and item.get("coverageStatus") == "gap"
+    ]
+    if result == "通过":
+        if gaps:
+            errors.append(f"{relative}: coverage-review result=通过 时 coverageGaps 必须为空")
+        if map_gaps:
+            errors.append(f"{relative}: coverage-review result=通过 时 fact-coverage-map 不得保留 gap: {', '.join(map_gaps)}")
+    elif map_gaps and not gaps:
+        errors.append(f"{relative}: fact-coverage-map 存在 gap 但 coverageGaps 为空: {', '.join(map_gaps)}")
+    return errors
+
+
 def main() -> int:
     configure_stdio()
     parser = argparse.ArgumentParser(description="校验 run 目录内 JSON canonical 产物")
@@ -188,8 +359,12 @@ def main() -> int:
         errors.append("测试分析 run 缺少分层冻结产物: process/scenario-tree.json")
     if analysis_json.exists() and not (run_dir / "process" / "test-point-work-items.json").exists():
         errors.append("测试分析 run 缺少分层冻结产物: process/test-point-work-items.json")
+    if analysis_json.exists() and not (run_dir / "process" / "analysis-fact-coverage-map.json").exists():
+        errors.append("测试分析 run 缺少覆盖证据过程件: process/analysis-fact-coverage-map.json")
     if design_json.exists() and not (run_dir / "process" / "test-case-work-items.json").exists():
         errors.append("测试设计 run 缺少分层冻结产物: process/test-case-work-items.json")
+    if design_json.exists() and not (run_dir / "process" / "design-fact-coverage-map.json").exists():
+        errors.append("测试设计 run 缺少覆盖证据过程件: process/design-fact-coverage-map.json")
 
     json_files = [json_path for json_path, _markdown_path in collect_renderable_json_files(run_dir)]
     seen = set(json_files)
@@ -214,6 +389,9 @@ def main() -> int:
         warnings.extend(f"{path.relative_to(run_dir)}: {warning}" for warning in artifact_warnings)
         errors.extend(validate_coverage_gap_locations(run_dir, path.relative_to(run_dir), data))
         errors.extend(validate_final_report_links(run_dir, path.relative_to(run_dir), data))
+        errors.extend(validate_final_report_matches_map(run_dir, path.relative_to(run_dir), data))
+        errors.extend(validate_fact_coverage_map_links(run_dir, path.relative_to(run_dir), data))
+        errors.extend(validate_coverage_review_consistency(run_dir, path.relative_to(run_dir), data))
 
     task_json = (
         run_dir / "process" / "analysis-task-list.json"

@@ -6,6 +6,10 @@
   "summary": "",
   "coverageScope": "analysis/design",
   "targetArtifact": "",
+  "targetArtifacts": {
+    "targetArtifact": "",
+    "factCoverageMap": "process/analysis-fact-coverage-map.json 或 process/design-fact-coverage-map.json"
+  },
   "findings": [
     {
       "id": "CV-001",

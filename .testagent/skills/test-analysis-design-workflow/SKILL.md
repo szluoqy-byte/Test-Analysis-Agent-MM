@@ -17,8 +17,8 @@ description: 编排测试分析与测试设计全流程；优先以独立 subage
 ## 职责边界
 
 - 本 skill 负责全流程 subagent 编排和阶段交接。
-- analysis subagent 使用 `test-analysis-agent` 职责边界，执行 `test-analysis-workflow`，负责生成并收口测试分析方案，包括 JSON lint、Markdown render、独立评审、coverage-review、analysis-final-report 和一致性检查。
-- design subagent 使用 `test-design-agent` 职责边界，执行 `test-design-workflow`，负责生成并收口测试设计方案，包括 JSON lint、Markdown render、独立评审、coverage-review、design-final-report 和一致性检查。
+- analysis subagent 使用 `test-analysis-agent` 职责边界，执行 `test-analysis-workflow`，负责生成并收口测试分析方案，包括 JSON lint、Markdown render、独立评审、analysis-fact-coverage-map、coverage-review、analysis-final-report 和一致性检查。
+- design subagent 使用 `test-design-agent` 职责边界，执行 `test-design-workflow`，负责生成并收口测试设计方案，包括 JSON lint、Markdown render、独立评审、design-fact-coverage-map、coverage-review、design-final-report 和一致性检查。
 - 本 skill 只做轻量交接检查：确认上一阶段成功完成，并确认下一阶段必需路径存在。
 - 本 skill 不新增 SC/TP/TC，不直接编辑主交付件 JSON 或 Markdown，不重复执行 analysis/design 内部质量门禁。
 - subagent 隔离的是会话上下文，不隔离文件系统；同一全流程优先复用同一个 `outputs/runs/<run-id>/`。

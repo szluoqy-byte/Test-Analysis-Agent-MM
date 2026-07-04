@@ -1,10 +1,11 @@
 # 覆盖检查
 
-coverage-review 关注需求到测试点、测试点到测试用例的闭环。
+coverage-review 关注需求到测试点、测试点到测试用例的闭环。它必须先审查 `process/analysis-fact-coverage-map.json` 或 `process/design-fact-coverage-map.json` 中的逐 FACT 覆盖证据，再输出门禁结论；最终 `analysis-final-report` / `design-final-report` 只展示已审查覆盖关系，不承担新的缺口发现职责。
 
 ## 分析覆盖
 
 - 需求中的业务流程、角色、状态、接口、数据对象和高风险规则应能追踪到 `SC-*` 或 `TP-*`。
+- 覆盖证据图中每条必须覆盖的 FACT 应有可信的叶子 `SC-*` 和 `TP-*` 链路；`coverageStatus=gap` 必须转成 `coverageGaps[]` 或明确改为 `not_applicable`。
 - 每个叶子场景必须包含 `E2E场景测试`。
 - 高风险规则不应只被 E2E 泛化覆盖，应有独立测试点。
 - 接口/API 明确时，测试点应能定位接口、端点、消息、回调或集成点。
@@ -13,6 +14,7 @@ coverage-review 关注需求到测试点、测试点到测试用例的闭环。
 ## 设计覆盖
 
 - 每个 `TP-*` 至少应有一个 `TC-*`，但“至少一个”只是最低结构门槛。
+- 覆盖证据图中每条必须覆盖的 FACT 应有可信的叶子 `SC-*`、`TP-*` 和 `TC-*` 链路；`coverageStatus=gap` 必须转成 `coverageGaps[]` 或明确改为 `not_applicable`。
 - 每个 TP 下应有覆盖该验证目标适用测试设计因子的最小充分 TC 集合；只生成 1 个 TC 时，应能说明该 TP 没有可支持的独立因子拆分。
 - 高风险测试点应有代表性成功、拒绝、边界、状态、权限、配置、接口异常、外部依赖返回、消息顺序或幂等用例。
 - TC 的测试数据、步骤和最终预期应能追踪到需求、设计、rules、分析方案或业务不变量。
