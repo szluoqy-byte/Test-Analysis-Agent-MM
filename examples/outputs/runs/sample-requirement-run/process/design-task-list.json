@@ -83,11 +83,19 @@
     },
     {
       "order": 10,
+      "stage": "最终报告生成",
+      "owner": "final-report-generation",
+      "checkpoint": "reports/design-final-report.json、reports/design-final-report.md",
+      "status": "done",
+      "evidence": "reports/design-final-report.json、reports/design-final-report.md"
+    },
+    {
+      "order": 11,
       "stage": "输出收口",
       "owner": "test-design-workflow",
-      "checkpoint": "final-report 与 check-artifact-consistency",
+      "checkpoint": "final-report 与 check-staged-run",
       "status": "done",
-      "evidence": "bin/check-artifact-consistency.py"
+      "evidence": "bin/check-staged-run.py --scope design"
     }
   ]
 }

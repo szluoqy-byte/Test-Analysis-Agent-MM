@@ -55,7 +55,7 @@ Progress:
    - 如果用户显式指定 `test-analysis-solution.json`，运行 `python skills/test-design-solution-generation/scripts/bind-analysis-solution.py outputs/runs/<run-id> --analysis <analysis-json>`，将它校验并写入当前 run 的 `deliverables/test-analysis-solution.json`。
    - 如果用户未显式指定，则只检查当前 run 是否已存在 `deliverables/test-analysis-solution.json`。
    - 如果两者都不存在，停止流程并输出失败原因：测试设计必须先取得完整 `test-analysis-solution.json`，本 workflow 不自动生成测试分析方案。
-4. 创建或刷新 `process/design-task-list.json`，并通过 `python bin/update-run-task.py outputs/runs/<run-id> --flow design ...` 维护状态；复用分析 run 时不得覆盖 `process/analysis-task-list.json`。
+4. 运行 `python bin/update-run-task.py outputs/runs/<run-id> --flow design --stage 固定 PROJECT_ROOT 与运行目录 --action start --evidence outputs/runs/<run-id>/` 创建或补齐 `process/design-task-list.json`，后续继续用同一脚本维护阶段状态；复用分析 run 时不得覆盖 `process/analysis-task-list.json`。
 5. 读取并校验 `deliverables/test-analysis-solution.json`；未通过 schema `2.0` 时不进入测试设计生成，直接输出失败原因和“需用当前测试分析 workflow 重新生成分析方案”的建议，不尝试旧格式迁移。
 6. 运行 `python skills/test-design-solution-generation/scripts/extract-test-case-work-items.py outputs/runs/<run-id>` 写入 `process/test-case-work-items.json`；每个 `TP-*` 都必须成为独立 TC 生成工作项。
 7. 读取或生成 `process/rules-pack.json`；如果缺失，必须调用 `bin/build-rules-pack.py` 生成，不能手工拼写 JSON。
@@ -70,7 +70,8 @@ Progress:
 16. 运行 `python bin/build-fact-coverage-map.py outputs/runs/<run-id> --scope design` 生成 `process/design-fact-coverage-map.json` 骨架；使用 `coverage-review` 逐 FACT 填写或修正 `coverageTree[]`、`coverageStatus` 和 `coverageReason`，其中 `gap` 表示过程门禁缺口。
 17. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind coverage --scope design --force` 初始化 coverage 骨架，再使用 `coverage-review` 基于 `process/design-fact-coverage-map.json` 检查需求到测试点、测试点到测试用例的覆盖关系，结果写入 `process/reviews/design-coverage-review.json`；如切片 review 或最终 review 存在 blocking findings/issues，先运行 `python bin/apply-review-findings.py outputs/runs/<run-id> --scope design --all` 重开对应工作项；如发现覆盖缺口，必须先运行 `python bin/apply-coverage-gaps.py outputs/runs/<run-id> --scope design`，再按被重开的 `process/test-case-slices/<TP-ID>.json` 修复。不得直接编辑最终 Markdown，也不得跳过切片回写直接手改 `deliverables/test-design-solution.json`；修复后重新执行对应 TC 切片 review、`bin/merge-staged-slices.py`、确定性校验、最终设计 review、`bin/build-fact-coverage-map.py`、coverage-review 和一致性检查。
 18. coverage-review 通过且返工闭环完成后，使用 `final-report-generation` 运行 `python bin/build-final-report.py outputs/runs/<run-id> --scope design`，从 `process/design-fact-coverage-map.json` 生成 `reports/design-final-report.json` 并渲染 `reports/design-final-report.md`。最终报告只供人工审阅，不输出 `coverageGaps[]`，不触发返工。
-19. 最终输出前通过 `bin/update-run-task.py` 刷新 `process/design-task-list.json`，运行 `bin/check-staged-run.py outputs/runs/<run-id> --scope design`；失败时输出脚本失败项并修正对应 JSON 或 task-list，不停留在等待状态。
+19. 通过 `bin/update-run-task.py` 将 `process/design-task-list.json` 的 `最终报告生成` 阶段标记为 done，证据必须包含 `reports/design-final-report.json` 和 `reports/design-final-report.md`。
+20. 最终输出前通过 `bin/update-run-task.py` 刷新 `process/design-task-list.json` 的 `输出收口` 阶段，运行 `bin/check-staged-run.py outputs/runs/<run-id> --scope design`；失败时输出脚本失败项并修正对应 JSON 或 task-list，不停留在等待状态。
 
 ## 计划-校验-执行模式
 

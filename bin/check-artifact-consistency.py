@@ -25,6 +25,7 @@ ANALYSIS_REQUIRED_TASK_STAGES = [
     "确定性校验",
     "独立评审",
     "覆盖审查",
+    "最终报告生成",
     "输出收口",
 ]
 DESIGN_REQUIRED_TASK_STAGES = [
@@ -37,6 +38,7 @@ DESIGN_REQUIRED_TASK_STAGES = [
     "确定性校验",
     "独立评审",
     "覆盖审查",
+    "最终报告生成",
     "输出收口",
 ]
 OPTIONAL_TASK_STAGES = {"按源补读", "设计依据补读"}

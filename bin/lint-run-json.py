@@ -34,15 +34,31 @@ def fact_coverage_map_path(run_dir: Path, scope: str) -> Path:
     return run_dir / "process" / f"{scope}-fact-coverage-map.json"
 
 
-def coverage_review_result(run_dir: Path, scope: str) -> str:
-    path = coverage_review_path(run_dir, scope)
-    if not path.exists():
-        return ""
+def coverage_review_requires_final_report(run_dir: Path, scope: str) -> bool:
+    review_path = coverage_review_path(run_dir, scope)
+    map_path = fact_coverage_map_path(run_dir, scope)
+    if not review_path.exists() or not map_path.exists():
+        return False
     try:
-        data = load_json(path)
+        review_data = load_json(review_path)
+        map_data = load_json(map_path)
     except Exception:
-        return ""
-    return normalize_text(data.get("result"))
+        return False
+    result = normalize_text(review_data.get("result"))
+    if result in {"", "需修正", "失败", "不通过", "未通过", "阻塞", "blocked", "failed"}:
+        return False
+    blocking_issues = review_data.get("blockingIssues") if isinstance(review_data.get("blockingIssues"), list) else []
+    if blocking_issues:
+        return False
+    gaps = review_data.get("coverageGaps") if isinstance(review_data.get("coverageGaps"), list) else []
+    if gaps:
+        return False
+    map_gaps = [
+        item
+        for item in map_data.get("factCoverage", [])
+        if isinstance(item, dict) and normalize_text(item.get("coverageStatus")) == "gap"
+    ]
+    return not map_gaps
 
 
 def validate_coverage_gap_locations(run_dir: Path, relative: Path, data: dict) -> list[str]:
@@ -392,8 +408,8 @@ def main() -> int:
         map_path = fact_coverage_map_path(run_dir, scope)
         if (review_path.exists() or report_path.exists()) and not map_path.exists():
             errors.append(f"{scope} run 缺少覆盖证据过程件: {map_path.relative_to(run_dir)}")
-        if coverage_review_result(run_dir, scope) == "通过" and not report_path.exists():
-            errors.append(f"{scope} coverage-review 已通过，但缺少最终人审报告: {report_path.relative_to(run_dir)}")
+        if coverage_review_requires_final_report(run_dir, scope) and not report_path.exists():
+            errors.append(f"{scope} coverage-review 已闭环，但缺少最终人审报告: {report_path.relative_to(run_dir)}")
 
     json_files = [json_path for json_path, _markdown_path in collect_renderable_json_files(run_dir)]
     seen = set(json_files)

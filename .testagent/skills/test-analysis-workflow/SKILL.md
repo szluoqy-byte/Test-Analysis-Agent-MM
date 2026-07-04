@@ -51,7 +51,7 @@ Progress:
 
 1. 校验输入至少包含一份 Markdown 需求文档；若发现 Office 输入，输出需先使用 `@file-normalization-agent` 的阻断说明，不创建测试分析 run。
 2. 固定 `PROJECT_ROOT`，运行 `python bin/generate-run-id.py` 生成本次运行 ID，并创建 `outputs/runs/<run-id>/deliverables/`、`process/`、`reports/` 和 `inputs/`。
-3. 使用 `templates/process-artifacts-json-template.json` 创建 `process/analysis-task-list.json`，并通过 `python bin/update-run-task.py outputs/runs/<run-id> --flow analysis ...` 维护状态；不要覆盖历史 run 中可能由测试设计维护的 `process/design-task-list.json`。
+3. 运行 `python bin/update-run-task.py outputs/runs/<run-id> --flow analysis --stage 固定 PROJECT_ROOT 与运行目录 --action start --evidence outputs/runs/<run-id>/` 创建或补齐 `process/analysis-task-list.json`，后续继续用同一脚本维护阶段状态；不要覆盖历史 run 中可能由测试设计维护的 `process/design-task-list.json`。
 4. 调用 `python bin/build-rules-pack.py ...` 生成 `process/rules-pack.json`，并把同一 `project-key` 传入脚本。
 5. 调用 `python skills/context-source-indexing/scripts/build-context-source-index.py ...` 生成 `process/context-pack.json`。
 6. 使用 `input-fact-modeling` 读取需求文档、可选设计方案文档、`process/rules-pack.json` 中当前阶段可见的规则正文，生成 `process/input-fact-model.json`。
@@ -69,7 +69,8 @@ Progress:
 18. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind coverage --scope analysis --force` 初始化 coverage 骨架，再使用 `coverage-review` 基于 `process/analysis-fact-coverage-map.json` 执行覆盖、追踪、rules-pack 应用、动态来源应用和过程门禁收口，结果写入 `process/reviews/analysis-coverage-review.json`。
 19. 如果切片 review 或最终 review 存在 blocking findings/issues，先运行 `python bin/apply-review-findings.py outputs/runs/<run-id> --scope analysis --all` 重开对应工作项；如果 `process/reviews/analysis-coverage-review.json` 中存在 `coverageGaps[]`，必须先运行 `python bin/apply-coverage-gaps.py outputs/runs/<run-id> --scope analysis`。之后按被重开的 `process/test-point-slices/<SC-ID>.json` 修复；不得直接编辑最终 Markdown，也不得跳过切片回写直接手改 `deliverables/test-analysis-solution.json`。修复后重新执行对应 TP 切片 review、`bin/merge-staged-slices.py`、确定性校验、最终分析 review、`bin/build-fact-coverage-map.py`、coverage-review 和一致性检查。
 20. coverage-review 通过且返工闭环完成后，使用 `final-report-generation` 运行 `python bin/build-final-report.py outputs/runs/<run-id> --scope analysis`，从 `process/analysis-fact-coverage-map.json` 生成 `reports/analysis-final-report.json` 并渲染 `reports/analysis-final-report.md`。最终报告只供人工审阅，不输出 `coverageGaps[]`，不触发返工。
-21. 最终输出前通过 `bin/update-run-task.py` 刷新 `process/analysis-task-list.json`，运行 `bin/check-staged-run.py outputs/runs/<run-id> --scope analysis`。
+21. 通过 `bin/update-run-task.py` 将 `process/analysis-task-list.json` 的 `最终报告生成` 阶段标记为 done，证据必须包含 `reports/analysis-final-report.json` 和 `reports/analysis-final-report.md`。
+22. 最终输出前通过 `bin/update-run-task.py` 刷新 `process/analysis-task-list.json` 的 `输出收口` 阶段，运行 `bin/check-staged-run.py outputs/runs/<run-id> --scope analysis`。
 
 ## 计划-校验-执行模式
 
@@ -91,8 +92,8 @@ Progress:
 | 确定性校验 | JSON lint、Markdown render、Markdown lint | 独立语义评审 |
 | `test-analysis-solution-review` | `process/reviews/test-analysis-solution-review.json` | 覆盖审查 |
 | `fact-coverage-map` | `process/analysis-fact-coverage-map.json`、派生 `process/analysis-fact-coverage-map.md` | 覆盖审查 |
-| `coverage-review` | `process/reviews/analysis-coverage-review.json` | 输出收口 |
-| `final-report-generation` | `reports/analysis-final-report.json`、派生 `reports/analysis-final-report.md` | 最终人审 |
+| `coverage-review` | `process/reviews/analysis-coverage-review.json` | 最终报告生成 |
+| `final-report-generation` | `reports/analysis-final-report.json`、派生 `reports/analysis-final-report.md` | 输出收口 |
 
 ## 脚本稳定性规则
 

@@ -1,5 +1,5 @@
 {
-  "taskList": {
+  "analysisTaskList": {
     "artifactType": "task-list",
     "schemaVersion": "1.0",
     "metadata": {
@@ -7,7 +7,8 @@
       "designDocument": "未提供",
       "runId": "<run-id>",
       "projectRoot": "<PROJECT_ROOT>",
-      "generatedAt": "<YYYY-MM-DD HH:mm:ss>"
+      "generatedAt": "<YYYY-MM-DD HH:mm:ss>",
+      "flow": "analysis"
     },
     "stages": [
       {
@@ -15,6 +16,204 @@
         "stage": "固定 PROJECT_ROOT 与运行目录",
         "owner": "test-analysis-workflow",
         "checkpoint": "outputs/runs/<run-id>/",
+        "status": "pending",
+        "evidence": ""
+      },
+      {
+        "order": 2,
+        "stage": "强制规则加载",
+        "owner": "bin/build-rules-pack.py",
+        "checkpoint": "process/rules-pack.json",
+        "status": "pending",
+        "evidence": ""
+      },
+      {
+        "order": 3,
+        "stage": "上下文来源索引",
+        "owner": "context-source-indexing",
+        "checkpoint": "process/context-pack.json",
+        "status": "pending",
+        "evidence": ""
+      },
+      {
+        "order": 4,
+        "stage": "输入事实建模",
+        "owner": "input-fact-modeling",
+        "checkpoint": "process/input-fact-model.json",
+        "status": "pending",
+        "evidence": ""
+      },
+      {
+        "order": 5,
+        "stage": "测试技术路由",
+        "owner": "testing-method-router",
+        "checkpoint": "测试技术路由结果",
+        "status": "pending",
+        "evidence": ""
+      },
+      {
+        "order": 6,
+        "stage": "专项分析",
+        "owner": "testing-method-router",
+        "checkpoint": "覆盖维度建议、测试点候选、补读记录",
+        "status": "pending",
+        "evidence": ""
+      },
+      {
+        "order": 7,
+        "stage": "按源补读",
+        "owner": "testing-method-router",
+        "checkpoint": "按需补读记录、来源说明",
+        "status": "pending",
+        "evidence": ""
+      },
+      {
+        "order": 8,
+        "stage": "测试分析方案生成",
+        "owner": "test-analysis-solution-generation",
+        "checkpoint": "process/scenario-tree.json、process/test-point-work-items.json、process/test-point-slices/<SC-ID>.json、deliverables/test-analysis-solution.json",
+        "status": "pending",
+        "evidence": ""
+      },
+      {
+        "order": 9,
+        "stage": "确定性校验",
+        "owner": "bin",
+        "checkpoint": "lint-run-json.py、render-run-markdown.py、lint-test-analysis-solution.py",
+        "status": "pending",
+        "evidence": ""
+      },
+      {
+        "order": 10,
+        "stage": "独立评审",
+        "owner": "test-analysis-solution-review",
+        "checkpoint": "process/reviews/test-analysis-solution-review.json",
+        "status": "pending",
+        "evidence": ""
+      },
+      {
+        "order": 11,
+        "stage": "覆盖审查",
+        "owner": "coverage-review",
+        "checkpoint": "process/reviews/analysis-coverage-review.json",
+        "status": "pending",
+        "evidence": ""
+      },
+      {
+        "order": 12,
+        "stage": "最终报告生成",
+        "owner": "final-report-generation",
+        "checkpoint": "reports/analysis-final-report.json、reports/analysis-final-report.md",
+        "status": "pending",
+        "evidence": ""
+      },
+      {
+        "order": 13,
+        "stage": "输出收口",
+        "owner": "test-analysis-workflow",
+        "checkpoint": "bin/check-staged-run.py --scope analysis",
+        "status": "pending",
+        "evidence": ""
+      }
+    ]
+  },
+  "designTaskList": {
+    "artifactType": "task-list",
+    "schemaVersion": "1.0",
+    "metadata": {
+      "requirementDocument": "",
+      "designDocument": "未提供",
+      "runId": "<run-id>",
+      "projectRoot": "<PROJECT_ROOT>",
+      "generatedAt": "<YYYY-MM-DD HH:mm:ss>",
+      "flow": "design"
+    },
+    "stages": [
+      {
+        "order": 1,
+        "stage": "固定 PROJECT_ROOT 与运行目录",
+        "owner": "test-design-workflow",
+        "checkpoint": "outputs/runs/<run-id>/",
+        "status": "pending",
+        "evidence": ""
+      },
+      {
+        "order": 2,
+        "stage": "测试分析方案校验",
+        "owner": "test-design-workflow",
+        "checkpoint": "deliverables/test-analysis-solution.json",
+        "status": "pending",
+        "evidence": ""
+      },
+      {
+        "order": 3,
+        "stage": "强制规则加载",
+        "owner": "bin/build-rules-pack.py",
+        "checkpoint": "process/rules-pack.json",
+        "status": "pending",
+        "evidence": ""
+      },
+      {
+        "order": 4,
+        "stage": "上下文来源索引",
+        "owner": "context-source-indexing",
+        "checkpoint": "process/context-pack.json",
+        "status": "pending",
+        "evidence": ""
+      },
+      {
+        "order": 5,
+        "stage": "设计依据补读",
+        "owner": "test-design-workflow",
+        "checkpoint": "归一化需求、可选设计方案、完整测试分析方案",
+        "status": "pending",
+        "evidence": ""
+      },
+      {
+        "order": 6,
+        "stage": "测试设计方案生成",
+        "owner": "test-design-solution-generation",
+        "checkpoint": "process/test-case-work-items.json、process/test-case-slices/<TP-ID>.json、deliverables/test-design-solution.json",
+        "status": "pending",
+        "evidence": ""
+      },
+      {
+        "order": 7,
+        "stage": "确定性校验",
+        "owner": "lint-run-json/render-run-markdown/lint-test-design-solution",
+        "checkpoint": "JSON 与 Markdown 校验",
+        "status": "pending",
+        "evidence": ""
+      },
+      {
+        "order": 8,
+        "stage": "独立评审",
+        "owner": "test-design-solution-review",
+        "checkpoint": "process/reviews/test-design-solution-review.json",
+        "status": "pending",
+        "evidence": ""
+      },
+      {
+        "order": 9,
+        "stage": "覆盖审查",
+        "owner": "coverage-review",
+        "checkpoint": "process/reviews/design-coverage-review.json",
+        "status": "pending",
+        "evidence": ""
+      },
+      {
+        "order": 10,
+        "stage": "最终报告生成",
+        "owner": "final-report-generation",
+        "checkpoint": "reports/design-final-report.json、reports/design-final-report.md",
+        "status": "pending",
+        "evidence": ""
+      },
+      {
+        "order": 11,
+        "stage": "输出收口",
+        "owner": "test-design-workflow",
+        "checkpoint": "bin/check-staged-run.py --scope design",
         "status": "pending",
         "evidence": ""
       }

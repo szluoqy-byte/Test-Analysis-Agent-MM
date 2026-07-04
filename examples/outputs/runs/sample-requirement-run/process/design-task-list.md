@@ -21,4 +21,5 @@
 | 7 | 确定性校验 | lint-run-json/render-run-markdown/lint-test-design-solution | JSON 与 Markdown 校验 | done | bin/smoke-test-analysis.py |
 | 8 | 独立评审 | test-design-solution-review | process/reviews/test-design-solution-review.json | done | bin/smoke-test-analysis.py |
 | 9 | 覆盖审查 | coverage-review | process/reviews/design-coverage-review.json | done | bin/check-artifact-consistency.py |
-| 10 | 输出收口 | test-design-workflow | final-report 与 check-artifact-consistency | done | bin/check-artifact-consistency.py |
+| 10 | 最终报告生成 | final-report-generation | reports/design-final-report.json、reports/design-final-report.md | done | reports/design-final-report.json、reports/design-final-report.md |
+| 11 | 输出收口 | test-design-workflow | final-report 与 check-staged-run | done | bin/check-staged-run.py --scope design |
