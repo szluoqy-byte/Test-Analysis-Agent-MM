@@ -101,6 +101,7 @@ REQUIRED_FILES = [
     "bin/lint-test-design-solution.py",
     "skills/test-analysis-solution-generation/scripts/init-scenario-tree.py",
     "skills/test-analysis-solution-generation/scripts/lint-scenario-tree.py",
+    "bin/generate-run-id.py",
     "bin/lint-run-json.py",
     "bin/render-run-markdown.py",
     "bin/run_artifacts.py",

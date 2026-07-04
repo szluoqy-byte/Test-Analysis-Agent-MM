@@ -33,7 +33,7 @@ description: 当用户提供已评审测试分析方案并要求扩展 TC 测试
 ## 执行流程
 
 1. 校验输入：识别测试分析方案、Markdown 需求文档和可选 Markdown 设计方案文档。
-2. 固定 `PROJECT_ROOT` 和 `<run-id>`；如果显式分析方案位于已有 run 的 `deliverables/test-analysis-solution.json`，优先复用该 run，否则新建或使用用户指定 run。
+2. 固定 `PROJECT_ROOT` 和 `<run-id>`；如果显式分析方案位于已有 run 的 `deliverables/test-analysis-solution.json`，优先复用该 run；如果用户指定 run 则使用指定 run；否则运行 `python bin/generate-run-id.py` 新建 run。
 3. 绑定分析方案输入：
    - 如果用户显式指定 `test-analysis-solution.json`，运行 `python skills/test-design-solution-generation/scripts/bind-analysis-solution.py outputs/runs/<run-id> --analysis <analysis-json>`，将它校验并写入当前 run 的 `deliverables/test-analysis-solution.json`。
    - 如果用户未显式指定，则只检查当前 run 是否已存在 `deliverables/test-analysis-solution.json`。

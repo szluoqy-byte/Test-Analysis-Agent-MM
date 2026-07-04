@@ -22,6 +22,29 @@ def has_any(run_dir: Path, relatives: list[str]) -> bool:
     return any((run_dir / relative).exists() for relative in relatives)
 
 
+def coverage_review_path(run_dir: Path, scope: str) -> Path:
+    return run_dir / "process" / "reviews" / f"{scope}-coverage-review.json"
+
+
+def final_report_path(run_dir: Path, scope: str) -> Path:
+    return run_dir / "reports" / f"{scope}-final-report.json"
+
+
+def fact_coverage_map_path(run_dir: Path, scope: str) -> Path:
+    return run_dir / "process" / f"{scope}-fact-coverage-map.json"
+
+
+def coverage_review_result(run_dir: Path, scope: str) -> str:
+    path = coverage_review_path(run_dir, scope)
+    if not path.exists():
+        return ""
+    try:
+        data = load_json(path)
+    except Exception:
+        return ""
+    return normalize_text(data.get("result"))
+
+
 def validate_coverage_gap_locations(run_dir: Path, relative: Path, data: dict) -> list[str]:
     if data.get("artifactType") != "coverage-review":
         return []
@@ -197,7 +220,7 @@ def validate_final_report_matches_map(run_dir: Path, relative: Path, data: dict)
     scope = normalize_text(data.get("reportScope"))
     if scope not in {"analysis", "design"}:
         return errors
-    map_path = run_dir / "process" / f"{scope}-fact-coverage-map.json"
+    map_path = fact_coverage_map_path(run_dir, scope)
     if not map_path.exists():
         errors.append(f"{relative}: 缺少对应 FACT 覆盖证据图: {map_path.relative_to(run_dir)}")
         return errors
@@ -304,7 +327,7 @@ def validate_coverage_review_consistency(run_dir: Path, relative: Path, data: di
         return errors
     result = normalize_text(data.get("result"))
     gaps = data.get("coverageGaps") if isinstance(data.get("coverageGaps"), list) else []
-    map_path = run_dir / "process" / f"{scope}-fact-coverage-map.json"
+    map_path = fact_coverage_map_path(run_dir, scope)
     if not map_path.exists():
         errors.append(f"{relative}: 缺少对应 FACT 覆盖证据图: {map_path.relative_to(run_dir)}")
         return errors
@@ -359,12 +382,18 @@ def main() -> int:
         errors.append("测试分析 run 缺少分层冻结产物: process/scenario-tree.json")
     if analysis_json.exists() and not (run_dir / "process" / "test-point-work-items.json").exists():
         errors.append("测试分析 run 缺少分层冻结产物: process/test-point-work-items.json")
-    if analysis_json.exists() and not (run_dir / "process" / "analysis-fact-coverage-map.json").exists():
-        errors.append("测试分析 run 缺少覆盖证据过程件: process/analysis-fact-coverage-map.json")
     if design_json.exists() and not (run_dir / "process" / "test-case-work-items.json").exists():
         errors.append("测试设计 run 缺少分层冻结产物: process/test-case-work-items.json")
-    if design_json.exists() and not (run_dir / "process" / "design-fact-coverage-map.json").exists():
-        errors.append("测试设计 run 缺少覆盖证据过程件: process/design-fact-coverage-map.json")
+    for scope, solution_exists in (("analysis", analysis_json.exists()), ("design", design_json.exists())):
+        if not solution_exists:
+            continue
+        review_path = coverage_review_path(run_dir, scope)
+        report_path = final_report_path(run_dir, scope)
+        map_path = fact_coverage_map_path(run_dir, scope)
+        if (review_path.exists() or report_path.exists()) and not map_path.exists():
+            errors.append(f"{scope} run 缺少覆盖证据过程件: {map_path.relative_to(run_dir)}")
+        if coverage_review_result(run_dir, scope) == "通过" and not report_path.exists():
+            errors.append(f"{scope} coverage-review 已通过，但缺少最终人审报告: {report_path.relative_to(run_dir)}")
 
     json_files = [json_path for json_path, _markdown_path in collect_renderable_json_files(run_dir)]
     seen = set(json_files)
