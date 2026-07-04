@@ -45,9 +45,11 @@
 - `SKILL.md` 保持核心流程和高价值易错点，详细标准、矩阵、参考资料或脚本放到 `references/`、`scripts/`，并在正文说明何时读取或调用。
 - 每个 skill 正文至少提供：何时使用、输入、执行步骤、输出、验证闭环、约束/易错点，便于 agent 激活后按步骤推进和自检。
 - 多步骤 workflow、生成、coverage 和 final-report 类 skill 使用 `Progress:` checklist，按 `- [ ] Step N: ...` 写出关键脚本、编辑对象和验证门禁，降低跳步概率。
+- 脆弱链路必须显式写 `计划-校验-执行模式`：先由脚本生成计划或工作包，再由 AI 填语义内容，再用脚本/review/coverage 校验，通过后才合并或收口。
+- 非显而易见的失败模式必须写入 `易错点`，例如“不要自动运行分析”“不要把方法路由写成交付字段”“不要在 final-report 阶段新增 missing 判断”。
 - 命令从仓库根目录执行，因此命令示例使用仓库相对路径；skill 私有资源说明优先使用 `references/...`、`scripts/...` 的相对写法。
 
-`bin/validate-agent-runtime.py` 会校验 skill frontmatter、行数和正文结构；修改 skill 后必须运行 `python bin/sync-opencode-skills.py` 同步 `.opencode` 和 `.testagent` 镜像。
+`bin/validate-agent-runtime.py` 会校验 skill frontmatter、行数、正文结构，以及关键 skill 的 checklist、易错点和计划-校验-执行段落；修改 skill 后必须运行 `python bin/sync-opencode-skills.py` 同步 `.opencode` 和 `.testagent` 镜像。
 
 ## Best Practices 对照决策
 

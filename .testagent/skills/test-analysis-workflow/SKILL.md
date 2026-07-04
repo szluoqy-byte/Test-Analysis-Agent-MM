@@ -40,6 +40,13 @@ Progress:
 - `final-report-generation` 负责在 coverage-review 闭环后基于已审查的覆盖证据图生成最终人审报告，只展示 FACT 到 SC/TP 的最终覆盖关系，不触发返工。
 - 主交付件事实源是 `outputs/runs/<run-id>/deliverables/test-analysis-solution.json`；人读版由 `bin/render-run-markdown.py` 生成。
 
+## 易错点
+
+- 不要在本 workflow 中处理 Office 输入；看到 `.docx` 或 `.xlsx` 时先转给 `@file-normalization-agent`。
+- 不要跳过 SC 树冻结直接生成 TP；SC review 通过后，TP 阶段不得改写 SC。
+- 不要把 testing-method-router 的方法清单写成最终字段；方法是参考，不是交付件来源表。
+- 不要直接修 `deliverables/test-analysis-solution.json` 或 Markdown 来处理 review/coverage 问题；必须回到对应 TP 切片。
+
 ## 执行流程
 
 1. 校验输入至少包含一份 Markdown 需求文档；若发现 Office 输入，输出需先使用 `@file-normalization-agent` 的阻断说明，不创建测试分析 run。
@@ -63,6 +70,10 @@ Progress:
 19. 如果切片 review 或最终 review 存在 blocking findings/issues，先运行 `python bin/apply-review-findings.py outputs/runs/<run-id> --scope analysis --all` 重开对应工作项；如果 `process/reviews/analysis-coverage-review.json` 中存在 `coverageGaps[]`，必须先运行 `python bin/apply-coverage-gaps.py outputs/runs/<run-id> --scope analysis`。之后按被重开的 `process/test-point-slices/<SC-ID>.json` 修复；不得直接编辑最终 Markdown，也不得跳过切片回写直接手改 `deliverables/test-analysis-solution.json`。修复后重新执行对应 TP 切片 review、`bin/merge-staged-slices.py`、确定性校验、最终分析 review、`bin/build-fact-coverage-map.py`、coverage-review 和一致性检查。
 20. coverage-review 通过且返工闭环完成后，使用 `final-report-generation` 运行 `python bin/build-final-report.py outputs/runs/<run-id> --scope analysis`，从 `process/analysis-fact-coverage-map.json` 生成 `reports/analysis-final-report.json` 并渲染 `reports/analysis-final-report.md`。最终报告只供人工审阅，不输出 `coverageGaps[]`，不触发返工。
 21. 最终输出前通过 `bin/update-run-task.py` 刷新 `process/analysis-task-list.json`，运行 `bin/check-staged-run.py outputs/runs/<run-id> --scope analysis`。
+
+## 计划-校验-执行模式
+
+先用固定脚本创建 run、task-list、rules-pack、context-pack、SC 树和 TP work items；再由对应 skill 填写语义内容；每个阶段完成后先运行确定性脚本或语义 review 校验，通过后再进入下一阶段或合并。校验失败时只回到对应 JSON 或切片修复，不直接编辑派生 Markdown。
 
 ## 阶段产物契约
 

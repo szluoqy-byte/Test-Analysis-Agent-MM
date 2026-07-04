@@ -34,6 +34,20 @@ Progress:
 - [ ] Step 5: 运行 `python bin/lint-run-json.py outputs/runs/<run-id>`
 - [ ] Step 6: 确认 final-report 没有新增 coverage-review 未判断的 missing
 
+## 默认路径
+
+默认只从当前 run 的 `process/<scope>-fact-coverage-map.json` 生成对应 `reports/<scope>-final-report.json/.md`。不要读取其他 run 的报告，不要从 Markdown 反推覆盖关系。
+
+## 计划-校验-执行模式
+
+先确认 coverage-review 已完成并审查过 fact-coverage-map；再由 `bin/build-final-report.py` 从覆盖证据图生成 final-report；最后用 render check 和 `lint-run-json.py` 校验。若发现 final-report 需要新增缺口判断，停止并回到 coverage-review，不在 final-report 阶段自行判断。
+
+## 易错点
+
+- final-report 是最终人审件，不是过程门禁，不输出 `coverageGaps[]`。
+- `missing` 只能来自 coverage-review 允许保留的 `gap`。
+- Markdown 是派生阅读版，不能手写，也不能作为下一阶段事实源。
+
 ## 生成步骤
 
 1. 确认对应范围的 coverage-review 已完成且没有待处理 blocking 返工项。

@@ -40,6 +40,13 @@ Progress:
 - `final-report-generation` 负责在 coverage-review 闭环后基于已审查的覆盖证据图生成最终人审报告，只展示 FACT 到 SC/TP/TC 的最终覆盖关系，不触发返工。
 - 主交付件事实源是 `outputs/runs/<run-id>/deliverables/test-design-solution.json`；人读版由 `test-case-writing` 调用 `bin/render-run-markdown.py` 生成。
 
+## 易错点
+
+- 不要在缺少完整 `test-analysis-solution.json` 时自动运行分析；设计 workflow 只能绑定已有分析 JSON 或失败退出。
+- 不要依赖碎片化 TP 输入作为用户入口；设计阶段以完整分析方案为事实源。
+- 不要在设计阶段新增、删除、合并或改写 SC/TP；只能填写当前 TP 的 TC 切片。
+- 不要把“每个 TP 至少 1 个 TC”当成充分覆盖；必须识别测试设计因子并生成最小充分 TC 集合。
+
 ## 执行流程
 
 1. 校验输入：识别测试分析方案、Markdown 需求文档和可选 Markdown 设计方案文档。
@@ -64,6 +71,10 @@ Progress:
 17. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind coverage --scope design --force` 初始化 coverage 骨架，再使用 `coverage-review` 基于 `process/design-fact-coverage-map.json` 检查需求到测试点、测试点到测试用例的覆盖关系，结果写入 `process/reviews/design-coverage-review.json`；如切片 review 或最终 review 存在 blocking findings/issues，先运行 `python bin/apply-review-findings.py outputs/runs/<run-id> --scope design --all` 重开对应工作项；如发现覆盖缺口，必须先运行 `python bin/apply-coverage-gaps.py outputs/runs/<run-id> --scope design`，再按被重开的 `process/test-case-slices/<TP-ID>.json` 修复。不得直接编辑最终 Markdown，也不得跳过切片回写直接手改 `deliverables/test-design-solution.json`；修复后重新执行对应 TC 切片 review、`bin/merge-staged-slices.py`、确定性校验、最终设计 review、`bin/build-fact-coverage-map.py`、coverage-review 和一致性检查。
 18. coverage-review 通过且返工闭环完成后，使用 `final-report-generation` 运行 `python bin/build-final-report.py outputs/runs/<run-id> --scope design`，从 `process/design-fact-coverage-map.json` 生成 `reports/design-final-report.json` 并渲染 `reports/design-final-report.md`。最终报告只供人工审阅，不输出 `coverageGaps[]`，不触发返工。
 19. 最终输出前通过 `bin/update-run-task.py` 刷新 `process/design-task-list.json`，运行 `bin/check-staged-run.py outputs/runs/<run-id> --scope design`；失败时输出脚本失败项并修正对应 JSON 或 task-list，不停留在等待状态。
+
+## 计划-校验-执行模式
+
+先绑定和校验完整分析方案，再提取 TP 工作项并初始化 TC 切片；AI 只填写单个 TP 的 TC 语义；切片 review 通过后再用固定脚本合并和统一编号。任何 lint、review 或 coverage 失败都回到对应 TC 切片修复，不手写最终 Markdown。
 
 ## 按 TP 切片模式
 

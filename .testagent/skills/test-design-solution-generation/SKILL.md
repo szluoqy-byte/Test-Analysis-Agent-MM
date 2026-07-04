@@ -38,6 +38,16 @@ Progress:
 - [ ] Step 7: 合并后运行 `python bin/lint-run-json.py outputs/runs/<run-id>`
 - [ ] Step 8: 交给 `test-case-writing` 渲染 Markdown，不手工写 Markdown
 
+## 计划-校验-执行模式
+
+计划阶段由完整分析方案、TP 工作项和 `generationContext` 限定当前 TP 范围；校验阶段包括 TC 切片 review、最终设计 review、coverage-review 和 `lint-run-json.py`；执行阶段只允许固定脚本合并切片并统一 TC 编号。任何校验失败都回到当前 TP 的 TC 切片，不直接改最终交付件或 Markdown。
+
+## 易错点
+
+- 不要在一个 TC 的 steps 中枚举多组互斥输入、角色、状态、配置或接口参数变体。
+- 不要把检查项、断言项或系统内部行为写成 `steps[].action`。
+- 不要因为输入依据不足而补造 GUI 控件、接口路径、错误码、提示文案或阈值。
+
 ## 执行步骤与生成原则
 
 1. 完整继承分析方案的 `SC-*` 场景树和 `TP-*` 测试点，不新增、删除、合并或改写分析层级。

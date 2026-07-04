@@ -34,6 +34,12 @@ Progress:
 - subagent 隔离的是会话上下文，不隔离文件系统；同一全流程优先复用同一个 `outputs/runs/<run-id>/`。
 - subagent 之间不得通过聊天记录、自然语言总结或隐式上下文交接业务事实；阶段交接只依赖 canonical JSON 和固定报告文件。
 
+## 易错点
+
+- 不要把同一会话里提到 `@test-analysis-agent` / `@test-design-agent` 当成真实 subagent 隔离。
+- 不要把 analysis subagent 的聊天总结传给 design subagent 作为业务事实；只传完整分析 JSON 和输入文件路径。
+- 不要在 e2e 层重复实现 analysis/design 内部 lint、review、coverage 或 final-report 逻辑。
+
 ## 执行流程
 
 1. 校验输入至少包含一份 Markdown 需求文档；若发现 Office 输入，输出需先使用 `@file-normalization-agent` 的阻断说明，不创建全流程 run。
@@ -51,6 +57,10 @@ Progress:
    - `reports/design-final-report.json/.md`
 7. 如果分析阶段失败，不进入设计阶段；如果设计阶段失败，保留并报告已完成的分析产物路径和设计失败位置。
 8. 如果运行环境不支持真实独立 subagent，允许在同一会话内按上述顺序直接执行 `test-analysis-workflow` 和 `test-design-workflow`，但最终回复必须说明使用了 fallback，未获得 analysis/design 会话隔离收益。
+
+## 计划-校验-执行模式
+
+先计划并启动 analysis 阶段，校验分析交接文件存在后才启动 design 阶段；design 阶段完成后只校验最终路径汇总。任何阶段失败都停止后续阶段并报告已完成产物，不用自然语言补齐缺失交付件。
 
 ## 阶段交接规则
 

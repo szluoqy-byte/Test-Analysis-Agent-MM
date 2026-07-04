@@ -44,6 +44,16 @@ Progress:
 - [ ] Step 6: 对每个 gap 定位到可编辑 canonical slice
 - [ ] Step 7: 输出后运行 `python bin/lint-run-json.py outputs/runs/<run-id>`
 
+## 计划-校验-执行模式
+
+先运行 `bin/build-fact-coverage-map.py` 生成覆盖证据图作为审查计划；再逐 FACT 校验覆盖链路是否真实、充分、有依据；发现缺口时只输出 `coverageGaps[]` 和可编辑 slice 位置，由 workflow 执行 `bin/apply-coverage-gaps.py` 后回到切片修复。
+
+## 易错点
+
+- 不要等 final-report 阶段才判断 missing；missing/gap 必须先在覆盖证据图和 coverage-review 中形成。
+- 不要把 `coverageGaps[].artifactLocation` 指向最终 Markdown；必须指向可编辑 canonical slice。
+- 不要重复 deterministic lint 的字段、编号和 Markdown 漂移检查。
+
 ## 审查步骤
 
 1. 确认 coverage JSON 已由 `bin/init-report-artifact.py` 初始化 skeleton 和 `generationContext`；缺失时先初始化，不手工拼写。

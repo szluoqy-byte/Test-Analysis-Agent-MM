@@ -38,6 +38,16 @@ Progress:
 - [ ] Step 7: 通过切片 review 后用固定脚本合并并统一 TP 编号
 - [ ] Step 8: 合并后运行 `python bin/lint-run-json.py outputs/runs/<run-id>`
 
+## 计划-校验-执行模式
+
+计划阶段由脚本生成 `generationContext`、SC 树骨架和叶子 SC 工作项；校验阶段包括 SC 树 lint、SC review、TP 切片 review 和 `lint-run-json.py`；执行阶段只允许固定脚本合并切片并统一编号。任何校验失败都回到当前 SC 树或对应 TP 切片，不直接改最终交付件。
+
+## 易错点
+
+- SC 阶段不得出现 `testPoints[]`；TP 阶段不得改写 SC。
+- 不要为了匹配某个测试技术而生成无输入依据的 TP。
+- 切片内 TP 编号只是临时语义位置，最终编号由合并脚本统一处理。
+
 ## 执行步骤与生成原则
 
 1. 每个内部阶段开始前，必须先确认目标 JSON 已由固定脚本写入 `generationContext`；若缺失，先运行 `skills/test-analysis-solution-generation/scripts/init-scenario-tree.py`、`skills/test-analysis-solution-generation/scripts/init-test-point-slice.py` 或 `bin/build-generation-context.py` 生成，不手工拼写。

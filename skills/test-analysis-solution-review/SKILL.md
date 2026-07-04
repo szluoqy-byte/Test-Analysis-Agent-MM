@@ -44,7 +44,13 @@ SC 树评审写入 `process/reviews/scenario-tree-review.json`；TP 切片评审
 
 ## 验证闭环
 
-评审输出后确认 `result`、`findings[]`、`blockingIssues[]`、`recommendations[]` 和 `evidenceRefs[]` 已填写。若存在 blocking 项，workflow 必须运行 `python bin/apply-review-findings.py outputs/runs/<run-id> --scope analysis --all` 重开对应工作项，再回到切片修复和合并流程。
+评审输出后确认 `result`、`findings[]`、`blockingIssues[]`、`recommendations[]` 和 `evidenceRefs[]` 已填写。若存在 blocking 项，workflow 必须运行 `python bin/apply-review-findings.py outputs/runs/<run-id> --scope analysis --all` 重开对应工作项，再回到切片修复和合并流程。评审 JSON 结构校验失败时，先重新运行 `bin/init-report-artifact.py` 初始化 skeleton，再填写语义结论。
+
+## 易错点
+
+- 不要把 SC review、TP review 和最终分析 review 混成一个结论；目标不同，输出路径也不同。
+- 不要在 review 中直接改 SC/TP；只输出 findings 和 blockingIssues，让 workflow 重开工作项。
+- 不要把 coverage 缺口写成 review 的替代结论；覆盖门禁由 `coverage-review` 处理。
 
 ## 约束
 

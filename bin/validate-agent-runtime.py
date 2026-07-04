@@ -71,6 +71,27 @@ CHECKLIST_REQUIRED_SKILLS = {
     "test-design-solution-generation",
     "test-design-workflow",
 }
+GOTCHAS_REQUIRED_SKILLS = {
+    "coverage-review",
+    "final-report-generation",
+    "test-analysis-design-workflow",
+    "test-analysis-solution-generation",
+    "test-analysis-solution-review",
+    "test-analysis-workflow",
+    "test-design-solution-generation",
+    "test-design-solution-review",
+    "test-design-workflow",
+    "testing-method-router",
+}
+PLAN_VALIDATE_EXECUTE_SKILLS = {
+    "coverage-review",
+    "final-report-generation",
+    "test-analysis-design-workflow",
+    "test-analysis-solution-generation",
+    "test-analysis-workflow",
+    "test-design-solution-generation",
+    "test-design-workflow",
+}
 
 
 def fail(message: str, issues: list[str]) -> None:
@@ -157,6 +178,10 @@ def validate_skills(root: Path, issues: list[str]) -> None:
                 fail(f"{skill_file.relative_to(root)} should include a {marker_name} section for skill usability", issues)
         if name in CHECKLIST_REQUIRED_SKILLS and ("Progress:" not in body or "- [ ] Step" not in body):
             fail(f"{skill_file.relative_to(root)} should include a Progress checklist for multi-step workflow reliability", issues)
+        if name in GOTCHAS_REQUIRED_SKILLS and "## 易错点" not in body:
+            fail(f"{skill_file.relative_to(root)} should include concrete gotchas for non-obvious failure modes", issues)
+        if name in PLAN_VALIDATE_EXECUTE_SKILLS and "## 计划-校验-执行模式" not in body:
+            fail(f"{skill_file.relative_to(root)} should include a plan-validate-execute section for fragile workflows", issues)
 
     for skill_name in sorted(REQUIRED_SKILLS):
         if not (skills_dir / skill_name / "SKILL.md").exists():

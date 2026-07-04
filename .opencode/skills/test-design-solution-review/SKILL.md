@@ -51,7 +51,13 @@ description: 评审按 TP 生成的 TC 切片和最终 schema 2.0 测试设计�
 
 ## 验证闭环
 
-评审输出后确认 `result`、`findings[]`、`blockingIssues[]`、`recommendations[]` 和 `evidenceRefs[]` 已填写。若存在 blocking 项，workflow 必须运行 `python bin/apply-review-findings.py outputs/runs/<run-id> --scope design --all` 重开对应 TP 工作项，再回到 TC 切片修复、合并和最终评审。
+评审输出后确认 `result`、`findings[]`、`blockingIssues[]`、`recommendations[]` 和 `evidenceRefs[]` 已填写。若存在 blocking 项，workflow 必须运行 `python bin/apply-review-findings.py outputs/runs/<run-id> --scope design --all` 重开对应 TP 工作项，再回到 TC 切片修复、合并和最终评审。评审 JSON 结构校验失败时，先重新运行 `bin/init-report-artifact.py` 初始化 skeleton，再填写语义结论。
+
+## 易错点
+
+- 不要只检查每个 TP 是否至少有 1 个 TC；这只是结构底线，不是充分覆盖。
+- 不要把多个独立测试实例合并成一个 TC 的多个 steps。
+- 不要把写作风格问题当成覆盖充分性问题；覆盖由 TC 集合和 coverage-review 判断。
 
 ## 约束
 
