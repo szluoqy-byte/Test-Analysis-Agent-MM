@@ -44,6 +44,24 @@
 - frontmatter 必须包含 `name` 和 `description`；`name` 与目录名一致，`description` 同时说明“做什么”和“何时使用”。
 - `SKILL.md` 保持核心流程和高价值易错点，详细标准、矩阵、参考资料或脚本放到 `references/`、`scripts/`，并在正文说明何时读取或调用。
 - 每个 skill 正文至少提供：何时使用、输入、执行步骤、输出、验证闭环、约束/易错点，便于 agent 激活后按步骤推进和自检。
+- 多步骤 workflow、生成、coverage 和 final-report 类 skill 使用 `Progress:` checklist，按 `- [ ] Step N: ...` 写出关键脚本、编辑对象和验证门禁，降低跳步概率。
 - 命令从仓库根目录执行，因此命令示例使用仓库相对路径；skill 私有资源说明优先使用 `references/...`、`scripts/...` 的相对写法。
 
 `bin/validate-agent-runtime.py` 会校验 skill frontmatter、行数和正文结构；修改 skill 后必须运行 `python bin/sync-opencode-skills.py` 同步 `.opencode` 和 `.testagent` 镜像。
+
+## Best Practices 对照决策
+
+| 官方实践 | 当前处理 |
+|---|---|
+| Start from real expertise | 保留项目内真实 SC/TP/TC、JSON canonical、rules/context-pack、切片返工等专有流程，不改成泛化测试理论 |
+| Refine with real execution | 保留 smoke fixture、runtime 校验和示例 run 校验，作为 skill 文案回归依据 |
+| Spending context wisely | `SKILL.md` 控制在 500 行以内；长参考保留在 `references/`、`knowledge/` 或脚本中按需读取 |
+| Match specificity to fragility | 对 schema、切片、review、coverage、final-report 等脆弱链路使用明确脚本和顺序；对测试方法参考保留灵活性 |
+| Provide defaults, not menus | workflow 使用固定默认脚本和固定产物路径，备选路径只作为异常分支说明 |
+| Favor procedures over declarations | 核心 skill 使用 checklist、执行步骤和验证闭环，而不是只声明产物应该正确 |
+| Gotchas sections | 高风险点保留在 `约束`、`禁止项`、`防卡住规则` 中；不为低风险 skill 额外堆叠重复 gotchas |
+| Templates for output format | 继续使用 `templates/*.json` 与 Markdown render 脚本；不把长模板塞入 `SKILL.md` |
+| Checklists for multi-step workflows | 已在入口 workflow、归一化、生成、coverage 和 final-report 类 skill 增加 `Progress:` checklist |
+| Validation loops | 每个关键 skill 保留验证闭环；coverage/review 返工回到 slice，不直接改最终 Markdown |
+| Plan-validate-execute | SC 树、TP 切片、TC 切片、fact-coverage-map 和 final-report 都先由脚本生成结构，再由 AI 填语义，再由脚本校验 |
+| Bundling reusable scripts | 重复 JSON 初始化、合并、渲染、lint、覆盖图和报告生成继续使用 `bin/` 或 skill 私有 `scripts/` 固定脚本 |

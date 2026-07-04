@@ -61,6 +61,16 @@ SKILL_STRUCTURE_MARKERS = {
     "validation": ("## 校验", "## 验证", "## 验证闭环", "## 防卡住规则", "## 脚本稳定性规则", "## 完成判定"),
     "constraints": ("## 约束", "## 禁止项", "## 冲突处理", "## 防卡住规则", "## 脚本稳定性规则", "## 稳定执行要求"),
 }
+CHECKLIST_REQUIRED_SKILLS = {
+    "coverage-review",
+    "final-report-generation",
+    "normalize-input-documents",
+    "test-analysis-design-workflow",
+    "test-analysis-solution-generation",
+    "test-analysis-workflow",
+    "test-design-solution-generation",
+    "test-design-workflow",
+}
 
 
 def fail(message: str, issues: list[str]) -> None:
@@ -145,6 +155,8 @@ def validate_skills(root: Path, issues: list[str]) -> None:
         for marker_name, markers in SKILL_STRUCTURE_MARKERS.items():
             if not any(marker in body for marker in markers):
                 fail(f"{skill_file.relative_to(root)} should include a {marker_name} section for skill usability", issues)
+        if name in CHECKLIST_REQUIRED_SKILLS and ("Progress:" not in body or "- [ ] Step" not in body):
+            fail(f"{skill_file.relative_to(root)} should include a Progress checklist for multi-step workflow reliability", issues)
 
     for skill_name in sorted(REQUIRED_SKILLS):
         if not (skills_dir / skill_name / "SKILL.md").exists():

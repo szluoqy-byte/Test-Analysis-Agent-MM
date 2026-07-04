@@ -33,6 +33,17 @@ coverage-review 必须基于对应范围的 FACT 覆盖证据图执行门禁：�
 - `references/review-gates.md`
 - `references/context-application-gates.md`
 
+## 审查检查清单
+
+Progress:
+- [ ] Step 1: 确认 coverage JSON skeleton 和 `generationContext` 已初始化
+- [ ] Step 2: 确认 deterministic lint、Markdown render 和最终语义评审已完成
+- [ ] Step 3: 读取对应范围的 fact-coverage-map
+- [ ] Step 4: 逐 FACT 审查 `coverageTree[]` 是否真实、充分、有依据
+- [ ] Step 5: 输出 findings、blockingIssues、qualityGates 和必要的 `coverageGaps[]`
+- [ ] Step 6: 对每个 gap 定位到可编辑 canonical slice
+- [ ] Step 7: 输出后运行 `python bin/lint-run-json.py outputs/runs/<run-id>`
+
 ## 审查步骤
 
 1. 确认 coverage JSON 已由 `bin/init-report-artifact.py` 初始化 skeleton 和 `generationContext`；缺失时先初始化，不手工拼写。

@@ -14,6 +14,16 @@ description: 编排测试分析与测试设计全流程；优先以独立 subage
 - 可选 `--project <project-key>`，必须原样传递给测试分析和测试设计阶段。
 - 如果输入包含 `.docx` 或 `.xlsx`，不得在本 workflow 中转换；必须先由 `@file-normalization-agent` 归一化为 Markdown。
 
+## 执行检查清单
+
+Progress:
+- [ ] Step 1: 校验全流程输入都是 Markdown（block on Office input and route to `@file-normalization-agent`）
+- [ ] Step 2: 启动 analysis subagent 执行 `test-analysis-workflow`
+- [ ] Step 3: 校验分析交接文件（check `deliverables/test-analysis-solution.json` and `reports/analysis-final-report.json/.md`）
+- [ ] Step 4: 启动 design subagent 执行 `test-design-workflow`，显式传入完整分析 JSON
+- [ ] Step 5: 汇总分析/设计交付件和 final-report 路径
+- [ ] Step 6: 若使用 fallback，同步说明未获得 subagent 会话隔离收益
+
 ## 职责边界
 
 - 本 skill 负责全流程 subagent 编排和阶段交接。

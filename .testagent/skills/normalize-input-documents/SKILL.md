@@ -33,6 +33,17 @@ description: 当用户通过 file-normalization-agent 或独立命令要求处�
 - 可选 `--force`，用于源文件缓存已存在但需要重新转换的场景。
 - 可选 `--json`，用于输出机器可读摘要。
 
+## 归一化检查清单
+
+Progress:
+- [ ] Step 1: 识别所有 `.md`、`.docx`、`.xlsx` 输入并确认是否需要转换
+- [ ] Step 2: 运行归一化脚本（run `python skills/normalize-input-documents/scripts/normalize-office-input.py ...`）
+- [ ] Step 3: 检查全局缓存 Markdown 和 `.conversion.json`
+- [ ] Step 4: 如绑定 run，检查 run-local Markdown 和 `input-normalization-manifest.json`
+- [ ] Step 5: 收口 metadata warnings，必要时读取 `references/docx-image-and-diagram-workflow.md` 或 `references/xlsx-to-markdown.md`
+- [ ] Step 6: 重新读取最终 Markdown，确认图片/图形/复杂表格补充已原位合并
+- [ ] Step 7: 输出归一化完成摘要和下游应读取的 Markdown 路径
+
 ## 归档路径
 
 转换结果采用两层路径。

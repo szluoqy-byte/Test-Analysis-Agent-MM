@@ -26,6 +26,18 @@ description: 基于已评审测试分析方案、需求/设计依据和可见动
 - `templates/test-design-solution-json-template.json`
 - 对本阶段可见的 project/personal 动态来源
 
+## 生成检查清单
+
+Progress:
+- [ ] Step 1: 确认完整分析方案已绑定并通过 schema `2.0` 校验
+- [ ] Step 2: 读取当前 TP 工作项和 TC 切片中的 `generationContext`
+- [ ] Step 3: 读取适用 rules、可见动态来源和 relevant facts
+- [ ] Step 4: 识别当前 TP 的测试设计因子和最小充分 TC 集合
+- [ ] Step 5: 只填写当前 `process/test-case-slices/<TP-ID>.json` 的 `testPoint.testCases[]`
+- [ ] Step 6: 通过 TC 切片 review 后用固定脚本合并并统一 TC 编号
+- [ ] Step 7: 合并后运行 `python bin/lint-run-json.py outputs/runs/<run-id>`
+- [ ] Step 8: 交给 `test-case-writing` 渲染 Markdown，不手工写 Markdown
+
 ## 执行步骤与生成原则
 
 1. 完整继承分析方案的 `SC-*` 场景树和 `TP-*` 测试点，不新增、删除、合并或改写分析层级。

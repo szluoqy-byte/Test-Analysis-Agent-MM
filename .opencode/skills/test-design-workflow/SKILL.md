@@ -17,6 +17,16 @@ description: 当用户提供已评审测试分析方案并要求扩展 TC 测试
 - 如果输入包含 `.docx` 或 `.xlsx`，不得在本 workflow 中转换；必须先由 `@file-normalization-agent` 归一化为 Markdown。
 - 新模型不支持旧格式自动迁移；输入分析方案必须符合 schema `2.0`。
 
+## 执行检查清单
+
+Progress:
+- [ ] Step 1: 识别并绑定完整分析方案（run `python skills/test-design-solution-generation/scripts/bind-analysis-solution.py ...` when needed）
+- [ ] Step 2: 初始化设计任务清单和 TP 工作项（run `python bin/update-run-task.py ... --flow design` and `python skills/test-design-solution-generation/scripts/extract-test-case-work-items.py ...`）
+- [ ] Step 3: 确认 rules/context 已存在或生成（run `python bin/build-rules-pack.py ...` and `python skills/context-source-indexing/scripts/build-context-source-index.py ...` if missing）
+- [ ] Step 4: 逐 TP 初始化、填写、评审并合并 TC 切片（run `python bin/init-staged-slices.py ... --scope design` and `python bin/merge-staged-slices.py ... --scope design`）
+- [ ] Step 5: 执行 JSON lint、Markdown 写作和 Markdown lint（use `test-case-writing` and run `python bin/lint-run-json.py ...`）
+- [ ] Step 6: 完成最终语义评审、coverage-review、final-report 和 staged run 检查（run `python bin/check-staged-run.py ... --scope design`）
+
 ## 职责边界
 
 - 本 skill 只负责编排设计链路和写出测试设计方案。

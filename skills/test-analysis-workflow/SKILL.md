@@ -16,6 +16,18 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 - 如果输入包含 `.docx` 或 `.xlsx`，不得在本 workflow 中转换；必须先由 `@file-normalization-agent` 归一化为 Markdown。
 - 可选 `--project <project-key>`，必须传递给 `bin/build-rules-pack.py` 和 `context-source-indexing`；personal rules 来自 `rules/user/**/*.md`，personal 动态补充来源来自 `knowledge/user/**/*.md` 和 `memory/user/**/*.md`。
 
+## 执行检查清单
+
+Progress:
+- [ ] Step 1: 校验 Markdown 输入并创建 run（run `python bin/generate-run-id.py`）
+- [ ] Step 2: 初始化分析任务清单（run `python bin/update-run-task.py outputs/runs/<run-id> --flow analysis ...`）
+- [ ] Step 3: 构建 rules/context/fact 基础上下文（run `python bin/build-rules-pack.py ...` 和 `python skills/context-source-indexing/scripts/build-context-source-index.py ...`）
+- [ ] Step 4: 完成输入事实建模与测试方法路由（use `input-fact-modeling` and `testing-method-router`）
+- [ ] Step 5: 生成并评审冻结 SC 树（run `scripts/init-scenario-tree.py` then review `process/scenario-tree.json`）
+- [ ] Step 6: 逐叶子 SC 生成、评审并合并 TP 切片（run `python bin/init-staged-slices.py ... --scope analysis` and `python bin/merge-staged-slices.py ... --scope analysis`）
+- [ ] Step 7: 执行确定性校验和 Markdown 渲染（run `python bin/lint-run-json.py ...` and `python bin/render-run-markdown.py ...`）
+- [ ] Step 8: 完成最终语义评审、coverage-review、final-report 和 staged run 检查（run `python bin/check-staged-run.py ... --scope analysis`）
+
 ## 职责边界
 
 - 本 skill 只负责编排完整分析链路和写出本次运行产物。

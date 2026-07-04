@@ -24,6 +24,16 @@ description: 在测试分析或测试设计 coverage-review 已闭环后，基�
 - `process/context-pack.json` 中对 `final-report-generation` 可见的 project/personal 动态来源；如需使用，只读取相关正文，并在 `coverageReason` 中说明影响。
 - `templates/final-report-json-template.json`。
 
+## 生成检查清单
+
+Progress:
+- [ ] Step 1: 确认对应 coverage-review 已通过或明确收口
+- [ ] Step 2: 确认 fact-coverage-map 已由 coverage-review 审查
+- [ ] Step 3: 运行 `python bin/build-final-report.py outputs/runs/<run-id> --scope analysis|design`
+- [ ] Step 4: 运行 `python bin/render-run-markdown.py outputs/runs/<run-id> --check`
+- [ ] Step 5: 运行 `python bin/lint-run-json.py outputs/runs/<run-id>`
+- [ ] Step 6: 确认 final-report 没有新增 coverage-review 未判断的 missing
+
 ## 生成步骤
 
 1. 确认对应范围的 coverage-review 已完成且没有待处理 blocking 返工项。

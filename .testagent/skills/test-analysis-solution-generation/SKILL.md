@@ -26,6 +26,18 @@ description: 基于输入事实模型、测试技术路由参考、专项方法�
 - `templates/test-analysis-solution-json-template.json`
 - 对本阶段可见的 project/personal 动态来源
 
+## 生成检查清单
+
+Progress:
+- [ ] Step 1: 初始化或刷新当前工作单元的 `generationContext`
+- [ ] Step 2: 读取适用 rules、可见动态来源和 relevant facts
+- [ ] Step 3: SC 阶段只填写 `process/scenario-tree.json` 的场景树
+- [ ] Step 4: 运行 SC 树 lint 并等待 SC review 通过
+- [ ] Step 5: 提取叶子 SC 工作项并初始化 TP 切片
+- [ ] Step 6: 逐个叶子 SC 只填写当前切片的 `scenario.testPoints[]`
+- [ ] Step 7: 通过切片 review 后用固定脚本合并并统一 TP 编号
+- [ ] Step 8: 合并后运行 `python bin/lint-run-json.py outputs/runs/<run-id>`
+
 ## 执行步骤与生成原则
 
 1. 每个内部阶段开始前，必须先确认目标 JSON 已由固定脚本写入 `generationContext`；若缺失，先运行 `skills/test-analysis-solution-generation/scripts/init-scenario-tree.py`、`skills/test-analysis-solution-generation/scripts/init-test-point-slice.py` 或 `bin/build-generation-context.py` 生成，不手工拼写。
