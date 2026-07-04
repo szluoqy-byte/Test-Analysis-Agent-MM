@@ -98,13 +98,14 @@ def target_artifacts(run_dir: Path, scope: str) -> dict[str, str]:
     artifacts = {"inputFactModel": "process/input-fact-model.json"}
     analysis_path = run_dir / "deliverables" / "test-analysis-solution.json"
     design_path = run_dir / "deliverables" / "test-design-solution.json"
-    coverage_path = run_dir / "reports" / f"{scope}-coverage-review.json"
+    coverage_relative = f"process/reviews/{scope}-coverage-review.json"
+    coverage_path = run_dir / coverage_relative
     if analysis_path.exists():
         artifacts["analysisSolution"] = "deliverables/test-analysis-solution.json"
     if scope == "design" and design_path.exists():
         artifacts["designSolution"] = "deliverables/test-design-solution.json"
     if coverage_path.exists():
-        artifacts["coverageReview"] = f"reports/{scope}-coverage-review.json"
+        artifacts["coverageReview"] = coverage_relative
     return artifacts
 
 

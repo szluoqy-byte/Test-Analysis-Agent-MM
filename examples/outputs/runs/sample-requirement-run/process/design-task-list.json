@@ -69,7 +69,7 @@
       "order": 8,
       "stage": "独立评审",
       "owner": "test-design-solution-review",
-      "checkpoint": "reports/test-design-solution-review.json",
+      "checkpoint": "process/reviews/test-design-solution-review.json",
       "status": "done",
       "evidence": "bin/smoke-test-analysis.py"
     },
@@ -77,7 +77,7 @@
       "order": 9,
       "stage": "覆盖审查",
       "owner": "coverage-review",
-      "checkpoint": "reports/design-coverage-review.json",
+      "checkpoint": "process/reviews/design-coverage-review.json",
       "status": "done",
       "evidence": "bin/check-artifact-consistency.py"
     },

@@ -5,7 +5,7 @@ description: 对测试分析/测试设计运行结果执行覆盖审查，检查
 
 # 覆盖审查
 
-本 skill 是测试分析与测试设计链路的覆盖收口环节。它读取 JSON canonical、确定性 lint 结果、独立评审结果、`process/rules-pack.json` 中当前阶段可见的规则索引及对应 Markdown 正文、动态来源应用状态和必要的私有参考。测试分析输出 `reports/analysis-coverage-review.json`；测试设计输出 `reports/design-coverage-review.json`。历史 `reports/coverage-review.json` 只作为兼容读取路径，不作为新流程写入目标。
+本 skill 是测试分析与测试设计链路的覆盖收口环节。它读取 JSON canonical、确定性 lint 结果、独立评审结果、`process/rules-pack.json` 中当前阶段可见的规则索引及对应 Markdown 正文、动态来源应用状态和必要的私有参考。测试分析输出 `process/reviews/analysis-coverage-review.json`；测试设计输出 `process/reviews/design-coverage-review.json`，不作为新流程写入目标。
 
 coverage-review 是过程门禁；发现缺口时通过 `coverageGaps[]` 触发切片返工。最终人审展示由 `final-report-generation` 负责，输出 `reports/analysis-final-report.json` 或 `reports/design-final-report.json`，不在本 skill 中生成。
 
@@ -19,8 +19,8 @@ coverage-review 是过程门禁；发现缺口时通过 `coverageGaps[]` 触发�
 - `process/context-pack.json`
 - `deliverables/test-analysis-solution.json`
 - 可选 `deliverables/test-design-solution.json`
-- `reports/test-analysis-solution-review.json`
-- 可选 `reports/test-design-solution-review.json`
+- `process/reviews/test-analysis-solution-review.json`
+- 可选 `process/reviews/test-design-solution-review.json`
 - 当前 coverage JSON 内的 `generationContext`；缺失时先运行 `bin/init-report-artifact.py`
 - `skills/coverage-review/references/coverage-check.md`
 - `skills/coverage-review/references/review-gates.md`
@@ -40,7 +40,7 @@ coverage-review 是过程门禁；发现缺口时通过 `coverageGaps[]` 触发�
 
 ## 输出
 
-输出按当前阶段写入 `reports/analysis-coverage-review.json` 或 `reports/design-coverage-review.json`，结构以 `templates/coverage-review-json-template.json` 为准；如需人读版，由 `bin/render-run-markdown.py` 渲染。
+输出按当前阶段写入 `process/reviews/analysis-coverage-review.json` 或 `process/reviews/design-coverage-review.json`，结构以 `templates/coverage-review-json-template.json` 为准；如需人读版，由 `bin/render-run-markdown.py` 渲染。
 
 coverage-review 不重复执行 deterministic lint 已覆盖的编号、字段、Markdown 语法和 JSON 结构检查。
 

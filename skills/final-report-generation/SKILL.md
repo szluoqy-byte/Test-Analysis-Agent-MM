@@ -15,7 +15,7 @@ description: 在测试分析或测试设计 coverage-review 已闭环后，基�
 - `reports/analysis-final-report.json` 或 `reports/design-final-report.json`，由 `python bin/build-final-report.py outputs/runs/<run-id> --scope analysis|design` 先生成骨架。
 - 分析范围读取 `deliverables/test-analysis-solution.json`。
 - 设计范围读取 `deliverables/test-analysis-solution.json` 和 `deliverables/test-design-solution.json`。
-- 对应范围的 `reports/analysis-coverage-review.json` 或 `reports/design-coverage-review.json` 只作为最终状态参考，不作为返工指令。
+- 对应范围的 `process/reviews/analysis-coverage-review.json` 或 `process/reviews/design-coverage-review.json` 只作为最终状态参考，不作为返工指令。
 - `process/rules-pack.json` 中对 `final-report-generation` 可见的 rules；rules 是强制约束。
 - `process/context-pack.json` 中对 `final-report-generation` 可见的 project/personal 动态来源；如需使用，只读取相关正文，并在 `reviewNote` 中说明影响。
 - `templates/final-report-json-template.json`。

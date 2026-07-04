@@ -50,7 +50,7 @@ flowchart TD
 
 ## Coverage 返工闭环
 
-`coverage-review` 是最终全局门禁，不在中间切片阶段执行。若 review 输出 blocking findings/issues，必须先运行 `bin/apply-review-findings.py` 按 slice location 重开工作项；若 `reports/analysis-coverage-review.json` 输出 `coverageGaps[]`，必须通过 `coverageGaps[].artifactLocation` 定位到对应 `process/test-point-slices/<SC-ID>.json`，先运行 `bin/apply-coverage-gaps.py` 重开工作项后再修复。
+`coverage-review` 是最终全局门禁，不在中间切片阶段执行。若 review 输出 blocking findings/issues，必须先运行 `bin/apply-review-findings.py` 按 slice location 重开工作项；若 `process/reviews/analysis-coverage-review.json` 输出 `coverageGaps[]`，必须通过 `coverageGaps[].artifactLocation` 定位到对应 `process/test-point-slices/<SC-ID>.json`，先运行 `bin/apply-coverage-gaps.py` 重开工作项后再修复。
 
 修复后重新执行：TP 切片 review -> `bin/merge-staged-slices.py --scope analysis` -> deterministic lint/render -> 最终分析 review -> coverage-review -> final-report -> `bin/check-staged-run.py --scope analysis`。
 

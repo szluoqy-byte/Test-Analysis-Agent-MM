@@ -46,19 +46,20 @@ outputs/
         test-case-work-items.json
         test-case-work-items.md
         test-case-slices/
+        reviews/
+          scenario-tree-review.json
+          scenario-tree-review.md
+          test-point-reviews/
+          test-case-reviews/
+          test-analysis-solution-review.json
+          test-analysis-solution-review.md
+          test-design-solution-review.json
+          test-design-solution-review.md
+          analysis-coverage-review.json
+          analysis-coverage-review.md
+          design-coverage-review.json
+          design-coverage-review.md
       reports/
-        scenario-tree-review.json
-        scenario-tree-review.md
-        test-point-reviews/
-        test-case-reviews/
-        test-analysis-solution-review.json
-        test-analysis-solution-review.md
-        test-design-solution-review.json
-        test-design-solution-review.md
-        analysis-coverage-review.json
-        analysis-coverage-review.md
-        design-coverage-review.json
-        design-coverage-review.md
         analysis-final-report.json
         analysis-final-report.md
         design-final-report.json

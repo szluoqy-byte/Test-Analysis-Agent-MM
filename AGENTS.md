@@ -78,7 +78,7 @@
 - 当用户要求从需求和设计方案一次性完成测试分析与测试设计时，使用 `test-analysis-design-workflow`。该 workflow 优先用独立 subagent 隔离执行 analysis/design，只做全流程编排和阶段交接，不复制 analysis/design 内部校验、review、coverage 或 final-report 逻辑；若运行环境不支持真实 subagent，才 fallback 为同会话 workflow 串联并在最终回复说明。
 - 测试分析阶段依次使用 `rules-pack`、`context-source-indexing`、`input-fact-modeling`、`testing-method-router`、路由选中的专项方法参考、`test-analysis-solution-generation` 生成冻结 SC 树、`test-analysis-solution-review` 评审 SC、按叶子 SC 生成并评审 TP 切片、合并分析方案、JSON lint、Markdown render、派生 Markdown lint、最终 `test-analysis-solution-review`、`coverage-review` 和 `final-report-generation`。
 - 分段工作项状态查看、批量切片初始化、批量合并、review blocking 返工重开和分段 run 固定检查分别使用 `bin/list-staged-work-items.py`、`bin/init-staged-slices.py`、`bin/merge-staged-slices.py`、`bin/apply-review-findings.py` 和 `bin/check-staged-run.py`。
-- 覆盖审查产物按阶段拆分：测试分析写入 `reports/analysis-coverage-review.json/.md`，测试设计写入 `reports/design-coverage-review.json/.md`；历史 `reports/coverage-review.json/.md` 只作为兼容读取路径，不作为新流程写入目标。
+- 覆盖审查产物按阶段拆分：测试分析写入 `process/reviews/analysis-coverage-review.json/.md`，测试设计写入 `process/reviews/design-coverage-review.json/.md`。
 - coverage-review 发现覆盖缺口后，不直接编辑最终 Markdown 或主交付件 JSON；必须通过 `coverageGaps[].artifactLocation` 定位到 `process/test-point-slices/<SC-ID>.json` 或 `process/test-case-slices/<TP-ID>.json`，先运行 `bin/apply-coverage-gaps.py` 重开对应工作项，再修复切片并重新执行切片 review、脚本合并、最终 review、coverage 和一致性检查。
 - 最终审阅报告产物按阶段拆分：测试分析写入 `reports/analysis-final-report.json/.md`，测试设计写入 `reports/design-final-report.json/.md`。final-report 只展示输入 FACT 最终被哪些 SC/TP/TC 覆盖，不输出 `coverageGaps[]`，不触发 `apply-coverage-gaps.py`，也不参与自动返工链路。
 - 当用户要求基于已评审测试分析方案生成测试用例时，使用 `test-design-workflow`。该 workflow 优先使用用户显式指定的 `test-analysis-solution.json`，否则只读取当前 run 已存在的 `deliverables/test-analysis-solution.json`。

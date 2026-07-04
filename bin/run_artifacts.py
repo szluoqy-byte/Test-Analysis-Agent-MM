@@ -1066,14 +1066,20 @@ def collect_renderable_json_files(run_dir: Path) -> list[tuple[Path, Path]]:
         (run_dir / "process" / "test-case-work-items.json", run_dir / "process" / "test-case-work-items.md"),
         (run_dir / "deliverables" / "test-analysis-solution.json", run_dir / "deliverables" / "test-analysis-solution.md"),
         (run_dir / "deliverables" / "test-design-solution.json", run_dir / "deliverables" / "test-design-solution.md"),
-        (run_dir / "reports" / "scenario-tree-review.json", run_dir / "reports" / "scenario-tree-review.md"),
-        (run_dir / "reports" / "test-point-review.json", run_dir / "reports" / "test-point-review.md"),
-        (run_dir / "reports" / "test-case-review.json", run_dir / "reports" / "test-case-review.md"),
-        (run_dir / "reports" / "test-analysis-solution-review.json", run_dir / "reports" / "test-analysis-solution-review.md"),
-        (run_dir / "reports" / "test-design-solution-review.json", run_dir / "reports" / "test-design-solution-review.md"),
-        (run_dir / "reports" / "analysis-coverage-review.json", run_dir / "reports" / "analysis-coverage-review.md"),
-        (run_dir / "reports" / "design-coverage-review.json", run_dir / "reports" / "design-coverage-review.md"),
-        (run_dir / "reports" / "coverage-review.json", run_dir / "reports" / "coverage-review.md"),
+        (run_dir / "process" / "reviews" / "scenario-tree-review.json", run_dir / "process" / "reviews" / "scenario-tree-review.md"),
+        (run_dir / "process" / "reviews" / "test-point-review.json", run_dir / "process" / "reviews" / "test-point-review.md"),
+        (run_dir / "process" / "reviews" / "test-case-review.json", run_dir / "process" / "reviews" / "test-case-review.md"),
+        (
+            run_dir / "process" / "reviews" / "test-analysis-solution-review.json",
+            run_dir / "process" / "reviews" / "test-analysis-solution-review.md",
+        ),
+        (
+            run_dir / "process" / "reviews" / "test-design-solution-review.json",
+            run_dir / "process" / "reviews" / "test-design-solution-review.md",
+        ),
+        (run_dir / "process" / "reviews" / "analysis-coverage-review.json", run_dir / "process" / "reviews" / "analysis-coverage-review.md"),
+        (run_dir / "process" / "reviews" / "design-coverage-review.json", run_dir / "process" / "reviews" / "design-coverage-review.md"),
+        (run_dir / "process" / "reviews" / "coverage-review.json", run_dir / "process" / "reviews" / "coverage-review.md"),
         (run_dir / "reports" / "analysis-final-report.json", run_dir / "reports" / "analysis-final-report.md"),
         (run_dir / "reports" / "design-final-report.json", run_dir / "reports" / "design-final-report.md"),
     ]
@@ -1085,8 +1091,8 @@ def collect_renderable_json_files(run_dir: Path) -> list[tuple[Path, Path]]:
             for json_path in sorted(directory.glob("*.json")):
                 pairs.append((json_path, json_path.with_suffix(".md")))
     for directory in (
-        run_dir / "reports" / "test-point-reviews",
-        run_dir / "reports" / "test-case-reviews",
+        run_dir / "process" / "reviews" / "test-point-reviews",
+        run_dir / "process" / "reviews" / "test-case-reviews",
     ):
         if directory.is_dir():
             for json_path in sorted(directory.glob("*.json")):

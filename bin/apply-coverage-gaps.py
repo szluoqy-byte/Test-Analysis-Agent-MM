@@ -66,7 +66,7 @@ def id_key(scope: str) -> str:
 
 
 def default_report(run_dir: Path, scope: str) -> Path:
-    return run_dir / "reports" / f"{scope}-coverage-review.json"
+    return run_dir / "process" / "reviews" / f"{scope}-coverage-review.json"
 
 
 def infer_scope(report: dict[str, Any], report_path: Path) -> str:
@@ -142,7 +142,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="根据 coverageGaps[].artifactLocation 重开对应分片工作项")
     parser.add_argument("run_dir", type=Path, help="outputs/runs/<run-id>")
     parser.add_argument("--scope", choices=["analysis", "design"], help="coverage 范围")
-    parser.add_argument("--report", type=Path, help="coverage review JSON；默认 reports/<scope>-coverage-review.json")
+    parser.add_argument("--report", type=Path, help="coverage review JSON；默认 process/reviews/<scope>-coverage-review.json")
     args = parser.parse_args()
 
     root = repo_root()

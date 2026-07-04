@@ -27,13 +27,15 @@ from staged_workflow import (
 
 def default_review_paths(run_dir: Path, scope_name: str) -> list[Path]:
     if scope_name == "analysis":
-        paths = sorted((run_dir / "reports" / "test-point-reviews").glob("*.json"))
-        aggregate = run_dir / "reports" / "test-point-review.json"
-        final = run_dir / "reports" / "test-analysis-solution-review.json"
+        review_dir = run_dir / "process" / "reviews" / "test-point-reviews"
+        paths = sorted(review_dir.glob("*.json"))
+        aggregate = run_dir / "process" / "reviews" / "test-point-review.json"
+        final = run_dir / "process" / "reviews" / "test-analysis-solution-review.json"
     else:
-        paths = sorted((run_dir / "reports" / "test-case-reviews").glob("*.json"))
-        aggregate = run_dir / "reports" / "test-case-review.json"
-        final = run_dir / "reports" / "test-design-solution-review.json"
+        review_dir = run_dir / "process" / "reviews" / "test-case-reviews"
+        paths = sorted(review_dir.glob("*.json"))
+        aggregate = run_dir / "process" / "reviews" / "test-case-review.json"
+        final = run_dir / "process" / "reviews" / "test-design-solution-review.json"
     if aggregate.exists():
         paths.append(aggregate)
     if final.exists():

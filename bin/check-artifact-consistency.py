@@ -399,7 +399,7 @@ def validate_json_chain(run_dir: Path, repo_root: Path) -> list[str]:
                 work_items,
                 "leafScenarioId",
                 "test-point-work-items",
-                run_dir / "reports" / "test-point-reviews",
+                run_dir / "process" / "reviews" / "test-point-reviews",
                 run_dir,
                 repo_root,
             )
@@ -422,7 +422,7 @@ def validate_json_chain(run_dir: Path, repo_root: Path) -> list[str]:
                 work_items,
                 "testPointId",
                 "test-case-work-items",
-                run_dir / "reports" / "test-case-reviews",
+                run_dir / "process" / "reviews" / "test-case-reviews",
                 run_dir,
                 repo_root,
             )
@@ -538,8 +538,8 @@ def main() -> int:
             "process/scenario-tree.md",
             "process/test-point-work-items.json",
             "process/test-point-work-items.md",
-            "reports/analysis-coverage-review.json",
-            "reports/analysis-coverage-review.md",
+            "process/reviews/analysis-coverage-review.json",
+            "process/reviews/analysis-coverage-review.md",
             "reports/analysis-final-report.json",
             "reports/analysis-final-report.md",
         ):
@@ -549,8 +549,8 @@ def main() -> int:
         for relative in (
             "process/test-case-work-items.json",
             "process/test-case-work-items.md",
-            "reports/design-coverage-review.json",
-            "reports/design-coverage-review.md",
+            "process/reviews/design-coverage-review.json",
+            "process/reviews/design-coverage-review.md",
             "reports/design-final-report.json",
             "reports/design-final-report.md",
         ):

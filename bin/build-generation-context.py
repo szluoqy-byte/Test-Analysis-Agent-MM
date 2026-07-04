@@ -41,10 +41,10 @@ def default_target(run_dir: Path, kind: str, target_id: str, review_type: str, c
     if kind == "review":
         if not review_type:
             raise ValueError("--review-type 必填")
-        return run_dir / "reports" / f"{review_type}.json"
+        return run_dir / "process" / "reviews" / f"{review_type}.json"
     if kind == "coverage":
         name = f"{coverage_scope}-coverage-review" if coverage_scope in {"analysis", "design"} else "coverage-review"
-        return run_dir / "reports" / f"{name}.json"
+        return run_dir / "process" / "reviews" / f"{name}.json"
     raise ValueError(f"不支持的 kind: {kind}")
 
 

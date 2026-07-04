@@ -22,7 +22,7 @@
 ## 5. Evidence Refs
 
 - deliverables/test-analysis-solution.json
-- reports/test-analysis-solution-review.json
+- process/reviews/test-analysis-solution-review.json
 
 ## 6. Quality Gates
 

@@ -39,15 +39,15 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 7. 使用 `testing-method-router` 基于输入事实模型和 `process/rules-pack.json` 中当前阶段可见的规则正文，对需求事实和设计事实进行测试技术路由。
 8. 使用路由选中的专项方法参考产出覆盖维度建议、候选 SC/TP 方向和按源补读记录；方法只作为生成参考，不要求最终 TP 完全来自或逐项绑定这些方法。
 9. 运行 `python skills/test-analysis-solution-generation/scripts/init-scenario-tree.py outputs/runs/<run-id>` 初始化带 `generationContext` 的 `process/scenario-tree.json`，再使用 `test-analysis-solution-generation` 读取 `generationContext` 和当前阶段可见来源，填写 `scope[]` 与 `scenarios[]`。该文件只允许 SC 树，不得包含 `testPoints[]`。
-10. 运行 `python skills/test-analysis-solution-generation/scripts/lint-scenario-tree.py outputs/runs/<run-id>/process/scenario-tree.json`，再运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type scenario-tree-review --force` 初始化评审骨架，并使用 `test-analysis-solution-review` 填写 `reports/scenario-tree-review.json`。SC review 通过后，后续阶段不得新增、删除、合并或改写 SC。
+10. 运行 `python skills/test-analysis-solution-generation/scripts/lint-scenario-tree.py outputs/runs/<run-id>/process/scenario-tree.json`，再运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type scenario-tree-review --force` 初始化评审骨架，并使用 `test-analysis-solution-review` 填写 `process/reviews/scenario-tree-review.json`。SC review 通过后，后续阶段不得新增、删除、合并或改写 SC。
 11. 运行 `python skills/test-analysis-solution-generation/scripts/extract-test-point-work-items.py outputs/runs/<run-id>` 生成 `process/test-point-work-items.json`，再运行 `python bin/init-staged-slices.py outputs/runs/<run-id> --scope analysis --pending` 批量初始化 `process/test-point-slices/<SC-ID>.json`；需要查看状态时运行 `python bin/list-staged-work-items.py outputs/runs/<run-id> --scope analysis --status all`。
 12. 使用 `test-analysis-solution-generation` 逐个填写 `process/test-point-slices/<SC-ID>.json` 的 `scenario.testPoints[]`；每个切片必须读取当前阶段适用 rules 和动态来源，不得改写 SC。
 13. 对每个 TP 切片先运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-point-review --target-id <SC-ID> --force` 初始化评审骨架，再使用 `test-analysis-solution-review` 执行覆盖和粒度评审；切片通过后可运行 `python bin/merge-staged-slices.py outputs/runs/<run-id> --scope analysis --ids <SC-ID>`，所有切片完成后运行 `python bin/merge-staged-slices.py outputs/runs/<run-id> --scope analysis --all` 确保最终合并为 `deliverables/test-analysis-solution.json` 并统一全局 `TP-*` 编号。
 14. 所有叶子 SC 合并后，运行 `bin/lint-run-json.py outputs/runs/<run-id>`。失败时先修正 JSON，不进入最终评审。
 15. 运行 `bin/render-run-markdown.py outputs/runs/<run-id>`，再运行 `bin/lint-test-analysis-solution.py outputs/runs/<run-id>/deliverables/test-analysis-solution.md`。
-16. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-analysis-solution-review --force` 初始化最终评审骨架，再使用 `test-analysis-solution-review` 独立语义评审最终测试分析方案 JSON，评审结果写入 `reports/test-analysis-solution-review.json`。
-17. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind coverage --scope analysis --force` 初始化 coverage 骨架，再使用 `coverage-review` 执行覆盖、追踪、rules-pack 应用、动态来源应用和过程门禁收口，结果写入 `reports/analysis-coverage-review.json`。
-18. 如果切片 review 或最终 review 存在 blocking findings/issues，先运行 `python bin/apply-review-findings.py outputs/runs/<run-id> --scope analysis --all` 重开对应工作项；如果 `reports/analysis-coverage-review.json` 中存在 `coverageGaps[]`，必须先运行 `python bin/apply-coverage-gaps.py outputs/runs/<run-id> --scope analysis`。之后按被重开的 `process/test-point-slices/<SC-ID>.json` 修复；不得直接编辑最终 Markdown，也不得跳过切片回写直接手改 `deliverables/test-analysis-solution.json`。修复后重新执行对应 TP 切片 review、`bin/merge-staged-slices.py`、确定性校验、最终分析 review、coverage-review 和一致性检查。
+16. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-analysis-solution-review --force` 初始化最终评审骨架，再使用 `test-analysis-solution-review` 独立语义评审最终测试分析方案 JSON，评审结果写入 `process/reviews/test-analysis-solution-review.json`。
+17. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind coverage --scope analysis --force` 初始化 coverage 骨架，再使用 `coverage-review` 执行覆盖、追踪、rules-pack 应用、动态来源应用和过程门禁收口，结果写入 `process/reviews/analysis-coverage-review.json`。
+18. 如果切片 review 或最终 review 存在 blocking findings/issues，先运行 `python bin/apply-review-findings.py outputs/runs/<run-id> --scope analysis --all` 重开对应工作项；如果 `process/reviews/analysis-coverage-review.json` 中存在 `coverageGaps[]`，必须先运行 `python bin/apply-coverage-gaps.py outputs/runs/<run-id> --scope analysis`。之后按被重开的 `process/test-point-slices/<SC-ID>.json` 修复；不得直接编辑最终 Markdown，也不得跳过切片回写直接手改 `deliverables/test-analysis-solution.json`。修复后重新执行对应 TP 切片 review、`bin/merge-staged-slices.py`、确定性校验、最终分析 review、coverage-review 和一致性检查。
 19. coverage-review 通过且返工闭环完成后，运行 `python bin/build-final-report.py outputs/runs/<run-id> --scope analysis` 生成 `reports/analysis-final-report.json` 骨架，再使用 `final-report-generation` 填写 `coveredScenarios[]`、`coveredTestPoints[]`、`coverageStatus` 和 `reviewNote`；填写后再次运行同一脚本重新计算 `summary` 并渲染 `reports/analysis-final-report.md`。最终报告只供人工审阅，不输出 `coverageGaps[]`，不触发返工。
 20. 最终输出前通过 `bin/update-run-task.py` 刷新 `process/analysis-task-list.json`，运行 `bin/check-staged-run.py outputs/runs/<run-id> --scope analysis`。
 
@@ -61,12 +61,12 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 | `input-fact-modeling` | `process/input-fact-model.json` | 测试技术路由、测试分析方案生成 |
 | `testing-method-router` | 测试技术路由表 | 专项方法参考、测试分析方案生成 |
 | 专项方法参考 | 覆盖维度建议、测试点候选 | 测试分析方案生成 |
-| `SC 树生成与评审` | `process/scenario-tree.json`、`reports/scenario-tree-review.json` | 叶子 SC 工作项生成 |
-| `TP 切片生成与评审` | `process/test-point-work-items.json`、`process/test-point-slices/<SC-ID>.json`、`reports/test-point-reviews/<SC-ID>.json`；可选汇总 `reports/test-point-review.json` | 测试分析方案合并 |
+| `SC 树生成与评审` | `process/scenario-tree.json`、`process/reviews/scenario-tree-review.json` | 叶子 SC 工作项生成 |
+| `TP 切片生成与评审` | `process/test-point-work-items.json`、`process/test-point-slices/<SC-ID>.json`、`process/reviews/test-point-reviews/<SC-ID>.json`；可选汇总 `process/reviews/test-point-review.json` | 测试分析方案合并 |
 | `test-analysis-solution-generation` | `deliverables/test-analysis-solution.json`、场景树、测试点 | JSON 校验 |
 | 确定性校验 | JSON lint、Markdown render、Markdown lint | 独立语义评审 |
-| `test-analysis-solution-review` | `reports/test-analysis-solution-review.json` | 覆盖审查 |
-| `coverage-review` | `reports/analysis-coverage-review.json` | 输出收口 |
+| `test-analysis-solution-review` | `process/reviews/test-analysis-solution-review.json` | 覆盖审查 |
+| `coverage-review` | `process/reviews/analysis-coverage-review.json` | 输出收口 |
 | `final-report-generation` | `reports/analysis-final-report.json`、派生 `reports/analysis-final-report.md` | 最终人审 |
 
 ## 脚本稳定性规则

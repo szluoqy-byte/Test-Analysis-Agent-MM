@@ -43,4 +43,4 @@ description: 评审按 TP 生成的 TC 切片和最终 schema 2.0 测试设计�
 
 ## 输出
 
-单个 TP 的 TC 切片评审写入 `reports/test-case-reviews/<TP-ID>.json`，汇总可写入 `reports/test-case-review.json`；最终设计方案评审写入 `reports/test-design-solution-review.json`。报告必须先由 `bin/init-report-artifact.py` 生成 skeleton 和 `generationContext`，AI 只填写语义结论字段；如需人读版，由 `bin/render-run-markdown.py` 渲染。
+单个 TP 的 TC 切片评审写入 `process/reviews/test-case-reviews/<TP-ID>.json`，汇总可写入 `process/reviews/test-case-review.json`；最终设计方案评审写入 `process/reviews/test-design-solution-review.json`。报告必须先由 `bin/init-report-artifact.py` 生成 skeleton 和 `generationContext`，AI 只填写语义结论字段；如需人读版，由 `bin/render-run-markdown.py` 渲染。

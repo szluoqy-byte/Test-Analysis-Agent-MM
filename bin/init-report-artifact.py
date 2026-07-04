@@ -60,17 +60,17 @@ def default_coverage_target(run_dir: Path, scope: str) -> Path:
 
 def default_output(run_dir: Path, kind: str, review_type: str, scope: str) -> Path:
     if kind == "review":
-        return run_dir / "reports" / f"{review_type}.json"
-    return run_dir / "reports" / f"{scope}-coverage-review.json"
+        return run_dir / "process" / "reviews" / f"{review_type}.json"
+    return run_dir / "process" / "reviews" / f"{scope}-coverage-review.json"
 
 
 def review_output_from_id(run_dir: Path, review_type: str, target_id: str) -> Path:
     if not target_id:
         return default_output(run_dir, "review", review_type, "")
     if review_type == "test-point-review":
-        return run_dir / "reports" / "test-point-reviews" / f"{target_id}.json"
+        return run_dir / "process" / "reviews" / "test-point-reviews" / f"{target_id}.json"
     if review_type == "test-case-review":
-        return run_dir / "reports" / "test-case-reviews" / f"{target_id}.json"
+        return run_dir / "process" / "reviews" / "test-case-reviews" / f"{target_id}.json"
     raise ValueError(f"{review_type} 不支持 --target-id")
 
 

@@ -36,4 +36,4 @@ description: 在分析链路中分段评审冻结 SC 树、TP 切片和最终 sc
 
 ## 输出
 
-SC 树评审写入 `reports/scenario-tree-review.json`；TP 切片评审写入 `reports/test-point-reviews/<SC-ID>.json`，汇总可写入 `reports/test-point-review.json`；最终分析方案评审写入 `reports/test-analysis-solution-review.json`。报告必须先由 `bin/init-report-artifact.py` 生成 skeleton 和 `generationContext`，AI 只填写语义结论字段；如需人读版，由 `bin/render-run-markdown.py` 渲染。
+SC 树评审写入 `process/reviews/scenario-tree-review.json`；TP 切片评审写入 `process/reviews/test-point-reviews/<SC-ID>.json`，汇总可写入 `process/reviews/test-point-review.json`；最终分析方案评审写入 `process/reviews/test-analysis-solution-review.json`。报告必须先由 `bin/init-report-artifact.py` 生成 skeleton 和 `generationContext`，AI 只填写语义结论字段；如需人读版，由 `bin/render-run-markdown.py` 渲染。

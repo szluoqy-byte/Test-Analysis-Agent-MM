@@ -23,7 +23,7 @@
 
 - deliverables/test-design-solution.json
 - process/test-case-work-items.json
-- reports/test-design-solution-review.json
+- process/reviews/test-design-solution-review.json
 
 ## 6. Quality Gates
 

@@ -7,7 +7,7 @@
     "inputFactModel": "process/input-fact-model.json",
     "analysisSolution": "deliverables/test-analysis-solution.json",
     "designSolution": "deliverables/test-design-solution.json",
-    "coverageReview": "reports/design-coverage-review.json"
+    "coverageReview": "process/reviews/design-coverage-review.json"
   },
   "summary": {
     "totalFacts": 3,
