@@ -62,7 +62,7 @@ Progress:
 4. 读取 `process/<scope>-fact-coverage-map.json`，逐条 FACT 审查 `coverageTree[]` 是否真实、充分、有依据。
 5. 检查需求事实、设计事实和高风险点是否能追踪到已冻结 `SC-*`，以及叶子 SC 是否都有 TP 切片承接。
 6. 检查每个叶子 SC 是否至少有一个 `E2E场景测试`，且非 E2E TP 没有重复泛化主流程闭环。
-7. 如果存在测试设计方案，检查每个 `TP-*` 是否有 TC 工作项和 TC 切片承接；`至少一个 TC` 只是最低结构门槛，还必须检查该 TP 下是否形成覆盖适用测试设计因子的最小充分 TC 集合。
+7. 如果存在测试设计方案，检查每个 `TP-*` 是否有 TC 工作项和 TC 切片承接；`至少一个 TC` 只是最低结构门槛，还必须检查该 TP 下是否形成覆盖适用测试设计因子的最小充分 TC 集合。已加载来源中的既有测试设计因子不是封闭上限，coverage-review 应识别只覆盖因子库/checklist 条目但遗漏 TP 目标下必要测试实例的问题。
 8. 检查 TC 的测试数据、步骤和最终预期是否有依据。
 9. 输出结构化 findings、blockingIssues、recommendations、evidenceRefs、qualityGates 和 coverageGaps。
 10. 对覆盖证据图中 `coverageStatus=gap` 的 FACT，必须输出对应 `coverageGaps[]`，除非能明确改为 `not_applicable` 并写明原因。对 `coverageStatus=partial` 的 FACT，必须判断是否需要返工；需要返工时输出 `coverageGaps[]`，不需要返工时在 findings/recommendations 中说明保留原因。

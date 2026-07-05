@@ -42,7 +42,7 @@ description: 测试设计方案门面 Agent；当用户希望基于已评审测�
 - 测试设计主交付件事实源固定为 `outputs/runs/<run-id>/deliverables/test-design-solution.json`；`test-design-solution.md` 由 `test-case-writing` 调用脚本渲染，不手工维护。
 - 需求文档和设计方案是校验依据，用于确认阈值、状态、错误处理、接口契约、字段规则和预期结果。
 - 主交付件继承 `SC-*` 场景树和 `TP-*` 测试点，在每个测试点下生成 `testCases[]`。
-- `TP-*` 是验证目标簇，不固定对应 1 个 TC；设计阶段必须先识别当前 TP 下的测试设计因子，再生成最小充分 TC 集合。
+- `TP-*` 是验证目标簇，不固定对应 1 个 TC；设计阶段必须先识别必选因子、候选因子和基于 TP 目标补充推导的必要因子，再生成最小充分 TC 集合。已加载来源中的既有测试设计因子是必选覆盖项或启发来源，不是封闭上限；除非更高优先级指令明确限定仅使用指定因子集合，否则不得因为因子库未列出某类情况，就忽略该 TP 下有判定意义的独立测试实例。
 - `TC-*` 全局连续编号。每个 TC 必须包含 `level`、`preconditions[]`、`testData[]`、`steps[]`、`expectedResult` 和 `sourceRefs[]`。
 - `level` 使用 `Level 0` 到 `Level 4`；`testData[]` 使用 `{name, value, description}`；`steps[]` 使用 `{stepNo, action, expected}`。
 - 设计阶段继承分析方案的 `E2E场景测试`：该测试点生成端到端主流程测试用例，其他规则、异常、接口、权限、状态、回滚或补偿用例保留在同级 `TP-*` 下。

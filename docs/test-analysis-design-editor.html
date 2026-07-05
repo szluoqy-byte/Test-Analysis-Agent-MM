@@ -1223,7 +1223,7 @@
 
     function renderTestCaseDetail(node) {
       detailView.innerHTML = `
-        <div class="notice">TC 是一个可独立执行、独立判定的测试实例；一个 TP 下应先识别测试设计因子，再生成最小充分 TC 集合，不同输入条件、角色、状态、配置、异常类型或数据组合应拆成独立 TC。</div>
+        <div class="notice">TC 是一个可独立执行、独立判定的测试实例；一个 TP 下应先识别必选因子、候选因子和必要补充因子，再生成最小充分 TC 集合，不同输入条件、角色、状态、配置、异常类型或数据组合应拆成独立 TC。</div>
         <div class="form-grid">
           ${inputField("TC 编号", node.id, "testCase.id", "TC-001")}
           ${inputField("用例标题", node.title, "testCase.title")}

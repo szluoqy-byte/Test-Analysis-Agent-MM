@@ -225,7 +225,7 @@ Markdown 渲染按 `inputSource.type + inputSource.source` 分段，再按 `inpu
 规则：
 
 - 设计方案完整继承分析方案中的 `SC-*` 和 `TP-*`。
-- 每个 `TP-*` 下至少有 1 个 `TC-*`，且应覆盖该 TP 适用测试设计因子的最小充分 TC 集合。
+- 每个 `TP-*` 下至少有 1 个 `TC-*`，且应覆盖该 TP 适用测试设计因子的最小充分 TC 集合。已加载来源中的既有测试设计因子是必选覆盖项或启发来源，不是封闭上限；除非更高优先级指令明确限定仅使用指定因子集合，否则 TC 集合还应覆盖基于 TP 目标可合理推导的必要测试实例。
 - `TC-*` 全局连续编号。
 - `level` 使用 `Level 0` 到 `Level 4`。
 - `testData[]` 使用 `{name, value, description}`。
