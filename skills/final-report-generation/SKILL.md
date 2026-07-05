@@ -82,3 +82,4 @@ Progress:
 - 不重复 deterministic lint 已覆盖的 JSON 字段、编号、Markdown 漂移检查。
 - 分析最终报告只展示 `FACT -> leaf SC -> TP`；`testCases[]` 保持空数组。
 - 设计最终报告展示 `FACT -> leaf SC -> TP -> TC`，一个 FACT 可以对应多个叶子 SC、TP 和 TC。
+- Markdown 人读版必须以 FACT 为中心，每个 FACT 固定一行；SC、TP、TC 在各自单元格内聚合显示，不按覆盖链路拆成多行。

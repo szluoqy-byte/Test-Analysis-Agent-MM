@@ -1048,11 +1048,20 @@ def _coverage_tree_lines(item: dict[str, Any], include_cases: bool, label_maps: 
     return lines
 
 
-def _coverage_tree_flat_rows(item: dict[str, Any], include_cases: bool, label_maps: dict[str, dict[str, str]]) -> list[list[str]]:
+def _append_unique(values: list[str], value: str) -> None:
+    if value and value not in values:
+        values.append(value)
+
+
+def _coverage_tree_aggregates(
+    item: dict[str, Any], include_cases: bool, label_maps: dict[str, dict[str, str]]
+) -> list[str]:
     tree = item.get("coverageTree")
     if not isinstance(tree, list):
         return []
-    rows: list[list[str]] = []
+    scenarios: list[str] = []
+    tp_values: list[str] = []
+    tc_values: list[str] = []
     scenario_labels = label_maps.get("scenario_paths", {})
     tp_labels = label_maps.get("test_points", {})
     tc_labels = label_maps.get("test_cases", {})
@@ -1063,29 +1072,28 @@ def _coverage_tree_flat_rows(item: dict[str, Any], include_cases: bool, label_ma
         if not leaf_id:
             continue
         scenario_label = scenario_labels.get(leaf_id, leaf_id)
-        test_points = scenario_ref.get("testPoints")
-        if not isinstance(test_points, list) or not test_points:
-            rows.append([scenario_label, "", ""] if include_cases else [scenario_label, ""])
+        _append_unique(scenarios, scenario_label)
+        tp_refs = scenario_ref.get("testPoints")
+        if not isinstance(tp_refs, list):
             continue
-        for test_point_ref in test_points:
+        for test_point_ref in tp_refs:
             if not isinstance(test_point_ref, dict):
                 continue
             tp_id = normalize_text(test_point_ref.get("testPointId"))
             if not tp_id:
                 continue
             tp_label = tp_labels.get(tp_id, tp_id)
-            test_cases = test_point_ref.get("testCases")
-            case_ids = [normalize_text(value) for value in test_cases] if isinstance(test_cases, list) else []
+            _append_unique(tp_values, tp_label)
+            case_refs = test_point_ref.get("testCases")
+            case_ids = [normalize_text(value) for value in case_refs] if isinstance(case_refs, list) else []
             case_ids = [value for value in case_ids if value]
             if include_cases:
-                if case_ids:
-                    for tc_id in case_ids:
-                        rows.append([scenario_label, tp_label, tc_labels.get(tc_id, tc_id)])
-                else:
-                    rows.append([scenario_label, tp_label, "未覆盖 TC"])
-            else:
-                rows.append([scenario_label, tp_label])
-    return rows
+                for tc_id in case_ids:
+                    _append_unique(tc_values, tc_labels.get(tc_id, tc_id))
+    aggregates = ["<br>".join(scenarios), "<br>".join(tp_values)]
+    if include_cases:
+        aggregates.append("<br>".join(tc_values))
+    return aggregates
 
 
 def render_final_report(data: dict[str, Any], source_path: Path | None = None) -> str:
@@ -1155,20 +1163,20 @@ def render_final_report(data: dict[str, Any], source_path: Path | None = None) -
                 source_desc = normalize_text(input_source.get("description") or "")
                 status = normalize_text(item.get("coverageStatus"))
                 empty_links = "不适用" if status == "not_applicable" else "未覆盖"
-                fact_columns = [
+                coverage_columns = _coverage_tree_aggregates(item, include_cases, label_maps)
+                if not any(coverage_columns):
+                    coverage_columns = [empty_links, ""] if not include_cases else [empty_links, "", ""]
+                rows.append(
+                    [
                     item.get("factId", ""),
                     source_desc or f"{source_type} / {source} / {location}",
                     item.get("factSummary", ""),
                     item.get("condition", ""),
                     item.get("observableResult", ""),
-                ]
-                coverage_rows = _coverage_tree_flat_rows(item, include_cases, label_maps)
-                if coverage_rows:
-                    for coverage_row in coverage_rows:
-                        rows.append([*fact_columns, *coverage_row, item.get("coverageStatus", "")])
-                else:
-                    empty_coverage = [empty_links, ""] if not include_cases else [empty_links, "", ""]
-                    rows.append([*fact_columns, *empty_coverage, item.get("coverageStatus", "")])
+                    *coverage_columns,
+                    item.get("coverageStatus", ""),
+                    ]
+                )
             lines.extend(markdown_table(columns, rows))
             lines.append("")
     return "\n".join(lines).rstrip() + "\n"

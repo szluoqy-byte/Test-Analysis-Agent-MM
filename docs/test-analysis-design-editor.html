@@ -460,6 +460,39 @@
       color: #7c2d12;
     }
 
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(15, 23, 42, 0.42);
+    }
+
+    .modal {
+      width: min(480px, 100%);
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2);
+    }
+
+    .modal p {
+      margin: 0 0 12px;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
     .hidden {
       display: none;
     }
@@ -496,7 +529,7 @@
         <input id="fileInput" class="hidden" type="file" accept="application/json,.json">
         <button class="button" id="importButton" type="button">导入 JSON</button>
         <button class="button" id="exportButton" type="button">导出 JSON</button>
-        <button class="button" id="copyButton" type="button">复制 JSON</button>
+        <button class="button" id="exportExcelButton" type="button">导出 Excel</button>
         <button class="button" id="toggleJsonButton" type="button">JSON 预览</button>
         <button class="button" id="resetButton" type="button">新建空白</button>
       </div>
@@ -528,6 +561,17 @@
     </main>
   </div>
 
+  <div class="modal-backdrop hidden" id="excelExportModal" role="dialog" aria-modal="true" aria-labelledby="excelExportPrompt">
+    <div class="modal">
+      <p id="excelExportPrompt">请提供唯一标识信息作为用例编号前缀（如需求ID或其他唯一标识）</p>
+      <input id="caseNumberPrefixInput" type="text" value="" autocomplete="off">
+      <div class="modal-actions">
+        <button class="button" id="cancelExcelExportButton" type="button">取消</button>
+        <button class="button primary" id="confirmExcelExportButton" type="button">确认</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const emptyData = {
       artifactType: "test-design-solution",
@@ -544,12 +588,87 @@
     let selected = savedDraft ? savedDraft.selected : null;
     let activeDetailTab = savedDraft ? savedDraft.activeDetailTab : "detail";
     const collapsedNodes = new Set(savedDraft ? savedDraft.collapsedNodes : []);
+    const excelColumns = [
+      ["层级关系", "Depth"],
+      ["特性名称", "Feature_Name"],
+      ["特性编号", "Feature_Number"],
+      ["是否为特性", "isFeature"],
+      ["用例名称", "Testcase_Name"],
+      ["用例编号", "Testcase_Number"],
+      ["测试阶段", "Testcase_Stage"],
+      ["自动化类型", "Testcase_AutoType"],
+      ["可自动化用例", "Testcase_TobeAutomated"],
+      ["等级", "Testcase_Level"],
+      ["前提条件", "Testcase_PrepareCondition"],
+      ["测试步骤", "Testcase_TestSteps"],
+      ["预期结果", "Testcase_ExpectedResult"],
+      ["脚本路径", "Testcase_ScriptPath"],
+      ["测试类型", "Testcase_TestType"],
+      ["测试环境类型", "Testcase_EnvType"],
+      ["执行平台", "Testcase_Exeplatform"],
+      ["约束条件", "Testcase_MapRestrict"],
+      ["测试工程", "Testcase_TestcaseProject"],
+      ["用例标签", "Testcase_Tags"],
+      ["自动化测试平台", "Testcase_Activity"],
+      ["备注", "Testcase_Remark"],
+      ["上次修改时间", "lastChangeTime"],
+      ["修改时间", "lastModified"],
+      ["最后执行时间", "executeLatestTime"],
+      ["安全测试需求", "Security_Test_Requirements"],
+      ["安全测试规则", "Security_Test_Rules"],
+      ["上次修改人员", "lastModifier"],
+      ["创建时间", "creationDate"],
+      ["关键字", "keywords"],
+      ["需求/缺陷关联关系", "drRelationID"],
+      ["适用市场", "market"],
+      ["测试基数", "testBaseNum"],
+      ["网络脚本名", "Testcase_NetworkScriptName"],
+      ["用例描述", "Testcase_Description"],
+      ["网络问题ID", "Testcase_NetworkProblemId"],
+      ["接口名", "interfaceName"],
+      ["用例uri（存在系统内，用户不可见）", "Testcase_Uri"],
+      ["最新结果", "Testcase_LastResult"],
+      ["检测类型", "detectType"],
+      ["分析领域", "AnalyseField"],
+      ["失败原因", "Reason_Of_Fail"],
+      ["执行参数", "executeParam"],
+      ["作者", "author"],
+      ["用例上次执行消耗时间", "timecost"],
+      ["用例设计者", "designer"],
+      ["最后执行人", "Last_Executor"],
+      ["场景标识", "SceneFlag"],
+      ["门槛标识", "BaseFlag"],
+      ["运营商", "CloudCarrier"],
+      ["健康分值", "Testcase_HealthRate"],
+      ["测试因子编号", "TestFactorNumber"],
+      ["测试活动", "Testcase_TestActivity"],
+      ["用户自定义字段1", "customField1"],
+      ["用户自定义字段2", "customField2"],
+      ["用户自定义字段3", "customField3"],
+      ["用户自定义字段4", "customField4"],
+      ["用户自定义字段5", "customField5"],
+      ["用户自定义字段6", "customField6"],
+      ["用户自定义字段7", "customField7"],
+      ["用户自定义字段8", "customField8"],
+      ["模式编号", "testPatternNumber"],
+      ["HTSM", "HTSM"],
+      ["需求/缺陷关联关系(老旧)", "testCaseRelationID"],
+      ["是否AI生成", "isAIGenerate"],
+      ["功能ID列表", "relateFuncIds"],
+      ["功能名称列表", "relateFuncNames"],
+      ["场景ID列表", "relateSceneIds"],
+      ["场景名称列表", "relateSceneNames"],
+      ["特性ID列表", "relateFeatureNos"],
+      ["特性名称列表", "relateFeatureName"]
+    ];
 
     const treeEl = document.getElementById("tree");
     const detailTabs = document.getElementById("detailTabs");
     const detailView = document.getElementById("detailView");
     const jsonView = document.getElementById("jsonView");
     const jsonPanel = document.getElementById("jsonPanel");
+    const excelExportModal = document.getElementById("excelExportModal");
+    const caseNumberPrefixInput = document.getElementById("caseNumberPrefixInput");
 
     if (savedDraft && savedDraft.jsonPanelOpen) {
       jsonPanel.classList.remove("hidden");
@@ -1356,6 +1475,338 @@
       return escapeHtml(value).replaceAll("'", "&#39;");
     }
 
+    function normalizeExcelText(value) {
+      if (value === null || value === undefined) return "";
+      return String(value).replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    }
+
+    function numberedLines(items, mapper = (item) => item) {
+      return (items || [])
+        .map((item, index) => {
+          const text = normalizeExcelText(mapper(item)).trim();
+          return text ? `${index + 1}. ${text}` : "";
+        })
+        .filter(Boolean)
+        .join("\n");
+    }
+
+    function refsToText(items) {
+      return (items || [])
+        .map((item) => {
+          if (typeof item === "string") return item;
+          if (!item || typeof item !== "object") return "";
+          return [item.source, item.location, item.description].filter(Boolean).join(" | ");
+        })
+        .filter(Boolean)
+        .join("\n");
+    }
+
+    function testDataToText(items) {
+      return (items || [])
+        .map((item) => {
+          const name = normalizeExcelText(item.name).trim();
+          const value = normalizeExcelText(item.value).trim();
+          const description = normalizeExcelText(item.description).trim();
+          if (!name && !value && !description) return "";
+          return `${name || "数据"}=${value}${description ? "；说明=" + description : ""}`;
+        })
+        .filter(Boolean)
+        .join("\n");
+    }
+
+    function levelToExcel(value) {
+      return normalizeExcelText(value).trim().replace(/^Level/i, "level");
+    }
+
+    function scenarioDepth(scenario) {
+      const matches = normalizeExcelText(scenario.id).match(/\d{3}/g);
+      return matches ? matches.length : 1;
+    }
+
+    function excelDepth(count) {
+      return ".".repeat(Math.max(1, count));
+    }
+
+    function makeExcelRow(values = {}) {
+      return excelColumns.map(([, key]) => values[key] === undefined ? "" : values[key]);
+    }
+
+    function testCaseNumberForExport(testCase, prefix) {
+      const rawId = normalizeExcelText(testCase.id || "").trim();
+      const rawPrefix = normalizeExcelText(prefix || "").trim();
+      if (!rawPrefix) return rawId;
+      const separator = /[-_]$/.test(rawPrefix) ? "" : "_";
+      return rawPrefix + separator + rawId;
+    }
+
+    function buildExcelRows(caseNumberPrefix = "") {
+      const rows = [
+        excelColumns.map(([label]) => label),
+        excelColumns.map(([, key]) => key)
+      ];
+      rows.push(makeExcelRow({
+        Depth: ".",
+        Feature_Name: "AI辅助测试生成",
+        isFeature: "true"
+      }));
+
+      function walk(nodes, parentScenarios = []) {
+        for (const scenario of nodes || []) {
+          const currentScenarios = [...parentScenarios, scenario];
+          const depth = scenarioDepth(scenario) + 1;
+          rows.push(makeExcelRow({
+            Depth: excelDepth(depth),
+            Feature_Name: scenario.title || scenario.id,
+            Feature_Number: scenario.id || "",
+            isFeature: "true"
+          }));
+          for (const point of scenario.testPoints || []) {
+            for (const testCase of point.testCases || []) {
+              rows.push(makeExcelRow({
+                Depth: excelDepth(depth + 1),
+                Testcase_Name: testCase.title || testCase.id,
+                Testcase_Number: testCaseNumberForExport(testCase, caseNumberPrefix),
+                Testcase_Stage: "Alpha",
+                Testcase_AutoType: "false",
+                Testcase_TobeAutomated: "false",
+                Testcase_Level: levelToExcel(testCase.level || "Level 2"),
+                Testcase_PrepareCondition: numberedLines(testCase.preconditions || []),
+                Testcase_TestSteps: numberedLines(testCase.steps || [], (step) => step.action || ""),
+                Testcase_ExpectedResult: numberedLines(testCase.steps || [], (step) => step.expected || "") || testCase.expectedResult || "",
+                Testcase_MapRestrict: testDataToText(testCase.testData || []),
+                isAIGenerate: "true"
+              }));
+            }
+          }
+          walk(scenario.children || [], currentScenarios);
+        }
+      }
+
+      walk(data.scenarios || []);
+      return rows;
+    }
+
+    function columnName(index) {
+      let name = "";
+      let value = index;
+      while (value > 0) {
+        const remainder = (value - 1) % 26;
+        name = String.fromCharCode(65 + remainder) + name;
+        value = Math.floor((value - 1) / 26);
+      }
+      return name;
+    }
+
+    function escapeXml(value) {
+      return normalizeExcelText(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function worksheetXml(rows, options = {}) {
+      const columnCount = rows.reduce((max, row) => Math.max(max, row.length), 0);
+      const dimension = `A1:${columnName(columnCount)}${Math.max(rows.length, 1)}`;
+      const columns = Array.from({ length: columnCount }, (_, index) => {
+        const column = columnName(index + 1);
+        const width = index >= 10 && index <= 12 ? 42 : index === 4 ? 38 : index <= 5 ? 18 : 16;
+        return `<col min="${index + 1}" max="${index + 1}" width="${width}" customWidth="1"/>`;
+      }).join("");
+      const pane = options.freezeHeader
+        ? '<sheetViews><sheetView workbookViewId="0"><pane ySplit="2" topLeftCell="A3" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>'
+        : '<sheetViews><sheetView workbookViewId="0"/></sheetViews>';
+      const sheetRows = rows.map((row, rowIndex) => {
+        const rowNo = rowIndex + 1;
+        const style = rowNo === 1 ? 1 : rowNo === 2 ? 2 : 3;
+        const height = rowNo <= 2 ? 22 : 42;
+        const cells = Array.from({ length: columnCount }, (_, colIndex) => {
+          const ref = `${columnName(colIndex + 1)}${rowNo}`;
+          const text = escapeXml(row[colIndex] || "");
+          return `<c r="${ref}" s="${style}" t="inlineStr"><is><t xml:space="preserve">${text}</t></is></c>`;
+        }).join("");
+        return `<row r="${rowNo}" ht="${height}" customHeight="1">${cells}</row>`;
+      }).join("");
+      return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <dimension ref="${dimension}"/>
+  ${pane}
+  <cols>${columns}</cols>
+  <sheetData>${sheetRows}</sheetData>
+</worksheet>`;
+    }
+
+    function workbookXml() {
+      return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <sheets>
+    <sheet name="测试用例数据" sheetId="1" r:id="rId1"/>
+    <sheet name="说明" sheetId="2" r:id="rId2"/>
+  </sheets>
+</workbook>`;
+    }
+
+    function workbookRelsXml() {
+      return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+  <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>
+  <Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+</Relationships>`;
+    }
+
+    function rootRelsXml() {
+      return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>`;
+    }
+
+    function contentTypesXml() {
+      return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+  <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+  <Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+  <Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
+</Types>`;
+    }
+
+    function stylesXml() {
+      return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <fonts count="3">
+    <font><sz val="10"/><name val="Microsoft YaHei"/><charset val="134"/></font>
+    <font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Microsoft YaHei"/><charset val="134"/></font>
+    <font><b/><sz val="9"/><color rgb="FF1F2937"/><name val="Arial"/><charset val="134"/></font>
+  </fonts>
+  <fills count="4">
+    <fill><patternFill patternType="none"/></fill>
+    <fill><patternFill patternType="gray125"/></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FF1F4E78"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFD9EAF7"/><bgColor indexed="64"/></patternFill></fill>
+  </fills>
+  <borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>
+  <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+  <cellXfs count="4">
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+    <xf numFmtId="49" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>
+    <xf numFmtId="49" fontId="2" fillId="3" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>
+    <xf numFmtId="49" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>
+  </cellXfs>
+  <cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
+</styleSheet>`;
+    }
+
+    function crc32(bytes) {
+      let crc = -1;
+      for (const byte of bytes) {
+        crc ^= byte;
+        for (let bit = 0; bit < 8; bit += 1) {
+          crc = (crc >>> 1) ^ (0xEDB88320 & -(crc & 1));
+        }
+      }
+      return (crc ^ -1) >>> 0;
+    }
+
+    function uint16(value) {
+      return [value & 255, (value >>> 8) & 255];
+    }
+
+    function uint32(value) {
+      return [value & 255, (value >>> 8) & 255, (value >>> 16) & 255, (value >>> 24) & 255];
+    }
+
+    function zipStore(files) {
+      const encoder = new TextEncoder();
+      const chunks = [];
+      const central = [];
+      let offset = 0;
+      for (const file of files) {
+        const nameBytes = encoder.encode(file.name);
+        const contentBytes = encoder.encode(file.content);
+        const crc = crc32(contentBytes);
+        const localHeader = new Uint8Array([
+          ...uint32(0x04034b50), ...uint16(20), ...uint16(0), ...uint16(0),
+          ...uint16(0), ...uint16(0), ...uint32(crc),
+          ...uint32(contentBytes.length), ...uint32(contentBytes.length),
+          ...uint16(nameBytes.length), ...uint16(0)
+        ]);
+        chunks.push(localHeader, nameBytes, contentBytes);
+        central.push({ nameBytes, crc, size: contentBytes.length, offset });
+        offset += localHeader.length + nameBytes.length + contentBytes.length;
+      }
+      const centralStart = offset;
+      for (const item of central) {
+        const header = new Uint8Array([
+          ...uint32(0x02014b50), ...uint16(20), ...uint16(20), ...uint16(0), ...uint16(0),
+          ...uint16(0), ...uint16(0), ...uint32(item.crc),
+          ...uint32(item.size), ...uint32(item.size),
+          ...uint16(item.nameBytes.length), ...uint16(0), ...uint16(0),
+          ...uint16(0), ...uint16(0), ...uint32(0), ...uint32(item.offset)
+        ]);
+        chunks.push(header, item.nameBytes);
+        offset += header.length + item.nameBytes.length;
+      }
+      const centralSize = offset - centralStart;
+      chunks.push(new Uint8Array([
+        ...uint32(0x06054b50), ...uint16(0), ...uint16(0),
+        ...uint16(central.length), ...uint16(central.length),
+        ...uint32(centralSize), ...uint32(centralStart), ...uint16(0)
+      ]));
+      return new Blob(chunks, { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    }
+
+    function buildExcelBlob(caseNumberPrefix = "") {
+      const rows = buildExcelRows(caseNumberPrefix);
+      const noteRows = [
+        ["项目", "内容"],
+        ["来源", "docs/test-analysis-design-editor.html 导出"],
+        ["用例编号前缀", normalizeExcelText(caseNumberPrefix).trim()],
+        ["数据行数（含表头）", String(rows.length)],
+        ["字段列数", String(excelColumns.length)],
+        ["处理说明", "按测试分析设计 JSON 转换，保留参考 Excel 的双语表头、多行单元格和 SC/TP/TC 层级。"]
+      ];
+      return zipStore([
+        { name: "[Content_Types].xml", content: contentTypesXml() },
+        { name: "_rels/.rels", content: rootRelsXml() },
+        { name: "xl/workbook.xml", content: workbookXml() },
+        { name: "xl/_rels/workbook.xml.rels", content: workbookRelsXml() },
+        { name: "xl/styles.xml", content: stylesXml() },
+        { name: "xl/worksheets/sheet1.xml", content: worksheetXml(rows, { freezeHeader: true }) },
+        { name: "xl/worksheets/sheet2.xml", content: worksheetXml(noteRows, { freezeHeader: false }) }
+      ]);
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function openExcelExportModal() {
+      caseNumberPrefixInput.value = "";
+      excelExportModal.classList.remove("hidden");
+      caseNumberPrefixInput.focus();
+    }
+
+    function closeExcelExportModal() {
+      excelExportModal.classList.add("hidden");
+      caseNumberPrefixInput.value = "";
+    }
+
+    function confirmExcelExport() {
+      const prefix = caseNumberPrefixInput.value.trim();
+      const blob = buildExcelBlob(prefix);
+      downloadBlob(blob, "test-design-solution.xlsx");
+      closeExcelExportModal();
+    }
+
     document.getElementById("addRootSc").addEventListener("click", () => addScenario());
     document.getElementById("toggleJsonButton").addEventListener("click", () => {
       jsonPanel.classList.toggle("hidden");
@@ -1377,17 +1828,19 @@
       resetCollapseDefaults();
       render();
     });
-    document.getElementById("copyButton").addEventListener("click", async () => {
-      await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
-    });
     document.getElementById("exportButton").addEventListener("click", () => {
       const blob = new Blob([JSON.stringify(data, null, 2) + "\n"], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "test-design-solution.json";
-      link.click();
-      URL.revokeObjectURL(url);
+      downloadBlob(blob, "test-design-solution.json");
+    });
+    document.getElementById("exportExcelButton").addEventListener("click", openExcelExportModal);
+    document.getElementById("cancelExcelExportButton").addEventListener("click", closeExcelExportModal);
+    document.getElementById("confirmExcelExportButton").addEventListener("click", confirmExcelExport);
+    caseNumberPrefixInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") confirmExcelExport();
+      if (event.key === "Escape") closeExcelExportModal();
+    });
+    excelExportModal.addEventListener("click", (event) => {
+      if (event.target === excelExportModal) closeExcelExportModal();
     });
     document.getElementById("importButton").addEventListener("click", () => document.getElementById("fileInput").click());
     document.getElementById("fileInput").addEventListener("change", async (event) => {
