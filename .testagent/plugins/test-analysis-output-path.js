@@ -6,9 +6,6 @@ const COMMAND_NAME = "test-analysis-workflow"
 const OUTPUT_FILE = "deliverables/test-analysis-solution.json"
 const PATH_FILE = "path.txt"
 const LOG_FILE = ".opencode/logs/test-analysis-output-path.log"
-const MAX_IDLE_ATTEMPTS = 10
-const MAX_RETRY_ATTEMPTS = 180
-const RETRY_INTERVAL_MS = 10000
 const START_TIME_SKEW_MS = 5000
 
 const pending = new Map()
@@ -63,12 +60,12 @@ function sessionKey(event) {
   )
 }
 
-function isCommandEvent(event) {
-  return event.type === "command.executed" || event.type === "tui.command.execute"
+function commandName(value) {
+  return findStringValue(value, ["command", "name"]) || ""
 }
 
-function isAnalysisCommand(event) {
-  return JSON.stringify(event).includes(COMMAND_NAME)
+function isAnalysisCommand(value) {
+  return commandName(value) === COMMAND_NAME || JSON.stringify(value).includes(COMMAND_NAME)
 }
 
 function listRunIds(root) {
@@ -150,16 +147,7 @@ async function log(root, client, level, message, extra = {}) {
   }
 }
 
-function clearStateTimer(state) {
-  if (state.timer) {
-    clearTimeout(state.timer)
-    state.timer = undefined
-  }
-}
-
 function deletePending(stateKey) {
-  const state = pending.get(stateKey)
-  if (state) clearStateTimer(state)
   pending.delete(stateKey)
 }
 
@@ -171,8 +159,6 @@ async function scanState(root, client, stateKey, trigger) {
   await log(root, client, "debug", "Candidate analysis runs scanned", {
     sessionKey: stateKey,
     trigger,
-    retryAttempts: state.retryAttempts,
-    idleAttempts: state.idleAttempts,
     candidateCount: candidates.length,
     candidates: candidates.map((candidate) => candidate.runDir),
   })
@@ -203,96 +189,40 @@ async function scanState(root, client, stateKey, trigger) {
   return false
 }
 
-function scheduleRetry(root, client, stateKey) {
-  const state = pending.get(stateKey)
-  if (!state || state.timer) return
-
-  state.timer = setTimeout(async () => {
-    try {
-      const current = pending.get(stateKey)
-      if (!current) return
-      current.timer = undefined
-      current.retryAttempts += 1
-
-      const done = await scanState(root, client, stateKey, "retry")
-      if (done) return
-
-      if (pending.has(stateKey) && current.retryAttempts >= MAX_RETRY_ATTEMPTS) {
-        deletePending(stateKey)
-        await log(root, client, "warn", "Stopped retrying completed analysis run lookup", {
-          sessionKey: stateKey,
-          retryAttempts: current.retryAttempts,
-        })
-        return
-      }
-
-      scheduleRetry(root, client, stateKey)
-    } catch (error) {
-      const current = pending.get(stateKey)
-      if (current) {
-        current.timer = undefined
-        current.retryAttempts += 1
-      }
-      await log(root, client, "error", "Retry handler failed", {
-        sessionKey: stateKey,
-        retryAttempts: current?.retryAttempts,
-        error: errorInfo(error),
-      })
-      if (pending.has(stateKey) && current?.retryAttempts < MAX_RETRY_ATTEMPTS) {
-        scheduleRetry(root, client, stateKey)
-      } else if (pending.has(stateKey)) {
-        deletePending(stateKey)
-        await log(root, client, "warn", "Stopped retrying after repeated hook errors", {
-          sessionKey: stateKey,
-          retryAttempts: current?.retryAttempts,
-        })
-      }
-    }
-  }, RETRY_INTERVAL_MS)
-}
-
-async function trackAnalysisCommand(root, client, event) {
-  const key = sessionKey(event)
+async function handleCommandBefore(root, client, input) {
+  const key = sessionKey(input)
   pending.set(key, {
     startTime: Date.now(),
     existingRuns: listRunIds(root),
-    idleAttempts: 0,
-    retryAttempts: 0,
-    timer: undefined,
   })
 
-  await log(root, client, "debug", "Tracking test analysis workflow command", {
+  await log(root, client, "debug", "Tracking test analysis workflow start", {
     sessionKey: key,
-    eventType: event.type,
+    command: commandName(input),
+    input: compactEvent(input),
   })
-
-  const done = await scanState(root, client, key, "command")
-  if (!done) scheduleRetry(root, client, key)
 }
 
-async function handleIdle(root, client, event) {
+async function handleCommandExecuted(root, client, event) {
   const key = sessionKey(event)
-  const states = []
-  if (pending.has(key)) {
-    states.push([key, pending.get(key)])
+  if (!pending.has(key)) {
+    pending.set(key, {
+      startTime: 0,
+      existingRuns: new Set(),
+    })
+    await log(root, client, "warn", "Command completed without a matching before hook; using fallback scan", {
+      sessionKey: key,
+      event: compactEvent(event),
+    })
   }
 
-  await log(root, client, "debug", "Session idle observed", {
-    sessionKey: key,
-    pendingKeys: [...pending.keys()],
-    matchedStates: states.map(([stateKey]) => stateKey),
-  })
-
-  for (const [stateKey, state] of states) {
-    state.idleAttempts += 1
-    await scanState(root, client, stateKey, "idle")
-
-    if (pending.has(stateKey) && state.idleAttempts >= MAX_IDLE_ATTEMPTS) {
-      await log(root, client, "debug", "Idle limit reached; retry timer remains authoritative", {
-        sessionKey: stateKey,
-        idleAttempts: state.idleAttempts,
-      })
-    }
+  const done = await scanState(root, client, key, "command.executed")
+  if (!done && pending.has(key)) {
+    deletePending(key)
+    await log(root, client, "warn", "No completed analysis run found after command.executed", {
+      sessionKey: key,
+      event: compactEvent(event),
+    })
   }
 }
 
@@ -301,9 +231,28 @@ export const TestAnalysisOutputPathPlugin = async ({ client, directory, worktree
   await log(root, client, "info", "Plugin initialized", { root })
 
   return {
+    "command.execute.before": async (input) => {
+      try {
+        await log(root, client, "debug", "Command before hook observed", {
+          sessionKey: sessionKey(input),
+          matched: isAnalysisCommand(input),
+          input: compactEvent(input),
+        })
+
+        if (isAnalysisCommand(input)) {
+          await handleCommandBefore(root, client, input)
+        }
+      } catch (error) {
+        await log(root, client, "error", "Command before hook failed", {
+          sessionKey: sessionKey(input),
+          input: compactEvent(input),
+          error: errorInfo(error),
+        })
+      }
+    },
     event: async ({ event }) => {
       try {
-        if (isCommandEvent(event)) {
+        if (event.type === "command.executed" || event.type === "tui.command.execute") {
           await log(root, client, "debug", "Command event observed", {
             type: event.type,
             sessionKey: sessionKey(event),
@@ -312,13 +261,9 @@ export const TestAnalysisOutputPathPlugin = async ({ client, directory, worktree
           })
         }
 
-        if (isCommandEvent(event) && isAnalysisCommand(event)) {
-          await trackAnalysisCommand(root, client, event)
+        if (event.type === "command.executed" && isAnalysisCommand(event)) {
+          await handleCommandExecuted(root, client, event)
           return
-        }
-
-        if (event.type === "session.idle") {
-          await handleIdle(root, client, event)
         }
       } catch (error) {
         await log(root, client, "error", "Event handler failed", {
