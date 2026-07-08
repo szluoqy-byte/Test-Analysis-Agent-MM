@@ -6,6 +6,8 @@ outputs/runs/*
 outputs/input-cache/*
 !outputs/input-cache/.gitkeep
 outputs/temp/
+.opencode/logs/
+.testagent/logs/
 memory/domains/*
 !memory/domains/README.md
 memory/projects/*
