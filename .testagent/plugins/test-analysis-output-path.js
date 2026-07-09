@@ -64,6 +64,10 @@ function commandName(value) {
   return findStringValue(value, ["command", "name"]) || ""
 }
 
+function safePathSegment(value) {
+  return String(value || "unknown").replace(/[^A-Za-z0-9._-]/g, "_")
+}
+
 function isAnalysisCommand(value) {
   return commandName(value) === COMMAND_NAME || JSON.stringify(value).includes(COMMAND_NAME)
 }
@@ -151,6 +155,18 @@ function deletePending(stateKey) {
   pending.delete(stateKey)
 }
 
+function writePathFile(runDir, solutionPath) {
+  const absoluteSolutionPath = resolve(solutionPath)
+  const runPathFile = join(runDir, PATH_FILE)
+  mkdirSync(runDir, { recursive: true })
+  writeFileSync(runPathFile, `${absoluteSolutionPath}\n`, "utf8")
+
+  return {
+    pathFile: runPathFile,
+    solutionPath: absoluteSolutionPath,
+  }
+}
+
 async function scanState(root, client, stateKey, trigger) {
   const state = pending.get(stateKey)
   if (!state) return false
@@ -173,14 +189,11 @@ async function scanState(root, client, stateKey, trigger) {
       continue
     }
 
-    const absoluteSolutionPath = resolve(candidate.solutionPath)
-    const pathFile = join(candidate.runDir, PATH_FILE)
-    mkdirSync(candidate.runDir, { recursive: true })
-    writeFileSync(pathFile, `${absoluteSolutionPath}\n`, "utf8")
+    const pathInfo = writePathFile(candidate.runDir, candidate.solutionPath)
     deletePending(stateKey)
     await log(root, client, "info", "Wrote analysis solution path file", {
-      pathFile,
-      solutionPath: absoluteSolutionPath,
+      ...pathInfo,
+      sessionKey: stateKey,
       trigger,
     })
     return true
@@ -191,13 +204,16 @@ async function scanState(root, client, stateKey, trigger) {
 
 async function handleCommandBefore(root, client, input) {
   const key = sessionKey(input)
+  const runId = safePathSegment(key)
   pending.set(key, {
     startTime: Date.now(),
     existingRuns: listRunIds(root),
+    runId,
   })
 
   await log(root, client, "debug", "Tracking test analysis workflow start", {
     sessionKey: key,
+    runId,
     command: commandName(input),
     input: compactEvent(input),
   })
@@ -209,6 +225,7 @@ async function handleCommandExecuted(root, client, event) {
     pending.set(key, {
       startTime: 0,
       existingRuns: new Set(),
+      runId: safePathSegment(key),
     })
     await log(root, client, "warn", "Command completed without a matching before hook; using fallback scan", {
       sessionKey: key,
@@ -244,6 +261,30 @@ export const TestAnalysisOutputPathPlugin = async ({ client, directory, worktree
         }
       } catch (error) {
         await log(root, client, "error", "Command before hook failed", {
+          sessionKey: sessionKey(input),
+          input: compactEvent(input),
+          error: errorInfo(error),
+        })
+      }
+    },
+    "shell.env": async (input, output) => {
+      try {
+        const key = sessionKey(input)
+        let state = pending.get(key)
+        if (!state && pending.size === 1) {
+          state = pending.values().next().value
+        }
+        if (!state?.runId || state.runId === "default") return
+
+        output.env = output.env || {}
+        output.env.TEST_ANALYSIS_RUN_ID = state.runId
+        await log(root, client, "debug", "Injected test analysis run id into shell environment", {
+          sessionKey: key,
+          runId: state.runId,
+          input: compactEvent(input),
+        })
+      } catch (error) {
+        await log(root, client, "error", "Shell env hook failed", {
           sessionKey: sessionKey(input),
           input: compactEvent(input),
           error: errorInfo(error),
