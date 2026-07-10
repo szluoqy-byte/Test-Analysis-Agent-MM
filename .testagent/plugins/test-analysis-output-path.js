@@ -1,14 +1,12 @@
-import { appendFileSync, existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from "node:fs"
+import { appendFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs"
 import { join, resolve } from "node:path"
 import { spawnSync } from "node:child_process"
 
-const COMMAND_NAME = "test-analysis-workflow"
 const OUTPUT_FILE = "deliverables/test-analysis-solution.json"
 const PATH_FILE = "path.txt"
 const LOG_FILE = ".opencode/logs/test-analysis-output-path.log"
-const START_TIME_SKEW_MS = 5000
-
-const pending = new Map()
+const RUN_ID_ENV_VAR = "TEST_ANALYSIS_RUN_ID"
+const RUN_ID_RE = /^[A-Za-z0-9._-]+$/
 
 function safeJson(value) {
   try {
@@ -53,60 +51,14 @@ function findStringValue(value, keys) {
   return undefined
 }
 
-function sessionKey(event) {
-  return (
-    findStringValue(event, ["sessionID", "sessionId", "session"]) ||
-    "default"
-  )
+function sessionKey(value) {
+  return findStringValue(value, ["sessionID", "sessionId", "session"])
 }
 
-function commandName(value) {
-  return findStringValue(value, ["command", "name"]) || ""
-}
-
-function safePathSegment(value) {
-  return String(value || "unknown").replace(/[^A-Za-z0-9._-]/g, "_")
-}
-
-function isAnalysisCommand(value) {
-  return commandName(value) === COMMAND_NAME || JSON.stringify(value).includes(COMMAND_NAME)
-}
-
-function listRunIds(root) {
-  const runsDir = join(root, "outputs", "runs")
-  if (!existsSync(runsDir)) return new Set()
-  return new Set(
-    readdirSync(runsDir, { withFileTypes: true })
-      .filter((entry) => entry.isDirectory())
-      .map((entry) => entry.name),
-  )
-}
-
-function findCandidateRuns(root, state) {
-  const runsDir = join(root, "outputs", "runs")
-  if (!existsSync(runsDir)) return []
-
-  const candidates = []
-  for (const entry of readdirSync(runsDir, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue
-    const runDir = join(runsDir, entry.name)
-    const solutionPath = join(runDir, OUTPUT_FILE)
-    if (!existsSync(solutionPath)) continue
-
-    const solutionStat = statSync(solutionPath)
-    const runStat = statSync(runDir)
-    const isNewRun = !state.existingRuns.has(entry.name)
-    const changedAfterStart = Math.max(solutionStat.mtimeMs, runStat.mtimeMs) >= state.startTime - START_TIME_SKEW_MS
-    if (!isNewRun && !changedAfterStart) continue
-
-    candidates.push({
-      runDir,
-      solutionPath,
-      mtimeMs: Math.max(solutionStat.mtimeMs, runStat.mtimeMs),
-    })
-  }
-
-  return candidates.sort((left, right) => right.mtimeMs - left.mtimeMs)
+function runIdForSession(value) {
+  const key = sessionKey(value)
+  if (!key || !RUN_ID_RE.test(key)) return undefined
+  return key
 }
 
 function checkStagedRun(root, runDir) {
@@ -122,13 +74,14 @@ function checkStagedRun(root, runDir) {
   return {
     ok: result.status === 0,
     output: `${result.stdout || ""}${result.stderr || ""}`.trim(),
+    error: result.error ? errorInfo(result.error) : undefined,
   }
 }
 
 async function log(root, client, level, message, extra = {}) {
   try {
     writeLocalLog(root, level, message, extra)
-  } catch (error) {
+  } catch {
     // Keep the hook alive even if project-local diagnostics cannot be written.
   }
   if (client?.app?.log) {
@@ -151,14 +104,9 @@ async function log(root, client, level, message, extra = {}) {
   }
 }
 
-function deletePending(stateKey) {
-  pending.delete(stateKey)
-}
-
 function writePathFile(runDir, solutionPath) {
   const absoluteSolutionPath = resolve(solutionPath)
   const runPathFile = join(runDir, PATH_FILE)
-  mkdirSync(runDir, { recursive: true })
   writeFileSync(runPathFile, `${absoluteSolutionPath}\n`, "utf8")
 
   return {
@@ -167,80 +115,70 @@ function writePathFile(runDir, solutionPath) {
   }
 }
 
-async function scanState(root, client, stateKey, trigger) {
-  const state = pending.get(stateKey)
-  if (!state) return false
+function isCurrentPathFile(runDir, solutionPath) {
+  const runPathFile = join(runDir, PATH_FILE)
+  if (!existsSync(runPathFile)) return false
 
-  const candidates = findCandidateRuns(root, state)
-  await log(root, client, "debug", "Candidate analysis runs scanned", {
-    sessionKey: stateKey,
-    trigger,
-    candidateCount: candidates.length,
-    candidates: candidates.map((candidate) => candidate.runDir),
-  })
+  try {
+    const recordedPath = readFileSync(runPathFile, "utf8").trim()
+    if (recordedPath !== resolve(solutionPath)) return false
+    return statSync(runPathFile).mtimeMs >= statSync(solutionPath).mtimeMs
+  } catch {
+    return false
+  }
+}
 
-  for (const candidate of candidates) {
-    const check = checkStagedRun(root, candidate.runDir)
-    if (!check.ok) {
-      await log(root, client, "debug", "Analysis run candidate is not complete", {
-        runDir: candidate.runDir,
-        checkOutput: check.output,
-      })
-      continue
-    }
+async function finalizeAnalysisRun(root, client, value, trigger) {
+  const sessionID = sessionKey(value)
+  const runId = runIdForSession(value)
+  if (!runId) {
+    await log(root, client, "warn", "Ignored session event with invalid session id", {
+      sessionID,
+      trigger,
+      event: compactEvent(value),
+    })
+    return false
+  }
 
-    const pathInfo = writePathFile(candidate.runDir, candidate.solutionPath)
-    deletePending(stateKey)
-    await log(root, client, "info", "Wrote analysis solution path file", {
-      ...pathInfo,
-      sessionKey: stateKey,
+  const runDir = join(root, "outputs", "runs", runId)
+  const solutionPath = join(runDir, OUTPUT_FILE)
+  if (!existsSync(solutionPath)) {
+    await log(root, client, "debug", "Session has no test analysis solution", {
+      sessionID,
+      runDir,
+      trigger,
+    })
+    return false
+  }
+
+  if (isCurrentPathFile(runDir, solutionPath)) {
+    await log(root, client, "debug", "Analysis solution path file is already current", {
+      sessionID,
+      runDir,
       trigger,
     })
     return true
   }
 
-  return false
-}
-
-async function handleCommandBefore(root, client, input) {
-  const key = sessionKey(input)
-  const runId = safePathSegment(key)
-  pending.set(key, {
-    startTime: Date.now(),
-    existingRuns: listRunIds(root),
-    runId,
-  })
-
-  await log(root, client, "debug", "Tracking test analysis workflow start", {
-    sessionKey: key,
-    runId,
-    command: commandName(input),
-    input: compactEvent(input),
-  })
-}
-
-async function handleCommandExecuted(root, client, event) {
-  const key = sessionKey(event)
-  if (!pending.has(key)) {
-    pending.set(key, {
-      startTime: 0,
-      existingRuns: new Set(),
-      runId: safePathSegment(key),
+  const check = checkStagedRun(root, runDir)
+  if (!check.ok) {
+    await log(root, client, "warn", "Analysis run is not complete at session idle", {
+      sessionID,
+      runDir,
+      trigger,
+      checkOutput: check.output,
+      checkError: check.error,
     })
-    await log(root, client, "warn", "Command completed without a matching before hook; using fallback scan", {
-      sessionKey: key,
-      event: compactEvent(event),
-    })
+    return false
   }
 
-  const done = await scanState(root, client, key, "command.executed")
-  if (!done && pending.has(key)) {
-    deletePending(key)
-    await log(root, client, "warn", "No completed analysis run found after command.executed", {
-      sessionKey: key,
-      event: compactEvent(event),
-    })
-  }
+  const pathInfo = writePathFile(runDir, solutionPath)
+  await log(root, client, "info", "Wrote analysis solution path file", {
+    ...pathInfo,
+    sessionID,
+    trigger,
+  })
+  return true
 }
 
 export const TestAnalysisOutputPathPlugin = async ({ client, directory, worktree }) => {
@@ -248,44 +186,26 @@ export const TestAnalysisOutputPathPlugin = async ({ client, directory, worktree
   await log(root, client, "info", "Plugin initialized", { root })
 
   return {
-    "command.execute.before": async (input) => {
-      try {
-        await log(root, client, "debug", "Command before hook observed", {
-          sessionKey: sessionKey(input),
-          matched: isAnalysisCommand(input),
-          input: compactEvent(input),
-        })
-
-        if (isAnalysisCommand(input)) {
-          await handleCommandBefore(root, client, input)
-        }
-      } catch (error) {
-        await log(root, client, "error", "Command before hook failed", {
-          sessionKey: sessionKey(input),
-          input: compactEvent(input),
-          error: errorInfo(error),
-        })
-      }
-    },
     "shell.env": async (input, output) => {
       try {
-        const key = sessionKey(input)
-        let state = pending.get(key)
-        if (!state && pending.size === 1) {
-          state = pending.values().next().value
+        const runId = runIdForSession(input)
+        if (!runId) {
+          await log(root, client, "warn", "Skipped run id injection for invalid session id", {
+            sessionID: sessionKey(input),
+            input: compactEvent(input),
+          })
+          return
         }
-        if (!state?.runId || state.runId === "default") return
 
         output.env = output.env || {}
-        output.env.TEST_ANALYSIS_RUN_ID = state.runId
+        output.env[RUN_ID_ENV_VAR] = runId
         await log(root, client, "debug", "Injected test analysis run id into shell environment", {
-          sessionKey: key,
-          runId: state.runId,
-          input: compactEvent(input),
+          sessionID: runId,
+          runId,
         })
       } catch (error) {
         await log(root, client, "error", "Shell env hook failed", {
-          sessionKey: sessionKey(input),
+          sessionID: sessionKey(input),
           input: compactEvent(input),
           error: errorInfo(error),
         })
@@ -293,23 +213,17 @@ export const TestAnalysisOutputPathPlugin = async ({ client, directory, worktree
     },
     event: async ({ event }) => {
       try {
-        if (event.type === "command.executed" || event.type === "tui.command.execute") {
-          await log(root, client, "debug", "Command event observed", {
-            type: event.type,
-            sessionKey: sessionKey(event),
-            matched: isAnalysisCommand(event),
-            event: compactEvent(event),
-          })
-        }
+        if (event.type !== "session.idle") return
 
-        if (event.type === "command.executed" && isAnalysisCommand(event)) {
-          await handleCommandExecuted(root, client, event)
-          return
-        }
+        await log(root, client, "debug", "Session idle observed", {
+          sessionID: sessionKey(event),
+          event: compactEvent(event),
+        })
+        await finalizeAnalysisRun(root, client, event, "session.idle")
       } catch (error) {
         await log(root, client, "error", "Event handler failed", {
           eventType: event?.type,
-          sessionKey: sessionKey(event),
+          sessionID: sessionKey(event),
           event: compactEvent(event),
           error: errorInfo(error),
         })
