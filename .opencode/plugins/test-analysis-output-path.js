@@ -1,4 +1,4 @@
-import { appendFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs"
+import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs"
 import { join, resolve } from "node:path"
 
 const OUTPUT_ARTIFACTS = [
@@ -13,7 +13,6 @@ const OUTPUT_ARTIFACTS = [
     pathFile: "path_design.txt",
   },
 ]
-const LOG_FILE = ".opencode/logs/test-analysis-output-path.log"
 const RUN_ID_ENV_VAR = "TEST_ANALYSIS_RUN_ID"
 const RUN_ID_RE = /^[A-Za-z0-9._-]+$/
 
@@ -38,16 +37,6 @@ function errorInfo(error) {
   }
 }
 
-function writeLocalLog(root, level, message, extra = {}) {
-  const path = join(root, LOG_FILE)
-  mkdirSync(join(root, ".opencode", "logs"), { recursive: true })
-  appendFileSync(
-    path,
-    `${new Date().toISOString()} ${level.toUpperCase()} ${message} ${safeJson(extra)}\n`,
-    "utf8",
-  )
-}
-
 function findStringValue(value, keys) {
   if (!value || typeof value !== "object") return undefined
   for (const key of keys) {
@@ -70,29 +59,19 @@ function runIdForSession(value) {
   return key
 }
 
-async function log(root, client, level, message, extra = {}) {
+async function log(client, level, message, extra = {}) {
+  if (!client?.app?.log) return
   try {
-    writeLocalLog(root, level, message, extra)
+    await client.app.log({
+      body: {
+        service: "test-solution-output-path",
+        level,
+        message,
+        extra,
+      },
+    })
   } catch {
-    // Keep the hook alive even if project-local diagnostics cannot be written.
-  }
-  if (client?.app?.log) {
-    try {
-      await client.app.log({
-        body: {
-          service: "test-analysis-output-path",
-          level,
-          message,
-          extra,
-        },
-      })
-    } catch (error) {
-      try {
-        writeLocalLog(root, "warn", "client.app.log failed", errorInfo(error))
-      } catch {
-        // No-op: both log sinks failed.
-      }
-    }
+    // Logging failures must not interrupt the session hook.
   }
 }
 
@@ -123,7 +102,7 @@ function isCurrentPathFile(runDir, solutionPath, pathFile) {
 async function publishArtifactPath(root, client, runDir, sessionID, artifact, trigger) {
   const solutionPath = join(runDir, artifact.solutionFile)
   if (!existsSync(solutionPath)) {
-    await log(root, client, "debug", `Session has no ${artifact.kind} solution`, {
+    await log(client, "debug", `Session has no ${artifact.kind} solution`, {
       sessionID,
       runDir,
       trigger,
@@ -133,7 +112,7 @@ async function publishArtifactPath(root, client, runDir, sessionID, artifact, tr
   }
 
   if (isCurrentPathFile(runDir, solutionPath, artifact.pathFile)) {
-    await log(root, client, "debug", `${artifact.kind} solution path file is already current`, {
+    await log(client, "debug", `${artifact.kind} solution path file is already current`, {
       sessionID,
       runDir,
       trigger,
@@ -143,7 +122,7 @@ async function publishArtifactPath(root, client, runDir, sessionID, artifact, tr
   }
 
   const pathInfo = writePathFile(runDir, solutionPath, artifact.pathFile)
-  await log(root, client, "info", `Wrote ${artifact.kind} solution path file`, {
+  await log(client, "info", `Wrote ${artifact.kind} solution path file`, {
     ...pathInfo,
     sessionID,
     trigger,
@@ -156,7 +135,7 @@ async function publishSessionArtifactPaths(root, client, value, trigger) {
   const sessionID = sessionKey(value)
   const runId = runIdForSession(value)
   if (!runId) {
-    await log(root, client, "warn", "Ignored session event with invalid session id", {
+    await log(client, "warn", "Ignored session event with invalid session id", {
       sessionID,
       trigger,
       event: compactEvent(value),
@@ -174,14 +153,14 @@ async function publishSessionArtifactPaths(root, client, value, trigger) {
 
 export const TestAnalysisOutputPathPlugin = async ({ client, directory, worktree }) => {
   const root = worktree || directory || process.cwd()
-  await log(root, client, "info", "Plugin initialized", { root })
+  await log(client, "info", "Plugin initialized", { root })
 
   return {
     "shell.env": async (input, output) => {
       try {
         const runId = runIdForSession(input)
         if (!runId) {
-          await log(root, client, "warn", "Skipped run id injection for invalid session id", {
+          await log(client, "warn", "Skipped run id injection for invalid session id", {
             sessionID: sessionKey(input),
             input: compactEvent(input),
           })
@@ -190,12 +169,12 @@ export const TestAnalysisOutputPathPlugin = async ({ client, directory, worktree
 
         output.env = output.env || {}
         output.env[RUN_ID_ENV_VAR] = runId
-        await log(root, client, "debug", "Injected test analysis run id into shell environment", {
+        await log(client, "debug", "Injected test analysis run id into shell environment", {
           sessionID: runId,
           runId,
         })
       } catch (error) {
-        await log(root, client, "error", "Shell env hook failed", {
+        await log(client, "error", "Shell env hook failed", {
           sessionID: sessionKey(input),
           input: compactEvent(input),
           error: errorInfo(error),
@@ -206,13 +185,13 @@ export const TestAnalysisOutputPathPlugin = async ({ client, directory, worktree
       try {
         if (event.type !== "session.idle") return
 
-        await log(root, client, "debug", "Session idle observed", {
+        await log(client, "debug", "Session idle observed", {
           sessionID: sessionKey(event),
           event: compactEvent(event),
         })
         await publishSessionArtifactPaths(root, client, event, "session.idle")
       } catch (error) {
-        await log(root, client, "error", "Event handler failed", {
+        await log(client, "error", "Event handler failed", {
           eventType: event?.type,
           sessionID: sessionKey(event),
           event: compactEvent(event),

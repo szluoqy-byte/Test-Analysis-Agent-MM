@@ -40,6 +40,7 @@ try {
   const moduleUrl = `${pathToFileURL(pluginPath).href}?test=${Date.now()}`
   const { TestAnalysisOutputPathPlugin } = await import(moduleUrl)
   const hooks = await TestAnalysisOutputPathPlugin({ client, directory: root, worktree: root })
+  assert.equal(logs.every((entry) => entry.service === "test-solution-output-path"), true)
 
   const envOutput = { env: {} }
   await hooks["shell.env"]({ sessionID, cwd: root, callID: "call-test" }, envOutput)
@@ -61,6 +62,7 @@ try {
   assert.equal(readFileSync(analysisPathFile, "utf8").trim(), resolve(analysisSolutionPath))
   assert.equal(readFileSync(designPathFile, "utf8").trim(), resolve(designSolutionPath))
   assert.equal(existsSync(join(runDir, "path.txt")), false, "legacy path.txt was created")
+  assert.equal(logs.every((entry) => entry.service === "test-solution-output-path"), true)
 
   const firstAnalysisMtime = statSync(analysisPathFile).mtimeMs
   const firstDesignMtime = statSync(designPathFile).mtimeMs
