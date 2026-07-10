@@ -1,9 +1,18 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs"
 import { join, resolve } from "node:path"
-import { spawnSync } from "node:child_process"
 
-const OUTPUT_FILE = "deliverables/test-analysis-solution.json"
-const PATH_FILE = "path.txt"
+const OUTPUT_ARTIFACTS = [
+  {
+    kind: "analysis",
+    solutionFile: "deliverables/test-analysis-solution.json",
+    pathFile: "path_analysis.txt",
+  },
+  {
+    kind: "design",
+    solutionFile: "deliverables/test-design-solution.json",
+    pathFile: "path_design.txt",
+  },
+]
 const LOG_FILE = ".opencode/logs/test-analysis-output-path.log"
 const RUN_ID_ENV_VAR = "TEST_ANALYSIS_RUN_ID"
 const RUN_ID_RE = /^[A-Za-z0-9._-]+$/
@@ -61,23 +70,6 @@ function runIdForSession(value) {
   return key
 }
 
-function checkStagedRun(root, runDir) {
-  const result = spawnSync(
-    "python",
-    ["bin/check-staged-run.py", runDir, "--scope", "analysis"],
-    {
-      cwd: root,
-      encoding: "utf8",
-      windowsHide: true,
-    },
-  )
-  return {
-    ok: result.status === 0,
-    output: `${result.stdout || ""}${result.stderr || ""}`.trim(),
-    error: result.error ? errorInfo(result.error) : undefined,
-  }
-}
-
 async function log(root, client, level, message, extra = {}) {
   try {
     writeLocalLog(root, level, message, extra)
@@ -104,9 +96,9 @@ async function log(root, client, level, message, extra = {}) {
   }
 }
 
-function writePathFile(runDir, solutionPath) {
+function writePathFile(runDir, solutionPath, pathFile) {
   const absoluteSolutionPath = resolve(solutionPath)
-  const runPathFile = join(runDir, PATH_FILE)
+  const runPathFile = join(runDir, pathFile)
   writeFileSync(runPathFile, `${absoluteSolutionPath}\n`, "utf8")
 
   return {
@@ -115,8 +107,8 @@ function writePathFile(runDir, solutionPath) {
   }
 }
 
-function isCurrentPathFile(runDir, solutionPath) {
-  const runPathFile = join(runDir, PATH_FILE)
+function isCurrentPathFile(runDir, solutionPath, pathFile) {
+  const runPathFile = join(runDir, pathFile)
   if (!existsSync(runPathFile)) return false
 
   try {
@@ -128,7 +120,39 @@ function isCurrentPathFile(runDir, solutionPath) {
   }
 }
 
-async function finalizeAnalysisRun(root, client, value, trigger) {
+async function publishArtifactPath(root, client, runDir, sessionID, artifact, trigger) {
+  const solutionPath = join(runDir, artifact.solutionFile)
+  if (!existsSync(solutionPath)) {
+    await log(root, client, "debug", `Session has no ${artifact.kind} solution`, {
+      sessionID,
+      runDir,
+      trigger,
+      solutionPath,
+    })
+    return false
+  }
+
+  if (isCurrentPathFile(runDir, solutionPath, artifact.pathFile)) {
+    await log(root, client, "debug", `${artifact.kind} solution path file is already current`, {
+      sessionID,
+      runDir,
+      trigger,
+      pathFile: artifact.pathFile,
+    })
+    return true
+  }
+
+  const pathInfo = writePathFile(runDir, solutionPath, artifact.pathFile)
+  await log(root, client, "info", `Wrote ${artifact.kind} solution path file`, {
+    ...pathInfo,
+    sessionID,
+    trigger,
+    kind: artifact.kind,
+  })
+  return true
+}
+
+async function publishSessionArtifactPaths(root, client, value, trigger) {
   const sessionID = sessionKey(value)
   const runId = runIdForSession(value)
   if (!runId) {
@@ -141,44 +165,11 @@ async function finalizeAnalysisRun(root, client, value, trigger) {
   }
 
   const runDir = join(root, "outputs", "runs", runId)
-  const solutionPath = join(runDir, OUTPUT_FILE)
-  if (!existsSync(solutionPath)) {
-    await log(root, client, "debug", "Session has no test analysis solution", {
-      sessionID,
-      runDir,
-      trigger,
-    })
-    return false
+  let published = false
+  for (const artifact of OUTPUT_ARTIFACTS) {
+    published = (await publishArtifactPath(root, client, runDir, sessionID, artifact, trigger)) || published
   }
-
-  if (isCurrentPathFile(runDir, solutionPath)) {
-    await log(root, client, "debug", "Analysis solution path file is already current", {
-      sessionID,
-      runDir,
-      trigger,
-    })
-    return true
-  }
-
-  const check = checkStagedRun(root, runDir)
-  if (!check.ok) {
-    await log(root, client, "warn", "Analysis run is not complete at session idle", {
-      sessionID,
-      runDir,
-      trigger,
-      checkOutput: check.output,
-      checkError: check.error,
-    })
-    return false
-  }
-
-  const pathInfo = writePathFile(runDir, solutionPath)
-  await log(root, client, "info", "Wrote analysis solution path file", {
-    ...pathInfo,
-    sessionID,
-    trigger,
-  })
-  return true
+  return published
 }
 
 export const TestAnalysisOutputPathPlugin = async ({ client, directory, worktree }) => {
@@ -219,7 +210,7 @@ export const TestAnalysisOutputPathPlugin = async ({ client, directory, worktree
           sessionID: sessionKey(event),
           event: compactEvent(event),
         })
-        await finalizeAnalysisRun(root, client, event, "session.idle")
+        await publishSessionArtifactPaths(root, client, event, "session.idle")
       } catch (error) {
         await log(root, client, "error", "Event handler failed", {
           eventType: event?.type,

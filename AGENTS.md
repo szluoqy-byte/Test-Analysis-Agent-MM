@@ -45,7 +45,7 @@
 - 所有 `skills/...`、`rules/...`、`knowledge/...`、`templates/...`、`memory/...`、`bin/...` 和 `outputs/...` 路径都从仓库根目录解析。
 - 不要基于 skill 目录、`.claude-plugin/`、`.opencode/`、`.testagent/` 或输入文件目录解析路径。
 - 运行产物写入 `outputs/runs/<run-id>/`。
-- 新建完整 run 时，`run-id` 固定使用 `python bin/generate-run-id.py` 生成；默认格式为 `<YYYYMMDD-HHMMSS>`。OpenCode/TestAgent hook 通过 `shell.env` 将当前 `sessionID` 注入 `TEST_ANALYSIS_RUN_ID`，不依赖 slash command；`session.idle` 时只检查 `outputs/runs/<sessionID>/deliverables/test-analysis-solution.json`，通过 analysis staged-run 门禁后写入同一 run 下的 `path.txt`。
+- 新建完整 run 时，`run-id` 固定使用 `python bin/generate-run-id.py` 生成；默认格式为 `<YYYYMMDD-HHMMSS>`。OpenCode/TestAgent hook 通过 `shell.env` 将当前 `sessionID` 注入 `TEST_ANALYSIS_RUN_ID`，不依赖 slash command；`session.idle` 时直接检查 `outputs/runs/<sessionID>/deliverables/`，发现 `test-analysis-solution.json` 后写入同一 run 下的 `path_analysis.txt`，发现 `test-design-solution.json` 后写入 `path_design.txt`，两个路径文件都只保存对应 JSON 的绝对路径。
 - Office 输入归一化复用缓存写入 `outputs/input-cache/<sha256-12>/`；绑定既有 run 时写入 `outputs/runs/<run-id>/inputs/`。
 - DOCX 图片、流程图、架构图、状态图、截图或 EMF/Visio 图形解析后的 Mermaid/结构化事实必须合并回同一个归一化 Markdown 的原文占位位置。
 - DOCX 图片理解和 Mermaid 转换必须按原文顺序分批处理：普通图片每批最多 3-5 张，复杂图每批 1-2 张。

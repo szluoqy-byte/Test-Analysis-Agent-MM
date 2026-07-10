@@ -11,13 +11,17 @@ const root = resolve(scriptDir, "..")
 const pluginPath = join(root, ".opencode", "plugins", "test-analysis-output-path.js")
 const fixtureDir = join(root, "examples", "outputs", "runs", "sample-requirement-run")
 const sessionID = `ses_hook_test_${process.pid}_${Date.now()}`
+const analysisOnlySessionID = `${sessionID}_analysis_only`
+const designOnlySessionID = `${sessionID}_design_only`
 const unrelatedSessionID = `${sessionID}_unrelated`
-const incompleteSessionID = `${sessionID}_incomplete`
 const runDir = join(root, "outputs", "runs", sessionID)
+const analysisOnlyRunDir = join(root, "outputs", "runs", analysisOnlySessionID)
+const designOnlyRunDir = join(root, "outputs", "runs", designOnlySessionID)
 const unrelatedRunDir = join(root, "outputs", "runs", unrelatedSessionID)
-const incompleteRunDir = join(root, "outputs", "runs", incompleteSessionID)
-const solutionPath = join(runDir, "deliverables", "test-analysis-solution.json")
-const pathFile = join(runDir, "path.txt")
+const analysisSolutionPath = join(runDir, "deliverables", "test-analysis-solution.json")
+const designSolutionPath = join(runDir, "deliverables", "test-design-solution.json")
+const analysisPathFile = join(runDir, "path_analysis.txt")
+const designPathFile = join(runDir, "path_design.txt")
 const logs = []
 
 const client = {
@@ -52,36 +56,44 @@ try {
   cpSync(fixtureDir, runDir, { recursive: true })
   await hooks.event({ event: { type: "session.idle", properties: { sessionID } } })
 
-  assert.equal(existsSync(pathFile), true, "session.idle did not create path.txt")
-  assert.equal(readFileSync(pathFile, "utf8").trim(), resolve(solutionPath))
-  assert.equal(
-    logs.some((entry) => entry.level === "info" && entry.message === "Wrote analysis solution path file"),
-    true,
-    "success log was not emitted",
-  )
+  assert.equal(existsSync(analysisPathFile), true, "session.idle did not create path_analysis.txt")
+  assert.equal(existsSync(designPathFile), true, "session.idle did not create path_design.txt")
+  assert.equal(readFileSync(analysisPathFile, "utf8").trim(), resolve(analysisSolutionPath))
+  assert.equal(readFileSync(designPathFile, "utf8").trim(), resolve(designSolutionPath))
+  assert.equal(existsSync(join(runDir, "path.txt")), false, "legacy path.txt was created")
 
-  const firstPathFileMtime = statSync(pathFile).mtimeMs
+  const firstAnalysisMtime = statSync(analysisPathFile).mtimeMs
+  const firstDesignMtime = statSync(designPathFile).mtimeMs
   await hooks.event({ event: { type: "session.idle", properties: { sessionID } } })
-  assert.equal(statSync(pathFile).mtimeMs, firstPathFileMtime, "duplicate idle rewrote a current path.txt")
+  assert.equal(statSync(analysisPathFile).mtimeMs, firstAnalysisMtime)
+  assert.equal(statSync(designPathFile).mtimeMs, firstDesignMtime)
   assert.equal(
-    logs.filter((entry) => entry.level === "info" && entry.message === "Wrote analysis solution path file").length,
-    1,
+    logs.filter((entry) => entry.level === "info" && entry.message.startsWith("Wrote ")).length,
+    2,
     "duplicate idle emitted another path write",
   )
 
-  mkdirSync(join(incompleteRunDir, "deliverables"), { recursive: true })
+  mkdirSync(join(analysisOnlyRunDir, "deliverables"), { recursive: true })
   cpSync(
     join(fixtureDir, "deliverables", "test-analysis-solution.json"),
-    join(incompleteRunDir, "deliverables", "test-analysis-solution.json"),
+    join(analysisOnlyRunDir, "deliverables", "test-analysis-solution.json"),
   )
   await hooks.event({
-    event: { type: "session.idle", properties: { sessionID: incompleteSessionID } },
+    event: { type: "session.idle", properties: { sessionID: analysisOnlySessionID } },
   })
-  assert.equal(
-    existsSync(join(incompleteRunDir, "path.txt")),
-    false,
-    "incomplete staged run created path.txt",
+  assert.equal(existsSync(join(analysisOnlyRunDir, "path_analysis.txt")), true)
+  assert.equal(existsSync(join(analysisOnlyRunDir, "path_design.txt")), false)
+
+  mkdirSync(join(designOnlyRunDir, "deliverables"), { recursive: true })
+  cpSync(
+    join(fixtureDir, "deliverables", "test-design-solution.json"),
+    join(designOnlyRunDir, "deliverables", "test-design-solution.json"),
   )
+  await hooks.event({
+    event: { type: "session.idle", properties: { sessionID: designOnlySessionID } },
+  })
+  assert.equal(existsSync(join(designOnlyRunDir, "path_analysis.txt")), false)
+  assert.equal(existsSync(join(designOnlyRunDir, "path_design.txt")), true)
 
   await hooks.event({
     event: { type: "session.idle", properties: { sessionID: unrelatedSessionID } },
@@ -91,6 +103,7 @@ try {
   console.log("OpenCode output path hook test passed")
 } finally {
   rmSync(runDir, { recursive: true, force: true })
+  rmSync(analysisOnlyRunDir, { recursive: true, force: true })
+  rmSync(designOnlyRunDir, { recursive: true, force: true })
   rmSync(unrelatedRunDir, { recursive: true, force: true })
-  rmSync(incompleteRunDir, { recursive: true, force: true })
 }
