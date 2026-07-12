@@ -1728,14 +1728,13 @@ def validate_solution_ids(data: dict[str, Any], is_design: bool) -> tuple[list[s
     if not isinstance(scenarios, list) or not scenarios:
         return ["主交付件 JSON 缺少 scenarios"], warnings
 
-    tp_index = 1
-    tc_index = 1
+    seen_tp_ids: set[str] = set()
+    seen_tc_ids: set[str] = set()
     scenario_keys = {"id", "title", "fields", "children", "testPoints"}
     analysis_point_keys = {"id", "title", "objective", "basisRefs", "note"}
     design_point_keys = analysis_point_keys | {"testCases"}
 
     def walk(nodes: list[Any], parent_id: str = "", depth: int = 1) -> None:
-        nonlocal tp_index, tc_index
         if depth > 3:
             errors.append(f"{parent_id or 'scenarios'} 超过 3 层 SC 深度")
             return
@@ -1771,10 +1770,13 @@ def validate_solution_ids(data: dict[str, Any], is_design: bool) -> tuple[list[s
                 if not isinstance(point, dict):
                     errors.append(f"{scenario_id} testPoints 中存在非对象节点")
                     continue
-                expected_tp = f"TP-{tp_index:03d}"
                 point_id = normalize_text(point.get("id"))
-                if point_id != expected_tp:
-                    errors.append(f"测试点序号应为 {expected_tp}，实际为 {point.get('id')}")
+                if not re.fullmatch(r"TP-\d{3}", point_id):
+                    errors.append(f"测试点编号格式非法: {point.get('id')}")
+                elif point_id in seen_tp_ids:
+                    errors.append(f"测试点编号重复: {point_id}")
+                else:
+                    seen_tp_ids.add(point_id)
                 if not point.get("title") or not point.get("objective"):
                     errors.append(f"{point_id} 缺少 title 或 objective")
                 if not is_design:
@@ -1789,8 +1791,7 @@ def validate_solution_ids(data: dict[str, Any], is_design: bool) -> tuple[list[s
                     if not isinstance(cases, list) or not cases:
                         errors.append(f"{point_id} 缺少 testCases")
                     else:
-                        tc_index = validate_test_cases(cases, tc_index, point_id, errors)
-                tp_index += 1
+                        validate_test_cases(cases, point_id, errors, seen_tc_ids)
 
     walk(scenarios)
     return errors, warnings
@@ -1849,16 +1850,19 @@ def validate_executable_step_action(case_id: str, step_index: int, action: str, 
         )
 
 
-def validate_test_cases(cases: Any, start_index: int, parent_id: str, errors: list[str]) -> int:
+def validate_test_cases(cases: Any, parent_id: str, errors: list[str], seen_ids: set[str]) -> None:
     case_keys = {"id", "title", "level", "preconditions", "testData", "steps", "expectedResult", "sourceRefs"}
     for case in cases:
         if not isinstance(case, dict):
             errors.append(f"{parent_id} testCases 中存在非对象节点")
             continue
-        expected_id = f"TC-{start_index:03d}"
         case_id = normalize_text(case.get("id"))
-        if case_id != expected_id:
-            errors.append(f"测试用例序号应为 {expected_id}，实际为 {case.get('id')}")
+        if not re.fullmatch(r"TC-\d{3}", case_id):
+            errors.append(f"测试用例编号格式非法: {case.get('id')}")
+        elif case_id in seen_ids:
+            errors.append(f"测试用例编号重复: {case_id}")
+        else:
+            seen_ids.add(case_id)
         extra_case_keys = sorted(set(case) - case_keys)
         if extra_case_keys:
             errors.append(f"{case_id} 包含 schemaVersion 2.0 测试用例未定义字段: {', '.join(extra_case_keys)}")
@@ -1894,8 +1898,6 @@ def validate_test_cases(cases: Any, start_index: int, parent_id: str, errors: li
         source_refs = case.get("sourceRefs")
         if source_refs is not None and not isinstance(source_refs, list):
             errors.append(f"{case_id} sourceRefs 必须是数组")
-        start_index += 1
-    return start_index
 
 
 def validate_review_json(data: dict[str, Any]) -> tuple[list[str], list[str]]:

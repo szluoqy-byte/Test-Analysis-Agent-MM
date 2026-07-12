@@ -15,6 +15,7 @@ if str(BIN_DIR) not in sys.path:
     sys.path.insert(0, str(BIN_DIR))
 
 from run_artifacts import dump_json, load_json
+from stable_ids import assign_stable_ids
 from staged_workflow import render_markdown_for_json
 
 
@@ -148,16 +149,19 @@ def validate_slice(slice_data: dict[str, Any]) -> tuple[str, list[dict[str, Any]
     return tp_id, [validate_case(tp_id, case, index) for index, case in enumerate(cases, start=1)]
 
 
-def renumber_cases(data: dict[str, Any]) -> None:
-    index = 1
-    for point in iter_points(data.get("scenarios", [])):
-        cases = point.get("testCases")
-        if not isinstance(cases, list):
-            continue
-        for case in cases:
-            if isinstance(case, dict):
-                case["id"] = f"TC-{index:03d}"
-                index += 1
+def reconcile_design_with_analysis(
+    target: dict[str, Any], analysis: dict[str, Any], analysis_path: Path, root: Path
+) -> dict[str, Any]:
+    existing = point_map(target)
+    reconciled = design_skeleton_from_analysis(analysis, analysis_path, root)
+    reconciled["title"] = target.get("title") or reconciled["title"]
+    if isinstance(target.get("inputs"), list):
+        reconciled["inputs"] = target["inputs"]
+    for point in iter_points(reconciled.get("scenarios", [])):
+        previous = existing.get(str(point.get("id")))
+        if previous and isinstance(previous.get("testCases"), list):
+            point["testCases"] = previous["testCases"]
+    return reconciled
 
 
 def update_work_items(run_dir: Path, tp_id: str, slice_path: Path, root: Path) -> None:
@@ -171,6 +175,8 @@ def update_work_items(run_dir: Path, tp_id: str, slice_path: Path, root: Path) -
             item["status"] = "done"
             item["slicePath"] = rel_path(slice_path, root)
             item["mergedAt"] = now
+            item["contentChanged"] = False
+            item.pop("reopenReason", None)
     dump_json(path, data)
     render_markdown_for_json(path)
     print(f"通过: 已更新 {rel_path(path, root)}")
@@ -183,7 +189,7 @@ def main() -> int:
     parser.add_argument("--slice", required=True, type=Path, help="test-case-slice JSON")
     parser.add_argument("--analysis", type=Path, help="分析方案 JSON，默认 deliverables/test-analysis-solution.json")
     parser.add_argument("--target", type=Path, help="目标设计方案 JSON，默认 deliverables/test-design-solution.json")
-    parser.add_argument("--no-renumber", action="store_true", help="不重新全局编号 TC")
+    parser.add_argument("--no-renumber", action="store_true", help="不分配稳定 TC 编号")
     args = parser.parse_args()
 
     root = repo_root()
@@ -196,8 +202,18 @@ def main() -> int:
         print(f"失败: 切片不存在: {slice_path}", file=sys.stderr)
         return 1
     if target_path.exists():
-        target = load_json(target_path)
+        previous_target = load_json(target_path)
+        historical_cases = [
+            case
+            for point in iter_points(previous_target.get("scenarios", []))
+            for case in point.get("testCases", [])
+            if isinstance(case, dict)
+        ]
+        target = previous_target
+        if analysis_path.exists():
+            target = reconcile_design_with_analysis(target, load_json(analysis_path), analysis_path, root)
     else:
+        historical_cases = []
         if not analysis_path.exists():
             print(f"失败: 目标不存在且无法初始化，分析方案不存在: {analysis_path}", file=sys.stderr)
             return 1
@@ -208,9 +224,16 @@ def main() -> int:
         points = point_map(target)
         if tp_id not in points:
             raise ValueError(f"目标设计方案不存在 TP: {tp_id}")
-        points[tp_id]["testCases"] = cases
+        previous_cases = [case for case in points[tp_id].get("testCases", []) if isinstance(case, dict)]
+        all_cases = historical_cases + [
+            case
+            for point in iter_points(target.get("scenarios", []))
+            for case in point.get("testCases", [])
+            if isinstance(case, dict)
+        ]
         if not args.no_renumber:
-            renumber_cases(target)
+            cases = assign_stable_ids(run_dir, "TC", cases, previous_cases, all_cases)
+        points[tp_id]["testCases"] = cases
     except ValueError as exc:
         print(f"失败: {exc}", file=sys.stderr)
         return 1

@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
+import json
 import sys
 from pathlib import Path
 from typing import Any
@@ -53,6 +55,9 @@ def load_existing_statuses(path: Path) -> dict[str, dict[str, str]]:
                 "status": str(item.get("status") or "pending"),
                 "slicePath": str(item.get("slicePath") or ""),
                 "mergedAt": str(item.get("mergedAt") or ""),
+                "contentHash": str(item.get("contentHash") or ""),
+                "contentChanged": bool(item.get("contentChanged", False)),
+                "reopenReason": str(item.get("reopenReason") or ""),
             }
     return statuses
 
@@ -68,8 +73,7 @@ def collect_leaf_scenarios(nodes: list[Any], path: list[dict[str, str]] | None =
         if isinstance(children, list) and children:
             items.extend(collect_leaf_scenarios(children, next_path))
             continue
-        items.append(
-            {
+        item = {
                 "scenarioPath": next_path,
                 "leafScenarioId": next_path[-1]["id"] if next_path else "",
                 "leafScenarioTitle": next_path[-1]["title"] if next_path else "",
@@ -77,7 +81,12 @@ def collect_leaf_scenarios(nodes: list[Any], path: list[dict[str, str]] | None =
                 "slicePath": "",
                 "mergedAt": "",
             }
-        )
+        hash_payload = {"scenarioPath": next_path, "fields": scenario.get("fields", {})}
+        item["contentHash"] = hashlib.sha256(
+            json.dumps(hash_payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        item["contentChanged"] = False
+        items.append(item)
     return items
 
 
@@ -106,9 +115,13 @@ def main() -> int:
     items = collect_leaf_scenarios(scenario_tree.get("scenarios", []))
     for item in items:
         previous = existing.get(item["leafScenarioId"], {})
-        item["status"] = previous.get("status", item["status"])
+        changed = bool(previous.get("contentHash")) and previous.get("contentHash") != item["contentHash"]
+        item["status"] = "pending" if changed else previous.get("status", item["status"])
         item["slicePath"] = previous.get("slicePath", item["slicePath"])
-        item["mergedAt"] = previous.get("mergedAt", item["mergedAt"])
+        item["mergedAt"] = "" if changed else previous.get("mergedAt", item["mergedAt"])
+        item["contentChanged"] = changed or bool(previous.get("contentChanged", False))
+        if previous.get("reopenReason"):
+            item["reopenReason"] = previous["reopenReason"]
 
     data = {
         "artifactType": "test-point-work-items",

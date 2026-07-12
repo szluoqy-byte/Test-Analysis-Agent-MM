@@ -44,6 +44,7 @@ def main() -> int:
     parser.add_argument("run_dir", type=Path, help="outputs/runs/<run-id>")
     parser.add_argument("--analysis", required=True, type=Path, help="显式提供的 test-analysis-solution.json")
     parser.add_argument("--target", type=Path, help="目标路径，默认 deliverables/test-analysis-solution.json")
+    parser.add_argument("--force", action="store_true", help="revision 已创建后允许替换不同的既有分析方案")
     args = parser.parse_args()
 
     root = repo_root()
@@ -70,6 +71,15 @@ def main() -> int:
     if not isinstance(analysis.get("scenarios"), list):
         print("失败: --analysis 缺少 scenarios[]", file=sys.stderr)
         return 1
+    if target_path.exists() and analysis_path.resolve() != target_path.resolve():
+        existing = load_json(target_path)
+        if existing != analysis and not args.force:
+            print(
+                "失败: 目标 run 已存在不同的 test-analysis-solution.json；"
+                "请使用同一 run 的分析方案，或在已创建 revision 的 extend/rebuild 流程中显式使用 --force",
+                file=sys.stderr,
+            )
+            return 1
 
     target_path.parent.mkdir(parents=True, exist_ok=True)
     dump_json(target_path, analysis)

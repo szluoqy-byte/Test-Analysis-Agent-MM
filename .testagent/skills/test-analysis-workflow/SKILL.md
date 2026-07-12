@@ -7,19 +7,20 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 
 本 skill 是 `test-analysis-agent` 的完整链路入口。目标是从 `$ARGUMENTS` 指定的需求文档和可选设计方案文档中，生成 `测试分析方案`。
 
-测试分析方案回答 what to test：输出最多 3 层 `SC-*` 场景树和全局连续 `TP-*` 测试点。它不输出测试用例、测试数据、操作步骤或预期结果。
+测试分析方案回答 what to test：输出最多 3 层 `SC-*` 场景树和 run 内全局唯一、增量稳定的 `TP-*` 测试点。它不输出测试用例、测试数据、操作步骤或预期结果。
 
 ## 必需输入
 
-- `$ARGUMENTS`：至少包含一份 `.md` 或 `.markdown` 需求文档路径。
+- `$ARGUMENTS`：新 run 至少包含一份 `.md` 或 `.markdown` 需求文档路径；指定已有 `runid` 时可继承 manifest 中的历史输入。
 - 可额外包含一份或多份 `.md` 或 `.markdown` 设计方案文档路径。
 - 如果输入包含 `.docx` 或 `.xlsx`，不得在本 workflow 中转换；必须先由 `@file-normalization-agent` 归一化为 Markdown。
 - 可选 `--project <project-key>`，必须传递给 `bin/build-rules-pack.py` 和 `context-source-indexing`；personal rules 来自 `rules/user/**/*.md`，personal 动态补充来源来自 `knowledge/user/**/*.md` 和 `memory/user/**/*.md`。
+- 可选 `runid=<requirement-id>` 和 `mode=auto|resume|extend|rebuild`；默认 `auto`。新输入默认追加，同路径更新版本，删除历史输入使用 `remove-source=<path>`。
 
 ## 执行检查清单
 
 Progress:
-- [ ] Step 1: 校验 Markdown 输入并创建 run（run `python bin/generate-run-id.py`）
+- [ ] Step 1: 解析持久 run、变化和锁（run `python bin/manage-run.py prepare --flow analysis ...` and read `process/run-plan.json`）
 - [ ] Step 2: 初始化分析任务清单（run `python bin/update-run-task.py outputs/runs/<run-id> --flow analysis ...`）
 - [ ] Step 3: 构建 rules/context/fact 基础上下文（run `python bin/build-rules-pack.py ...` 和 `python skills/context-source-indexing/scripts/build-context-source-index.py ...`）
 - [ ] Step 4: 完成输入事实建模与测试方法路由（use `input-fact-modeling` and `testing-method-router`）
@@ -46,22 +47,23 @@ Progress:
 - 不要跳过 SC 树冻结直接生成 TP；SC review 通过后，TP 阶段不得改写 SC。
 - 不要把 testing-method-router 的方法清单写成最终字段；方法是参考，不是交付件来源表。
 - 不要直接修 `deliverables/test-analysis-solution.json` 或 Markdown 来处理 review/coverage 问题；必须回到对应 TP 切片。
+- 不要看到已有 run 就直接覆盖或从头生成；必须遵守 `run-plan.json` 的 reuse/resume/extend/rebuild 决策，并在失败退出前释放 run lock。
 
 ## 执行流程
 
-1. 校验输入至少包含一份 Markdown 需求文档；若发现 Office 输入，输出需先使用 `@file-normalization-agent` 的阻断说明，不创建测试分析 run。
-2. 固定 `PROJECT_ROOT`，运行 `python bin/generate-run-id.py` 生成本次运行 ID，并创建 `outputs/runs/<run-id>/deliverables/`、`process/`、`reports/` 和 `inputs/`。
+1. 校验新 run 至少包含一份 Markdown 需求文档；已有 `runid` 可继承 `process/run-manifest.json` 中的 requirement/design 输入。若发现 Office 输入，输出需先使用 `@file-normalization-agent` 的阻断说明，不创建测试分析 run。
+2. 固定 `PROJECT_ROOT`，把 `runid`、`mode`、project、requirement/design 和 `remove-source` 参数传给 `python bin/manage-run.py prepare --flow analysis ...`，读取生成的 `process/run-plan.json`。`action=reuse` 时只运行最终一致性检查并返回既有交付件；其他 action 持有 `process/run.lock` 后继续。`extend/rebuild` 必须确认 revision 快照已创建。
 3. 运行 `python bin/update-run-task.py outputs/runs/<run-id> --flow analysis --stage 固定 PROJECT_ROOT 与运行目录 --action start --evidence outputs/runs/<run-id>/` 创建或补齐 `process/analysis-task-list.json`，后续继续用同一脚本维护阶段状态；不要覆盖历史 run 中可能由测试设计维护的 `process/design-task-list.json`。
 4. 调用 `python bin/build-rules-pack.py ...` 生成 `process/rules-pack.json`，并把同一 `project-key` 传入脚本。
 5. 调用 `python skills/context-source-indexing/scripts/build-context-source-index.py ...` 生成 `process/context-pack.json`。
-6. 使用 `input-fact-modeling` 读取需求文档、可选设计方案文档、`process/rules-pack.json` 中当前阶段可见的规则正文，生成 `process/input-fact-model.json`。
+6. 使用 `input-fact-modeling` 读取 `process/run-manifest.json` 中全部 `status=available` 的历史与本次 requirement/design 输入，以及 `process/rules-pack.json` 中当前阶段可见的规则正文，生成或增量更新 `process/input-fact-model.json`；不能因为本次参数未重复传入旧路径就丢弃历史事实。
 7. 使用 `testing-method-router` 基于输入事实模型和 `process/rules-pack.json` 中当前阶段可见的规则正文，对需求事实和设计事实进行测试技术路由。
 8. 使用路由选中的专项方法参考产出覆盖维度建议、候选 SC/TP 方向和按源补读记录；方法只作为生成参考，不要求最终 TP 完全来自或逐项绑定这些方法。
-9. 运行 `python skills/test-analysis-solution-generation/scripts/init-scenario-tree.py outputs/runs/<run-id>` 初始化带 `generationContext` 的 `process/scenario-tree.json`，再使用 `test-analysis-solution-generation` 读取 `generationContext` 和当前阶段可见来源，填写 `scope[]` 与 `scenarios[]`。该文件只允许 SC 树，不得包含 `testPoints[]`。
+9. `create/rebuild` 或场景树缺失时，运行 `python skills/test-analysis-solution-generation/scripts/init-scenario-tree.py outputs/runs/<run-id>` 初始化带 `generationContext` 的 `process/scenario-tree.json`；`resume/extend` 时读取并增量更新既有场景树，保留未变化 SC 的 ID。使用 `test-analysis-solution-generation` 读取新旧输入事实和 `run-plan.json` 的变化文件，填写或补充 `scope[]` 与 `scenarios[]`。该文件只允许 SC 树，不得包含 `testPoints[]`。
 10. 运行 `python skills/test-analysis-solution-generation/scripts/lint-scenario-tree.py outputs/runs/<run-id>/process/scenario-tree.json`，再运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type scenario-tree-review --force` 初始化评审骨架，并使用 `test-analysis-solution-review` 填写 `process/reviews/scenario-tree-review.json`。SC review 通过后，后续阶段不得新增、删除、合并或改写 SC。
-11. 运行 `python skills/test-analysis-solution-generation/scripts/extract-test-point-work-items.py outputs/runs/<run-id>` 生成 `process/test-point-work-items.json`，再运行 `python bin/init-staged-slices.py outputs/runs/<run-id> --scope analysis --pending` 批量初始化 `process/test-point-slices/<SC-ID>.json`；需要查看状态时运行 `python bin/list-staged-work-items.py outputs/runs/<run-id> --scope analysis --status all`。
+11. 运行 `python skills/test-analysis-solution-generation/scripts/extract-test-point-work-items.py outputs/runs/<run-id>` 生成 `process/test-point-work-items.json`。`contentHash` 变化会自动重开；若 `run-plan.defaultReopen=all`，运行 `python bin/reopen-run-items.py outputs/runs/<run-id> --scope analysis --all --reason <reason>`；若要求语义影响分析，则按新旧 FACT、sourceRefs 和 coverage map 重开受影响叶子 SC，无法可靠定位时保守 `--all`。再运行 `python bin/init-staged-slices.py outputs/runs/<run-id> --scope analysis --pending`，变化项会自动强制刷新并从既有交付件预填。
 12. 使用 `test-analysis-solution-generation` 逐个填写 `process/test-point-slices/<SC-ID>.json` 的 `scenario.testPoints[]`；每个切片必须读取当前阶段适用 rules 和动态来源，不得改写 SC。
-13. 对每个 TP 切片先运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-point-review --target-id <SC-ID> --force` 初始化评审骨架，再使用 `test-analysis-solution-review` 执行覆盖和粒度评审；切片通过后可运行 `python bin/merge-staged-slices.py outputs/runs/<run-id> --scope analysis --ids <SC-ID>`，所有切片完成后运行 `python bin/merge-staged-slices.py outputs/runs/<run-id> --scope analysis --all` 确保最终合并为 `deliverables/test-analysis-solution.json` 并统一全局 `TP-*` 编号。
+13. 对每个 TP 切片先运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-point-review --target-id <SC-ID> --force` 初始化评审骨架，再使用 `test-analysis-solution-review` 执行覆盖和粒度评审；切片通过后可运行 `python bin/merge-staged-slices.py outputs/runs/<run-id> --scope analysis --ids <SC-ID>`。合并脚本保留既有 TP 编号，只为新增 TP 从历史最大编号后追加，退役编号不复用。
 14. 所有叶子 SC 合并后，运行 `bin/lint-run-json.py outputs/runs/<run-id>`。失败时先修正 JSON，不进入最终评审。
 15. 运行 `bin/render-run-markdown.py outputs/runs/<run-id>`，再运行 `bin/lint-test-analysis-solution.py outputs/runs/<run-id>/deliverables/test-analysis-solution.md`。
 16. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-analysis-solution-review --force` 初始化最终评审骨架，再使用 `test-analysis-solution-review` 独立语义评审最终测试分析方案 JSON，评审结果写入 `process/reviews/test-analysis-solution-review.json`。
@@ -70,7 +72,7 @@ Progress:
 19. 如果切片 review 或最终 review 存在 blocking findings/issues，先运行 `python bin/apply-review-findings.py outputs/runs/<run-id> --scope analysis --all` 重开对应工作项；如果 `process/reviews/analysis-coverage-review.json` 中存在 `coverageGaps[]`，必须先运行 `python bin/apply-coverage-gaps.py outputs/runs/<run-id> --scope analysis`。之后按被重开的 `process/test-point-slices/<SC-ID>.json` 修复；不得直接编辑最终 Markdown，也不得跳过切片回写直接手改 `deliverables/test-analysis-solution.json`。修复后重新执行对应 TP 切片 review、`bin/merge-staged-slices.py`、确定性校验、最终分析 review、`bin/build-fact-coverage-map.py`、coverage-review 和一致性检查。
 20. coverage-review 通过且返工闭环完成后，使用 `final-report-generation` 运行 `python bin/build-final-report.py outputs/runs/<run-id> --scope analysis`，从 `process/analysis-fact-coverage-map.json` 生成 `reports/analysis-final-report.json` 并渲染 `reports/analysis-final-report.md`。最终报告只供人工审阅，不输出 `coverageGaps[]`，不触发返工。
 21. 通过 `bin/update-run-task.py` 将 `process/analysis-task-list.json` 的 `最终报告生成` 阶段标记为 done，证据必须包含 `reports/analysis-final-report.json` 和 `reports/analysis-final-report.md`。
-22. 最终输出前通过 `bin/update-run-task.py` 刷新 `process/analysis-task-list.json` 的 `输出收口` 阶段，运行 `bin/check-staged-run.py outputs/runs/<run-id> --scope analysis`。
+22. 最终输出前通过 `bin/update-run-task.py` 刷新 `process/analysis-task-list.json` 的 `输出收口` 阶段，运行 `bin/check-staged-run.py outputs/runs/<run-id> --scope analysis`。通过后运行 `python bin/manage-run.py finalize outputs/runs/<run-id> --flow analysis` 固化指纹、analysis hash 和 revision 状态；任何失败退出前运行 `python bin/manage-run.py abort outputs/runs/<run-id> --flow analysis` 释放锁。
 
 ## 计划-校验-执行模式
 
@@ -98,7 +100,7 @@ Progress:
 ## 脚本稳定性规则
 
 - analysis 流程不得临时创建 `.py`、`.js`、`.ps1`、`.bat` 或其他可执行脚本来拼接、修复、循环处理或拆分 JSON。
-- 只能调用仓库固定脚本：`bin/build-rules-pack.py`、`skills/test-analysis-solution-generation/scripts/init-scenario-tree.py`、`skills/test-analysis-solution-generation/scripts/lint-scenario-tree.py`、`skills/test-analysis-solution-generation/scripts/extract-test-point-work-items.py`、`skills/test-analysis-solution-generation/scripts/init-test-point-slice.py`、`bin/init-staged-slices.py`、`bin/list-staged-work-items.py`、`bin/build-generation-context.py`、`bin/init-report-artifact.py`、`bin/build-fact-coverage-map.py`、`bin/build-final-report.py`、`bin/apply-review-findings.py`、`bin/apply-coverage-gaps.py`、`bin/update-run-task.py`、`skills/test-analysis-solution-generation/scripts/merge-test-point-slice.py`、`bin/merge-staged-slices.py`、`bin/check-staged-run.py`、`bin/lint-run-json.py`、`bin/render-run-markdown.py`、`bin/lint-test-analysis-solution.py` 和 `bin/check-artifact-consistency.py`。
+- 只能调用仓库固定脚本：`bin/manage-run.py`、`bin/reopen-run-items.py`、`bin/build-rules-pack.py`、`skills/test-analysis-solution-generation/scripts/init-scenario-tree.py`、`skills/test-analysis-solution-generation/scripts/lint-scenario-tree.py`、`skills/test-analysis-solution-generation/scripts/extract-test-point-work-items.py`、`skills/test-analysis-solution-generation/scripts/init-test-point-slice.py`、`bin/init-staged-slices.py`、`bin/list-staged-work-items.py`、`bin/build-generation-context.py`、`bin/init-report-artifact.py`、`bin/build-fact-coverage-map.py`、`bin/build-final-report.py`、`bin/apply-review-findings.py`、`bin/apply-coverage-gaps.py`、`bin/update-run-task.py`、`skills/test-analysis-solution-generation/scripts/merge-test-point-slice.py`、`bin/merge-staged-slices.py`、`bin/check-staged-run.py`、`bin/lint-run-json.py`、`bin/render-run-markdown.py`、`bin/lint-test-analysis-solution.py` 和 `bin/check-artifact-consistency.py`。
 - 如果固定脚本能力不足，必须修改仓库 `bin/` 或对应 skill `scripts/` 下的固定脚本并运行校验；不得在 `outputs/`、`process/`、`reports/`、临时目录或当前工作目录写一次性脚本。
 
 ## 输出要求
@@ -106,7 +108,7 @@ Progress:
 - 主输出使用 `templates/test-analysis-solution-json-template.json` 生成 JSON。
 - `process/scenario-tree.json` 是冻结 SC 树，最多 3 层，任何层级都不得包含 `testPoints[]`。
 - `deliverables/test-analysis-solution.json` 的 `scenarios[]` 是场景树，最多 3 层；非叶子场景只允许有 `children[]`，叶子场景必须有 `testPoints[]`。
-- `TP-*` 全局连续编号，每个叶子场景必须包含 `E2E场景测试`。
+- `TP-*` 在 run 内全局唯一且增量稳定；既有编号保持不变，新编号追加且退役编号不复用。每个叶子场景必须包含 `E2E场景测试`。
 - `TP-*` 必须包含 `id`、`title`、`objective` 和 `basisRefs[]`。
 - 测试技术和专项方法是生成参考，不是主交付字段；不得在 `TP-*` 中输出 `methodRefs[]` 或方法字段表格。
 - 分析方案不得包含测试用例、测试数据、步骤、预期结果或 schemaVersion 2.0 之外的字段。

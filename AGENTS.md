@@ -9,7 +9,7 @@
 测试设计 Agent：测试场景 SC -> 测试点 TP -> 测试用例 TC
 ```
 
-`SC-*` 是业务场景树，最多 3 层，例如 `SC-001`、`SC-001-001`、`SC-001-001-001`。只有叶子场景挂载 `TP-*`。`TP-*` 是验证目标、规则点、路径点、状态点、权限点、接口契约点或风险点，全局连续编号。`TC-*` 是可执行测试用例，包含前置条件、具体测试数据、步骤、步骤预期和最终预期，全局连续编号。
+`SC-*` 是业务场景树，最多 3 层，例如 `SC-001`、`SC-001-001`、`SC-001-001-001`。只有叶子场景挂载 `TP-*`。`TP-*` 是验证目标、规则点、路径点、状态点、权限点、接口契约点或风险点，编号在 run 内全局唯一且增量稳定。`TC-*` 是可执行测试用例，包含前置条件、具体测试数据、步骤、步骤预期和最终预期，编号在 run 内全局唯一且增量稳定；新增编号从历史最大值后追加，已退役编号不复用。
 
 测试分析方案不输出测试用例、步骤、测试数据或预期结果。测试设计方案在每个测试点下输出完整步骤级测试用例。新 run 只允许 schemaVersion 2.0 定义的字段、编号和层级。
 
@@ -45,7 +45,9 @@
 - 所有 `skills/...`、`rules/...`、`knowledge/...`、`templates/...`、`memory/...`、`bin/...` 和 `outputs/...` 路径都从仓库根目录解析。
 - 不要基于 skill 目录、`.claude-plugin/`、`.opencode/`、`.testagent/` 或输入文件目录解析路径。
 - 运行产物写入 `outputs/runs/<run-id>/`。
-- 新建完整 run 时，`run-id` 固定使用 `python bin/generate-run-id.py` 生成；默认格式为 `<YYYYMMDD-HHMMSS>`。OpenCode/TestAgent hook 通过 `shell.env` 将当前 `sessionID` 注入 `TEST_ANALYSIS_RUN_ID`，不依赖 slash command；`session.idle` 时直接检查 `outputs/runs/<sessionID>/deliverables/`，发现 `test-analysis-solution.json` 后写入同一 run 下的 `path_analysis.txt`，发现 `test-design-solution.json` 后写入 `path_design.txt`，两个路径文件都只保存对应 JSON 的绝对路径。
+- analysis/design/E2E 入口支持可选 `runid=<requirement-id>`，用于把同一需求的多次分析和设计维护在 `outputs/runs/<runid>/`；未提供时由 `bin/manage-run.py prepare` 调用固定时间戳规则生成 `<YYYYMMDD-HHMMSS>`。
+- `runid` 只允许 1-64 位字母、数字、点、下划线和连字符，并以字母或数字开头；不得包含路径分隔符、`..` 或 Windows 保留名称。
+- 持久 run 固定先执行 `python bin/manage-run.py prepare --flow analysis|design ...`，读取 `process/run-plan.json` 的 `create/resume/reuse/extend/rebuild` 决策；结束时执行 `finalize`，失败退出前执行 `abort` 释放锁。
 - Office 输入归一化复用缓存写入 `outputs/input-cache/<sha256-12>/`；绑定既有 run 时写入 `outputs/runs/<run-id>/inputs/`。
 - DOCX 图片、流程图、架构图、状态图、截图或 EMF/Visio 图形解析后的 Mermaid/结构化事实必须合并回同一个归一化 Markdown 的原文占位位置。
 - DOCX 图片理解和 Mermaid 转换必须按原文顺序分批处理：普通图片每批最多 3-5 张，复杂图每批 1-2 张。
@@ -55,11 +57,14 @@
 - 测试分析主交付件固定为 `outputs/runs/<run-id>/deliverables/test-analysis-solution.json`，由 `bin/render-run-markdown.py` 渲染同名 `.md` 人读版。
 - 测试设计主交付件固定为 `outputs/runs/<run-id>/deliverables/test-design-solution.json`，由 `test-case-writing` 调用 `bin/render-run-markdown.py` 渲染同名 `.md` 人读版；优先复用上游测试分析方案所在 run。
 - JSON 是 run 过程产物、主交付件、review 和 coverage 的事实源；Markdown 是脚本派生产物，不手工维护。
+- 持久 run 的生命周期事实源是 `process/run-manifest.json`；每次 `extend/rebuild` 修改前必须在 `revisions/rNNNN/` 创建 JSON/input 快照，当前交付路径保持不变。
+- `process/run-manifest.json` 记录输入、project 绑定、analysis/design 依赖指纹、交付件 hash 和 revision；输入默认追加，同路径视为版本更新，删除旧来源必须显式使用 `remove-source=<path>`。
 - 创建 run 目录后必须维护阶段化任务清单和共享过程产物：测试分析使用 `process/analysis-task-list.json/.md`，测试设计使用 `process/design-task-list.json/.md`；共享过程产物包括 `process/rules-pack.json/.md`、`process/context-pack.json/.md` 和 `process/input-fact-model.json/.md`。历史 `process/task-list.json/.md` 只作为兼容读取路径，不作为新流程写入目标。
 - 测试分析必须先生成并评审冻结 `process/scenario-tree.json`，再按叶子 SC 生成 `process/test-point-slices/<SC-ID>.json`，最后合并为 `deliverables/test-analysis-solution.json`。
 - 测试设计必须按每个已冻结 TP 生成 `process/test-case-slices/<TP-ID>.json`，评审后合并为 `deliverables/test-design-solution.json`。
 - `process/scenario-tree.json`、`process/test-point-slices/<SC-ID>.json`、`process/test-case-slices/<TP-ID>.json` 以及 review/coverage JSON 必须包含由固定脚本生成的 `generationContext`；它只用于生成前工作包、规则正文、动态来源索引和事实候选，不作为最终业务事实合并进 deliverables。
 - 测试设计流程固定按 `process/test-case-work-items.json` 和 `process/test-case-slices/<TP-ID>.json` 逐 TP 生成并合并，最终事实源仍是 `deliverables/test-design-solution.json`。
+- 增量 run 中工作项使用 `contentHash` 判断上游内容变化；变化项必须自动重开。输入/context 变化由 workflow 做语义影响分析并用 `bin/reopen-run-items.py` 重开受影响 SC/TP，不能判定影响范围时保守重开全部。
 - 测试分析和测试设计流程不得临时生成 `.py`、`.js`、`.ps1`、`.bat` 或其他可执行脚本来处理 JSON、循环切片、汇总状态或定位返工；固定脚本能力不足时修改仓库 `bin/` 脚本并运行校验。
 - 主交付件 schema 使用 `2.0`；process、review 和 coverage 产物继续使用各自当前 schema。
 - 新 run 只支持 schemaVersion 2.0；历史 run 需要按新模型重新生成。
@@ -82,6 +87,7 @@
 - 当用户要求从需求和设计方案一次性完成测试分析与测试设计时，使用 `test-analysis-design-workflow`。该 workflow 优先用独立 subagent 隔离执行 analysis/design，只做全流程编排和阶段交接，不复制 analysis/design 内部校验、review、coverage 或 final-report 逻辑；若运行环境不支持真实 subagent，才 fallback 为同会话 workflow 串联并在最终回复说明。
 - 测试分析阶段依次使用 `rules-pack`、`context-source-indexing`、`input-fact-modeling`、`testing-method-router`、路由选中的专项方法参考、`test-analysis-solution-generation` 生成冻结 SC 树、`test-analysis-solution-review` 评审 SC、按叶子 SC 生成并评审 TP 切片、合并分析方案、JSON lint、Markdown render、派生 Markdown lint、最终 `test-analysis-solution-review`、构建并审查 `analysis-fact-coverage-map`、`coverage-review` 和 `final-report-generation`。
 - 分段工作项状态查看、批量切片初始化、批量合并、review blocking 返工重开和分段 run 固定检查分别使用 `bin/list-staged-work-items.py`、`bin/init-staged-slices.py`、`bin/merge-staged-slices.py`、`bin/apply-review-findings.py` 和 `bin/check-staged-run.py`。
+- 持久 run 生命周期、revision、依赖变化和并发锁由 `bin/manage-run.py` 管理；不得绕过有效的 `process/run.lock` 并发写同一 run。
 - 覆盖证据过程件按阶段拆分：测试分析写入 `process/analysis-fact-coverage-map.json/.md`，测试设计写入 `process/design-fact-coverage-map.json/.md`。它是 coverage-review 的工作底稿，不是最终人审报告。
 - 覆盖审查产物按阶段拆分：测试分析写入 `process/reviews/analysis-coverage-review.json/.md`，测试设计写入 `process/reviews/design-coverage-review.json/.md`。coverage-review 必须基于对应 fact-coverage-map 做门禁，避免 final-report 阶段才新增 missing 判断。
 - coverage-review 发现覆盖缺口后，不直接编辑最终 Markdown 或主交付件 JSON；必须通过 `coverageGaps[].artifactLocation` 定位到 `process/test-point-slices/<SC-ID>.json` 或 `process/test-case-slices/<TP-ID>.json`，先运行 `bin/apply-coverage-gaps.py` 重开对应工作项，再修复切片并重新执行切片 review、脚本合并、最终 review、coverage 和一致性检查。
@@ -108,7 +114,7 @@
 
 - Runtime wiring：`python bin/validate-agent-runtime.py`
 - OpenCode/TestAgent skill 镜像：`python bin/sync-opencode-skills.py --check`
-- OpenCode 非 command 输出路径 hook：`node bin/test-opencode-output-path-hook.mjs`
+- 持久 run 生命周期回归：`python bin/test-persistent-run.py`
 - 单次 run JSON 结构：`python bin/lint-run-json.py outputs/runs/<run-id>`
 - 单次 run Markdown 渲染一致性：`python bin/render-run-markdown.py outputs/runs/<run-id> --check`
 - 测试分析方案结构：`python bin/lint-test-analysis-solution.py <solution.md>`

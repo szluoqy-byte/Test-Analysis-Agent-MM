@@ -61,7 +61,7 @@ Progress:
 8. 运行固定脚本生成 `process/test-point-work-items.json`，每个叶子 SC 对应一个 TP 切片。
 9. 每个 `process/test-point-slices/<SC-ID>.json` 只填写当前叶子 SC 的 `scenario.testPoints[]`。
 10. 每个叶子场景必须包含一个 `E2E场景测试` 测试点。
-11. `TP-*` 最终由 `skills/test-analysis-solution-generation/scripts/merge-test-point-slice.py` 全局连续编号，不按场景重置；切片内不得依赖局部编号作为事实。
+11. `TP-*` 最终由 `skills/test-analysis-solution-generation/scripts/merge-test-point-slice.py` 分配 run 内全局唯一、增量稳定的编号；既有 TP 保留 ID，新 TP 从历史最大值后追加，退役编号不复用。
 12. `TP-*` 是验证目标簇，不是具体测试用例标题；它表达规则、路径、状态、权限、接口契约或风险，并应能在设计阶段展开为覆盖该目标的最小充分 TC 集合。
 13. 如果多个 TP 候选只在具体取值、缺失字段、角色样本、状态样本、配置取值、依赖返回、消息顺序、错误类型或接口参数变体上不同，而验证的是同一接口、业务规则、权限边界、状态规则或风险目标，应合并为一个 TP，把差异留给 TC。
 14. 接口类场景下的非 E2E `TP-*` 应先定位接口、端点、消息、回调或集成点，再表达契约关注点；字段、状态码、错误码、鉴权、幂等、超时、重试和参数缺失是该接口 TP 下的 TC 设计因子，不要默认拆成多个 TP。

@@ -69,11 +69,12 @@ def main() -> int:
     for item in items:
         current_id = item_id(item, scope)
         output_path = slice_path_for(run_dir, scope, current_id)
-        if output_path.exists() and not args.force:
+        effective_force = args.force or bool(item.get("contentChanged", False))
+        if output_path.exists() and not effective_force:
             print(f"跳过: 切片已存在 {rel_path(output_path, root)}")
             continue
         command = [sys.executable, scope.init_script, rel_path(run_dir, root), scope.init_id_arg, current_id]
-        if args.force:
+        if effective_force:
             command.append("--force")
         code = run_command(command, root)
         if code == 0:

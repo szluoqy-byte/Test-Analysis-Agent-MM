@@ -56,7 +56,7 @@
 
 ### TC 测试用例
 
-`TC-*` 是可独立执行、独立判定的测试实例，编号全局连续。每个 TC 必须包含：
+`TC-*` 是可独立执行、独立判定的测试实例，编号在 run 内全局唯一且增量稳定。每个 TC 必须包含：
 
 - `id`
 - `title`
@@ -143,7 +143,7 @@ flowchart TD
 - TC 字段完整，`testData[]`、`steps[]`、`sourceRefs[]` 格式符合 schema。
 - action 是可执行动作，expected 承载检查点和系统可观察结果。
 - GUI/API/CLI 风格与当前 TC 主执行形态一致。
-- `TC-*` 全局连续编号。
+- `TC-*` 保留既有编号，新 TC 追加编号且退役编号不复用。
 - `bin/lint-run-json.py`、Markdown render、测试设计 Markdown lint 通过。
 - 最终 `test-design-solution-review`、`design-coverage-review` 和 `check-staged-run --scope design` 通过或已完成返工闭环。
 

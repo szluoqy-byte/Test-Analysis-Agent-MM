@@ -33,7 +33,6 @@ REQUIRED_FILES = [
     ".opencode/commands/test-design-workflow.md",
     ".opencode/commands/normalize-input-documents.md",
     ".opencode/codearts.json",
-    ".opencode/plugins/test-analysis-output-path.js",
     ".opencode/skills/README.md",
     ".testagent/agents/file-normalization-agent.md",
     ".testagent/agents/test-analysis-agent.md",
@@ -45,7 +44,6 @@ REQUIRED_FILES = [
     ".testagent/commands/normalize-input-documents.md",
     ".testagent/codearts.json",
     ".testagent/kernel.json",
-    ".testagent/plugins/test-analysis-output-path.js",
     ".testagent/skills/README.md",
     "docs/README.md",
     "docs/agents/file-normalization-agent.md",
@@ -109,7 +107,10 @@ REQUIRED_FILES = [
     "skills/test-analysis-solution-generation/scripts/init-scenario-tree.py",
     "skills/test-analysis-solution-generation/scripts/lint-scenario-tree.py",
     "bin/generate-run-id.py",
-    "bin/test-opencode-output-path-hook.mjs",
+    "bin/manage-run.py",
+    "bin/reopen-run-items.py",
+    "bin/stable_ids.py",
+    "bin/test-persistent-run.py",
     "bin/lint-run-json.py",
     "bin/render-run-markdown.py",
     "bin/run_artifacts.py",
@@ -215,6 +216,9 @@ def main() -> int:
             print(f"失败: 缺少关键文件 {relative}")
         return 1
     print("通过: 关键项目文件存在")
+
+    if not run_command([sys.executable, "bin/test-persistent-run.py"], repo_root):
+        return 1
 
     requirements = args.requirements
     if not requirements:

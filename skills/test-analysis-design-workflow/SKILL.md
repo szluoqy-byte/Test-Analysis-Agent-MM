@@ -9,9 +9,10 @@ description: 编排测试分析与测试设计全流程；优先以独立 subage
 
 ## 必需输入
 
-- `$ARGUMENTS`：至少包含一份 `.md` 或 `.markdown` 需求文档路径。
+- `$ARGUMENTS`：新 run 至少包含一份 `.md` 或 `.markdown` 需求文档路径；已有 `runid` 可继承 manifest 输入。
 - 可额外包含一份或多份 `.md` 或 `.markdown` 设计方案文档路径。
 - 可选 `--project <project-key>`，必须原样传递给测试分析和测试设计阶段。
+- 可选 `runid=<requirement-id>`、`mode=auto|resume|extend|rebuild` 和 `remove-source=<path>`，必须原样传递给两个阶段。
 - 如果输入包含 `.docx` 或 `.xlsx`，不得在本 workflow 中转换；必须先由 `@file-normalization-agent` 归一化为 Markdown。
 
 ## 执行检查清单
@@ -43,13 +44,13 @@ Progress:
 ## 执行流程
 
 1. 校验输入至少包含一份 Markdown 需求文档；若发现 Office 输入，输出需先使用 `@file-normalization-agent` 的阻断说明，不创建全流程 run。
-2. 固定 `PROJECT_ROOT`，整理传给分析阶段的参数：需求 Markdown、可选设计 Markdown、可选 `project=<project-key>`。
-3. 优先启动 analysis subagent 完成测试分析阶段。传入内容只包含：阶段目标、需求 Markdown、可选设计 Markdown、可选 `project=<project-key>`、仓库根路径和本 skill 的交接要求。analysis subagent 内部执行 `test-analysis-workflow`，自行创建或维护 `outputs/runs/<run-id>/`，并负责所有分析内部校验和返工闭环。
+2. 固定 `PROJECT_ROOT`，整理传给分析阶段的参数：需求 Markdown、可选设计 Markdown、`runid`、`mode`、`remove-source` 和可选 `project=<project-key>`。
+3. 优先启动 analysis subagent 完成测试分析阶段。显式传入同一组持久 run 参数；analysis subagent 内部执行 `test-analysis-workflow`，按 run plan 创建、复用、续作或增量补充 `outputs/runs/<run-id>/`，并负责 revision、锁、分析校验和返工闭环。
 4. 分析阶段完成后，只做阶段交接检查：
    - 确认 `outputs/runs/<run-id>/deliverables/test-analysis-solution.json` 存在。
    - 确认 `outputs/runs/<run-id>/reports/analysis-final-report.json` 和同名 Markdown 已生成。
    - 不重新实现 `lint-run-json.py`、Markdown lint、review 或 coverage。
-5. 优先启动 design subagent 完成测试设计阶段。传入内容只包含：阶段目标、上一步生成的 `deliverables/test-analysis-solution.json`、同一 run 目录、需求 Markdown、可选设计 Markdown、可选 `project=<project-key>`、仓库根路径和本 skill 的交接要求。design subagent 内部执行 `test-design-workflow`。
+5. 优先启动 design subagent 完成测试设计阶段。传入内容只包含：阶段目标、上一步生成的 `deliverables/test-analysis-solution.json`、同一 `runid`、`mode`、同一 run 目录、manifest 输入、可选 `project=<project-key>`、仓库根路径和本 skill 的交接要求。design subagent 内部执行 `test-design-workflow`，必须基于最新 analysis hash 判断增量影响。
 6. 设计阶段完成后，只做最终路径汇总：
    - `deliverables/test-analysis-solution.json/.md`
    - `deliverables/test-design-solution.json/.md`
@@ -68,6 +69,7 @@ Progress:
 - 不调用 `test-design-workflow` 的“缺失分析方案”失败分支；本 workflow 在进入设计前必须已经拿到完整分析 JSON。
 - 不要求 `test-design-workflow` 自动运行 `test-analysis-workflow`；自动串联只存在于本全流程 workflow。
 - 同一全流程优先复用分析阶段创建的 run 目录，让分析和设计产物落在同一个 `outputs/runs/<run-id>/` 下。
+- analysis/design 各自通过 `manage-run.py` 获取和释放阶段锁；analysis finalize 后 design 才能 prepare。不得同时写同一持久 run。
 - analysis subagent 不输出 TC、不关心测试步骤；design subagent 不重新分析或改写 SC/TP，只读取完整 `test-analysis-solution.json` 生成 TC。
 - “调用 subagent”必须代表真实独立执行上下文；在同一会话里提到 `@test-analysis-agent` 或 `@test-design-agent` 不视为隔离执行。
 

@@ -17,6 +17,9 @@ Supported argument hints:
 - Optional requirement document: `--requirement <path>` or `requirement=<path>`.
 - Optional design document: `--design <path>`, `design=<path>`, or `设计方案：<path>`.
 - Optional project binding: `--project <project-key>`, `project=<project-key>`, or `项目：<project-key>`.
+- Optional persistent run: `--runid <requirement-id>` or `runid=<requirement-id>`.
+- Optional run mode: `mode=auto|resume|extend|rebuild`; default is `auto`.
+- Optional input removal for an existing run: `remove-source=<path>`.
 
 This command accepts JSON canonical analysis input plus optional normalized Markdown requirement/design evidence. If the user provides `.docx` or `.xlsx`, stop and ask them to run `@file-normalization-agent` or `/normalize-input-documents` first, then pass the normalized Markdown path back to this command.
 
@@ -25,7 +28,7 @@ When `project=<project-key>` is present, pass it through explicitly to `bin/buil
 Example:
 
 ```text
-outputs/runs/20260529-120000/deliverables/test-analysis-solution.json requirement=requirements/order-cancel.md design=design/order-cancel.md project=mall-order
+runid=IR-2026-001 requirement=requirements/order-cancel.md design=design/order-cancel.md project=mall-order mode=auto
 ```
 
 Keep `PROJECT_ROOT` fixed to the current repository root. Require a reviewed `deliverables/test-analysis-solution.json` as design input; if only requirement/design documents are provided, stop and ask the user to run `@test-analysis-agent` first or use `@test-e2e-analysis-design-agent` / `/test-analysis-design-workflow` for the full flow. Do not auto-run the analysis workflow from this design command. Ensure `process/rules-pack.json` exists before design generation, write the design deliverable fact source at `deliverables/test-design-solution.json`, and render `deliverables/test-design-solution.md` with `bin/render-run-markdown.py`. Run JSON lint, render drift check, Markdown lint, and consistency checks from `bin/`, and report the JSON and Markdown design solution paths plus check results.

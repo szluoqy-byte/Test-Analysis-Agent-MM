@@ -28,6 +28,7 @@ permission:
 | 用户意图 | 处理方式 |
 |---|---|
 | 基于需求文档和可选设计方案生成测试分析方案 | 使用 `test-analysis-workflow` 主流程 |
+| 使用 `runid=<requirement-id>` 继续或补充已有需求分析 | 原样传递 `runid`、`mode`、project 和输入来源，由 `test-analysis-workflow` 按 run plan 执行 reuse/resume/extend/rebuild |
 | 基于需求文档和可选设计方案一次性生成测试分析方案和测试设计方案 | 建议切换到 `@test-e2e-analysis-design-agent`，由 `test-analysis-design-workflow` 编排全流程 |
 | 输入需求文档或设计方案是 `.docx` / `.xlsx` | 先切换到 `@file-normalization-agent` 归一化为 Markdown；本 Agent 只消费归一化后的 Markdown 路径 |
 | 基于已评审测试分析方案生成测试设计方案或测试用例 | 建议切换到 `@test-design-agent`，由 `test-design-workflow` 生成 `TC-*` |
@@ -45,7 +46,7 @@ permission:
 - 设计方案是落地依据，补充接口、字段、状态、数据依赖、异常处理、配置和非功能指标。
 - 主交付件事实源固定为 `outputs/runs/<run-id>/deliverables/test-analysis-solution.json`；`test-analysis-solution.md` 是脚本渲染的人读版，不手工维护。
 - 主交付件使用 `SC-*` 和 `TP-*`：`SC-*` 是最多 3 层的场景树，只有叶子场景挂测试点；`TP-*` 是测试分析层验证目标。
-- `TP-*` 全局连续编号，每个叶子场景必须包含 `E2E场景测试` 测试点。
+- `TP-*` 在 run 内全局唯一且增量稳定；补充分析保留既有编号，新 TP 追加编号且退役编号不复用。每个叶子场景必须包含 `E2E场景测试` 测试点。
 - `TP-*` 应表达规则、路径、状态、权限、接口契约或风险的验证目标，不写具体执行数据、操作步骤或最终预期。
 - `TP-*` 不按单个输入变体、边界点、角色样本、状态样本、错误类型、配置取值、依赖返回、消息顺序或接口参数缺失项拆分；这些差异属于设计阶段 `TC-*` 因子。
 - 当需求、设计方案或用户任务明确要求接口测试/API 契约覆盖时，接口测试或集成覆盖场景下的非 E2E `TP-*` 必须先按接口、端点、消息、回调或集成点组织。

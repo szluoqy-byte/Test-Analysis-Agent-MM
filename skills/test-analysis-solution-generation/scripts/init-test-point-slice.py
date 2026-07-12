@@ -131,7 +131,7 @@ def main() -> int:
         "instructions": [
             "只在 scenario.testPoints[] 中填写本叶子 SC 的测试点。",
             "不要新增、删除、合并或改写 SC。",
-            "testPoints[] 可以暂不填写全局 TP 编号，merge 脚本会统一重排。",
+            "保留已有 TP 的 id；新增测试点可以暂不填写 id，merge 脚本会追加稳定编号且不重排既有 TP。",
             "每个叶子 SC 必须包含一个标题为 E2E场景测试 的测试点。",
         ],
         "scenario": scenario,

@@ -22,6 +22,7 @@ description: 测试设计方案门面 Agent；当用户希望基于已评审测�
 | 用户意图 | 处理方式 |
 |---|---|
 | 基于已评审测试分析方案生成测试设计方案 | 使用 `test-design-workflow` 主流程 |
+| 使用 `runid=<requirement-id>` 继续或补充已有需求设计 | 原样传递 `runid` 和 `mode`，优先读取同一 run 的 analysis，并按依赖变化重开受影响 TP |
 | 基于需求文档和可选设计方案一次性生成测试分析方案和测试设计方案 | 建议切换到 `@test-e2e-analysis-design-agent`，由 `test-analysis-design-workflow` 先分析再设计 |
 | 基于已有测试设计 JSON 输出不同写作风格或交付格式 | 使用 `test-case-writing`，不改写 canonical JSON |
 | 输入需求、设计依据或外部分析方案是 `.docx` / `.xlsx` | 先切换到 `@file-normalization-agent` 归一化为 Markdown；本 Agent 只消费归一化后的 Markdown 或 JSON 路径 |
@@ -43,7 +44,7 @@ description: 测试设计方案门面 Agent；当用户希望基于已评审测�
 - 需求文档和设计方案是校验依据，用于确认阈值、状态、错误处理、接口契约、字段规则和预期结果。
 - 主交付件继承 `SC-*` 场景树和 `TP-*` 测试点，在每个测试点下生成 `testCases[]`。
 - `TP-*` 是验证目标簇，不固定对应 1 个 TC；设计阶段必须先识别必选因子、候选因子和基于 TP 目标补充推导的必要因子，再生成最小充分 TC 集合。已加载来源中的既有测试设计因子是必选覆盖项或启发来源，不是封闭上限；除非更高优先级指令明确限定仅使用指定因子集合，否则不得因为因子库未列出某类情况，就忽略该 TP 下有判定意义的独立测试实例。
-- `TC-*` 全局连续编号。每个 TC 必须包含 `level`、`preconditions[]`、`testData[]`、`steps[]`、`expectedResult` 和 `sourceRefs[]`。
+- `TC-*` 在 run 内全局唯一且增量稳定；补充设计保留既有编号，新 TC 追加编号且退役编号不复用。每个 TC 必须包含 `level`、`preconditions[]`、`testData[]`、`steps[]`、`expectedResult` 和 `sourceRefs[]`。
 - `level` 使用 `Level 0` 到 `Level 4`；`testData[]` 使用 `{name, value, description}`；`steps[]` 使用 `{stepNo, action, expected}`。
 - 设计阶段继承分析方案的 `E2E场景测试`：该测试点生成端到端主流程测试用例，其他规则、异常、接口、权限、状态、回滚或补偿用例保留在同级 `TP-*` 下。
 - 接口类 TC 不写完整裸 URL；必须拆成 `接口=METHOD /path`、`参数名=参数值`、`响应状态=...` 等字段片段。

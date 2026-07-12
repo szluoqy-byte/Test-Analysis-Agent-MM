@@ -63,7 +63,7 @@ Progress:
 10. 只把有输入依据、适用规则、业务不变量或合理测试设计推导支撑的实例写入 `testCases[]`；模型补充因子不得覆盖或违背 rules、当前用户明确指令、输入文档明确事实或分析方案。
 11. 如果当前 TP 只生成 1 个 TC，必须能从输入依据、业务不变量、模型测试经验或切片评审说明中解释该 TP 不存在可支持的额外独立因子拆分；否则应继续拆分代表性成功、拒绝/失败、边界/异常、状态/权限/配置差异或关键组合 TC。
 12. 不要求穷举所有无业务意义的笛卡尔积；“最小充分”不是“最少”，而是覆盖所有对该 TP 判定有意义的独立测试实例，并优先覆盖高风险、关键规则、明确需求、明确设计和代表性等价类/边界。
-13. `TC-*` 最终由 `skills/test-design-solution-generation/scripts/merge-test-case-slice.py` 全局连续编号，不按场景或测试点重置；切片内不得依赖局部编号作为事实。
+13. `TC-*` 最终由 `skills/test-design-solution-generation/scripts/merge-test-case-slice.py` 分配 run 内全局唯一、增量稳定的编号；既有 TC 保留 ID，新 TC 从历史最大值后追加，退役编号不复用。
 14. TC 必须具体到可执行实例：明确用例级别、前置条件、测试数据、操作步骤、步骤预期和最终预期。
 15. 每个 TC 必须填写 `level`，取值只能是 `Level 0`、`Level 1`、`Level 2`、`Level 3`、`Level 4`，定义以 `knowledge/test-design-solution-standard.md` 为准。
 16. `testData[]` 使用 `{name, value, description}` 数组，必须给出具体值或稳定数据槽位。

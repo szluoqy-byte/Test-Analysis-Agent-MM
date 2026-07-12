@@ -17,9 +17,13 @@ JSON 是唯一事实源；Markdown 不手工维护。二者不一致时，以 JS
 
 ```text
 outputs/runs/<run-id>/
+  revisions/
   inputs/
   deliverables/
   process/
+    run-manifest.json
+    run-plan.json
+    id-registry.json
     analysis-task-list.json/.md
     design-task-list.json/.md
     rules-pack.json/.md
@@ -39,6 +43,8 @@ outputs/runs/<run-id>/
 ```
 
 `process/reviews/` 保存过程评审和 coverage-review 产物；`reports/` 只保存最终人审报告。
+
+持久 run 可由 `runid=<requirement-id>` 定位。`process/run-manifest.json` 记录输入和依赖指纹，`process/run-plan.json` 记录本次 create/resume/reuse/extend/rebuild 决策；每次 extend/rebuild 前把当前 JSON 和 run-local inputs 快照到 `revisions/rNNNN/`。
 
 ## 过程件
 

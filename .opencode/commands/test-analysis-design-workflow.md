@@ -16,6 +16,9 @@ Supported argument hints:
 - Requirement document: `<requirement.md>` or `requirement=<path>`.
 - Optional design document: `--design <path>`, `design=<path>`, or `设计方案：<path>`.
 - Optional project binding: `--project <project-key>`, `project=<project-key>`, or `项目：<project-key>`.
+- Optional persistent run: `--runid <requirement-id>` or `runid=<requirement-id>`.
+- Optional run mode: `mode=auto|resume|extend|rebuild`; default is `auto`.
+- Optional input removal for an existing run: `remove-source=<path>`.
 
 This command only accepts normalized Markdown inputs. If the user provides `.docx` or `.xlsx`, stop and ask them to run `@file-normalization-agent` or `/normalize-input-documents` first, then pass the normalized Markdown path back to this command.
 
@@ -26,7 +29,7 @@ If true subagents are unavailable, fall back to the same-session workflow sequen
 Example:
 
 ```text
-requirements/order-cancel.md design=design/order-cancel.md project=mall-order
+requirements/order-cancel.md design=design/order-cancel.md project=mall-order runid=IR-2026-001 mode=auto
 ```
 
 Keep `PROJECT_ROOT` fixed to the current repository root. Prefer one shared `outputs/runs/<run-id>/` for both phases. Report the final run directory, analysis solution JSON/Markdown, design solution JSON/Markdown, analysis final report JSON/Markdown, and design final report JSON/Markdown.

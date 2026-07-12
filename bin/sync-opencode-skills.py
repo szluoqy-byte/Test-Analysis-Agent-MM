@@ -16,7 +16,7 @@ from encoding_utils import configure_stdio
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 MIRROR_DIRS = (".opencode", ".testagent")
 PRIMARY_MIRROR = ".opencode"
-SECONDARY_STATIC_SKIP = {"agents", "skills", "codearts.json", "logs"}
+SECONDARY_STATIC_SKIP = {"agents", "skills", "codearts.json"}
 ROOT_CONFIG_MIRRORS = ("codearts.json",)
 
 

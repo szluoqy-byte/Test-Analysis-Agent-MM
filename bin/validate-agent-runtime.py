@@ -33,9 +33,9 @@ REQUIRED_SKILLS = {
 }
 REQUIRED_AGENTS = {
     "file-normalization-agent": ("normalize-input-documents", "outputs/input-cache", "file-normalization-agent"),
-    "test-analysis-agent": ("test-analysis-workflow", "file-normalization-agent", "context-capture"),
-    "test-design-agent": ("test-design-workflow", "file-normalization-agent", "test-design-solution-generation", "test-case-writing", "context-capture"),
-    "test-e2e-analysis-design-agent": ("test-analysis-design-workflow", "test-analysis-workflow", "test-design-workflow", "file-normalization-agent"),
+    "test-analysis-agent": ("test-analysis-workflow", "file-normalization-agent", "context-capture", "runid="),
+    "test-design-agent": ("test-design-workflow", "file-normalization-agent", "test-design-solution-generation", "test-case-writing", "context-capture", "runid="),
+    "test-e2e-analysis-design-agent": ("test-analysis-design-workflow", "test-analysis-workflow", "test-design-workflow", "file-normalization-agent", "runid="),
 }
 RUNTIME_CONFIGS = ("opencode.json", "codearts.json")
 FRAMEWORK_MIRRORS = (".opencode", ".testagent")
@@ -50,7 +50,10 @@ REQUIRED_BIN_FILES = {
     "check-staged-run.py",
     "init-staged-slices.py",
     "list-staged-work-items.py",
+    "manage-run.py",
     "merge-staged-slices.py",
+    "reopen-run-items.py",
+    "stable_ids.py",
     "staged_workflow.py",
 }
 SKILL_STRUCTURE_MARKERS = {
@@ -247,6 +250,10 @@ def validate_framework_mirror(root: Path, mirror_dir: str, issues: list[str]) ->
             fail(f"{command_label} must invoke {skill_name}", issues)
         if "$ARGUMENTS" not in command_text:
             fail(f"{command_label} must pass $ARGUMENTS", issues)
+        if skill_name in MAIN_SKILLS.values():
+            for term in ("runid", "mode=auto"):
+                if term not in command_text:
+                    fail(f"{command_label} must document persistent run argument {term}", issues)
 
     for agent_name, required_terms in REQUIRED_AGENTS.items():
         opencode_agent = f"{mirror_dir}/agents/{agent_name}.md"

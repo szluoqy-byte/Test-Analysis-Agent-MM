@@ -110,13 +110,9 @@ def main() -> int:
     if case_ids:
         errors.append("分析方案不得包含测试用例标题")
 
-    for point_index, point_id in enumerate(point_ids, start=1):
-        expected = f"TP-{point_index:03d}"
-        if point_id != expected:
-            errors.append(f"测试点序号应为 {expected}，实际为 {point_id}")
-
-    if scenario_ids and not any(point_id == "TP-001" for point_id in point_ids):
-        errors.append("未找到首个测试点 TP-001")
+    duplicates = sorted({point_id for point_id in point_ids if point_ids.count(point_id) > 1})
+    if duplicates:
+        errors.append(f"测试点编号重复: {', '.join(duplicates)}")
 
     if "E2E场景测试" not in text:
         errors.append("未找到 E2E场景测试")

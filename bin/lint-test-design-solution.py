@@ -114,14 +114,12 @@ def main() -> int:
     if not case_ids:
         errors.append("未找到 TC-* 测试用例")
 
-    for point_index, point_id in enumerate(point_ids, start=1):
-        expected = f"TP-{point_index:03d}"
-        if point_id != expected:
-            errors.append(f"测试点序号应为 {expected}，实际为 {point_id}")
-    for case_index, case_id in enumerate(case_ids, start=1):
-        expected = f"TC-{case_index:03d}"
-        if case_id != expected:
-            errors.append(f"测试用例序号应为 {expected}，实际为 {case_id}")
+    duplicate_points = sorted({point_id for point_id in point_ids if point_ids.count(point_id) > 1})
+    duplicate_cases = sorted({case_id for case_id in case_ids if case_ids.count(case_id) > 1})
+    if duplicate_points:
+        errors.append(f"测试点编号重复: {', '.join(duplicate_points)}")
+    if duplicate_cases:
+        errors.append(f"测试用例编号重复: {', '.join(duplicate_cases)}")
 
     required_markers = ("- 前置条件：", "- 测试数据：", "- 测试步骤：", "- 预期结果：", "- 用例级别：", "- 最终预期：", "- 来源引用：")
     for marker in required_markers:

@@ -15,6 +15,7 @@ if str(BIN_DIR) not in sys.path:
     sys.path.insert(0, str(BIN_DIR))
 
 from run_artifacts import dump_json, load_json
+from stable_ids import assign_stable_ids
 from staged_workflow import render_markdown_for_json
 
 
@@ -90,6 +91,21 @@ def leaf_map(data: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return {str(node.get("id")): node for node in iter_leaf_scenarios(data.get("scenarios", []))}
 
 
+def reconcile_analysis_with_tree(
+    target: dict[str, Any], tree: dict[str, Any], tree_path: Path, root: Path
+) -> dict[str, Any]:
+    existing = leaf_map(target)
+    reconciled = analysis_skeleton_from_scenario_tree(tree, tree_path, root)
+    reconciled["title"] = target.get("title") or reconciled["title"]
+    if isinstance(target.get("inputs"), list):
+        reconciled["inputs"] = target["inputs"]
+    for leaf in iter_leaf_scenarios(reconciled.get("scenarios", [])):
+        previous = existing.get(str(leaf.get("id")))
+        if previous and isinstance(previous.get("testPoints"), list):
+            leaf["testPoints"] = previous["testPoints"]
+    return reconciled
+
+
 def normalize_point(point: dict[str, Any]) -> dict[str, Any]:
     normalized = {key: point.get(key) for key in POINT_KEYS if key in point}
     normalized.setdefault("basisRefs", [])
@@ -129,18 +145,6 @@ def validate_slice(slice_data: dict[str, Any]) -> tuple[str, list[dict[str, Any]
     return leaf_id, normalized_points
 
 
-def renumber_points(data: dict[str, Any]) -> None:
-    index = 1
-    for leaf in iter_leaf_scenarios(data.get("scenarios", [])):
-        points = leaf.get("testPoints")
-        if not isinstance(points, list):
-            continue
-        for point in points:
-            if isinstance(point, dict):
-                point["id"] = f"TP-{index:03d}"
-                index += 1
-
-
 def update_work_items(run_dir: Path, leaf_id: str, slice_path: Path, root: Path) -> None:
     path = run_dir / "process" / "test-point-work-items.json"
     if not path.exists():
@@ -152,6 +156,8 @@ def update_work_items(run_dir: Path, leaf_id: str, slice_path: Path, root: Path)
             item["status"] = "done"
             item["slicePath"] = rel_path(slice_path, root)
             item["mergedAt"] = now
+            item["contentChanged"] = False
+            item.pop("reopenReason", None)
     dump_json(path, data)
     render_markdown_for_json(path)
     print(f"通过: 已更新 {rel_path(path, root)}")
@@ -164,7 +170,7 @@ def main() -> int:
     parser.add_argument("--slice", required=True, type=Path, help="test-point-slice JSON")
     parser.add_argument("--scenario-tree", type=Path, help="场景树 JSON，默认 process/scenario-tree.json")
     parser.add_argument("--target", type=Path, help="目标分析方案 JSON，默认 deliverables/test-analysis-solution.json")
-    parser.add_argument("--no-renumber", action="store_true", help="不重新全局编号 TP")
+    parser.add_argument("--no-renumber", action="store_true", help="不分配稳定 TP 编号")
     args = parser.parse_args()
 
     root = repo_root()
@@ -179,15 +185,34 @@ def main() -> int:
     if not tree_path.exists():
         print(f"失败: 场景树不存在: {tree_path}", file=sys.stderr)
         return 1
-    target = load_json(target_path) if target_path.exists() else analysis_skeleton_from_scenario_tree(load_json(tree_path), tree_path, root)
+    tree = load_json(tree_path)
+    historical_points: list[dict[str, Any]] = []
+    if target_path.exists():
+        previous_target = load_json(target_path)
+        historical_points = [
+            point
+            for leaf in iter_leaf_scenarios(previous_target.get("scenarios", []))
+            for point in leaf.get("testPoints", [])
+            if isinstance(point, dict)
+        ]
+        target = reconcile_analysis_with_tree(previous_target, tree, tree_path, root)
+    else:
+        target = analysis_skeleton_from_scenario_tree(tree, tree_path, root)
     try:
         leaf_id, points = validate_slice(load_json(slice_path))
         leaves = leaf_map(target)
         if leaf_id not in leaves:
             raise ValueError(f"目标分析方案不存在叶子 SC: {leaf_id}")
-        leaves[leaf_id]["testPoints"] = points
+        previous_points = [point for point in leaves[leaf_id].get("testPoints", []) if isinstance(point, dict)]
+        all_points = historical_points + [
+            point
+            for leaf in iter_leaf_scenarios(target.get("scenarios", []))
+            for point in leaf.get("testPoints", [])
+            if isinstance(point, dict)
+        ]
         if not args.no_renumber:
-            renumber_points(target)
+            points = assign_stable_ids(run_dir, "TP", points, previous_points, all_points)
+        leaves[leaf_id]["testPoints"] = points
     except ValueError as exc:
         print(f"失败: {exc}", file=sys.stderr)
         return 1

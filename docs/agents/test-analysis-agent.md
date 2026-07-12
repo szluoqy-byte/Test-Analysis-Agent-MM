@@ -55,7 +55,7 @@
 
 ### TP 测试点
 
-`TP-*` 表示叶子场景下的验证目标，编号全局连续。TP 应覆盖业务规则、流程路径、状态迁移、权限角色、接口契约、数据一致性、配置组合、异常和风险。每个叶子 SC 必须包含独立的 `E2E场景测试` 测试点，用于覆盖主业务流闭环。
+`TP-*` 表示叶子场景下的验证目标，编号在 run 内全局唯一且增量稳定。TP 应覆盖业务规则、流程路径、状态迁移、权限角色、接口契约、数据一致性、配置组合、异常和风险。每个叶子 SC 必须包含独立的 `E2E场景测试` 测试点，用于覆盖主业务流闭环。
 
 ### Basis 引用
 
@@ -69,7 +69,7 @@ flowchart TD
     B --> C{"输入是否全为 Markdown"}
     C -->|"否，包含 Office 文件"| C1["阻断并路由到 file-normalization-agent"]
     C -->|"是"| D["调用 test-analysis-workflow skill"]
-    D --> E["generate-run-id 创建 run 目录"]
+    D --> E["manage-run prepare 创建或复用持久 run"]
     E --> F["update-run-task 初始化 analysis-task-list"]
     F --> G["build-rules-pack 生成 rules-pack"]
     G --> H["context-source-indexing 生成 context-pack"]
@@ -108,7 +108,7 @@ flowchart TD
 
 ## 稳定性机制
 
-- run id 固定由 `bin/generate-run-id.py` 生成，所有产物写入 `outputs/runs/<run-id>/`。
+- 用户可用 `runid=<requirement-id>` 复用持久 run；未提供时由 `bin/manage-run.py` 调用 `bin/generate-run-id.py` 生成时间戳。所有产物写入 `outputs/runs/<run-id>/`。
 - rules-pack 和 context-pack 只做索引；后续阶段按阶段可见性读取正文并判断是否应用。
 - `generationContext` 由固定脚本构建，只作为当前阶段工作包，不合并为主交付业务事实。
 - TP 按叶子 SC 切片生成，单个模型上下文只处理一个场景下的测试点。
@@ -123,7 +123,7 @@ flowchart TD
 - 每个叶子 SC 都有对应 TP 切片，且切片 review 通过。
 - `deliverables/test-analysis-solution.json` 只包含 schema 2.0 允许字段。
 - 不出现测试用例、测试数据、测试步骤或预期结果。
-- `TP-*` 全局连续编号，每个叶子 SC 包含 `E2E场景测试`。
+- `TP-*` 保留既有编号，新 TP 追加编号且退役编号不复用；每个叶子 SC 包含 `E2E场景测试`。
 - `bin/lint-run-json.py`、Markdown render、分析方案 Markdown lint 通过。
 - 最终 `test-analysis-solution-review`、`analysis-coverage-review` 和 `check-staged-run --scope analysis` 通过或已完成返工闭环。
 
