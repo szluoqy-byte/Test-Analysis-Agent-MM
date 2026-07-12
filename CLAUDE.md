@@ -14,8 +14,8 @@
 - 最终人审报告 skill 入口是 `skills/final-report-generation/SKILL.md`。
 - `agents/` 是唯一手工维护的 Agent 门面源；`skills/` 是唯一手工维护的 skill 源。
 - `.opencode/agents/` 和 `.opencode/skills/` 由根目录源生成，不要直接编辑。
-- 修改 agents 或 skills 后，运行 `python bin/sync-opencode-skills.py`。
-- 修改运行时 wiring 后，运行 `python bin/validate-agent-runtime.py`。
+- 只有当前任务实际修改了 agents 或 skills，才运行 `python bin/sync-opencode-skills.py`；只有实际修改了运行时 wiring，才运行 `python bin/validate-agent-runtime.py`。
+- 正常执行文件归一化、测试分析、测试设计或 analysis-design 业务 run 时，不运行 `bin/sync-opencode-skills.py`、`bin/validate-agent-runtime.py` 或 `bin/smoke-test-analysis.py`，只执行对应 workflow 规定的当前 run 校验。
 - `SKILL.md` 必须保持 Agent Skills 兼容：frontmatter 的 `name` 匹配目录名，`description` 说明做什么和何时用；正文保留核心流程，并包含何时使用、输入、执行步骤、输出、验证闭环和约束/易错点。
 - 多步骤 workflow、生成、coverage 和 final-report 类 skill 必须包含 `Progress:` checklist，防止跳过脚本初始化、review、coverage 或最终校验。
 - 从仓库根目录解析路径，不要从 `.claude-plugin/`、`.opencode/`、skill 目录或输入文件目录解析。

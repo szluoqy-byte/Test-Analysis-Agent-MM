@@ -48,6 +48,6 @@ permission:
 ## 执行约束
 
 - 所有路径从仓库根目录解析。
-- 修改 `agents/*.md` 或 `skills/*/SKILL.md` 后，运行 `python bin/sync-opencode-skills.py`。
-- 修改运行时 wiring 后，运行 `python bin/validate-agent-runtime.py`。
+- 正常 analysis-design 业务任务不得运行 `bin/sync-opencode-skills.py`、`bin/validate-agent-runtime.py` 或 `bin/smoke-test-analysis.py`；两个阶段只执行各自 workflow 规定的当前 run 校验。
+- 只有用户任务明确要求修改仓库框架文件时，才按根目录 `AGENTS.md` 的“仓库开发校验”执行相应脚本。
 - 不直接编辑 `.opencode/agents/`、`.opencode/skills/`、`.testagent/agents/` 或 `.testagent/skills/`；它们由同步脚本生成。

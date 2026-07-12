@@ -94,4 +94,5 @@ Progress:
 - 不直接处理 `.docx` / `.xlsx`。
 - 不复制 analysis/design workflow 内部校验逻辑。
 - 不手工维护 Markdown；Markdown 仍由 `bin/render-run-markdown.py` 或对应 workflow 内部脚本从 JSON 渲染。
+- 正常 analysis-design run 不得调用 `bin/sync-opencode-skills.py`、`bin/validate-agent-runtime.py` 或 `bin/smoke-test-analysis.py`；只执行两个阶段各自规定的当前 run 校验。
 - 不临时创建脚本处理 JSON、循环切片、汇总状态或定位返工；如固定脚本能力不足，修改仓库固定脚本并运行校验。

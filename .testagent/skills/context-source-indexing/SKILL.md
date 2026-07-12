@@ -55,7 +55,7 @@ python skills/context-source-indexing/scripts/build-context-source-index.py \
 
 ## 验证闭环
 
-执行脚本后检查 `process/context-pack.json` 存在且可由 `python bin/lint-run-json.py outputs/runs/<run-id>` 读取。若修改了 context source 元数据或本 skill 文本，再运行 `python bin/validate-agent-runtime.py` 和 `python bin/sync-opencode-skills.py --check`。
+执行脚本后检查 `process/context-pack.json` 存在且可由 `python bin/lint-run-json.py outputs/runs/<run-id>` 读取。本 skill 在业务 run 中不执行仓库镜像、runtime wiring 或 smoke 校验；若当前用户任务另行修改了 context source 元数据或 skill 源文件，由外层仓库开发任务按根目录 `AGENTS.md` 完成对应开发校验。
 
 常用命令：
 

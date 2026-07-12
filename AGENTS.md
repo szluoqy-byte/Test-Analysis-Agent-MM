@@ -33,8 +33,9 @@
 - `agents/` 是唯一手工维护的 Agent 门面源。
 - `skills/` 是唯一手工维护的 skill 源。
 - `.opencode/agents/`、`.opencode/skills/`、`.testagent/agents/` 和 `.testagent/skills/` 是生成镜像，不直接手工编辑。
-- 修改任何 `agents/*.md`、`skills/*/SKILL.md` 或根目录 `codearts.json` 后，运行 `python bin/sync-opencode-skills.py`。
-- 修改运行时 wiring 后，运行 `python bin/validate-agent-runtime.py`。
+- 只有当前任务实际修改了 `agents/*.md`、`skills/*/SKILL.md` 或根目录 `codearts.json`，才运行 `python bin/sync-opencode-skills.py`。
+- 只有当前任务实际修改了运行时 wiring，才运行 `python bin/validate-agent-runtime.py`。
+- 正常执行文件归一化、测试分析、测试设计或 analysis-design 业务 run 时，不得运行 `bin/sync-opencode-skills.py`、`bin/validate-agent-runtime.py` 或 `bin/smoke-test-analysis.py`；这些脚本不校验当前 run 的业务产物。
 - 每个 `skills/<skill-name>/SKILL.md` 必须保持 Agent Skills 兼容 frontmatter：`name` 与目录名一致，`description` 说明做什么和何时使用，正文保持核心指令而不是长篇资料。
 - 每个 skill 正文必须能快速定位：何时使用、输入、执行步骤、输出、验证闭环和约束/易错点；详细参考放入该 skill 的 `references/`，可执行 helper 放入该 skill 的 `scripts/`，并在正文说明何时读取或调用。
 - 多步骤 workflow、生成、coverage 和 final-report 类 skill 必须包含 `Progress:` checklist，用 `- [ ] Step N: ...` 明确关键脚本、编辑对象和验证门禁。
@@ -110,14 +111,21 @@
 - 接口类测试用例步骤或测试数据不得写完整裸 URL；必须拆成 `接口=METHOD /path`、`参数名=参数值`、`响应状态=...` 等字段片段。
 - 确定性结构、编号、字段、JSON 结构、Markdown 语法和固定产物一致性问题以 Python 脚本为事实源；review 和 coverage 不重复执行脚本已覆盖的检查。
 
-## 校验命令
+## 校验命令分层
 
-- Runtime wiring：`python bin/validate-agent-runtime.py`
-- OpenCode/TestAgent skill 镜像：`python bin/sync-opencode-skills.py --check`
-- 持久 run 生命周期回归：`python bin/test-persistent-run.py`
+### 单次业务 run 校验
+
 - 单次 run JSON 结构：`python bin/lint-run-json.py outputs/runs/<run-id>`
 - 单次 run Markdown 渲染一致性：`python bin/render-run-markdown.py outputs/runs/<run-id> --check`
 - 测试分析方案结构：`python bin/lint-test-analysis-solution.py <solution.md>`
 - 测试设计方案结构：`python bin/lint-test-design-solution.py <solution.md>`
 - 单次 run 一致性：`python bin/check-artifact-consistency.py outputs/runs/<run-id>`
+
+### 仓库开发校验
+
+以下命令只在当前任务修改了 Agent、Skill、runtime wiring、固定脚本、模板或示例 fixture 时按变更范围执行，不属于测试分析/设计业务 run：
+
+- Runtime wiring：`python bin/validate-agent-runtime.py`
+- OpenCode/TestAgent skill 镜像：`python bin/sync-opencode-skills.py --check`
+- 持久 run 生命周期回归：`python bin/test-persistent-run.py`
 - 框架回归/示例 fixture smoke：`python bin/smoke-test-analysis.py`

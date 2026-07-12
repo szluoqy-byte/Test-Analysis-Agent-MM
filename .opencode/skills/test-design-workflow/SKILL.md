@@ -94,6 +94,7 @@ Progress:
 
 - design 流程不得临时创建 `.py`、`.js`、`.ps1`、`.bat` 或其他可执行脚本来拼接、修复或拆分 JSON。
 - 只能调用仓库固定脚本：`bin/manage-run.py`、`bin/reopen-run-items.py`、`bin/build-rules-pack.py`、`skills/test-design-solution-generation/scripts/bind-analysis-solution.py`、`skills/test-design-solution-generation/scripts/extract-test-case-work-items.py`、`skills/test-design-solution-generation/scripts/init-test-case-slice.py`、`bin/init-staged-slices.py`、`bin/list-staged-work-items.py`、`bin/build-generation-context.py`、`bin/init-report-artifact.py`、`bin/build-fact-coverage-map.py`、`bin/build-final-report.py`、`bin/apply-review-findings.py`、`bin/apply-coverage-gaps.py`、`bin/update-run-task.py`、`skills/test-design-solution-generation/scripts/merge-test-case-slice.py`、`bin/merge-staged-slices.py`、`bin/check-staged-run.py`、`bin/lint-run-json.py`、`bin/render-run-markdown.py`、`bin/lint-test-design-solution.py` 和 `bin/check-artifact-consistency.py`。
+- 正常 design run 不得调用 `bin/sync-opencode-skills.py`、`bin/validate-agent-runtime.py` 或 `bin/smoke-test-analysis.py`；它们是仓库开发校验，不属于本 workflow。
 - 如果固定脚本能力不足，必须修改仓库 `bin/` 或对应 skill `scripts/` 下的固定脚本并运行校验；不得在 `outputs/`、`process/`、`reports/`、临时目录或当前工作目录写一次性脚本。
 
 ## 防卡住规则
