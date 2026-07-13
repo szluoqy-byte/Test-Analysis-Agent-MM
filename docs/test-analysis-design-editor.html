@@ -1062,7 +1062,8 @@
       if (!selected) return [{ id: "detail", label: "详情编辑" }];
       if (selected.type === "scenario") return [
         { id: "detail", label: "详情编辑" },
-        { id: "test-points", label: "TP 列表" }
+        { id: "test-points", label: "TP 列表" },
+        { id: "test-cases", label: "TC 列表" }
       ];
       if (selected.type === "testPoint") return [
         { id: "detail", label: "详情编辑" },
@@ -1098,6 +1099,10 @@
       }
       if (selected.type === "scenario" && activeDetailTab === "test-points") {
         renderScenarioTestPoints(ref.node);
+        return;
+      }
+      if (selected.type === "scenario" && activeDetailTab === "test-cases") {
+        renderScenarioTestCases(ref.node);
         return;
       }
       if (selected.type === "testPoint" && activeDetailTab === "test-cases") {
@@ -1182,6 +1187,43 @@
                 <td><button class="object-link" type="button" data-jump-type="testPoint" data-jump-id="${escapeAttr(point.id)}">${escapeHtml(point.id)}</button></td>
                 <td><button class="object-link" type="button" data-jump-type="testPoint" data-jump-id="${escapeAttr(point.id)}">${escapeHtml(point.title || "未命名")}</button></td>
                 <td>${(point.testCases || []).length}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+      bindObjectJumps();
+    }
+
+    function collectScenarioTestCases(scenario) {
+      const rows = [];
+      for (const { point, path } of collectScenarioTestPoints(scenario)) {
+        for (const testCase of point.testCases || []) {
+          rows.push({ point, testCase, path });
+        }
+      }
+      return rows;
+    }
+
+    function renderScenarioTestCases(node) {
+      const rows = collectScenarioTestCases(node);
+      if (!rows.length) {
+        detailView.innerHTML = '<div class="empty">当前 SC 及其子场景下暂无 TC。</div>';
+        return;
+      }
+      detailView.innerHTML = `
+        <div class="notice">这里汇总当前 SC 范围下的 TC。点击 TP、TC 编号或标题会跳转到对应节点，并展开左侧树。</div>
+        <table class="table">
+          <thead><tr><th>场景路径</th><th>TP</th><th>TC</th><th>用例标题</th><th>级别</th><th>步骤数</th></tr></thead>
+          <tbody>
+            ${rows.map(({ point, testCase, path }) => `
+              <tr>
+                <td>${escapeHtml(path)}</td>
+                <td><button class="object-link" type="button" data-jump-type="testPoint" data-jump-id="${escapeAttr(point.id)}">${escapeHtml(point.id)}</button></td>
+                <td><button class="object-link" type="button" data-jump-type="testCase" data-jump-id="${escapeAttr(testCase.id)}">${escapeHtml(testCase.id)}</button></td>
+                <td><button class="object-link" type="button" data-jump-type="testCase" data-jump-id="${escapeAttr(testCase.id)}">${escapeHtml(testCase.title || "未命名")}</button></td>
+                <td>${escapeHtml(testCase.level || "")}</td>
+                <td>${(testCase.steps || []).length}</td>
               </tr>
             `).join("")}
           </tbody>
