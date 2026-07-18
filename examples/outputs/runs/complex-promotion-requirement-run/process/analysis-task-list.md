@@ -14,7 +14,7 @@
 |---|---|---|---|---|---|
 | 1 | 固定 PROJECT_ROOT 与运行目录 | test-analysis-workflow | outputs/runs/complex-promotion-requirement-run/ | done | outputs/runs/complex-promotion-requirement-run/ |
 | 2 | 强制规则加载 | bin/build-rules-pack.py | process/rules-pack.json、core/project/user rules 强制规则索引 | done | process/rules-pack.json |
-| 3 | 上下文来源索引 | context-source-indexing | process/context-pack.json、动态 project/personal knowledge/memory 来源索引 | done | process/context-pack.json |
+| 3 | 上下文来源索引 | context-source-indexing | process/context-pack.json、动态 project/personal knowledge 来源索引 | done | process/context-pack.json |
 | 4 | 输入事实建模 | input-fact-modeling | process/input-fact-model.json、事实清单、需求-设计映射 | done | process/input-fact-model.json |
 | 5 | 测试技术路由 | testing-method-router | 分析维度覆盖表、测试技术路由表、动态来源应用记录 | done | process/input-fact-model.json；process/rules-pack.json；process/context-pack.json |
 | 6 | 专项分析 | testing-method-router | 覆盖维度建议、测试点候选、补读记录 | done | deliverables/test-analysis-solution.json |

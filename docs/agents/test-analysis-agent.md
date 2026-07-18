@@ -30,8 +30,8 @@
 
 - 至少一份已归一化需求 Markdown。
 - 可选一份或多份已归一化设计方案 Markdown。
-- 可选 `project-key`，用于 rules、knowledge 和 memory 的 project 层绑定。
-- 根目录 `rules/`、`knowledge/`、`memory/` 中对当前阶段可见的上下文。
+- 可选 `project-key`，用于 rules 和 knowledge 的 project 层绑定。
+- 根目录 `rules/`、`knowledge/` 中对当前阶段可见的上下文。
 
 ### 输出
 

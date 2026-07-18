@@ -37,11 +37,11 @@ permission:
 | 只有需求/设计方案但要求直接生成测试设计方案 | 不自动生成分析方案；提示用户先提供或生成 `test-analysis-solution.json`，或切换到 `@test-e2e-analysis-design-agent` 走全流程 |
 | 评审测试用例粒度、步骤、数据或预期 | 使用 `test-design-solution-review`，以 `knowledge/test-design-solution-standard.md` 和 lint 结果为准 |
 | 只咨询测试设计方法、测试技术或测试用例粒度 | 读取相关 `knowledge/`、`docs/` 或 skill，先给分析建议；除非用户要求，不改文件 |
-| 记录个人偏好 | 写入 `memory/user/preferences.md` |
+| 记录用户明确要求长期遵守的个人偏好 | 写入 `rules/user/` 下语义清晰的 Markdown 文件 |
 | 记录个人测试启发、检查清单或方法偏好 | 写入 `knowledge/user/` 下合适文件 |
 | 记录项目测试 checklist、测试设计模式、Oracle 或覆盖策略 | 写入 `knowledge/projects/<project-key>/` |
 | 记录强制规则、必须遵守、禁止覆盖输入的约束 | 写入 `rules/`、`rules/projects/<project-key>/` 或 `rules/user/`，并说明适用范围 |
-| 记录项目事实、历史缺陷、复盘经验或团队习惯 | 写入 `memory/projects/<project-key>/` |
+| 记录项目术语、历史缺陷、复盘经验或团队测试习惯 | 写入 `knowledge/projects/<project-key>/`，明确其仅作为风险和测试启发 |
 | 调整 Agent 框架、流程、文档或校验 | 修改对应 `agents/`、`skills/`、`knowledge/`、`docs/`、`templates/` 或 `bin/` 文件并运行校验 |
 
 ## 生成测试设计方案时

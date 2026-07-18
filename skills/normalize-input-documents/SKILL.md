@@ -257,6 +257,6 @@ DOCX 图片抽取和占位可以一次完成，但图片理解、Mermaid 转换�
 - 不从输入文件路径反推 `PROJECT_ROOT`；所有缓存路径从仓库根目录解析。
 - 不把缓存 Markdown 写到输入文件所在目录。
 - 未绑定 run 时，下游可以读取最终摘要给出的全局缓存 Markdown；已绑定 run 时，优先读取 `outputs/runs/<run-id>/inputs/` 下的 run-local 输入。
-- 不把 Office 原文全量写入 memory、knowledge 或 rules。
+- 不把 Office 原文全量写入 knowledge 或 rules。
 - 不把转换警告写入测试分析或测试设计主交付件；需要留痕时写入归一化 Markdown 的对应图片占位块、process 或 reports。
 - 转换后的 Markdown 是下游分析/设计的输入事实源；如果转换存在图片缺失或表格异常风险，必须在归一化 Markdown 或过程产物中记录，且下游不需要再读取单独图片补充文件才能理解输入。

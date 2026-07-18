@@ -8,7 +8,7 @@ rules/projects/<project-key>/**/*.md
 
 未唯一确定 `project-key` 时，不得读取所有项目目录正文，避免跨项目规则污染。
 
-项目级 rules 的优先级高于当前输入文档、memory 和 knowledge；如果与输入文档冲突，默认遵守 rules，并在过程产物中记录覆盖原因。项目级 rules 不得覆盖当前用户明确指令，也不得违反 core rules。
+项目级 rules 的优先级高于当前输入文档和 knowledge；如果与输入文档冲突，默认遵守 rules，并在过程产物中记录覆盖原因。项目级 rules 不得覆盖当前用户明确指令，也不得违反 core rules。
 
 项目规则文件必须声明 frontmatter：
 

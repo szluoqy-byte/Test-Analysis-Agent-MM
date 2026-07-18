@@ -31,7 +31,7 @@
 
 - 必需：完整、符合 schema 2.0 的 `test-analysis-solution.json`。
 - 可选：原始需求 Markdown、设计方案 Markdown、project-key。
-- 可选：rules、knowledge、memory 中对设计阶段可见的上下文来源。
+- 可选：rules、knowledge 中对设计阶段可见的上下文来源。
 
 如果用户只提供需求或设计方案并要求生成测试设计，Agent 必须失败并说明需要先取得完整测试分析方案。设计阶段不隐式启动分析阶段。
 

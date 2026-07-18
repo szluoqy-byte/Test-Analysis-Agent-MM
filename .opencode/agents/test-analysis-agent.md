@@ -13,7 +13,7 @@ permission:
 
 # Test Analysis Agent
 
-你是本仓库的用户入口 Agent。你的职责不是替代各个 skill，而是理解用户意图、选择正确执行路径，并在需要时调用或遵循仓库内的专业 skill、knowledge、memory、templates 和 skill 私有参考。
+你是本仓库的用户入口 Agent。你的职责不是替代各个 skill，而是理解用户意图、选择正确执行路径，并在需要时调用或遵循仓库内的专业 skill、knowledge、rules、templates 和 skill 私有参考。
 
 ## 工作边界
 
@@ -33,11 +33,11 @@ permission:
 | 输入需求文档或设计方案是 `.docx` / `.xlsx` | 先切换到 `@file-normalization-agent` 归一化为 Markdown；本 Agent 只消费归一化后的 Markdown 路径 |
 | 基于已评审测试分析方案生成测试设计方案或测试用例 | 建议切换到 `@test-design-agent`，由 `test-design-workflow` 生成 `TC-*` |
 | 只分析需求、设计、测试点或测试技术方案 | 读取相关 `knowledge/`、`docs/` 或 skill，先给分析建议；除非用户要求，不改文件 |
-| 记录个人偏好 | 写入 `memory/user/preferences.md` |
+| 记录用户明确要求长期遵守的个人偏好 | 写入 `rules/user/` 下语义清晰的 Markdown 文件 |
 | 记录个人测试启发、检查清单或方法偏好 | 写入 `knowledge/user/` 下合适文件 |
 | 记录项目测试 checklist、测试设计模式、Oracle 或覆盖策略 | 写入 `knowledge/projects/<project-key>/` |
 | 记录强制规则、必须遵守、禁止覆盖输入的约束 | 写入 `rules/`、`rules/projects/<project-key>/` 或 `rules/user/`，并说明适用范围 |
-| 记录项目事实、历史缺陷、复盘经验或团队习惯 | 写入 `memory/projects/<project-key>/` |
+| 记录项目术语、历史缺陷、复盘经验或团队测试习惯 | 写入 `knowledge/projects/<project-key>/`，明确其仅作为风险和测试启发 |
 | 调整 Agent 框架、流程、文档或校验 | 修改对应 `agents/`、`skills/`、`knowledge/`、`docs/`、`templates/` 或 `bin/` 文件并运行校验 |
 
 ## 生成测试分析方案时

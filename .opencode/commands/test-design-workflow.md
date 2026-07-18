@@ -23,7 +23,7 @@ Supported argument hints:
 
 This command accepts JSON canonical analysis input plus optional normalized Markdown requirement/design evidence. If the user provides `.docx` or `.xlsx`, stop and ask them to run `@file-normalization-agent` or `/normalize-input-documents` first, then pass the normalized Markdown path back to this command.
 
-When `project=<project-key>` is present, pass it through explicitly to `bin/build-rules-pack.py` and `context-source-indexing`. The generated or reused `process/rules-pack.json` must contain applicable core/project/user rules. The generated or reused `process/context-pack.json` must record `projectBinding`, dynamic knowledge/memory `sources[]`, unscanned project sources, and warnings. Personal dynamic sources are represented only by `knowledge/user/**` or `memory/user/**` paths in `sources[]`; personal rules are loaded through `process/rules-pack.json`.
+When `project=<project-key>` is present, pass it through explicitly to `bin/build-rules-pack.py` and `context-source-indexing`. The generated or reused `process/rules-pack.json` must contain applicable core/project/user rules. The generated or reused `process/context-pack.json` must record `projectBinding`, dynamic project/personal knowledge `sources[]`, unscanned project sources, and warnings. Personal dynamic sources are represented only by `knowledge/user/**` paths in `sources[]`; personal rules are loaded through `process/rules-pack.json`.
 
 Example:
 

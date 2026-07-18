@@ -7,8 +7,8 @@ Knowledge 保存本 Agent 稳定、可复用的测试分析与测试设计知识
 | 层级 | 路径 | 默认提交 Git | 主流程默认读取 | 说明 |
 |---|---|---|---|---|
 | core | `knowledge/*.md`、`knowledge/test-techniques/**/*.md` | 是 | 是 | 测试分析方案和测试设计方案生成所需的跨 skill 稳定标准、方法论和公共测试技术 |
-| project | `knowledge/projects/<project-key>/**/*.md` | 否 | 按需 | 项目级风险画像、覆盖策略、术语映射、测试设计因子/模式、checklist 和测试启发 |
-| user | `knowledge/user/**/*.md` | 否 | 按需 | 个人测试启发、检查清单和本地关注点 |
+| project | `knowledge/projects/<project-key>/**/*.md` | 否 | 按需 | 项目级风险画像、经确认的历史缺陷/复盘经验、覆盖策略、术语映射、测试设计因子/模式、checklist 和测试启发 |
+| user | `knowledge/user/**/*.md` | 否 | 按需 | 个人测试启发、检查清单和本地关注点；个人强制要求和输出偏好改存 `rules/user/` |
 
 ## Core 知识归类
 
@@ -38,7 +38,7 @@ Knowledge 保存本 Agent 稳定、可复用的测试分析与测试设计知识
 - 不覆盖质量门禁、输出结构和固定运行目录规则。
 - 不保存未确认业务事实、临时用户偏好或单次运行结果。
 - 不保存必须优先于输入文档执行的强制规则；这类内容应放在 `rules/`。
-- 不替代 `memory/projects/<project-key>/` 中的项目事实和历史经验。
+- 经确认的项目历史缺陷、复盘经验和测试习惯可以作为风险与测试启发保存，但不得覆盖当前输入文档或 rules。
 
 ## 发现规则
 

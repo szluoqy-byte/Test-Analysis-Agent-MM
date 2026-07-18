@@ -1,6 +1,6 @@
 # 动态来源应用门禁
 
-动态 project/personal knowledge 和 memory 来源由 `context-source-indexing` 写入 `process/context-pack.json`。强制规则由 `process/rules-pack.json` 独立索引，不作为普通动态来源处理。后续阶段只读取对本阶段可见的来源正文；适用 rules 还必须按 `ruleSources[]` 的 `path` 读取 Markdown 正文并遵守。
+动态 project/personal knowledge 来源由 `context-source-indexing` 写入 `process/context-pack.json`。强制规则由 `process/rules-pack.json` 独立索引，不作为普通动态来源处理。后续阶段只读取对本阶段可见的来源正文；适用 rules 还必须按 `ruleSources[]` 的 `path` 读取 Markdown 正文并遵守。
 
 ## 检查项
 

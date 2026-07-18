@@ -13,7 +13,7 @@
 | `architecture/framework-overview.md` | Agent 包整体架构、关键机制和横切原则 |
 | `architecture/test-analysis-design-agent-reference-architecture.md` | 测试分析与测试设计 Agent 的三层架构、贯穿式 Harness，以及 analysis/design 完整实现流程 |
 | `architecture/output-artifact-contract.md` | run 目录、主交付件、过程件、review、coverage 和 final-report 的契约 |
-| `architecture/knowledge-rules-memory-boundaries.md` | skills、knowledge、rules、memory、templates 和 docs 的边界 |
+| `architecture/knowledge-rules-boundaries.md` | skills、knowledge、rules、templates 和 docs 的边界 |
 
 ## 草案和归档
 

@@ -27,10 +27,6 @@
     {
       "path": "knowledge/projects/",
       "reason": "project-key 未唯一确定时不扫描 project 目录"
-    },
-    {
-      "path": "memory/projects/",
-      "reason": "project-key 未唯一确定时不扫描 project 目录"
     }
   ],
   "warnings": []

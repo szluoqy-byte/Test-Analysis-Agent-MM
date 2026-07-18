@@ -1,6 +1,6 @@
 # 项目化 Knowledge 目录说明
 
-本目录按 `project-key` 保存项目级测试知识补充。它用于让分析过程理解某个项目特有的测试策略，而不是保存业务事实本身。
+本目录按 `project-key` 保存项目级测试知识补充。它用于让分析过程理解某个项目特有的测试策略，以及经确认的历史缺陷、复盘经验和团队测试习惯；它不是当前需求或设计方案的业务事实源。
 
 本目录属于 `project` 层，默认不提交 Git；`.gitignore` 只保留本 README。团队如果确实希望共享某个项目配置，可以显式强制添加对应文件。project 层是当前 run 的一等输入源，动态来源索引必须记录到 `outputs/runs/<run-id>/process/context-pack.json`；同名 Markdown 只是派生阅读版。
 
@@ -16,6 +16,8 @@ knowledge/projects/<project-key>/
   coverage-profile.md
   routing-notes.md
   oracle-heuristics.md
+  historical-defects.md
+  testing-retrospectives.md
 ```
 
 文件名不是硬性要求。每个动态来源文件必须声明 frontmatter：`name`、`description`，可选 `stages`。推荐命名只是为了降低误判概率。
@@ -39,11 +41,12 @@ stages:
 - 项目级测试 oracle 补充，例如账务、库存、权限或审计类结果判定启发。
 - 测试设计因子库或业务测试设计模式库，用于测试分析和测试设计阶段补充业务入口、数据因子、状态、组合和观察点。
 - 测试设计 checklist 或评审清单，默认用于覆盖审查阶段统一查漏；只有文件或用户指令明确要求产物语义评审时，才额外绑定独立评审。
+- 经确认的项目历史缺陷、复盘经验和团队测试习惯，作为风险与测试启发来源；必须写明适用范围与证据边界，不能替代当前输入文档。
 
 ## 不应放入的内容
 
 - 未确认业务规则、一次性需求结论或临时假设。
-- 项目真实缺陷和团队反馈，这些应进入 `memory/projects/<project-key>/`。
+- 未验证的缺陷传闻、团队意见或无法定位来源的经验。
 - 测试点字段、类型、方法、级别、输出结构和质量门禁覆盖规则。
 - 运行产物、context pack、结构化过程记录或派生报告。
 

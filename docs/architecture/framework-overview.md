@@ -22,7 +22,7 @@
 ## 横切机制
 
 - `rules-pack` 独立索引强制规则；后续阶段按 `ruleSources[]` 读取适用 rules 正文。
-- `context-pack` 只索引 project/personal knowledge 和 memory 动态来源。
+- `context-pack` 只索引 project/personal knowledge 动态来源。
 - `generationContext` 由固定脚本写入 scenario-tree、slice、review 和 coverage JSON，用于生成前工作包，不进入最终 deliverables。
 - review 处理语义质量，deterministic lint 处理结构、编号、字段和 Markdown 一致性。
 - coverage-review 基于 fact-coverage-map 做覆盖门禁；final-report 只从已审查的覆盖证据图生成人审报告，不触发返工。

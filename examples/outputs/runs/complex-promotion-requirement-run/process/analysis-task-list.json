@@ -29,7 +29,7 @@
       "order": 3,
       "stage": "上下文来源索引",
       "owner": "context-source-indexing",
-      "checkpoint": "process/context-pack.json、动态 project/personal knowledge/memory 来源索引",
+      "checkpoint": "process/context-pack.json、动态 project/personal knowledge 来源索引",
       "status": "done",
       "evidence": "process/context-pack.json"
     },

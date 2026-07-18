@@ -5,8 +5,8 @@
 | 字段 | 值 |
 |---|---|
 | path | examples/requirements/complex-promotion-requirement.md |
-| title | 限时优惠与订单支付 |
-| keywords | 限时优惠、订单支付、库存、优惠券 |
+| title |  |
+| keywords |  |
 
 ## 绑定结果
 
@@ -23,7 +23,6 @@
 | 路径 | 原因 |
 |---|---|
 | knowledge/projects/ | project-key 未唯一确定 |
-| memory/projects/ | project-key 未唯一确定 |
 
 ## 告警
 

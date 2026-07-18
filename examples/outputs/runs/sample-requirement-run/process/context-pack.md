@@ -5,8 +5,8 @@
 | 字段 | 值 |
 |---|---|
 | path | examples/requirements/sample-requirement.md |
-| title | 订单取消 |
-| keywords | 订单取消、权限、库存释放、操作日志 |
+| title |  |
+| keywords |  |
 
 ## 绑定结果
 
@@ -23,7 +23,6 @@
 | 路径 | 原因 |
 |---|---|
 | knowledge/projects/ | project-key 未唯一确定 |
-| memory/projects/ | project-key 未唯一确定 |
 
 ## 告警
 

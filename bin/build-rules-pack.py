@@ -31,7 +31,6 @@ PERSONAL_RULES_ROOT = "rules/user"
 PROJECT_INFERENCE_ROOTS = (
     "rules/projects",
     "knowledge/projects",
-    "memory/projects",
 )
 
 
@@ -261,7 +260,7 @@ def collect_rule(path: Path, root: Path, layer: str, warnings: list[str]) -> dic
         "mandatory": True,
         "loadPolicy": "stage_required",
         "priority": rule_priority(layer),
-        "conflictPolicy": "current_user_instruction_overrides_rules; rules_override_input_documents_memory_knowledge",
+        "conflictPolicy": "current_user_instruction_overrides_rules; rules_override_input_documents_knowledge",
     }
 
 
@@ -329,9 +328,9 @@ def build_rules_pack(args: argparse.Namespace, root: Path) -> dict[str, Any]:
         "priorityPolicy": {
             "currentUserInstruction": "当前用户明确指令最高；只有当前用户明确指令可以覆盖 rules。",
             "runtimeContract": "AGENTS、workflow、skill、schema 和固定脚本定义执行契约；rules 不能要求违反运行时契约，除非用户明确要求修改框架。",
-            "rules": "rules 是强制约束，按 core > project > user 处理，优先于输入文档、memory 和 knowledge。",
+            "rules": "rules 是强制约束，按 core > project > user 处理，优先于输入文档和 knowledge。",
             "inputDocuments": "需求、设计方案和已评审测试分析方案是业务事实来源；与 rules 冲突时默认遵守 rules 并记录覆盖原因。",
-            "memoryKnowledge": "memory 和 knowledge 只能补充风险、偏好、方法或经验；与输入文档或 rules 冲突时不得覆盖。",
+            "knowledge": "knowledge 只能补充风险、方法或经验；与输入文档或 rules 冲突时不得覆盖。",
         },
         "loadingPolicy": {
             "indexOnly": "rules-pack 只索引规则元数据，不内联规则正文。",

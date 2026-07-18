@@ -1,6 +1,6 @@
 ---
 name: context-source-indexing
-description: 在测试分析或测试设计开始前使用，仅索引 project/personal knowledge 和 memory 扩展来源的元数据，生成 process/context-pack.json；rules 由 process/rules-pack.json 独立索引强制语义。
+description: 在测试分析或测试设计开始前使用，仅索引 project/personal knowledge 扩展来源的元数据，生成 process/context-pack.json；rules 由 process/rules-pack.json 独立索引强制语义。
 ---
 
 # 上下文来源索引
@@ -22,7 +22,7 @@ python skills/context-source-indexing/scripts/build-context-source-index.py \
 
 ## 何时使用
 
-在 `test-analysis-workflow` 或 `test-design-workflow` 已创建 run 目录、且需要建立 project/personal knowledge 与 memory 动态来源索引时使用。不要在仅需读取 core knowledge、rules 或 templates 时使用；rules 由 `process/rules-pack.json` 单独处理。
+在 `test-analysis-workflow` 或 `test-design-workflow` 已创建 run 目录、且需要建立 project/personal knowledge 动态来源索引时使用。不要在仅需读取 core knowledge、rules 或 templates 时使用；rules 由 `process/rules-pack.json` 单独处理。
 
 如果没有显式 `project-key`，不要传 `--project`。脚本会基于需求标题、需求路径和 `--keyword` 与现有 project 目录名做轻量推断；只有唯一命中时才绑定并扫描 project 来源。无法唯一命中时可用 `--project-reason` 写明未绑定原因。脚本会默认渲染 `process/context-pack.md`；只需要 JSON 时才使用 `--no-render`。
 
@@ -35,7 +35,7 @@ python skills/context-source-indexing/scripts/build-context-source-index.py \
 - 不把来源内容复制到 context pack；context pack 只记录路径、名称、描述、阶段可见性、绑定状态和告警。
 - 不把 `applied`、`not_applicable`、`conflict_with_requirement` 等应用状态写入 `sources[]`；应用状态只能写入后续阶段的过程 JSON、review JSON、coverage JSON 或 final-report 覆盖原因。
 - 不把绝对路径写入 `sources[].path`；脚本输出统一使用仓库相对路径。
-- 不修改 `rules/`、`knowledge/` 或 `memory/` 下的长期来源文件。
+- 不修改 `rules/` 或 `knowledge/` 下的长期来源文件。
 
 ## 输入
 
@@ -88,14 +88,12 @@ python skills/context-source-indexing/scripts/build-context-source-index.py \
 当 `project-key` 已唯一确定时，扫描：
 
 - `knowledge/projects/<project-key>/**/*.md`
-- `memory/projects/<project-key>/**/*.md`
 
-无唯一 `project-key` 时，不扫描任何 project 目录正文，也不把所有项目目录加载进索引；只在 `projectBinding`、`unscannedProjectSources` 和 `warnings` 中记录未扫描原因。允许枚举 `rules/projects/`、`knowledge/projects/`、`memory/projects/` 的一级目录名用于唯一性判断，确保 `rules-pack` 和 `context-pack` 的 project 绑定口径一致；但不得读取候选目录下的 Markdown 正文或 frontmatter。
+无唯一 `project-key` 时，不扫描任何 project 目录正文，也不把所有项目目录加载进索引；只在 `projectBinding`、`unscannedProjectSources` 和 `warnings` 中记录未扫描原因。允许枚举 `rules/projects/`、`knowledge/projects/` 的一级目录名用于唯一性判断，确保 `rules-pack` 和 `context-pack` 的 project 绑定口径一致；但不得读取候选目录下的 Markdown 正文或 frontmatter。
 
 personal 层扫描：
 
 - `knowledge/user/**/*.md`
-- `memory/user/**/*.md`
 
 扫描时跳过 `README.md` 的正文。README 只作为目录说明，不进入 `sources[]`。
 
@@ -121,7 +119,7 @@ stages:
 - `description`：必填，说明该来源提供什么补充价值。
 - `stages`：可选。缺省或空数组表示对所有阶段可见，渲染为 `["*"]`；显式配置时只对列出的阶段可见。
 
-`sources[]` 不写 `sourceType`、`layer`、`projectKey`、`stages`、`applied` 或 personal 专属字段。这些信息由路径和后续阶段应用记录推断：`knowledge/projects/<project-key>/...` 是 project knowledge，`memory/user/...` 是 personal memory。`project-key` 的绑定只写在顶层 `projectBinding`；personal 来源只通过 `knowledge/user/**`、`memory/user/**` 路径表达；阶段可见性只写为 `availableStages` 和 `availability`。
+`sources[]` 不写 `sourceType`、`layer`、`projectKey`、`stages`、`applied` 或 personal 专属字段。这些信息由路径和后续阶段应用记录推断：`knowledge/projects/<project-key>/...` 是 project knowledge，`knowledge/user/...` 是 personal knowledge。`project-key` 的绑定只写在顶层 `projectBinding`；personal 来源只通过 `knowledge/user/**` 路径表达；阶段可见性只写为 `availableStages` 和 `availability`。
 
 推荐阶段值：
 
@@ -177,7 +175,7 @@ stages:
 
 - 即使没有 project/personal 命中，也必须生成 `process/context-pack.json` 和派生 `process/context-pack.md`。
 - `sources` 可以为空；空列表表示本次没有动态 project/personal 来源可用。
-- `sources[]` 只允许来自 `knowledge/projects/<project-key>/`、`memory/projects/<project-key>/`、`knowledge/user/` 或 `memory/user/`。rules 不进入 `sources[]`；core knowledge、templates 和 skill 私有参考不进入 `sources[]`。
+- `sources[]` 只允许来自 `knowledge/projects/<project-key>/` 或 `knowledge/user/`。rules 不进入 `sources[]`；core knowledge、templates 和 skill 私有参考不进入 `sources[]`。
 - `availableStages` 缺省时统一写 `["*"]`，`availability` 写 `all`；显式阶段列表时写 `restricted`。
 - frontmatter 缺失或不合法的动态来源不得静默注入，必须在 `warnings[]` 中记录文件路径和问题，且不写入 `sources[]`。
 - 如果 `project-key` 未唯一确定，`projectBinding.status` 写 `unresolved`，并在 `unscannedProjectSources[]` 记录 project 根路径未扫描原因。

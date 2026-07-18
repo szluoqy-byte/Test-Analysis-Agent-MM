@@ -29,19 +29,15 @@ ALLOWED_STAGES = {
 PROJECT_INFERENCE_ROOTS = (
     "rules/projects",
     "knowledge/projects",
-    "memory/projects",
 )
 PROJECT_ROOT_PATTERNS = (
     "knowledge/projects/{project_key}",
-    "memory/projects/{project_key}",
 )
 PROJECT_UNSCANNED_ROOTS = (
     "knowledge/projects/",
-    "memory/projects/",
 )
 PERSONAL_ROOTS = (
     "knowledge/user",
-    "memory/user",
 )
 
 

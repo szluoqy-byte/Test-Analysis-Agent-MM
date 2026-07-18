@@ -6,12 +6,6 @@ outputs/runs/*
 outputs/input-cache/*
 !outputs/input-cache/.gitkeep
 outputs/temp/
-memory/domains/*
-!memory/domains/README.md
-memory/projects/*
-!memory/projects/README.md
-memory/user/*
-!memory/user/README.md
 knowledge/projects/*
 !knowledge/projects/README.md
 knowledge/user/*

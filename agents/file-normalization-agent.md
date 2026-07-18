@@ -16,7 +16,7 @@ description: 文件归一化门面 Agent；当用户提供 .docx / .xlsx / .md �
 - 当 `.docx` 包含图片、流程图、架构图、状态图、截图、EMF 或 Visio 图形时，按 `skills/normalize-input-documents/references/docx-image-and-diagram-workflow.md` 处理，并把补充事实原位回写到归一化 Markdown。
 - 在 OpenCode 独立命令或用户已切换到多模态模型的上下文中，默认按已具备图片理解能力处理 DOCX 图片/图形；不得仅因无法确认模型名称而写“当前模型不支持多模态”。
 - 当 `.xlsx` 是复杂表格、测试因子库、业务测试模式库或 checklist 时，按 `skills/normalize-input-documents/references/xlsx-to-markdown.md` 和 `skills/normalize-input-documents/references/xlsx-to-ai-knowledge-base.md` 判断基础转换是否足够。
-- 不把 Office 原文全量写入 `memory/`、`knowledge/` 或 `rules/`。
+- 不把 Office 原文全量写入 `knowledge/` 或 `rules/`。
 
 ## 意图路由
 

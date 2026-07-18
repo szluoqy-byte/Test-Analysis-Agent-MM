@@ -1432,8 +1432,6 @@ def validate_context_pack_json(data: dict[str, Any]) -> list[str]:
     allowed_source_prefixes = (
         "knowledge/projects/",
         "knowledge/user/",
-        "memory/projects/",
-        "memory/user/",
     )
     forbidden_source_keys = {"sourceType", "layer", "projectKey", "stages", "applied"}
     forbidden_core_prefixes = (

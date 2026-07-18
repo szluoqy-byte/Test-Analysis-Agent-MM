@@ -14,7 +14,7 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 - `$ARGUMENTS`：新 run 至少包含一份 `.md` 或 `.markdown` 需求文档路径；指定已有 `runid` 时可继承 manifest 中的历史输入。
 - 可额外包含一份或多份 `.md` 或 `.markdown` 设计方案文档路径。
 - 如果输入包含 `.docx` 或 `.xlsx`，不得在本 workflow 中转换；必须先由 `@file-normalization-agent` 归一化为 Markdown。
-- 可选 `--project <project-key>`，必须传递给 `bin/build-rules-pack.py` 和 `context-source-indexing`；personal rules 来自 `rules/user/**/*.md`，personal 动态补充来源来自 `knowledge/user/**/*.md` 和 `memory/user/**/*.md`。
+- 可选 `--project <project-key>`，必须传递给 `bin/build-rules-pack.py` 和 `context-source-indexing`；personal rules 来自 `rules/user/**/*.md`，personal 动态补充来源来自 `knowledge/user/**/*.md`。
 - 可选 `runid=<requirement-id>` 和 `mode=auto|resume|extend|rebuild`；默认 `auto`。新输入默认追加，同路径更新版本，删除历史输入使用 `remove-source=<path>`。
 
 ## 执行检查清单
@@ -33,7 +33,7 @@ Progress:
 
 - 本 skill 只负责编排完整分析链路和写出本次运行产物。
 - 强制规则由 `process/rules-pack.json` 独立索引，后续每个阶段必须筛选当前阶段可见的 `ruleSources[]`，读取对应 Markdown 正文并遵守适用 rules。
-- project/personal knowledge 和 memory 扩展来源来自 `context-source-indexing` 生成的 `sources[]` 索引。
+- project/personal knowledge 扩展来源来自 `context-source-indexing` 生成的 `sources[]` 索引。
 - `input-fact-modeling` 负责建立统一输入事实模型。
 - `test-analysis-solution-generation` 负责先生成并冻结 `SC-*` 场景树，再按每个叶子 SC 生成 `TP-*` 切片并合并。
 - `test-analysis-solution-review` 负责分段语义评审：先评审 SC 树，再评审 TP 覆盖和粒度，最后评审主交付件整体语义。
@@ -84,7 +84,7 @@ Progress:
 |---|---|---|
 | `task-list` | `process/analysis-task-list.json`、派生 `process/analysis-task-list.md` | 测试分析阶段顺序与状态追踪 |
 | `rules-pack` | `process/rules-pack.json`、派生 `process/rules-pack.md` | 后续所有阶段筛选 `ruleSources[]`，读取规则正文并遵守适用 rules |
-| `context-source-indexing` | `process/context-pack.json` | 后续阶段按阶段可见性读取 knowledge/memory 动态来源 |
+| `context-source-indexing` | `process/context-pack.json` | 后续阶段按阶段可见性读取 project/personal knowledge 动态来源 |
 | `input-fact-modeling` | `process/input-fact-model.json` | 测试技术路由、测试分析方案生成 |
 | `testing-method-router` | 测试技术路由表 | 专项方法参考、测试分析方案生成 |
 | 专项方法参考 | 覆盖维度建议、测试点候选 | 测试分析方案生成 |

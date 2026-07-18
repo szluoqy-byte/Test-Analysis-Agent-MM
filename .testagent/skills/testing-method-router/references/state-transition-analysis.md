@@ -37,14 +37,14 @@
 
 如存在状态机缺口，追加：
 
-| 问题ID | checkpoint | sourceStage | header | question | why | impact | options | blockingLevel | priority | askPolicy | mustAsk | relatedRequirement | memoryConflict |
+| 问题ID | checkpoint | sourceStage | header | question | why | impact | options | blockingLevel | priority | askPolicy | mustAsk | relatedRequirement | contextConflict |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 
 ## 约束
 
 - 如果需求没有说明源状态或目标状态，生成“输入不足说明”。
 - 不凭空补完整状态机。
-- 不把技术实现中的隐含状态当作业务状态，除非需求或 memory 明确说明。
+- 不把技术实现中的隐含状态当作业务状态，除非需求或经确认的 project knowledge 明确说明。
 - 最终主交付件中不输出状态迁移矩阵；只表达待验证的业务状态规则、合法/非法迁移或异常恢复目标。
 - 不直接向用户提问。
 - 如果可见动态来源中的状态模型或项目因子不足，只能按 `sources[]` 记录的可见来源或当前需求明确指向的文件补读相关章节，并在方法参考记录中记录来源；不得全目录搜索或全量复制大文件。

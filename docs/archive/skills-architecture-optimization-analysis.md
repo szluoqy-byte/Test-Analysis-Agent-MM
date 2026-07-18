@@ -12,7 +12,7 @@
 | 强制规则索引 | `bin/build-rules-pack.py` | 索引 core/project/user rules 元数据；后续阶段按 `ruleSources[]` 读取适用规则正文并形成强约束事实 | `rules-pack.json` |
 | 生成前工作包 | `bin/build-generation-context.py` / 初始化脚本 | 按阶段把适用 rules 正文、可见动态来源、事实候选和读入计划写入 `generationContext` | process/review/coverage JSON |
 | 输入建模 | `input-fact-modeling` | 抽取需求事实、设计事实和来源应用 | `input-fact-model.json` |
-| 上下文索引 | `context-source-indexing` | 索引 project/personal knowledge 和 memory 动态来源元数据 | `context-pack.json` |
+| 上下文索引 | `context-source-indexing` | 索引 project/personal knowledge 动态来源元数据 | `context-pack.json` |
 | 方法路由 | `testing-method-router` | 判断适用测试技术 | 方法参考记录 |
 | 分析生成 | `test-analysis-solution-generation` | 先生成冻结 SC 树，再按叶子 SC 生成 TP 切片并合并 | `scenario-tree.json` / 分析方案 |
 | 设计生成 | `test-design-solution-generation` | 按每个 `TP-*` 生成 TC 切片并合并 | `test-case-slices/` / 设计方案 |
@@ -28,7 +28,7 @@
 
 - rules 由 `process/rules-pack.json` 独立索引强制语义，后续阶段必须读取适用 rules 正文。
 - core knowledge、templates 和 skill 私有参考由 workflow 或 skill 固定读取。
-- project/personal knowledge 和 memory 动态来源只通过 `context-pack.json` 暴露给后续阶段。
+- project/personal knowledge 动态来源只通过 `context-pack.json` 暴露给后续阶段。
 - `generationContext` 是生成前工作包：脚本准备上下文，AI 只填当前工作单元的语义内容；它不进入最终 deliverables。
 - 分析阶段先冻结 SC 再展开 TP；设计阶段按 TP 展开 TC，且不改写分析层级。
 - 确定性结构问题交给 Python 脚本；模型评审只处理语义质量。

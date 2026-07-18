@@ -78,9 +78,9 @@ Workflow 定义阶段顺序、依赖、失败分支、返工路径和完成条�
 | Skill | 职责 | 主要产物 |
 |---|---|---|
 | `normalize-input-documents` | 统一 Office/Markdown 输入，并把相关图片和图形事实合并回 Markdown | 归一化 Markdown、conversion metadata |
-| `context-source-indexing` | 索引 project/personal knowledge 与 memory 动态来源元数据 | `process/context-pack.json` |
+| `context-source-indexing` | 索引 project/personal knowledge 动态来源元数据 | `process/context-pack.json` |
 | `input-fact-modeling` | 从需求与设计输入提取结构化事实，不提前生成测试方案 | `process/input-fact-model.json` |
-| `context-capture` | 将经确认、适合复用的上下文沉淀到对应作用域 | knowledge/memory 增量内容 |
+| `context-capture` | 将经确认、适合复用的上下文沉淀到对应作用域 | rules/knowledge 增量内容 |
 
 ### 4.3 分析方法与方案生成
 
@@ -119,7 +119,7 @@ Review 与 lint 不重复：Review 处理测试语义、粒度、依据、可执
 |---|---|---|---|
 | 强制规则 | `rules/` | core/project/personal 规则 | 由 rules-pack 索引；后续阶段读取适用规则正文并强制遵守 |
 | 核心与扩展知识 | `knowledge/` | 分析标准、测试点标准、用例写作标准、执行形态风格、测试技术 | 核心内容由 Workflow/Skill 固定引用；project/user 内容经 context-pack 暴露 |
-| 历史与个人上下文 | `memory/` | 项目经验、用户偏好和可复用历史信息 | 作为动态补充，不覆盖当前输入和 rules |
+| 扩展测试知识 | `knowledge/projects/`、`knowledge/user/` | 项目经验、历史缺陷、测试启发和个人检查清单 | 作为动态补充，不覆盖当前输入和 rules |
 | 结构契约 | `templates/` | JSON skeleton、报告结构和 Markdown 样式参考 | 由 Harness 初始化和渲染；模型不得随意改变结构 |
 
 支撑层中的信息存在不同优先级：
@@ -128,8 +128,8 @@ Review 与 lint 不重复：Review 处理测试语义、粒度、依据、可执
 当前用户明确指令
   > rules
   > 当前输入文档
-  > memory
-  > knowledge
+  > project/personal knowledge
+  > core knowledge
 ```
 
 这套业务优先级不改变运行时契约。Workflow、Skill、schema 和固定脚本定义怎样合法执行；rules 不能要求绕过锁、跳过 canonical JSON、手工维护派生 Markdown，除非用户明确要求修改框架本身。
@@ -230,7 +230,7 @@ flowchart TB
 | 入口与前置检查 | `test-analysis-agent`、`test-analysis-workflow` | `AGENTS.md`、Workflow 边界 | runtime wiring、输入路径检查 | 仅接受 Markdown；Office 输入路由到归一化 Agent |
 | Run 准备 | Workflow | 运行时契约 | `manage-run.py prepare`、manifest、lock、revision | `process/run-plan.json`、分析任务清单 |
 | 强制规则加载 | Workflow | `rules/core`、project、user rules | `build-rules-pack.py` | `process/rules-pack.json/.md` |
-| 动态上下文索引 | `context-source-indexing` | project/personal knowledge、memory frontmatter | Skill 私有索引脚本 | `process/context-pack.json/.md` |
+| 动态上下文索引 | `context-source-indexing` | project/personal knowledge frontmatter | Skill 私有索引脚本 | `process/context-pack.json/.md` |
 | 输入事实建模 | `input-fact-modeling` | 需求 Markdown、设计 Markdown、建模标准 | template、generation context、render | `process/input-fact-model.json/.md` |
 | 测试方法路由 | `testing-method-router` | 输入事实模型、适用 rules、核心测试知识 | 结构化工作包 | 方法候选只服务生成，不写入最终交付字段 |
 | SC 规划与生成 | `test-analysis-solution-generation` | 分析方案标准、场景流参考、适用动态来源 | scenario-tree 初始化脚本、generation context | `process/scenario-tree.json` |
@@ -289,7 +289,7 @@ flowchart TB
 | 入口与前置检查 | `test-design-agent`、`test-design-workflow` | 设计 Workflow 边界 | runtime wiring、输入识别 | 必须存在完整 analysis JSON；不得隐式调用分析 Workflow |
 | Run 与依赖准备 | Workflow | 运行时契约 | `manage-run.py prepare`、analysis hash、lock、revision | 复用上游 run；识别 analysis/input/context 变化 |
 | 分析方案绑定 | `test-design-solution-generation` | schema 2.0 分析方案 | bind/validation 脚本、JSON lint | SC/TP 冻结，不允许设计阶段改写 |
-| Rules/context 准备 | Workflow、`context-source-indexing` | rules、需求/设计输入、动态 knowledge/memory | 缺失时构建，已有且有效时复用 | `rules-pack.json`、`context-pack.json` |
+| Rules/context 准备 | Workflow、`context-source-indexing` | rules、需求/设计输入、动态 knowledge | 缺失时构建，已有且有效时复用 | `rules-pack.json`、`context-pack.json` |
 | TP 工作项提取 | `test-design-solution-generation` | 完整分析 JSON | work-item 提取脚本 | `process/test-case-work-items.json/.md` |
 | TC 切片初始化 | 生成 Skill | TC JSON template、当前 TP、来源事实 | slice 初始化、generation context | 每个 TP 一个 `test-case-slices/<TP-ID>.json` |
 | 测试因子设计 | `test-design-solution-generation` | 用例写作标准、GUI/API/CLI 风格、专项测试知识 | 工作包提供 rules、来源和候选事实 | 识别必选、候选和必要推导因子；不能满足于每 TP 一个 TC |

@@ -29,7 +29,7 @@ WINDOWS_RESERVED_NAMES = {
     *(f"LPT{index}" for index in range(1, 10)),
 }
 FILE_SUFFIXES = {".md", ".markdown", ".json", ".py"}
-CONTEXT_ROOTS = ("rules", "knowledge", "memory")
+CONTEXT_ROOTS = ("rules", "knowledge")
 FRAMEWORK_ROOTS = ("agents", "skills", "templates", "bin")
 LOCK_TIMEOUT_HOURS = 12
 

@@ -10,8 +10,8 @@ Rules 保存本 Agent 的强制规则。它不是测试知识库，也不是长�
 当前用户明确指令
   > process/rules-pack.json 中当前阶段可见且已读取正文的适用 rules
   > 当前输入文档（需求 / 设计方案 / 已评审测试分析方案）
-  > memory
-  > knowledge
+  > project/personal knowledge
+  > core knowledge
 ```
 
 如果 rules 与输入文档冲突，默认遵守 rules，并在过程 JSON 或结构化 review/coverage JSON 中记录“规则覆盖输入”的原因。只有当前用户明确指令可以覆盖 rules；同名 Markdown 只作为脚本渲染的人读版。
@@ -52,6 +52,6 @@ Rules 内部冲突时，按 `core > project > personal` 处理；project/persona
 
 - Rules 可以强制输出结构、术语、字段、覆盖策略、判定优先级或项目约束。
 - Rules 不用于沉淀通用测试方法；通用方法放在 `knowledge/`。
-- Rules 不用于沉淀历史经验或事实记忆；事实和经验放在 `memory/`。
+- Rules 不用于沉淀通用测试方法或项目历史经验；这些内容放在 `knowledge/`。但用户明确要求长期遵守的个人输出偏好、审查要求或本地限制应放在 `rules/user/`。
 - Rules 应尽量明确适用范围，避免写成宽泛口号。
 - Rules 不应要求违反系统级约束、仓库运行路径规则或当前用户明确指令。

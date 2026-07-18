@@ -43,7 +43,7 @@
 
 ## 路径规则
 
-- 所有 `skills/...`、`rules/...`、`knowledge/...`、`templates/...`、`memory/...`、`bin/...` 和 `outputs/...` 路径都从仓库根目录解析。
+- 所有 `skills/...`、`rules/...`、`knowledge/...`、`templates/...`、`bin/...` 和 `outputs/...` 路径都从仓库根目录解析。
 - 不要基于 skill 目录、`.claude-plugin/`、`.opencode/`、`.testagent/` 或输入文件目录解析路径。
 - 运行产物写入 `outputs/runs/<run-id>/`。
 - analysis/design/E2E 入口支持可选 `runid=<requirement-id>`，用于把同一需求的多次分析和设计维护在 `outputs/runs/<runid>/`；未提供时由 `bin/manage-run.py prepare` 调用固定时间戳规则生成 `<YYYYMMDD-HHMMSS>`。
@@ -74,11 +74,11 @@
 
 - 支持可选 `project-key`：确定后可扫描 `*/projects/<project-key>/**/*.md`；未唯一确定时不得读取所有项目目录正文。
 - `rules/` 是强制规则源，按 `core / project / personal` 三层加载，必须由 `bin/build-rules-pack.py` 写入 `process/rules-pack.json` 规则索引；后续每个阶段筛选 `ruleSources[]` 中对当前阶段可见的规则，读取对应 Markdown 正文并遵守。
-- `project` 和 `personal` 的 knowledge/memory 是当前 run 的动态补充输入源：必须由 `context-source-indexing` 在 `process/context-pack.json` 中记录绑定结果和动态来源索引。
-- 优先级分两层理解：workflow、skill、schema 和固定脚本定义运行时执行契约；业务与输出约束按 `当前用户明确指令 > rules > 当前输入文档 > memory > knowledge` 处理。
+- `project` 和 `personal` knowledge 是当前 run 的动态补充输入源：必须由 `context-source-indexing` 在 `process/context-pack.json` 中记录绑定结果和动态来源索引。
+- 优先级分两层理解：workflow、skill、schema 和固定脚本定义运行时执行契约；业务与输出约束按 `当前用户明确指令 > rules > 当前输入文档 > project/personal knowledge > core knowledge` 处理。
 - `knowledge/projects/<project-key>/` 和 `knowledge/user/` 只能作为测试知识补充，不得覆盖根目录 `knowledge/` 的核心标准、字段和质量门禁。
 - 动态来源必须声明 `name`、`description`，可选 `stages`；未配置 `stages` 时默认全部阶段可用。
-- `context-source-indexing` 只读取 knowledge/memory 动态来源 frontmatter 生成 `sources[]`，不扫描 rules，不扫描 core 层，不摘录正文，也不替后续阶段判断具体命中。
+- `context-source-indexing` 只读取 project/personal knowledge 动态来源 frontmatter 生成 `sources[]`，不扫描 rules，不扫描 core 层，不摘录正文，也不替后续阶段判断具体命中。
 - 后续 skill 只读取 `sources[]` 中对本阶段可见的文件正文，并输出应用状态。
 
 ## 主流程

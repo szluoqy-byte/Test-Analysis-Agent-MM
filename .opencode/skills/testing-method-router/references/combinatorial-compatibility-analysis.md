@@ -37,7 +37,7 @@
 
 如存在组合或兼容范围缺口，追加：
 
-| 问题ID | checkpoint | sourceStage | header | question | why | impact | options | blockingLevel | priority | askPolicy | mustAsk | relatedRequirement | memoryConflict |
+| 问题ID | checkpoint | sourceStage | header | question | why | impact | options | blockingLevel | priority | askPolicy | mustAsk | relatedRequirement | contextConflict |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 
 ## 约束

@@ -4,13 +4,8 @@
   "title": "示例需求：订单取消 上下文来源索引",
   "requirement": {
     "path": "examples/requirements/sample-requirement.md",
-    "title": "订单取消",
-    "keywords": [
-      "订单取消",
-      "权限",
-      "库存释放",
-      "操作日志"
-    ]
+    "title": "",
+    "keywords": []
   },
   "projectBinding": {
     "status": "unresolved",
@@ -21,10 +16,6 @@
   "unscannedProjectSources": [
     {
       "path": "knowledge/projects/",
-      "reason": "project-key 未唯一确定"
-    },
-    {
-      "path": "memory/projects/",
       "reason": "project-key 未唯一确定"
     }
   ],
