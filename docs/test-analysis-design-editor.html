@@ -239,11 +239,43 @@
       font-size: 11px;
     }
 
-    .node-actions {
-      display: flex;
-      align-items: center;
-      gap: 2px;
-      padding-right: 4px;
+    .context-menu {
+      position: fixed;
+      z-index: 40;
+      width: 184px;
+      padding: 5px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel);
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
+    }
+
+    .context-menu button {
+      width: 100%;
+      min-height: 32px;
+      padding: 6px 9px;
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .context-menu button:hover,
+    .context-menu button:focus-visible {
+      background: #f3f4f6;
+      outline: 0;
+    }
+
+    .context-menu button.danger {
+      color: var(--danger);
+    }
+
+    .context-menu-separator {
+      height: 1px;
+      margin: 5px 3px;
+      background: var(--line);
     }
 
     .icon-button,
@@ -486,6 +518,29 @@
       font-size: 14px;
     }
 
+    .modal h2 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+
+    .modal .modal-impact {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .button.danger-solid {
+      border-color: var(--danger);
+      background: var(--danger);
+      color: #ffffff;
+    }
+
+    .button.danger-solid:hover {
+      border-color: #912018;
+      background: #912018;
+    }
+
     .modal-actions {
       display: flex;
       justify-content: flex-end;
@@ -547,7 +602,6 @@
       <aside class="tree-pane">
         <div class="tree-header">
           <strong>结构树</strong>
-          <button class="button primary" id="addRootSc" type="button">+ SC</button>
         </div>
         <div class="tree" id="tree"></div>
       </aside>
@@ -572,6 +626,20 @@
     </div>
   </div>
 
+  <div class="context-menu hidden" id="treeContextMenu" role="menu" aria-label="节点操作"></div>
+
+  <div class="modal-backdrop hidden" id="confirmationModal" role="dialog" aria-modal="true" aria-labelledby="confirmationTitle" aria-describedby="confirmationMessage">
+    <div class="modal">
+      <h2 id="confirmationTitle">确认操作</h2>
+      <p id="confirmationMessage"></p>
+      <p class="modal-impact" id="confirmationImpact"></p>
+      <div class="modal-actions">
+        <button class="button" id="cancelConfirmationButton" type="button">取消</button>
+        <button class="button danger-solid" id="confirmActionButton" type="button">确认</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const emptyData = {
       artifactType: "test-design-solution",
@@ -588,6 +656,9 @@
     let selected = savedDraft ? savedDraft.selected : null;
     let activeDetailTab = savedDraft ? savedDraft.activeDetailTab : "detail";
     const collapsedNodes = new Set(savedDraft ? savedDraft.collapsedNodes : []);
+    let idCounters = savedDraft ? savedDraft.idCounters : { TP: 0, TC: 0 };
+    let pendingConfirmationAction = null;
+    let confirmationReturnFocus = null;
     const excelColumns = [
       ["层级关系", "Depth"],
       ["特性名称", "Feature_Name"],
@@ -669,6 +740,12 @@
     const jsonPanel = document.getElementById("jsonPanel");
     const excelExportModal = document.getElementById("excelExportModal");
     const caseNumberPrefixInput = document.getElementById("caseNumberPrefixInput");
+    const treeContextMenu = document.getElementById("treeContextMenu");
+    const confirmationModal = document.getElementById("confirmationModal");
+    const confirmationTitle = document.getElementById("confirmationTitle");
+    const confirmationMessage = document.getElementById("confirmationMessage");
+    const confirmationImpact = document.getElementById("confirmationImpact");
+    const confirmActionButton = document.getElementById("confirmActionButton");
 
     if (savedDraft && savedDraft.jsonPanelOpen) {
       jsonPanel.classList.remove("hidden");
@@ -689,6 +766,9 @@
           selected: draft.selected || null,
           activeDetailTab: draft.activeDetailTab || "detail",
           collapsedNodes: Array.isArray(draft.collapsedNodes) ? draft.collapsedNodes : [],
+          idCounters: draft.idCounters && typeof draft.idCounters === "object"
+            ? draft.idCounters
+            : { TP: 0, TC: 0 },
           jsonPanelOpen: Boolean(draft.jsonPanelOpen)
         };
       } catch (error) {
@@ -704,6 +784,7 @@
           selected,
           activeDetailTab,
           collapsedNodes: Array.from(collapsedNodes),
+          idCounters,
           jsonPanelOpen: !jsonPanel.classList.contains("hidden"),
           savedAt: new Date().toISOString()
         }));
@@ -823,29 +904,24 @@
       render();
     }
 
-    function nextScenarioId(parent) {
-      const base = parent ? parent.id + "-" : "SC-";
-      const used = new Set();
-      if (parent) {
-        for (const child of parent.children || []) used.add(child.id);
-      } else {
-        for (const scenario of data.scenarios) used.add(scenario.id);
-      }
-      for (let index = 1; index < 1000; index += 1) {
-        const id = base + String(index).padStart(3, "0");
-        if (!used.has(id)) return id;
-      }
-      return base + "999";
-    }
-
     function nextGlobalId(prefix, collector) {
       const used = new Set();
       collector((id) => used.add(id));
-      for (let index = 1; index < 1000; index += 1) {
-        const id = prefix + "-" + String(index).padStart(3, "0");
-        if (!used.has(id)) return id;
+      let highestActive = 0;
+      for (const id of used) {
+        const match = String(id).match(new RegExp("^" + prefix + "-(\\d{3})$"));
+        if (match) highestActive = Math.max(highestActive, Number(match[1]));
       }
-      return prefix + "-999";
+      let index = Math.max(Number(idCounters[prefix]) || 0, highestActive) + 1;
+      for (; index < 1000; index += 1) {
+        const id = prefix + "-" + String(index).padStart(3, "0");
+        if (!used.has(id)) {
+          idCounters[prefix] = index;
+          return id;
+        }
+      }
+      window.alert(prefix + " 编号已达到 999，无法继续新增。");
+      return "";
     }
 
     function nextTestPointId() {
@@ -870,48 +946,164 @@
       return !Array.isArray(scenario.children) || scenario.children.length === 0;
     }
 
-    function addScenario(parentId = "") {
-      const parentRef = parentId ? findScenario(parentId) : null;
-      const parent = parentRef ? parentRef.node : null;
-      if (parent && parent.id.split("-").length >= 4) return;
-      const id = nextScenarioId(parent);
-      const node = {
-        id,
+    function scenarioLevel(scenario) {
+      return (String(scenario.id || "").match(/\d{3}/g) || []).length;
+    }
+
+    function supportsTestCases() {
+      return data.artifactType === "test-design-solution";
+    }
+
+    function syncIdCountersFromData() {
+      idCounters = idCounters && typeof idCounters === "object" ? idCounters : { TP: 0, TC: 0 };
+      walkScenarios((scenario) => {
+        for (const point of scenario.testPoints || []) {
+          const pointMatch = String(point.id || "").match(/^TP-(\d{3})$/);
+          if (pointMatch) idCounters.TP = Math.max(Number(idCounters.TP) || 0, Number(pointMatch[1]));
+          for (const testCase of point.testCases || []) {
+            const caseMatch = String(testCase.id || "").match(/^TC-(\d{3})$/);
+            if (caseMatch) idCounters.TC = Math.max(Number(idCounters.TC) || 0, Number(caseMatch[1]));
+          }
+        }
+      });
+    }
+
+    function renumberScenarioTree() {
+      function visit(nodes, parentId = "") {
+        for (let index = 0; index < (nodes || []).length; index += 1) {
+          const scenario = nodes[index];
+          scenario.id = parentId
+            ? `${parentId}-${String(index + 1).padStart(3, "0")}`
+            : `SC-${String(index + 1).padStart(3, "0")}`;
+          visit(scenario.children || [], scenario.id);
+        }
+      }
+      visit(data.scenarios || []);
+      resetCollapseDefaults();
+    }
+
+    function scenarioImpact(scenario) {
+      const impact = { scenarios: 0, testPoints: 0, testCases: 0 };
+      function visit(node) {
+        impact.scenarios += 1;
+        for (const point of node.testPoints || []) {
+          impact.testPoints += 1;
+          impact.testCases += (point.testCases || []).length;
+        }
+        for (const child of node.children || []) visit(child);
+      }
+      visit(scenario);
+      return impact;
+    }
+
+    function directTestPointImpact(scenario) {
+      return {
+        testPoints: (scenario.testPoints || []).length,
+        testCases: (scenario.testPoints || []).reduce((total, point) => total + (point.testCases || []).length, 0)
+      };
+    }
+
+    function openConfirmation({ title, message, impact = "", confirmLabel = "确认" }, action) {
+      closeTreeContextMenu();
+      confirmationReturnFocus = document.activeElement;
+      pendingConfirmationAction = action;
+      confirmationTitle.textContent = title;
+      confirmationMessage.textContent = message;
+      confirmationImpact.textContent = impact;
+      confirmationImpact.classList.toggle("hidden", !impact);
+      confirmActionButton.textContent = confirmLabel;
+      confirmationModal.classList.remove("hidden");
+      confirmActionButton.focus();
+    }
+
+    function closeConfirmation() {
+      confirmationModal.classList.add("hidden");
+      pendingConfirmationAction = null;
+      if (confirmationReturnFocus && document.contains(confirmationReturnFocus)) confirmationReturnFocus.focus();
+      confirmationReturnFocus = null;
+    }
+
+    function confirmPendingAction() {
+      const action = pendingConfirmationAction;
+      confirmationModal.classList.add("hidden");
+      pendingConfirmationAction = null;
+      confirmationReturnFocus = null;
+      if (action) action();
+    }
+
+    function createScenarioNode() {
+      return {
+        id: "",
         title: "新测试场景",
         children: [],
         testPoints: []
       };
-      if (parent) {
-        parent.children = parent.children || [];
-        parent.children.push(node);
-        delete parent.testPoints;
-        collapsedNodes.delete(nodeKey("scenario", parent.id));
-      } else {
-        data.scenarios.push(node);
+    }
+
+    function addScenario(parentId = "", insertIndex = null) {
+      const parentRef = parentId ? findScenario(parentId) : null;
+      const parent = parentRef ? parentRef.node : null;
+      if (parent && scenarioLevel(parent) >= 3) return;
+
+      const performAdd = () => {
+        const node = createScenarioNode();
+        if (parent) {
+          parent.children = parent.children || [];
+          const targetIndex = insertIndex === null ? parent.children.length : insertIndex;
+          parent.children.splice(targetIndex, 0, node);
+          delete parent.testPoints;
+        } else {
+          const targetIndex = insertIndex === null ? data.scenarios.length : insertIndex;
+          data.scenarios.splice(targetIndex, 0, node);
+        }
+        renumberScenarioTree();
+        selectNode("scenario", node.id);
+      };
+
+      const impact = parent ? directTestPointImpact(parent) : { testPoints: 0, testCases: 0 };
+      if (impact.testPoints) {
+        openConfirmation({
+          title: "确认新增子场景",
+          message: `${parent.id} 已直接挂载 ${impact.testPoints} 个 TP。新增子 SC 后，该节点将变为非叶子场景。`,
+          impact: `将联动删除这 ${impact.testPoints} 个 TP 及其下 ${impact.testCases} 个 TC，此操作无法撤销。`,
+          confirmLabel: "删除并新增"
+        }, performAdd);
+        return;
       }
-      selectNode("scenario", id);
+      performAdd();
+    }
+
+    function addSiblingScenario(scenarioId) {
+      const ref = findScenario(scenarioId);
+      if (!ref) return;
+      const insertIndex = ref.siblings.indexOf(ref.node) + 1;
+      addScenario(ref.parent ? ref.parent.id : "", insertIndex);
     }
 
     function addTestPoint(scenarioId) {
       const ref = findScenario(scenarioId);
       if (!ref || !isLeafScenario(ref.node)) return;
       const id = nextTestPointId();
+      if (!id) return;
       ref.node.testPoints = ref.node.testPoints || [];
-      ref.node.testPoints.push({
+      const point = {
         id,
-        title: "新测试点",
-        objective: "",
+        title: ref.node.testPoints.length ? "新测试点" : "E2E场景测试",
+        objective: ref.node.testPoints.length ? "" : "验证该叶子场景端到端主流程是否完整闭环",
         basisRefs: [],
-        testCases: []
-      });
+        note: ""
+      };
+      if (supportsTestCases()) point.testCases = [];
+      ref.node.testPoints.push(point);
       collapsedNodes.add(nodeKey("testPoint", id));
       selectNode("testPoint", id);
     }
 
     function addTestCase(pointId) {
       const ref = findTestPoint(pointId);
-      if (!ref) return;
+      if (!ref || !supportsTestCases()) return;
       const id = nextTestCaseId();
+      if (!id) return;
       ref.node.testCases = ref.node.testCases || [];
       ref.node.testCases.push({
         id,
@@ -927,21 +1119,63 @@
       selectNode("testCase", id);
     }
 
-    function removeSelected() {
-      const ref = selectedNode();
+    function requestNodeDeletion(type, id) {
+      const ref = type === "scenario" ? findScenario(id) : type === "testPoint" ? findTestPoint(id) : findTestCase(id);
       if (!ref) return;
-      if (!confirm("确认删除当前节点？")) return;
-      if (selected.type === "scenario") {
-        ref.siblings.splice(ref.siblings.indexOf(ref.node), 1);
+
+      let message = `确认删除 ${id}？`;
+      let impact = "此操作无法撤销。";
+      if (type === "scenario") {
+        const counts = scenarioImpact(ref.node);
+        message = `确认删除场景 ${id}？`;
+        impact = `将联动删除 ${counts.scenarios - 1} 个子 SC、${counts.testPoints} 个 TP 和 ${counts.testCases} 个 TC，此操作无法撤销。`;
       }
-      if (selected.type === "testPoint") {
+      if (type === "testPoint") {
+        const caseCount = (ref.node.testCases || []).length;
+        message = `确认删除测试点 ${id}？`;
+        impact = `将联动删除其下 ${caseCount} 个 TC；删除后仍需确保叶子 SC 包含 E2E场景测试，此操作无法撤销。`;
+      }
+      if (type === "testCase") {
+        message = `确认删除测试用例 ${id}？`;
+      }
+
+      openConfirmation({
+        title: "删除节点",
+        message,
+        impact,
+        confirmLabel: "确认删除"
+      }, () => deleteNode(type, id));
+    }
+
+    function deleteNode(type, id) {
+      if (type === "scenario") {
+        const ref = findScenario(id);
+        if (!ref) return;
+        const index = ref.siblings.indexOf(ref.node);
+        const fallback = ref.parent || ref.siblings[index + 1] || ref.siblings[index - 1] || null;
+        ref.siblings.splice(index, 1);
+        renumberScenarioTree();
+        selected = fallback ? { type: "scenario", id: fallback.id } : null;
+      }
+      if (type === "testPoint") {
+        const ref = findTestPoint(id);
+        if (!ref) return;
         ref.scenario.testPoints.splice(ref.scenario.testPoints.indexOf(ref.node), 1);
+        collapsedNodes.delete(nodeKey("testPoint", id));
+        selected = { type: "scenario", id: ref.scenario.id };
       }
-      if (selected.type === "testCase") {
+      if (type === "testCase") {
+        const ref = findTestCase(id);
+        if (!ref) return;
         ref.point.testCases.splice(ref.point.testCases.indexOf(ref.node), 1);
+        selected = { type: "testPoint", id: ref.point.id };
       }
-      selected = data.scenarios[0] ? { type: "scenario", id: data.scenarios[0].id } : null;
+      activeDetailTab = "detail";
       render();
+    }
+
+    function removeSelected() {
+      if (selected) requestNodeDeletion(selected.type, selected.id);
     }
 
     function nodeButton(type, id, title, kind) {
@@ -969,17 +1203,101 @@
       return button;
     }
 
-    function actionButton(label, title, handler, className = "") {
+    function closeTreeContextMenu() {
+      treeContextMenu.classList.add("hidden");
+      treeContextMenu.innerHTML = "";
+    }
+
+    function contextMenuButton(label, handler, danger = false) {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = "icon-button " + className;
+      button.role = "menuitem";
       button.textContent = label;
-      button.title = title;
-      button.addEventListener("click", (event) => {
-        event.stopPropagation();
+      if (danger) button.classList.add("danger");
+      button.addEventListener("click", () => {
+        closeTreeContextMenu();
         handler();
       });
       return button;
+    }
+
+    function contextMenuSeparator() {
+      const separator = document.createElement("div");
+      separator.className = "context-menu-separator";
+      separator.role = "separator";
+      return separator;
+    }
+
+    function contextActions(type, id) {
+      if (type === "scenario") {
+        const ref = findScenario(id);
+        if (!ref) return [];
+        const actions = [
+          { label: "新增同级 SC", handler: () => addSiblingScenario(id) }
+        ];
+        if (scenarioLevel(ref.node) < 3) {
+          actions.push({ label: "新增子 SC", handler: () => addScenario(id) });
+        }
+        if (isLeafScenario(ref.node)) {
+          actions.push({ label: "新增 TP", handler: () => addTestPoint(id) });
+        }
+        actions.push({ separator: true });
+        actions.push({ label: "删除 SC", handler: () => requestNodeDeletion(type, id), danger: true });
+        return actions;
+      }
+      if (type === "testPoint") {
+        const ref = findTestPoint(id);
+        if (!ref) return [];
+        const actions = [
+          { label: "新增同级 TP", handler: () => addTestPoint(ref.scenario.id) }
+        ];
+        if (supportsTestCases()) {
+          actions.push({ label: "新增 TC", handler: () => addTestCase(id) });
+        }
+        actions.push({ separator: true });
+        actions.push({ label: "删除 TP", handler: () => requestNodeDeletion(type, id), danger: true });
+        return actions;
+      }
+      if (type === "testCase") {
+        const ref = findTestCase(id);
+        if (!ref) return [];
+        return [
+          { label: "新增同级 TC", handler: () => addTestCase(ref.point.id) },
+          { separator: true },
+          { label: "删除 TC", handler: () => requestNodeDeletion(type, id), danger: true }
+        ];
+      }
+      return [{ label: "新增根 SC", handler: () => addScenario() }];
+    }
+
+    function openTreeContextMenu(type, id, clientX, clientY) {
+      closeTreeContextMenu();
+      for (const action of contextActions(type, id)) {
+        treeContextMenu.appendChild(action.separator
+          ? contextMenuSeparator()
+          : contextMenuButton(action.label, action.handler, action.danger));
+      }
+      if (!treeContextMenu.children.length) return;
+      treeContextMenu.classList.remove("hidden");
+      const bounds = treeContextMenu.getBoundingClientRect();
+      const left = Math.max(8, Math.min(clientX, window.innerWidth - bounds.width - 8));
+      const top = Math.max(8, Math.min(clientY, window.innerHeight - bounds.height - 8));
+      treeContextMenu.style.left = left + "px";
+      treeContextMenu.style.top = top + "px";
+      const firstItem = treeContextMenu.querySelector("button");
+      if (firstItem) firstItem.focus();
+    }
+
+    function bindNodeContextMenu(row, type, id) {
+      row.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        selected = { type, id };
+        activeDetailTab = "detail";
+        expandPathToSelection(type, id);
+        render();
+        openTreeContextMenu(type, id, event.clientX, event.clientY);
+      });
     }
 
     function renderScenario(scenario) {
@@ -989,11 +1307,8 @@
       const hasChildren = Boolean((scenario.children || []).length || (scenario.testPoints || []).length);
       row.appendChild(toggleButton("scenario", scenario.id, hasChildren));
       row.appendChild(nodeButton("scenario", scenario.id, scenario.title, "SC"));
-      const actions = document.createElement("div");
-      actions.className = "node-actions";
-      if (scenario.id.split("-").length < 4) actions.appendChild(actionButton("+S", "新增子场景", () => addScenario(scenario.id)));
-      if (isLeafScenario(scenario)) actions.appendChild(actionButton("+T", "新增测试点", () => addTestPoint(scenario.id)));
-      row.appendChild(actions);
+      row.appendChild(document.createElement("div"));
+      bindNodeContextMenu(row, "scenario", scenario.id);
       li.appendChild(row);
 
       if (hasChildren && !isCollapsed("scenario", scenario.id)) {
@@ -1013,10 +1328,8 @@
       const hasChildren = Boolean((point.testCases || []).length);
       row.appendChild(toggleButton("testPoint", point.id, hasChildren));
       row.appendChild(nodeButton("testPoint", point.id, point.title, "TP"));
-      const actions = document.createElement("div");
-      actions.className = "node-actions";
-      actions.appendChild(actionButton("+C", "新增测试用例", () => addTestCase(point.id)));
-      row.appendChild(actions);
+      row.appendChild(document.createElement("div"));
+      bindNodeContextMenu(row, "testPoint", point.id);
       li.appendChild(row);
       if (hasChildren && !isCollapsed("testPoint", point.id)) {
         const children = document.createElement("ul");
@@ -1034,14 +1347,16 @@
       row.appendChild(toggleButton("testCase", testCase.id, false));
       row.appendChild(nodeButton("testCase", testCase.id, testCase.title, "TC"));
       row.appendChild(document.createElement("div"));
+      bindNodeContextMenu(row, "testCase", testCase.id);
       li.appendChild(row);
       return li;
     }
 
     function renderTree() {
+      closeTreeContextMenu();
       treeEl.innerHTML = "";
       if (!data.scenarios.length) {
-        treeEl.innerHTML = '<div class="empty">暂无 SC，点击左上角新增，或通过顶部导入 JSON。</div>';
+        treeEl.innerHTML = '<div class="empty">暂无 SC。</div>';
         return;
       }
       const list = document.createElement("ul");
@@ -1054,21 +1369,29 @@
       return `<label>${label}</label><input value="${escapeAttr(value || "")}" placeholder="${escapeAttr(placeholder)}" data-bind="${onInput}">`;
     }
 
+    function readonlyField(label, value) {
+      return `<label>${label}</label><input value="${escapeAttr(value || "")}" readonly>`;
+    }
+
     function textareaField(label, value, onInput, placeholder = "") {
       return `<label>${label}</label><textarea placeholder="${escapeAttr(placeholder)}" data-bind="${onInput}">${escapeHtml(value || "")}</textarea>`;
     }
 
     function tabsForSelection() {
       if (!selected) return [{ id: "detail", label: "详情编辑" }];
-      if (selected.type === "scenario") return [
-        { id: "detail", label: "详情编辑" },
-        { id: "test-points", label: "TP 列表" },
-        { id: "test-cases", label: "TC 列表" }
-      ];
-      if (selected.type === "testPoint") return [
-        { id: "detail", label: "详情编辑" },
-        { id: "test-cases", label: "TC 列表" }
-      ];
+      if (selected.type === "scenario") {
+        const tabs = [
+          { id: "detail", label: "详情编辑" },
+          { id: "test-points", label: "TP 列表" }
+        ];
+        if (supportsTestCases()) tabs.push({ id: "test-cases", label: "TC 列表" });
+        return tabs;
+      }
+      if (selected.type === "testPoint") {
+        const tabs = [{ id: "detail", label: "详情编辑" }];
+        if (supportsTestCases()) tabs.push({ id: "test-cases", label: "TC 列表" });
+        return tabs;
+      }
       return [{ id: "detail", label: "详情编辑" }];
     }
 
@@ -1120,7 +1443,7 @@
       detailView.innerHTML = `
         <div class="notice">SC 是业务场景树节点，最多 3 层；只有叶子 SC 挂 TP。</div>
         <div class="form-grid">
-          ${inputField("SC 编号", node.id, "scenario.id", "SC-001")}
+          ${readonlyField("SC 编号", node.id)}
           ${inputField("场景标题", node.title, "scenario.title")}
           <label>场景层级</label><input value="${depth}" disabled>
           <label>是否叶子场景</label><input value="${leaf ? "是，可挂 TP" : "否，仅挂子 SC"}" disabled>
@@ -1144,14 +1467,14 @@
       detailView.innerHTML = `
         <div class="notice">TP 表达验证目标、规则点、路径点、状态点、权限点、接口契约点或风险点；TC 才写具体数据和步骤。</div>
         <div class="form-grid">
-          ${inputField("TP 编号", node.id, "testPoint.id", "TP-001")}
+          ${readonlyField("TP 编号", node.id)}
           ${inputField("测试点标题", node.title, "testPoint.title")}
           ${textareaField("验证目标", node.objective, "testPoint.objective")}
           ${textareaField("依据引用", formatRefs(node.basisRefs || []), "testPoint.basisRefs", "格式：来源 | 位置 | 依据摘要，一行一个")}
           ${textareaField("备注", node.note || "", "testPoint.note")}
         </div>
         <div class="section">
-          <button class="button primary" type="button" data-action="add-tc">+ 新增 TC</button>
+          ${supportsTestCases() ? '<button class="button primary" type="button" data-action="add-tc">+ 新增 TC</button>' : ""}
           <button class="button danger" type="button" data-action="delete">删除当前节点</button>
         </div>
       `;
@@ -1267,7 +1590,7 @@
       detailView.innerHTML = `
         <div class="notice">TC 是一个可独立执行、独立判定的测试实例；一个 TP 下应先识别必选因子、候选因子和必要补充因子，再生成最小充分 TC 集合，不同输入条件、角色、状态、配置、异常类型或数据组合应拆成独立 TC。</div>
         <div class="form-grid">
-          ${inputField("TC 编号", node.id, "testCase.id", "TC-001")}
+          ${readonlyField("TC 编号", node.id)}
           ${inputField("用例标题", node.title, "testCase.title")}
           <label>用例级别</label>
           <select data-bind="testCase.level">
@@ -1556,6 +1879,15 @@
         .join("\n");
     }
 
+    function prepareConditionToText(preconditions, testData) {
+      const sections = [];
+      const preconditionText = numberedLines(preconditions || []);
+      const testDataText = testDataToText(testData || []);
+      if (preconditionText) sections.push(preconditionText);
+      if (testDataText) sections.push("测试数据：\n" + testDataText);
+      return sections.join("\n");
+    }
+
     function levelToExcel(value) {
       return normalizeExcelText(value).trim().replace(/^Level/i, "level");
     }
@@ -1612,10 +1944,9 @@
                 Testcase_AutoType: "false",
                 Testcase_TobeAutomated: "false",
                 Testcase_Level: levelToExcel(testCase.level || "Level 2"),
-                Testcase_PrepareCondition: numberedLines(testCase.preconditions || []),
+                Testcase_PrepareCondition: prepareConditionToText(testCase.preconditions, testCase.testData),
                 Testcase_TestSteps: numberedLines(testCase.steps || [], (step) => step.action || ""),
                 Testcase_ExpectedResult: numberedLines(testCase.steps || [], (step) => step.expected || "") || testCase.expectedResult || "",
-                Testcase_MapRestrict: testDataToText(testCase.testData || []),
                 isAIGenerate: "true"
               }));
             }
@@ -1849,7 +2180,20 @@
       closeExcelExportModal();
     }
 
-    document.getElementById("addRootSc").addEventListener("click", () => addScenario());
+    function resetEditor() {
+      try {
+        localStorage.removeItem(draftStorageKey);
+      } catch (error) {
+        console.warn("无法清理本地草稿", error);
+      }
+      data = clone(emptyData);
+      idCounters = { TP: 0, TC: 0 };
+      selected = null;
+      activeDetailTab = "detail";
+      resetCollapseDefaults();
+      render();
+    }
+
     document.getElementById("toggleJsonButton").addEventListener("click", () => {
       jsonPanel.classList.toggle("hidden");
       updateJsonView();
@@ -1859,16 +2203,16 @@
       saveDraft();
     });
     document.getElementById("resetButton").addEventListener("click", () => {
-      try {
-        localStorage.removeItem(draftStorageKey);
-      } catch (error) {
-        console.warn("无法清理本地草稿", error);
+      if (!data.scenarios.length) {
+        resetEditor();
+        return;
       }
-      data = clone(emptyData);
-      selected = null;
-      activeDetailTab = "detail";
-      resetCollapseDefaults();
-      render();
+      openConfirmation({
+        title: "新建空白",
+        message: "确认清除当前编辑内容并新建空白数据？",
+        impact: "当前 SC、TP、TC 以及本地保存的草稿都会被删除，此操作无法撤销。",
+        confirmLabel: "确认清除"
+      }, resetEditor);
     });
     document.getElementById("exportButton").addEventListener("click", () => {
       const blob = new Blob([JSON.stringify(data, null, 2) + "\n"], { type: "application/json" });
@@ -1884,12 +2228,37 @@
     excelExportModal.addEventListener("click", (event) => {
       if (event.target === excelExportModal) closeExcelExportModal();
     });
+    document.getElementById("cancelConfirmationButton").addEventListener("click", closeConfirmation);
+    confirmActionButton.addEventListener("click", confirmPendingAction);
+    confirmationModal.addEventListener("click", (event) => {
+      if (event.target === confirmationModal) closeConfirmation();
+    });
+    treeEl.addEventListener("contextmenu", (event) => {
+      if (event.target.closest(".tree-row")) return;
+      event.preventDefault();
+      openTreeContextMenu("root", "", event.clientX, event.clientY);
+    });
+    treeEl.addEventListener("scroll", closeTreeContextMenu, { passive: true });
+    document.addEventListener("click", (event) => {
+      if (!treeContextMenu.contains(event.target)) closeTreeContextMenu();
+    });
+    window.addEventListener("resize", closeTreeContextMenu);
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      if (!confirmationModal.classList.contains("hidden")) {
+        closeConfirmation();
+        return;
+      }
+      closeTreeContextMenu();
+    });
     document.getElementById("importButton").addEventListener("click", () => document.getElementById("fileInput").click());
     document.getElementById("fileInput").addEventListener("change", async (event) => {
       const file = event.target.files[0];
       if (!file) return;
       const text = await file.text();
       data = JSON.parse(text);
+      idCounters = { TP: 0, TC: 0 };
+      syncIdCountersFromData();
       selected = data.scenarios && data.scenarios[0] ? { type: "scenario", id: data.scenarios[0].id } : null;
       activeDetailTab = "detail";
       resetCollapseDefaults();
@@ -1897,6 +2266,7 @@
       event.target.value = "";
     });
 
+    syncIdCountersFromData();
     if (!savedDraft) resetCollapseDefaults();
     render();
   </script>
