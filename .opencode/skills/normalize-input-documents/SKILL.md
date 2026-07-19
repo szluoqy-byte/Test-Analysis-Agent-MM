@@ -33,16 +33,47 @@ description: 当用户通过 file-normalization-agent 或独立命令要求处�
 - 可选 `--force`，用于源文件缓存已存在但需要重新转换的场景。
 - 可选 `--json`，用于输出机器可读摘要。
 
-## 归一化检查清单
+## 归一化阶段
 
-Progress:
-- [ ] Step 1: 识别所有 `.md`、`.docx`、`.xlsx` 输入并确认是否需要转换
-- [ ] Step 2: 运行归一化脚本（run `python skills/normalize-input-documents/scripts/normalize-office-input.py ...`）
-- [ ] Step 3: 检查全局缓存 Markdown 和 `.conversion.json`
-- [ ] Step 4: 如绑定 run，检查 run-local Markdown 和 `input-normalization-manifest.json`
-- [ ] Step 5: 收口 metadata warnings，必要时读取 `references/docx-image-and-diagram-workflow.md` 或 `references/xlsx-to-markdown.md`
-- [ ] Step 6: 重新读取最终 Markdown，确认图片/图形/复杂表格补充已原位合并
-- [ ] Step 7: 输出归一化完成摘要和下游应读取的 Markdown 路径
+- [ ] Step 1: 识别输入并确定转换范围
+- [ ] Step 2: 运行固定归一化脚本
+- [ ] Step 3: 确认全局缓存和转换 metadata
+- [ ] Step 4: 绑定并确认 run-local 输入
+- [ ] Step 5: 收口 warning 与专门参考
+- [ ] Step 6: 复读最终 Markdown 并确认原位合并
+- [ ] Step 7: 输出归一化完成摘要
+
+> 阶段索引是静态执行契约；如已绑定 run，实时状态和输入映射只写入 run-local manifest，不回写本段复选框。
+
+## 各阶段执行要求
+
+### Step 1: 识别输入并确定转换范围
+
+识别 `$ARGUMENTS` 中所有 `.md`、`.docx`、`.xlsx` 输入；Markdown 直接作为下游事实源，Office 输入进入转换流程。
+
+### Step 2: 运行固定归一化脚本
+
+只运行 `python skills/normalize-input-documents/scripts/normalize-office-input.py ...`，不得临时编写转换脚本或手工拼接派生 Markdown。
+
+### Step 3: 确认全局缓存和转换 metadata
+
+检查 `outputs/input-cache/<sha256-12>/` 下的归一化 Markdown 与 `.conversion.json`，并按内容哈希复用或刷新。
+
+### Step 4: 绑定并确认 run-local 输入
+
+传入 `--run-dir` 或 `--run-input-dir` 时，确认 run-local Markdown 和 `input-normalization-manifest.json` 已增量更新，且没有丢失既有输入映射。
+
+### Step 5: 收口 warning 与专门参考
+
+处理 metadata warnings；遇到 DOCX 图像/图形或复杂 XLSX 时，按需读取对应 `references/` 并记录收口状态。
+
+### Step 6: 复读最终 Markdown 并确认原位合并
+
+重新读取最终 Markdown，确认图片、图形和复杂表格补充事实已在原始占位位置合并，而非仅存在于外部说明。
+
+### Step 7: 输出归一化完成摘要
+
+输出源文件、归一化 Markdown、metadata、run-local 映射（如有）、warning 收口状态和下游应读取的路径。
 
 ## 归档路径
 

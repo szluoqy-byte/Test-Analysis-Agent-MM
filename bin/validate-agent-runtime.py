@@ -50,6 +50,7 @@ REQUIRED_BIN_FILES = {
     "check-staged-run.py",
     "init-staged-slices.py",
     "list-staged-work-items.py",
+    "lint-skill-step-contract.py",
     "manage-run.py",
     "merge-staged-slices.py",
     "reopen-run-items.py",
@@ -59,20 +60,10 @@ REQUIRED_BIN_FILES = {
 SKILL_STRUCTURE_MARKERS = {
     "usage trigger": ("## 何时使用", "## 触发信号", "## 触发条件", "## 必需输入"),
     "inputs": ("## 输入", "## 必需输入", "## 必读输入", "## 必读上下文"),
-    "procedure": ("## 执行流程", "## 执行方式", "## 审查步骤", "## 生成步骤", "## 分析步骤", "## 建模步骤", "## 写入流程", "## 执行命令", "## 执行步骤"),
+    "procedure": ("## 各阶段执行要求", "## 执行流程", "## 执行方式", "## 审查步骤", "## 生成步骤", "## 分析步骤", "## 建模步骤", "## 写入流程", "## 执行命令", "## 执行步骤"),
     "outputs": ("## 输出", "## 输出要求", "## 阶段产物契约", "## JSON 结构", "## 完成判定"),
     "validation": ("## 校验", "## 验证", "## 验证闭环", "## 防卡住规则", "## 脚本稳定性规则", "## 完成判定"),
     "constraints": ("## 约束", "## 禁止项", "## 冲突处理", "## 防卡住规则", "## 脚本稳定性规则", "## 稳定执行要求"),
-}
-CHECKLIST_REQUIRED_SKILLS = {
-    "coverage-review",
-    "final-report-generation",
-    "normalize-input-documents",
-    "test-analysis-design-workflow",
-    "test-analysis-solution-generation",
-    "test-analysis-workflow",
-    "test-design-solution-generation",
-    "test-design-workflow",
 }
 GOTCHAS_REQUIRED_SKILLS = {
     "coverage-review",
@@ -85,15 +76,6 @@ GOTCHAS_REQUIRED_SKILLS = {
     "test-design-solution-review",
     "test-design-workflow",
     "testing-method-router",
-}
-PLAN_VALIDATE_EXECUTE_SKILLS = {
-    "coverage-review",
-    "final-report-generation",
-    "test-analysis-design-workflow",
-    "test-analysis-solution-generation",
-    "test-analysis-workflow",
-    "test-design-solution-generation",
-    "test-design-workflow",
 }
 
 
@@ -179,12 +161,8 @@ def validate_skills(root: Path, issues: list[str]) -> None:
         for marker_name, markers in SKILL_STRUCTURE_MARKERS.items():
             if not any(marker in body for marker in markers):
                 fail(f"{skill_file.relative_to(root)} should include a {marker_name} section for skill usability", issues)
-        if name in CHECKLIST_REQUIRED_SKILLS and ("Progress:" not in body or "- [ ] Step" not in body):
-            fail(f"{skill_file.relative_to(root)} should include a Progress checklist for multi-step workflow reliability", issues)
         if name in GOTCHAS_REQUIRED_SKILLS and "## 易错点" not in body:
             fail(f"{skill_file.relative_to(root)} should include concrete gotchas for non-obvious failure modes", issues)
-        if name in PLAN_VALIDATE_EXECUTE_SKILLS and "## 计划-校验-执行模式" not in body:
-            fail(f"{skill_file.relative_to(root)} should include a plan-validate-execute section for fragile workflows", issues)
 
     for skill_name in sorted(REQUIRED_SKILLS):
         if not (skills_dir / skill_name / "SKILL.md").exists():
@@ -301,6 +279,20 @@ def validate_sync(root: Path, issues: list[str]) -> None:
     if result.returncode != 0:
         detail = (result.stdout + result.stderr).strip()
         fail(f"framework mirrors are out of sync: {detail}", issues)
+
+
+def validate_skill_step_contract(root: Path, issues: list[str]) -> None:
+    script = root / "bin" / "lint-skill-step-contract.py"
+    result = subprocess.run(
+        [sys.executable, str(script), "--root", str(root)],
+        cwd=root,
+        env=utf8_env(),
+        **subprocess_text_kwargs(),
+        capture_output=True,
+    )
+    if result.returncode != 0:
+        detail = (result.stdout + result.stderr).strip()
+        fail(f"skill stage contract validation failed: {detail}", issues)
 
 
 def validate_markdown_files(root: Path, files: list[Path], issues: list[str]) -> None:
@@ -473,6 +465,7 @@ def main() -> int:
     validate_skills(root, issues)
     validate_frameworks(root, issues)
     validate_bin_files(root, issues)
+    validate_skill_step_contract(root, issues)
     validate_sync(root, issues)
     validate_rules_module(root, issues)
     validate_project_extension_dirs(root, issues)

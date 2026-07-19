@@ -26,21 +26,18 @@ description: 基于已评审测试分析方案、需求/设计依据和可见动
 - `templates/test-design-solution-json-template.json`
 - 对本阶段可见的 project/personal 动态来源
 
-## 生成检查清单
+## 生成阶段
 
-Progress:
-- [ ] Step 1: 确认完整分析方案已绑定并通过 schema `2.0` 校验
-- [ ] Step 2: 读取当前 TP 工作项和 TC 切片中的 `generationContext`
-- [ ] Step 3: 读取适用 rules、可见动态来源和 relevant facts
-- [ ] Step 4: 识别当前 TP 的必选因子、候选因子和模型补充必要因子，再形成最小充分 TC 集合
-- [ ] Step 5: 只填写当前 `process/test-case-slices/<TP-ID>.json` 的 `testPoint.testCases[]`
-- [ ] Step 6: 通过 TC 切片 review 后用固定脚本合并并统一 TC 编号
-- [ ] Step 7: 合并后运行 `python bin/lint-run-json.py outputs/runs/<run-id>`
-- [ ] Step 8: 交给 `test-case-writing` 渲染 Markdown，不手工写 Markdown
+- [ ] Step 1: 确认完整分析方案已绑定并锁定 SC/TP
+- [ ] Step 2: 初始化当前 TP 的 generationContext
+- [ ] Step 3: 读取适用依据并锁定当前 TP 边界
+- [ ] Step 4: 识别测试设计因子并规划最小充分 TC 集合
+- [ ] Step 5: 填写当前 TP 的原子 TC
+- [ ] Step 6: 评审并合并 TC 切片
+- [ ] Step 7: 校验合并后的设计 JSON
+- [ ] Step 8: 交给 test-case-writing 生成 Markdown
 
-## 计划-校验-执行模式
-
-计划阶段由完整分析方案、TP 工作项和 `generationContext` 限定当前 TP 范围；校验阶段包括 TC 切片 review、最终设计 review、coverage-review 和 `lint-run-json.py`；执行阶段只允许固定脚本合并切片并统一 TC 编号。任何校验失败都回到当前 TP 的 TC 切片，不直接改最终交付件或 Markdown。
+> 阶段索引是静态生成契约；当前 run 的真实状态由 `process/design-task-list.json` 和 TP 工作项 JSON 维护。
 
 ## 易错点
 
@@ -49,20 +46,34 @@ Progress:
 - 不要因为输入依据不足而补造 GUI 控件、接口路径、错误码、提示文案或阈值。
 - 不要把已加载的因子库、checklist、knowledge 或方法参考当作封闭全集；除非更高优先级指令明确限定仅使用指定因子集合，否则必须继续判断当前 TP 下是否存在这些来源未显式列出的必要测试实例。
 
-## 执行步骤与生成原则
+## 各阶段执行要求
+
+### Step 1: 确认完整分析方案已绑定并锁定 SC/TP
 
 1. 完整继承分析方案的 `SC-*` 场景树和 `TP-*` 测试点，不新增、删除、合并或改写分析层级。
+
+### Step 2: 初始化当前 TP 的 generationContext
+
 2. 生成前必须确认当前 `process/test-case-slices/<TP-ID>.json` 已由固定脚本写入 `generationContext`；若缺失，先运行 `skills/test-design-solution-generation/scripts/init-test-case-slice.py` 或 `bin/build-generation-context.py` 生成，不手工拼写。
+
+### Step 3: 读取适用依据并锁定当前 TP 边界
+
 3. 优先读取 `generationContext.applicableRules[]` 中已内联的本阶段 rules 正文；TC 粒度、覆盖策略、数据表达、预期依据和禁止项必须遵守适用 rules。
 4. 按 `generationContext.visibleSources[]` 判断本阶段可见动态来源；只读取与当前 TP 的测试用例设计有关的正文。
 5. 使用 `generationContext.relevantFacts[]` 作为当前 TP 的优先事实候选；如候选不足，可回读输入事实模型、需求或设计方案，但不得改写 SC/TP。
-6. 每次只处理一个 `process/test-case-slices/<TP-ID>.json`，只填写当前 `testPoint.testCases[]`。
+6. 确认本次只处理当前 `process/test-case-slices/<TP-ID>.json`，后续只填写当前 `testPoint.testCases[]`。
+
+### Step 4: 识别测试设计因子并规划最小充分 TC 集合
+
 7. 每个 `TP-*` 至少生成 1 个 `TC-*`，但不得把“至少 1 个”当作充分覆盖。TP 是验证目标簇，必须生成覆盖该 TP 适用测试设计因子的最小充分 TC 集合。
 8. 填写 TC 前，先在思考中完成当前 TP 的测试实例拆解：识别必选因子、候选因子和基于 TP 目标补充推导的必要因子。必选因子来自 rules、当前用户明确指令和输入文档明确事实；候选因子来自 knowledge、project/personal 动态来源、方法参考和 `generationContext.visibleSources[]`；补充因子来自对当前 TP 目标、业务规则、接口契约、状态、权限、数据、异常、边界、组合和可观察结果差异的测试设计判断。
 9. 已加载来源中的既有测试设计因子是必选覆盖项或启发来源，不是封闭上限。除非更高优先级指令明确限定仅使用指定因子集合，否则不得因为因子库、checklist、knowledge 或方法参考未列出某类情况，就忽略该 TP 下有判定意义的独立测试实例。
 10. 只把有输入依据、适用规则、业务不变量或合理测试设计推导支撑的实例写入 `testCases[]`；模型补充因子不得覆盖或违背 rules、当前用户明确指令、输入文档明确事实或分析方案。
 11. 如果当前 TP 只生成 1 个 TC，必须能从输入依据、业务不变量、模型测试经验或切片评审说明中解释该 TP 不存在可支持的额外独立因子拆分；否则应继续拆分代表性成功、拒绝/失败、边界/异常、状态/权限/配置差异或关键组合 TC。
 12. 不要求穷举所有无业务意义的笛卡尔积；“最小充分”不是“最少”，而是覆盖所有对该 TP 判定有意义的独立测试实例，并优先覆盖高风险、关键规则、明确需求、明确设计和代表性等价类/边界。
+
+### Step 5: 填写当前 TP 的原子 TC
+
 13. `TC-*` 最终由 `skills/test-design-solution-generation/scripts/merge-test-case-slice.py` 分配 run 内全局唯一、增量稳定的编号；既有 TC 保留 ID，新 TC 从历史最大值后追加，退役编号不复用。
 14. TC 必须具体到可执行实例：明确用例级别、前置条件、测试数据、操作步骤、步骤预期和最终预期。
 15. 每个 TC 必须填写 `level`，取值只能是 `Level 0`、`Level 1`、`Level 2`、`Level 3`、`Level 4`，定义以 `knowledge/test-design-solution-standard.md` 为准。
@@ -81,6 +92,18 @@ Progress:
 28. `steps[].action` 只写用户、测试人员、外部调用方或测试工具可执行的操作或取数动作，不单独写检查项、断言项、观察结论或系统内部行为；字段值、状态、记录、事件、响应内容等检查要求，以及系统判断、系统处理、系统返回、系统取消、系统释放、系统写入等行为必须写入同一步的 `expected`。
 29. 不得把系统行为写成测试步骤动作，例如不要写 `MM系统判断count=0后取消交易`、`系统返回错误提示`、`服务端释放库存`、`定时任务触发补偿`；应改为 `测试人员提交count=0的交易请求` / `调用接口=POST /xxx` / `查询交易状态或库存记录`，并在 `expected` 中描述系统判断、返回、释放、补偿等预期。
 30. 如果需要验证响应体、数据库、消息、日志或领域事件，`action` 写“获取/查询/读取/订阅/拉取对象”，`expected` 写具体字段、状态、记录或事件要求。例如不要写 `检查响应体字段` 作为独立步骤，应写在调用接口步骤的 `expected` 或下一步查询动作的 `expected` 中。
+
+### Step 6: 评审并合并 TC 切片
+
+TC 切片通过独立 review 后，才允许固定合并脚本写回主交付件并统一稳定编号；任何失败都回到当前 TP 切片修复。
+
+### Step 7: 校验合并后的设计 JSON
+
+合并后运行 `python bin/lint-run-json.py outputs/runs/<run-id>`；确定性校验失败时只修正 JSON canonical，不进入派生写作。
+
+### Step 8: 交给 test-case-writing 生成 Markdown
+
+交由 `test-case-writing` 和 `bin/render-run-markdown.py` 从 canonical JSON 渲染 Markdown，不手工写 Markdown。
 
 ## JSON 结构
 

@@ -44,12 +44,12 @@
 - frontmatter 必须包含 `name` 和 `description`；`name` 与目录名一致，`description` 同时说明“做什么”和“何时使用”。
 - `SKILL.md` 保持核心流程和高价值易错点，详细标准、矩阵、参考资料或脚本放到 `references/`、`scripts/`，并在正文说明何时读取或调用。
 - 每个 skill 正文至少提供：何时使用、输入、执行步骤、输出、验证闭环、约束/易错点，便于 agent 激活后按步骤推进和自检。
-- 多步骤 workflow、生成、coverage 和 final-report 类 skill 使用 `Progress:` checklist，按 `- [ ] Step N: ...` 写出关键脚本、编辑对象和验证门禁，降低跳步概率。
-- 脆弱链路必须显式写 `计划-校验-执行模式`：先由脚本生成计划或工作包，再由 AI 填语义内容，再用脚本/review/coverage 校验，通过后才合并或收口。
+- 多步骤 workflow、生成、coverage、final-report 和写作类 skill 使用阶段索引，按连续的 `- [ ] Step N: ...` 列出静态执行契约，并在同编号、同标题的 `各阶段执行要求` 中展开关键脚本、编辑对象和验证门禁；真实 run 状态只写入 `process/*-task-list.json`。
+- 脆弱链路把脚本准备、AI 语义填写、review/coverage 和合并收口放入对应阶段要求，由 `bin/lint-skill-step-contract.py` 校验阶段索引和详细展开一致，避免维护独立流程副本。
 - 非显而易见的失败模式必须写入 `易错点`，例如“不要自动运行分析”“不要把方法路由写成交付字段”“不要在 final-report 阶段新增 missing 判断”。
 - 命令从仓库根目录执行，因此命令示例使用仓库相对路径；skill 私有资源说明优先使用 `references/...`、`scripts/...` 的相对写法。
 
-`bin/validate-agent-runtime.py` 会校验 skill frontmatter、行数、正文结构，以及关键 skill 的 checklist、易错点和计划-校验-执行段落；修改 skill 后必须运行 `python bin/sync-opencode-skills.py` 同步 `.opencode` 和 `.testagent` 镜像。
+`bin/validate-agent-runtime.py` 会校验 skill frontmatter、行数、正文结构、必需文件和 runtime wiring；`bin/lint-skill-step-contract.py` 负责校验关键多步骤 skill 的阶段索引和同编号详细展开。修改 skill 后必须运行 `python bin/sync-opencode-skills.py` 同步 `.opencode` 和 `.testagent` 镜像。
 
 ## Best Practices 对照决策
 
@@ -63,7 +63,7 @@
 | Favor procedures over declarations | 核心 skill 使用 checklist、执行步骤和验证闭环，而不是只声明产物应该正确 |
 | Gotchas sections | 高风险点保留在 `约束`、`禁止项`、`防卡住规则` 中；不为低风险 skill 额外堆叠重复 gotchas |
 | Templates for output format | 继续使用 `templates/*.json` 与 Markdown render 脚本；不把长模板塞入 `SKILL.md` |
-| Checklists for multi-step workflows | 已在入口 workflow、归一化、生成、coverage 和 final-report 类 skill 增加 `Progress:` checklist |
+| Checklists for multi-step workflows | 入口 workflow、归一化、生成、coverage、final-report 和写作类 skill 使用可校验的阶段索引；运行状态由 task-list JSON 维护 |
 | Validation loops | 每个关键 skill 保留验证闭环；coverage/review 返工回到 slice，不直接改最终 Markdown |
 | Plan-validate-execute | SC 树、TP 切片、TC 切片、fact-coverage-map 和 final-report 都先由脚本生成结构，再由 AI 填语义，再由脚本校验 |
 | Bundling reusable scripts | 重复 JSON 初始化、合并、渲染、lint、覆盖图和报告生成继续使用 `bin/` 或 skill 私有 `scripts/` 固定脚本 |

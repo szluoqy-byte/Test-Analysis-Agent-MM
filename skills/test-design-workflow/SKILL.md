@@ -18,15 +18,18 @@ description: 当用户提供已评审测试分析方案并要求扩展 TC 测试
 - 如果输入包含 `.docx` 或 `.xlsx`，不得在本 workflow 中转换；必须先由 `@file-normalization-agent` 归一化为 Markdown。
 - 新模型不支持旧格式自动迁移；输入分析方案必须符合 schema `2.0`。
 
-## 执行检查清单
+## 执行阶段
 
-Progress:
-- [ ] Step 1: 解析持久 run、变化和锁，并识别完整分析方案（run `python bin/manage-run.py prepare --flow design ...`）
-- [ ] Step 2: 初始化设计任务清单和 TP 工作项（run `python bin/update-run-task.py ... --flow design` and `python skills/test-design-solution-generation/scripts/extract-test-case-work-items.py ...`）
-- [ ] Step 3: 确认 rules/context 已存在或生成（run `python bin/build-rules-pack.py ...` and `python skills/context-source-indexing/scripts/build-context-source-index.py ...` if missing）
-- [ ] Step 4: 逐 TP 初始化、填写、评审并合并 TC 切片（run `python bin/init-staged-slices.py ... --scope design` and `python bin/merge-staged-slices.py ... --scope design`）
-- [ ] Step 5: 执行 JSON lint、Markdown 写作和 Markdown lint（use `test-case-writing` and run `python bin/lint-run-json.py ...`）
-- [ ] Step 6: 完成最终语义评审、coverage-review、final-report 和 staged run 检查（run `python bin/check-staged-run.py ... --scope design`）
+- [ ] Step 1: 准备持久 run 并绑定完整分析方案
+- [ ] Step 2: 初始化设计任务、工作项和共享上下文
+- [ ] Step 3: 初始化并填写当前 TP 的 TC 切片
+- [ ] Step 4: 评审并合并 TC 切片
+- [ ] Step 5: 执行确定性校验和 Markdown 写作
+- [ ] Step 6: 执行最终设计评审与 coverage 闭环
+- [ ] Step 7: 生成设计最终报告
+- [ ] Step 8: 收口 run 并固化生命周期状态
+
+> 阶段索引是静态执行契约，不表示本次 run 的实时完成状态。实时状态只写入 `process/design-task-list.json`。
 
 ## 职责边界
 
@@ -49,7 +52,9 @@ Progress:
 - 不要把“每个 TP 至少 1 个 TC”当成充分覆盖；必须识别必选因子、候选因子和基于 TP 目标补充推导的必要因子，再生成最小充分 TC 集合。已加载来源中的既有测试设计因子是必选覆盖项或启发来源，不是封闭上限。
 - 不要绕过 run plan 直接覆盖已有设计；analysis hash、输入/context/framework 指纹变化时必须重开受影响 TP，失败退出前释放 run lock。
 
-## 执行流程
+## 各阶段执行要求
+
+### Step 1: 准备持久 run 并绑定完整分析方案
 
 1. 校验输入：识别测试分析方案、Markdown 需求文档和可选 Markdown 设计方案文档。
 2. 固定 `PROJECT_ROOT`，把 `runid`、`mode`、project、requirement/design 和 `remove-source` 参数传给 `python bin/manage-run.py prepare --flow design ...`。未显式 runid 且 analysis 位于已有 run 时使用该 run 的目录名。读取 `process/run-plan.json`：`reuse` 只做一致性检查并返回；其他 action 持锁继续，`extend/rebuild` 必须已有 revision 快照。
@@ -59,25 +64,42 @@ Progress:
    - 如果两者都不存在，停止流程并输出失败原因：测试设计必须先取得完整 `test-analysis-solution.json`，本 workflow 不自动生成测试分析方案。
 4. 运行 `python bin/update-run-task.py outputs/runs/<run-id> --flow design --stage 固定 PROJECT_ROOT 与运行目录 --action start --evidence outputs/runs/<run-id>/` 创建或补齐 `process/design-task-list.json`，后续继续用同一脚本维护阶段状态；复用分析 run 时不得覆盖 `process/analysis-task-list.json`。
 5. 读取并校验 `deliverables/test-analysis-solution.json`；未通过 schema `2.0` 时不进入测试设计生成，直接输出失败原因和“需用当前测试分析 workflow 重新生成分析方案”的建议，不尝试旧格式迁移。
+
+### Step 2: 初始化设计任务、工作项和共享上下文
+
 6. 运行 `python skills/test-design-solution-generation/scripts/extract-test-case-work-items.py outputs/runs/<run-id>` 写入 `process/test-case-work-items.json`；每个 `TP-*` 都必须成为独立 TC 生成工作项。TP 内容 hash 变化会自动重开；analysis hash、design framework 或上下文变化时按 `run-plan.json` 使用 `bin/reopen-run-items.py --scope design` 重开受影响 TP，无法可靠定位时重开全部。
 7. 读取或生成 `process/rules-pack.json`；如果缺失，必须调用 `bin/build-rules-pack.py` 生成，不能手工拼写 JSON。
 8. 读取或生成 `process/context-pack.json`；如果缺失，必须调用 `context-source-indexing` 脚本生成，不能手工拼写 JSON。
 9. 受控补读 `process/run-manifest.json` 中全部可用 requirement/design 输入和结构化过程记录中与当前分析方案相关的依据；本次未重复传入的历史输入仍然有效，除非已通过 `remove-source` 显式删除。
+
+### Step 3: 初始化并填写当前 TP 的 TC 切片
+
 10. 运行 `python bin/init-staged-slices.py outputs/runs/<run-id> --scope design --pending` 批量初始化带 `generationContext` 的 `process/test-case-slices/<TP-ID>.json`；需要查看状态时运行 `python bin/list-staged-work-items.py outputs/runs/<run-id> --scope design --status all`。
 11. 使用 `test-design-solution-generation` 读取当前阶段可见 rules 正文和动态来源正文，只填写当前 TP 切片的 `testPoint.testCases[]`；不得新增、删除、合并或改写 SC/TP。
+
+### Step 4: 评审并合并 TC 切片
+
 12. 对每个 TC 切片先运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-case-review --target-id <TP-ID> --force` 初始化评审骨架，再使用 `test-design-solution-review` 独立评审；通过后运行 `python bin/merge-staged-slices.py outputs/runs/<run-id> --scope design --ids <TP-ID>`。合并器先按最新 analysis 对齐 SC/TP，并保留既有 TC 编号；新增 TC 从历史最大编号后追加，退役编号不复用。
+
+### Step 5: 执行确定性校验和 Markdown 写作
+
 13. 运行 `bin/lint-run-json.py`；失败时只修正 JSON canonical，不进入 Markdown 写作、最终独立评审或覆盖审查。
 14. 使用 `test-case-writing` 将 canonical JSON 写作为标准 Markdown，并运行 `bin/render-run-markdown.py --check` 和 `bin/lint-test-design-solution.py`；失败时回到 `test-design-solution.json` 修正后重新渲染，不手工编辑 Markdown。
-15. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-design-solution-review --force` 初始化最终评审骨架，再使用 `test-design-solution-review` 独立评审最终测试设计方案 JSON，结果写入 `process/reviews/test-design-solution-review.json`；如发现必须修正的问题，回到第 11 步更新对应 TC 切片。
+
+### Step 6: 执行最终设计评审与 coverage 闭环
+
+15. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-design-solution-review --force` 初始化最终评审骨架，再使用 `test-design-solution-review` 独立评审最终测试设计方案 JSON，结果写入 `process/reviews/test-design-solution-review.json`；如发现必须修正的问题，回到 Step 3 的操作 11 更新对应 TC 切片。
 16. 运行 `python bin/build-fact-coverage-map.py outputs/runs/<run-id> --scope design` 生成 `process/design-fact-coverage-map.json` 骨架；使用 `coverage-review` 逐 FACT 填写或修正 `coverageTree[]`、`coverageStatus` 和 `coverageReason`，其中 `gap` 表示过程门禁缺口。
 17. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind coverage --scope design --force` 初始化 coverage 骨架，再使用 `coverage-review` 基于 `process/design-fact-coverage-map.json` 检查需求到测试点、测试点到测试用例的覆盖关系，结果写入 `process/reviews/design-coverage-review.json`；如切片 review 或最终 review 存在 blocking findings/issues，先运行 `python bin/apply-review-findings.py outputs/runs/<run-id> --scope design --all` 重开对应工作项；如发现覆盖缺口，必须先运行 `python bin/apply-coverage-gaps.py outputs/runs/<run-id> --scope design`，再按被重开的 `process/test-case-slices/<TP-ID>.json` 修复。不得直接编辑最终 Markdown，也不得跳过切片回写直接手改 `deliverables/test-design-solution.json`；修复后重新执行对应 TC 切片 review、`bin/merge-staged-slices.py`、确定性校验、最终设计 review、`bin/build-fact-coverage-map.py`、coverage-review 和一致性检查。
+
+### Step 7: 生成设计最终报告
+
 18. coverage-review 通过且返工闭环完成后，使用 `final-report-generation` 运行 `python bin/build-final-report.py outputs/runs/<run-id> --scope design`，从 `process/design-fact-coverage-map.json` 生成 `reports/design-final-report.json` 并渲染 `reports/design-final-report.md`。最终报告只供人工审阅，不输出 `coverageGaps[]`，不触发返工。
 19. 通过 `bin/update-run-task.py` 将 `process/design-task-list.json` 的 `最终报告生成` 阶段标记为 done，证据必须包含 `reports/design-final-report.json` 和 `reports/design-final-report.md`。
+
+### Step 8: 收口 run 并固化生命周期状态
+
 20. 最终输出前通过 `bin/update-run-task.py` 刷新 `process/design-task-list.json` 的 `输出收口` 阶段，运行 `bin/check-staged-run.py outputs/runs/<run-id> --scope design`；通过后运行 `python bin/manage-run.py finalize outputs/runs/<run-id> --flow design`，记录 design hash 和它使用的 analysis hash。失败退出前运行 `python bin/manage-run.py abort outputs/runs/<run-id> --flow design` 释放锁。
-
-## 计划-校验-执行模式
-
-先绑定和校验完整分析方案，再提取 TP 工作项并初始化 TC 切片；AI 只填写单个 TP 的 TC 语义；切片 review 通过后再用固定脚本合并和统一编号。任何 lint、review 或 coverage 失败都回到对应 TC 切片修复，不手写最终 Markdown。
 
 ## 按 TP 切片模式
 

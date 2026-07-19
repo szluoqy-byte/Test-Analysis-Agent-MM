@@ -17,7 +17,7 @@
 - 只有当前任务实际修改了 agents 或 skills，才运行 `python bin/sync-opencode-skills.py`；只有实际修改了运行时 wiring，才运行 `python bin/validate-agent-runtime.py`。
 - 正常执行文件归一化、测试分析、测试设计或 analysis-design 业务 run 时，不运行 `bin/sync-opencode-skills.py`、`bin/validate-agent-runtime.py` 或 `bin/smoke-test-analysis.py`，只执行对应 workflow 规定的当前 run 校验。
 - `SKILL.md` 必须保持 Agent Skills 兼容：frontmatter 的 `name` 匹配目录名，`description` 说明做什么和何时用；正文保留核心流程，并包含何时使用、输入、执行步骤、输出、验证闭环和约束/易错点。
-- 多步骤 workflow、生成、coverage 和 final-report 类 skill 必须包含 `Progress:` checklist，防止跳过脚本初始化、review、coverage 或最终校验。
+- 多步骤 workflow、生成、coverage、final-report 和写作类 skill 必须使用阶段索引与同编号的 `各阶段执行要求`；阶段索引是静态执行契约，run 真实状态只写入 `process/*-task-list.json`，不再使用 `Progress:` 或独立的“计划-校验-执行模式”流程副本。
 - 从仓库根目录解析路径，不要从 `.claude-plugin/`、`.opencode/`、skill 目录或输入文件目录解析。
 - `test-analysis-workflow` 和 `test-design-workflow` 不直接处理 `.docx` / `.xlsx`；它们只消费已归一化 Markdown 或 JSON canonical 输入。
 - 每次 run 必须维护任务清单，以及 `process/rules-pack.json/.md`、`process/context-pack.json/.md` 和 `process/input-fact-model.json/.md`。

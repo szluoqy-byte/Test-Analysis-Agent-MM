@@ -15,15 +15,16 @@ description: 编排测试分析与测试设计全流程；优先以独立 subage
 - 可选 `runid=<requirement-id>`、`mode=auto|resume|extend|rebuild` 和 `remove-source=<path>`，必须原样传递给两个阶段。
 - 如果输入包含 `.docx` 或 `.xlsx`，不得在本 workflow 中转换；必须先由 `@file-normalization-agent` 归一化为 Markdown。
 
-## 执行检查清单
+## 执行阶段
 
-Progress:
-- [ ] Step 1: 校验全流程输入都是 Markdown（block on Office input and route to `@file-normalization-agent`）
-- [ ] Step 2: 启动 analysis subagent 执行 `test-analysis-workflow`
-- [ ] Step 3: 校验分析交接文件（check `deliverables/test-analysis-solution.json` and `reports/analysis-final-report.json/.md`）
-- [ ] Step 4: 启动 design subagent 执行 `test-design-workflow`，显式传入完整分析 JSON
-- [ ] Step 5: 汇总分析/设计交付件和 final-report 路径
-- [ ] Step 6: 若使用 fallback，同步说明未获得 subagent 会话隔离收益
+- [ ] Step 1: 校验输入并准备分析阶段参数
+- [ ] Step 2: 启动 analysis subagent 并等待分析收口
+- [ ] Step 3: 校验分析交接文件
+- [ ] Step 4: 启动 design subagent 并显式交接分析 JSON
+- [ ] Step 5: 汇总全流程交付件与阶段状态
+- [ ] Step 6: 处理阶段失败或同会话 fallback
+
+> 阶段索引是静态执行契约，不表示本次 run 的实时完成状态。analysis/design 的实时状态分别写入 `process/analysis-task-list.json` 和 `process/design-task-list.json`。
 
 ## 职责边界
 
@@ -41,27 +42,38 @@ Progress:
 - 不要把 analysis subagent 的聊天总结传给 design subagent 作为业务事实；只传完整分析 JSON 和输入文件路径。
 - 不要在 e2e 层重复实现 analysis/design 内部 lint、review、coverage 或 final-report 逻辑。
 
-## 执行流程
+## 各阶段执行要求
+
+### Step 1: 校验输入并准备分析阶段参数
 
 1. 校验输入至少包含一份 Markdown 需求文档；若发现 Office 输入，输出需先使用 `@file-normalization-agent` 的阻断说明，不创建全流程 run。
 2. 固定 `PROJECT_ROOT`，整理传给分析阶段的参数：需求 Markdown、可选设计 Markdown、`runid`、`mode`、`remove-source` 和可选 `project=<project-key>`。
+
+### Step 2: 启动 analysis subagent 并等待分析收口
+
 3. 优先启动 analysis subagent 完成测试分析阶段。显式传入同一组持久 run 参数；analysis subagent 内部执行 `test-analysis-workflow`，按 run plan 创建、复用、续作或增量补充 `outputs/runs/<run-id>/`，并负责 revision、锁、分析校验和返工闭环。
+
+### Step 3: 校验分析交接文件
+
 4. 分析阶段完成后，只做阶段交接检查：
    - 确认 `outputs/runs/<run-id>/deliverables/test-analysis-solution.json` 存在。
    - 确认 `outputs/runs/<run-id>/reports/analysis-final-report.json` 和同名 Markdown 已生成。
    - 不重新实现 `lint-run-json.py`、Markdown lint、review 或 coverage。
+### Step 4: 启动 design subagent 并显式交接分析 JSON
+
 5. 优先启动 design subagent 完成测试设计阶段。传入内容只包含：阶段目标、上一步生成的 `deliverables/test-analysis-solution.json`、同一 `runid`、`mode`、同一 run 目录、manifest 输入、可选 `project=<project-key>`、仓库根路径和本 skill 的交接要求。design subagent 内部执行 `test-design-workflow`，必须基于最新 analysis hash 判断增量影响。
+
+### Step 5: 汇总全流程交付件与阶段状态
+
 6. 设计阶段完成后，只做最终路径汇总：
    - `deliverables/test-analysis-solution.json/.md`
    - `deliverables/test-design-solution.json/.md`
    - `reports/analysis-final-report.json/.md`
    - `reports/design-final-report.json/.md`
+### Step 6: 处理阶段失败或同会话 fallback
+
 7. 如果分析阶段失败，不进入设计阶段；如果设计阶段失败，保留并报告已完成的分析产物路径和设计失败位置。
 8. 如果运行环境不支持真实独立 subagent，允许在同一会话内按上述顺序直接执行 `test-analysis-workflow` 和 `test-design-workflow`，但最终回复必须说明使用了 fallback，未获得 analysis/design 会话隔离收益。
-
-## 计划-校验-执行模式
-
-先计划并启动 analysis 阶段，校验分析交接文件存在后才启动 design 阶段；design 阶段完成后只校验最终路径汇总。任何阶段失败都停止后续阶段并报告已完成产物，不用自然语言补齐缺失交付件。
 
 ## 阶段交接规则
 

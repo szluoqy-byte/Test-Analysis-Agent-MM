@@ -33,20 +33,17 @@ coverage-review 必须基于对应范围的 FACT 覆盖证据图执行门禁：�
 - `references/review-gates.md`
 - `references/context-application-gates.md`
 
-## 审查检查清单
+## 审查阶段
 
-Progress:
-- [ ] Step 1: 确认 coverage JSON skeleton 和 `generationContext` 已初始化
-- [ ] Step 2: 确认 deterministic lint、Markdown render 和最终语义评审已完成
-- [ ] Step 3: 读取对应范围的 fact-coverage-map
-- [ ] Step 4: 逐 FACT 审查 `coverageTree[]` 是否真实、充分、有依据
-- [ ] Step 5: 输出 findings、blockingIssues、qualityGates 和必要的 `coverageGaps[]`
-- [ ] Step 6: 对每个 gap 定位到可编辑 canonical slice
-- [ ] Step 7: 输出后运行 `python bin/lint-run-json.py outputs/runs/<run-id>`
+- [ ] Step 1: 初始化 coverage 审查工作包
+- [ ] Step 2: 确认前置确定性校验和最终语义评审已完成
+- [ ] Step 3: 读取并审查 FACT 覆盖证据图
+- [ ] Step 4: 检查场景、测试点和测试用例覆盖充分性
+- [ ] Step 5: 输出结构化审查结论
+- [ ] Step 6: 为需要返工的缺口定位 canonical slice
+- [ ] Step 7: 校验 coverage 审查产物并交回 workflow 收口
 
-## 计划-校验-执行模式
-
-先运行 `bin/build-fact-coverage-map.py` 生成覆盖证据图作为审查计划；再逐 FACT 校验覆盖链路是否真实、充分、有依据；发现缺口时只输出 `coverageGaps[]` 和可编辑 slice 位置，由 workflow 执行 `bin/apply-coverage-gaps.py` 后回到切片修复。
+> 本节是本 skill 的静态执行契约，不记录 run 的真实状态；真实状态以 `process/*-task-list.json` 为准。
 
 ## 易错点
 
@@ -54,19 +51,42 @@ Progress:
 - 不要把 `coverageGaps[].artifactLocation` 指向最终 Markdown；必须指向可编辑 canonical slice。
 - 不要重复 deterministic lint 的字段、编号和 Markdown 漂移检查。
 
-## 审查步骤
+## 各阶段执行要求
 
-1. 确认 coverage JSON 已由 `bin/init-report-artifact.py` 初始化 skeleton 和 `generationContext`；缺失时先初始化，不手工拼写。
-2. 确认 deterministic lint 已通过；未通过时直接输出需修正。
-3. 优先读取 `generationContext.applicableRules[]` 中已内联的 coverage-review 适用 rules 正文，并检查 rules 与动态来源应用状态。
-4. 读取 `process/<scope>-fact-coverage-map.json`，逐条 FACT 审查 `coverageTree[]` 是否真实、充分、有依据。
-5. 检查需求事实、设计事实和高风险点是否能追踪到已冻结 `SC-*`，以及叶子 SC 是否都有 TP 切片承接。
-6. 检查每个叶子 SC 是否至少有一个 `E2E场景测试`，且非 E2E TP 没有重复泛化主流程闭环。
-7. 如果存在测试设计方案，检查每个 `TP-*` 是否有 TC 工作项和 TC 切片承接；`至少一个 TC` 只是最低结构门槛，还必须检查该 TP 下是否形成覆盖适用测试设计因子的最小充分 TC 集合。已加载来源中的既有测试设计因子不是封闭上限，coverage-review 应识别只覆盖因子库/checklist 条目但遗漏 TP 目标下必要测试实例的问题。
-8. 检查 TC 的测试数据、步骤和最终预期是否有依据。
-9. 输出结构化 findings、blockingIssues、recommendations、evidenceRefs、qualityGates 和 coverageGaps。
-10. 对覆盖证据图中 `coverageStatus=gap` 的 FACT，必须输出对应 `coverageGaps[]`，除非能明确改为 `not_applicable` 并写明原因。对 `coverageStatus=partial` 的 FACT，必须判断是否需要返工；需要返工时输出 `coverageGaps[]`，不需要返工时在 findings/recommendations 中说明保留原因。
-11. 对需要返工的 `coverageGaps[]`，`artifactLocation` 必须优先定位到可编辑 canonical slice：分析缺口写 `process/test-point-slices/<SC-ID>.json`，设计缺口写 `process/test-case-slices/<TP-ID>.json`；`suggestedFix` 必须说明回到对应 slice 修复、重新 slice review、脚本合并、最终 review、coverage 和一致性检查。
+### Step 1: 初始化 coverage 审查工作包
+
+- 确认 coverage JSON 已由 `bin/init-report-artifact.py` 初始化 skeleton 和 `generationContext`；缺失时先初始化，不手工拼写。
+
+### Step 2: 确认前置确定性校验和最终语义评审已完成
+
+- 确认 deterministic lint、Markdown render 和最终语义 review 已通过；未通过时停止 coverage 审查并返回需修正项。
+- 优先读取 `generationContext.applicableRules[]` 中已内联的 coverage-review 适用 rules 正文，并检查 rules 与动态来源应用状态。
+
+### Step 3: 读取并审查 FACT 覆盖证据图
+
+- 读取 `process/<scope>-fact-coverage-map.json`，逐条 FACT 审查 `coverageTree[]` 是否真实、充分、有依据。
+
+### Step 4: 检查场景、测试点和测试用例覆盖充分性
+
+- 检查需求事实、设计事实和高风险点是否能追踪到已冻结 `SC-*`，以及叶子 SC 是否都有 TP 切片承接。
+- 检查每个叶子 SC 是否至少有一个 `E2E场景测试`，且非 E2E TP 没有重复泛化主流程闭环。
+- 如果存在测试设计方案，检查每个 `TP-*` 是否有 TC 工作项和 TC 切片承接；`至少一个 TC` 只是最低结构门槛，还必须检查该 TP 下是否形成覆盖适用测试设计因子的最小充分 TC 集合。已加载来源中的既有测试设计因子不是封闭上限，coverage-review 应识别只覆盖因子库/checklist 条目但遗漏 TP 目标下必要测试实例的问题。
+- 检查 TC 的测试数据、步骤和最终预期是否有依据。
+
+### Step 5: 输出结构化审查结论
+
+- 输出 findings、blockingIssues、recommendations、evidenceRefs、qualityGates 和 coverageGaps。
+- 对 `coverageStatus=gap` 的 FACT，必须输出对应 `coverageGaps[]`，除非能明确改为 `not_applicable` 并写明原因；对 `partial` 必须判断是否需要返工，并说明保留原因或输出 gap。
+
+### Step 6: 为需要返工的缺口定位 canonical slice
+
+- `coverageGaps[].artifactLocation` 必须定位到可编辑 canonical slice：分析缺口写 `process/test-point-slices/<SC-ID>.json`，设计缺口写 `process/test-case-slices/<TP-ID>.json`。
+- `suggestedFix` 必须说明回到对应 slice 修复、重新 slice review、脚本合并、最终 review、coverage 和一致性检查。
+
+### Step 7: 校验 coverage 审查产物并交回 workflow 收口
+
+- 输出 coverage JSON 后运行 `python bin/lint-run-json.py outputs/runs/<run-id>`。
+- coverage-review 只输出结构化返工位置和建议；workflow 负责 `bin/apply-coverage-gaps.py`、切片修复、合并和重新审查。
 
 ## 输出
 

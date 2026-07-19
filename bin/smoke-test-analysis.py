@@ -103,6 +103,7 @@ REQUIRED_FILES = [
     "outputs/runs/.gitkeep",
     "bin/lint-test-analysis-solution.py",
     "bin/lint-test-design-solution.py",
+    "bin/lint-skill-step-contract.py",
     "skills/test-analysis-solution-generation/scripts/init-scenario-tree.py",
     "skills/test-analysis-solution-generation/scripts/lint-scenario-tree.py",
     "bin/generate-run-id.py",
@@ -215,6 +216,9 @@ def main() -> int:
             print(f"失败: 缺少关键文件 {relative}")
         return 1
     print("通过: 关键项目文件存在")
+
+    if not run_command([sys.executable, "bin/lint-skill-step-contract.py"], repo_root):
+        return 1
 
     if not run_command([sys.executable, "bin/test-persistent-run.py"], repo_root):
         return 1

@@ -25,6 +25,7 @@
 - `context-pack` 只索引 project/personal knowledge 动态来源。
 - `generationContext` 由固定脚本写入 scenario-tree、slice、review 和 coverage JSON，用于生成前工作包，不进入最终 deliverables。
 - review 处理语义质量，deterministic lint 处理结构、编号、字段和 Markdown 一致性。
+- 多步骤 skill 用阶段索引描述静态执行契约，并在同编号的 `各阶段执行要求` 中展开；run 的真实状态只写入 `process/*-task-list.json`，由 `bin/lint-skill-step-contract.py` 防止 skill 文档的阶段编号或标题漂移。
 - coverage-review 基于 fact-coverage-map 做覆盖门禁；final-report 只从已审查的覆盖证据图生成人审报告，不触发返工。
 - `.opencode/` 和 `.testagent/` 是生成镜像，手工源在根目录 `agents/` 和 `skills/`。
 

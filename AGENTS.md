@@ -38,7 +38,7 @@
 - 正常执行文件归一化、测试分析、测试设计或 analysis-design 业务 run 时，不得运行 `bin/sync-opencode-skills.py`、`bin/validate-agent-runtime.py` 或 `bin/smoke-test-analysis.py`；这些脚本不校验当前 run 的业务产物。
 - 每个 `skills/<skill-name>/SKILL.md` 必须保持 Agent Skills 兼容 frontmatter：`name` 与目录名一致，`description` 说明做什么和何时使用，正文保持核心指令而不是长篇资料。
 - 每个 skill 正文必须能快速定位：何时使用、输入、执行步骤、输出、验证闭环和约束/易错点；详细参考放入该 skill 的 `references/`，可执行 helper 放入该 skill 的 `scripts/`，并在正文说明何时读取或调用。
-- 多步骤 workflow、生成、coverage 和 final-report 类 skill 必须包含 `Progress:` checklist，用 `- [ ] Step N: ...` 明确关键脚本、编辑对象和验证门禁。
+- 多步骤 workflow、生成、coverage、final-report 和写作类 skill 必须用 `## 执行阶段`、`## 生成阶段`、`## 审查阶段`、`## 报告生成阶段`、`## 归一化阶段` 或 `## 写作阶段` 之一列出连续的 `- [ ] Step N: ...` 阶段索引，并在 `## 各阶段执行要求` 中以同编号、同标题展开执行、原则、脚本门禁和必要的失败回退。`### Step N` 是唯一顶层 Step 编号；其下可使用连续的操作编号，但不得形成第二套阶段清单。阶段索引是静态执行契约，不是运行状态；真实状态只写入 `process/*-task-list.json`。不得再维护独立的 `Progress:` 或“计划-校验-执行模式”流程副本。
 - 本仓库命令仍从仓库根目录执行，因此命令示例使用仓库相对路径；skill 私有参考资料在说明中优先使用 `references/...`、`scripts/...` 的相对写法。
 
 ## 路径规则
@@ -126,6 +126,7 @@
 以下命令只在当前任务修改了 Agent、Skill、runtime wiring、固定脚本、模板或示例 fixture 时按变更范围执行，不属于测试分析/设计业务 run：
 
 - Runtime wiring：`python bin/validate-agent-runtime.py`
+- Skill 阶段契约：`python bin/lint-skill-step-contract.py`
 - OpenCode/TestAgent skill 镜像：`python bin/sync-opencode-skills.py --check`
 - 持久 run 生命周期回归：`python bin/test-persistent-run.py`
 - 框架回归/示例 fixture smoke：`python bin/smoke-test-analysis.py`

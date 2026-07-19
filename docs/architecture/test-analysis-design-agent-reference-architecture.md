@@ -143,7 +143,7 @@ Harness 是围绕三层架构的工程控制面。它不决定应该设计哪些
 - `agents/`、`skills/` 是手工维护的事实源。
 - `.claude-plugin/`、`.opencode/`、`.testagent/` 和平台配置负责不同宿主的发现与调用。
 - `bin/sync-opencode-skills.py` 维护生成镜像。
-- `bin/validate-agent-runtime.py` 校验 Agent/Skill frontmatter、必需文件和 runtime wiring。
+- `bin/validate-agent-runtime.py` 校验 Agent/Skill frontmatter、必需文件和 runtime wiring；`bin/lint-skill-step-contract.py` 校验多步骤 skill 的阶段索引与详细要求一一对应。
 
 这一部分主要服务 Agent 层，但它也决定 Skill 怎样被不同宿主加载以及支撑资源怎样被定位。
 

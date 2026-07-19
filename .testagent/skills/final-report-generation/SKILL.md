@@ -24,23 +24,20 @@ description: 在测试分析或测试设计 coverage-review 已闭环后，基�
 - `process/context-pack.json` 中对 `final-report-generation` 可见的 project/personal 动态来源；如需使用，只读取相关正文，并在 `coverageReason` 中说明影响。
 - `templates/final-report-json-template.json`。
 
-## 生成检查清单
+## 报告生成阶段
 
-Progress:
-- [ ] Step 1: 确认对应 coverage-review 已通过或明确收口
-- [ ] Step 2: 确认 fact-coverage-map 已由 coverage-review 审查
-- [ ] Step 3: 运行 `python bin/build-final-report.py outputs/runs/<run-id> --scope analysis|design`
-- [ ] Step 4: 运行 `python bin/render-run-markdown.py outputs/runs/<run-id> --check`
-- [ ] Step 5: 运行 `python bin/lint-run-json.py outputs/runs/<run-id>`
-- [ ] Step 6: 确认 final-report 没有新增 coverage-review 未判断的 missing
+- [ ] Step 1: 确认 coverage-review 已通过或明确收口
+- [ ] Step 2: 确认覆盖证据图可作为最终报告事实源
+- [ ] Step 3: 用固定脚本生成 final-report JSON 和 Markdown
+- [ ] Step 4: 校验派生 Markdown 与 JSON 一致
+- [ ] Step 5: 校验 final-report JSON 结构
+- [ ] Step 6: 确认报告没有新增 coverage-review 未判断的缺口
+
+> 本节是本 skill 的静态执行契约，不记录 run 的真实状态；真实状态以 `process/*-task-list.json` 为准。
 
 ## 默认路径
 
 默认只从当前 run 的 `process/<scope>-fact-coverage-map.json` 生成对应 `reports/<scope>-final-report.json/.md`。不要读取其他 run 的报告，不要从 Markdown 反推覆盖关系。
-
-## 计划-校验-执行模式
-
-先确认 coverage-review 已完成并审查过 fact-coverage-map；再由 `bin/build-final-report.py` 从覆盖证据图生成 final-report；最后用 render check 和 `lint-run-json.py` 校验。若发现 final-report 需要新增缺口判断，停止并回到 coverage-review，不在 final-report 阶段自行判断。
 
 ## 易错点
 
@@ -48,13 +45,33 @@ Progress:
 - `missing` 只能来自 coverage-review 允许保留的 `gap`。
 - Markdown 是派生阅读版，不能手写，也不能作为下一阶段事实源。
 
-## 生成步骤
+## 各阶段执行要求
 
-1. 确认对应范围的 coverage-review 已完成且没有待处理 blocking 返工项。
-2. 读取 `process/rules-pack.json` 和 `process/context-pack.json`，筛选对 `final-report-generation` 可见的 rules 和动态来源；rules 必须遵守，动态来源只用于补充审阅判断。
-3. 确认覆盖证据图中每个 `factCoverage[]` 行已经完成 coverage-review 判断；如仍有 `coverageStatus=gap`，必须确认对应 coverage-review 已明确允许保留为最终人审缺口，否则回到 coverage-review。
-4. 运行 `python bin/build-final-report.py outputs/runs/<run-id> --scope analysis|design`，由脚本从覆盖证据图生成 `reports/*-final-report.json` 并渲染 Markdown。
-5. 不手写 `reports/*-final-report.json` 或 `.md`；最终报告只能由脚本从覆盖证据图生成。
+### Step 1: 确认 coverage-review 已通过或明确收口
+
+- 确认对应范围的 coverage-review 已完成且没有待处理 blocking 返工项。
+
+### Step 2: 确认覆盖证据图可作为最终报告事实源
+
+- 读取 `process/rules-pack.json` 和 `process/context-pack.json`，筛选对 `final-report-generation` 可见的 rules 和动态来源；rules 必须遵守，动态来源只用于补充审阅判断。
+- 确认每个 `factCoverage[]` 行已经完成 coverage-review 判断；如仍有 `coverageStatus=gap`，必须确认对应 coverage-review 已明确允许保留为最终人审缺口，否则回到 coverage-review。
+
+### Step 3: 用固定脚本生成 final-report JSON 和 Markdown
+
+- 运行 `python bin/build-final-report.py outputs/runs/<run-id> --scope analysis|design`，由脚本从覆盖证据图生成 `reports/*-final-report.json` 并渲染 Markdown。
+- 不手写 `reports/*-final-report.json` 或 `.md`；最终报告只能由脚本从覆盖证据图生成。
+
+### Step 4: 校验派生 Markdown 与 JSON 一致
+
+- 运行 `python bin/render-run-markdown.py outputs/runs/<run-id> --check`。
+
+### Step 5: 校验 final-report JSON 结构
+
+- 运行 `python bin/lint-run-json.py outputs/runs/<run-id>`。
+
+### Step 6: 确认报告没有新增 coverage-review 未判断的缺口
+
+- 若 final-report 出现新的 `missing` 判断，停止生成结论并回到 coverage-review 和 fact-coverage-map；final-report 不自行新增返工判断。
 
 ## 输出
 

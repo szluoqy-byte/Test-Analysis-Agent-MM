@@ -31,6 +31,15 @@ description: 在测试设计方案 JSON 已生成后使用，负责将 canonical
 - 共享写作风格：`knowledge/test-case-writing-styles/`，用于理解 canonical JSON 中 GUI、API、CLI 用例字段的表达约束。
 - 脚本：`bin/render-run-markdown.py` 作为默认确定性写作器。
 
+## 写作阶段
+
+- [ ] Step 1: 读取 canonical JSON 与适用上下文
+- [ ] Step 2: 调用固定渲染器生成标准 Markdown
+- [ ] Step 3: 校验 Markdown 并回到 canonical JSON 或渲染器修复
+- [ ] Step 4: 按需输出不改变事实的扩展写作风格
+
+> 阶段索引是静态写作契约；实时状态仍由 `process/design-task-list.json` 维护，Markdown 始终是 JSON 的派生产物。
+
 ## 默认标准 Markdown 写作
 
 标准 Markdown 必须由脚本生成：
@@ -43,12 +52,23 @@ python bin/lint-test-design-solution.py outputs/runs/<run-id>/deliverables/test-
 
 不得手工编辑 `deliverables/test-design-solution.md`。如果 Markdown 与 JSON 不一致，以 JSON 为准，重新渲染 Markdown。
 
-## 执行步骤
+## 各阶段执行要求
 
-1. 读取 `deliverables/test-design-solution.json`、适用 rules 和可见动态来源。
-2. 默认调用 `bin/render-run-markdown.py` 生成或检查标准 Markdown。
-3. 运行 Markdown lint；失败时回到 canonical JSON 或渲染脚本修复。
-4. 若扩展其他写作风格，先确认该风格不会改变覆盖事实，再输出派生文件。
+### Step 1: 读取 canonical JSON 与适用上下文
+
+读取 `deliverables/test-design-solution.json`、适用 rules 和可见动态来源。
+
+### Step 2: 调用固定渲染器生成标准 Markdown
+
+默认调用 `bin/render-run-markdown.py` 生成或检查标准 Markdown。
+
+### Step 3: 校验 Markdown 并回到 canonical JSON 或渲染器修复
+
+运行 Markdown lint；失败时回到 canonical JSON 或渲染脚本修复。
+
+### Step 4: 按需输出不改变事实的扩展写作风格
+
+若扩展其他写作风格，先确认该风格不会改变覆盖事实，再输出派生文件。
 
 ## 风格扩展规则
 
