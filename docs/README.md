@@ -18,6 +18,7 @@
 ## 草案和归档
 
 - `drafts/test-eval-agent.md`：未来测试评估 Agent 草案，当前不属于主链路。
+- `drafts/knowledge-architecture-2.0.md`：面向 AI 辅助测试分析与设计的 Knowledge 2.0 分类、Hybrid RAG、选择性知识图谱、治理和评测演进草案。
 - `archive/skills-architecture-optimization-analysis.md`：历史架构优化分析记录，保留用于追溯。
 
 ## 维护规则
