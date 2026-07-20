@@ -43,6 +43,9 @@ description: 在分析链路中分段评审冻结 SC 树、TP 切片和最终 sc
 
 SC 树评审写入 `process/reviews/scenario-tree-review.json`；TP 切片评审写入 `process/reviews/test-point-reviews/<SC-ID>.json`，汇总可写入 `process/reviews/test-point-review.json`；最终分析方案评审写入 `process/reviews/test-analysis-solution-review.json`。报告必须先由 `bin/init-report-artifact.py` 生成 skeleton 和 `generationContext`，AI 只填写语义结论字段；如需人读版，由 `bin/render-run-markdown.py` 渲染。
 
+- `result` 只能填写 `通过`、`需修正`、`失败`、`警告` 或 `不适用`；`findings[]`、`blockingIssues[]`、`recommendations[]` 和 `evidenceRefs[]` 必须保留为数组。
+- `blockingIssues[]` 中每项使用与 `findings[]` 相同的对象字段：`id`、`severity`、`dimension`、`location`、`description`、`evidence`、`recommendation`；`severity` 固定为 `blocking`。TP 切片和最终分析 review 的 blocking 项必须定位到 `process/test-point-slices/<SC-ID>.json`，供返工脚本重开工作项；SC 树未通过时定位 `process/scenario-tree.json` 并在冻结前修复，不能只写主交付 Markdown。
+
 ## 验证闭环
 
 评审输出后确认 `result`、`findings[]`、`blockingIssues[]`、`recommendations[]` 和 `evidenceRefs[]` 已填写。若存在 blocking 项，workflow 必须运行 `python bin/apply-review-findings.py outputs/runs/<run-id> --scope analysis --all` 重开对应工作项，再回到切片修复和合并流程。评审 JSON 结构校验失败时，先重新运行 `bin/init-report-artifact.py` 初始化 skeleton，再填写语义结论。

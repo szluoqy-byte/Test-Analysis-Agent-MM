@@ -126,7 +126,7 @@ description: 当用户提供需求文档和可选设计方案文档，并要求�
 
 ## 输出要求
 
-- 主输出使用 `templates/test-analysis-solution-json-template.json` 生成 JSON。
+- SC 树生成只使用 `templates/scenario-tree-json-template.json`；`templates/test-analysis-solution-json-template.json` 只作为 TP 合并后的最终主交付件参考，SC 阶段不得读取其 `testPoints[]` 示例。
 - `process/scenario-tree.json` 是冻结 SC 树，最多 3 层，任何层级都不得包含 `testPoints[]`。
 - `deliverables/test-analysis-solution.json` 的 `scenarios[]` 是场景树，最多 3 层；非叶子场景只允许有 `children[]`，叶子场景必须有 `testPoints[]`。
 - `TP-*` 在 run 内全局唯一且增量稳定；既有编号保持不变，新编号追加且退役编号不复用。每个叶子场景必须包含 `E2E场景测试`。

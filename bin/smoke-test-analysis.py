@@ -75,6 +75,7 @@ REQUIRED_FILES = [
     "templates/context-pack-template.md",
     "templates/input-fact-model-template.md",
     "templates/test-analysis-solution-json-template.json",
+    "templates/scenario-tree-json-template.json",
     "templates/test-design-solution-json-template.json",
     "templates/context-pack-json-template.json",
     "templates/input-fact-model-json-template.json",

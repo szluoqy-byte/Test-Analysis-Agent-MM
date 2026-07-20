@@ -65,6 +65,8 @@ coverage-review 必须基于对应范围的 FACT 覆盖证据图执行门禁：�
 ### Step 3: 读取并审查 FACT 覆盖证据图
 
 - 读取 `process/<scope>-fact-coverage-map.json`，逐条 FACT 审查 `coverageTree[]` 是否真实、充分、有依据。
+- 只编辑脚本已生成的 `factCoverage[]` 行中的 `coverageTree[]`、`coverageStatus` 和 `coverageReason`，不得新增、删除、合并或重编号 FACT。`coverageStatus` 只能为 `covered`、`partial`、`gap` 或 `not_applicable`，不要写 `missing`。
+- `coverageTree[]` 固定为 `{leafScenarioId, testPoints:[{testPointId, testCases:[]}]}` 层级；analysis 覆盖图的 `testCases[]` 必须为空，design 覆盖图中 `coverageStatus=covered` 时必须至少关联一个 `TC-*`。`gap` 或 `not_applicable` 时 `coverageTree[]` 必须为空，并在 `coverageReason` 写明原因。
 
 ### Step 4: 检查场景、测试点和测试用例覆盖充分性
 
@@ -75,7 +77,7 @@ coverage-review 必须基于对应范围的 FACT 覆盖证据图执行门禁：�
 
 ### Step 5: 输出结构化审查结论
 
-- 输出 findings、blockingIssues、recommendations、evidenceRefs、qualityGates 和 coverageGaps。
+- 输出 findings、blockingIssues、recommendations、evidenceRefs、qualityGates 和 coverageGaps；`result` 只能为 `通过`、`需修正`、`失败`、`警告` 或 `不适用`，这些集合字段必须保留为数组。
 - 对 `coverageStatus=gap` 的 FACT，必须输出对应 `coverageGaps[]`，除非能明确改为 `not_applicable` 并写明原因；对 `partial` 必须判断是否需要返工，并说明保留原因或输出 gap。
 
 ### Step 6: 为需要返工的缺口定位 canonical slice

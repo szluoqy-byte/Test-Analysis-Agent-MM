@@ -23,7 +23,6 @@ description: 基于已评审测试分析方案、需求/设计依据和可见动
 - `knowledge/test-design-solution-standard.md`
 - `knowledge/test-case-writing-standard.md`
 - `knowledge/test-case-writing-styles/README.md`
-- `templates/test-design-solution-json-template.json`
 - 对本阶段可见的 project/personal 动态来源
 
 ## 生成阶段
@@ -61,7 +60,7 @@ description: 基于已评审测试分析方案、需求/设计依据和可见动
 3. 优先读取 `generationContext.applicableRules[]` 中已内联的本阶段 rules 正文；TC 粒度、覆盖策略、数据表达、预期依据和禁止项必须遵守适用 rules。
 4. 按 `generationContext.visibleSources[]` 判断本阶段可见动态来源；只读取与当前 TP 的测试用例设计有关的正文。
 5. 使用 `generationContext.relevantFacts[]` 作为当前 TP 的优先事实候选；如候选不足，可回读输入事实模型、需求或设计方案，但不得改写 SC/TP。
-6. 确认本次只处理当前 `process/test-case-slices/<TP-ID>.json`，后续只填写当前 `testPoint.testCases[]`。
+6. 确认本次只处理当前 `process/test-case-slices/<TP-ID>.json`，后续只填写当前 `testPoint.testCases[]`。该切片是当前 TP 的唯一 live template；不要读取、套用或手工拼接完整 `templates/test-design-solution-json-template.json`。
 
 ### Step 4: 识别测试设计因子并规划最小充分 TC 集合
 
@@ -121,12 +120,8 @@ outputs/runs/<run-id>/deliverables/test-design-solution.json
 
 结构要求：
 
-- `artifactType`: `test-design-solution`
-- `schemaVersion`: `2.0`
-- `inputs[]`: 设计输入说明
-- `scenarios[]`: 继承分析方案场景树
-- 叶子场景的 `testPoints[]` 继承 `id`、`title`、`objective`、`basisRefs[]`
-- 每个测试点下生成 `testCases[]`
+- 当前 `test-case-slice` skeleton 已固定 `artifactType`、`schemaVersion`、`scenarioPath[]`、`leafScenarioId` 和 `testPoint` 的继承字段；这些字段不得改写。
+- 当前切片只允许编辑 `testPoint.testCases[]`。完整 `test-design-solution.json` 的 `inputs[]`、`scenarios[]` 和继承的 `testPoints[]` 由合并脚本生成，不作为当前生成阶段的模板或编辑目标。
 
 局部 JSON 由 workflow 使用 `python bin/merge-staged-slices.py outputs/runs/<run-id> --scope design --ids <TP-ID>` 或 `--all` 合并回主交付件；不要手工拼接主 JSON，不要临时创建 Python/JavaScript/PowerShell 脚本处理 JSON。
 

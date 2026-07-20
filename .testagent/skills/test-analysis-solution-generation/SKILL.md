@@ -23,7 +23,7 @@ description: 基于输入事实模型、测试技术路由参考、专项方法�
 - `process/test-point-work-items.json`
 - `process/test-point-slices/<SC-ID>.json`
 - 当前 `process/scenario-tree.json` 或切片 JSON 内的 `generationContext`
-- `templates/test-analysis-solution-json-template.json`
+- `templates/scenario-tree-json-template.json`，仅用于 Step 3-4 的 SC 结构
 - 对本阶段可见的 project/personal 动态来源
 
 ## 生成阶段
@@ -61,36 +61,39 @@ description: 基于输入事实模型、测试技术路由参考、专项方法�
 ### Step 3: 生成 SC 场景树
 
 5. SC 阶段只从需求目标、业务流程、角色、状态、接口、数据对象和风险中组织 `SC-*` 场景树，写入 `process/scenario-tree.json`。
-6. `process/scenario-tree.json` 的场景最多 3 层，任何 SC 节点都不得包含 `testPoints[]`、测试用例、步骤、测试数据或预期结果。
+6. Step 3-4 只使用 `templates/scenario-tree-json-template.json`，不得读取或套用完整 `templates/test-analysis-solution-json-template.json` 的叶子 `testPoints[]` 示例。
+7. 每个 SC 节点只允许 `id`、`title`、可选 `fields[]` 和 `children[]`；`fields[]` 仅承载场景业务说明，项结构为 `{field, content}`。SC 编号必须按数组顺序从 `SC-001` 开始，同级连续递增；子场景使用父 SC ID 加连续三级后缀，例如 `SC-001-001`、`SC-001-001-001`，不得跳号、重号或自行改写既有编号。
+8. `objective`、`basisRefs` 和 `note` 是后续 TP 切片字段。SC 阶段不得生成、保留、迁移或写入这些字段，也不得把它们放入 `fields[]`；需要依据时使用当前 `generationContext`，待 Step 6 在对应 TP 中生成 `objective` 和 `basisRefs[]`。
+9. `process/scenario-tree.json` 的场景最多 3 层，任何 SC 节点都不得包含 `testPoints[]`、测试用例、步骤、测试数据或预期结果。
 
 ### Step 4: 校验并冻结 SC 场景树
 
-7. SC review 通过后视为冻结；TP 阶段不得新增、删除、合并或改写 SC ID、标题、层级或字段。
+10. SC review 通过后视为冻结；TP 阶段不得新增、删除、合并或改写 SC ID、标题、层级或字段。
 
 ### Step 5: 提取叶子 SC 工作项并初始化 TP 切片
 
-8. 运行固定脚本生成 `process/test-point-work-items.json`，每个叶子 SC 对应一个 TP 切片。
+11. 运行固定脚本生成 `process/test-point-work-items.json`，每个叶子 SC 对应一个 TP 切片。
 
 ### Step 6: 生成当前叶子 SC 的 TP 集合
 
-9. 每个 `process/test-point-slices/<SC-ID>.json` 只填写当前叶子 SC 的 `scenario.testPoints[]`。
-10. 每个叶子场景必须包含一个 `E2E场景测试` 测试点。
+12. 每个 `process/test-point-slices/<SC-ID>.json` 只填写当前叶子 SC 的 `scenario.testPoints[]`。
+13. 每个叶子场景必须包含一个 `E2E场景测试` 测试点。
 
 ### Step 7: 评审并合并 TP 切片
 
-11. `TP-*` 最终由 `skills/test-analysis-solution-generation/scripts/merge-test-point-slice.py` 分配 run 内全局唯一、增量稳定的编号；既有 TP 保留 ID，新 TP 从历史最大值后追加，退役编号不复用。
+14. `TP-*` 最终由 `skills/test-analysis-solution-generation/scripts/merge-test-point-slice.py` 分配 run 内全局唯一、增量稳定的编号；既有 TP 保留 ID，新 TP 从历史最大值后追加，退役编号不复用。
 
 只有当前 TP 切片通过独立 review 后，才允许固定合并脚本写回主交付件并统一编号；失败时回到当前 SC 的切片修复。
 
 ### Step 8: 校验合并后的分析 JSON 并保持输出边界
 
-12. `TP-*` 是验证目标簇，不是具体测试用例标题；它表达规则、路径、状态、权限、接口契约或风险，并应能在设计阶段展开为覆盖该目标的最小充分 TC 集合。
-13. 如果多个 TP 候选只在具体取值、缺失字段、角色样本、状态样本、配置取值、依赖返回、消息顺序、错误类型或接口参数变体上不同，而验证的是同一接口、业务规则、权限边界、状态规则或风险目标，应合并为一个 TP，把差异留给 TC。
-14. 接口类场景下的非 E2E `TP-*` 应先定位接口、端点、消息、回调或集成点，再表达契约关注点；字段、状态码、错误码、鉴权、幂等、超时、重试和参数缺失是该接口 TP 下的 TC 设计因子，不要默认拆成多个 TP。
-15. 不输出 `expectedResult`。具体预期属于设计阶段 TC。
-16. 不输出具体数据值、操作步骤、测试脚本、自动化代码或真实生产数据。
-17. 如果输入不足，只生成输入可支持的 SC/TP，不编造错误码、提示文案、状态值或阈值；rules 与输入文档冲突时，默认遵守 rules 并在 basisRefs 或 note 中记录覆盖原因。
-18. 测试技术和专项方法只作为生成参考，用于启发覆盖维度和风险视角；最终 TP 不必逐项映射方法，也不得为了贴合某个方法而牺牲输入事实支持。
+15. `TP-*` 是验证目标簇，不是具体测试用例标题；它表达规则、路径、状态、权限、接口契约或风险，并应能在设计阶段展开为覆盖该目标的最小充分 TC 集合。
+16. 如果多个 TP 候选只在具体取值、缺失字段、角色样本、状态样本、配置取值、依赖返回、消息顺序、错误类型或接口参数变体上不同，而验证的是同一接口、业务规则、权限边界、状态规则或风险目标，应合并为一个 TP，把差异留给 TC。
+17. 接口类场景下的非 E2E `TP-*` 应先定位接口、端点、消息、回调或集成点，再表达契约关注点；字段、状态码、错误码、鉴权、幂等、超时、重试和参数缺失是该接口 TP 下的 TC 设计因子，不要默认拆成多个 TP。
+18. 不输出 `expectedResult`。具体预期属于设计阶段 TC。
+19. 不输出具体数据值、操作步骤、测试脚本、自动化代码或真实生产数据。
+20. 如果输入不足，只生成输入可支持的 SC/TP，不编造错误码、提示文案、状态值或阈值；rules 与输入文档冲突时，默认遵守 rules 并在 basisRefs 或 note 中记录覆盖原因。
+21. 测试技术和专项方法只作为生成参考，用于启发覆盖维度和风险视角；最终 TP 不必逐项映射方法，也不得为了贴合某个方法而牺牲输入事实支持。
 
 合并后必须运行 `python bin/lint-run-json.py outputs/runs/<run-id>`；失败时只回到当前 JSON 或对应 TP 切片修复，不手工编辑 Markdown。
 
@@ -116,11 +119,8 @@ outputs/runs/<run-id>/deliverables/test-analysis-solution.json
 
 结构要求：
 
-- `artifactType`: `test-analysis-solution`
-- `schemaVersion`: `2.0`
-- `scope[]`: 需求范围说明
-- `scenarios[]`: 场景树
-- 叶子场景的 `testPoints[]` 每项包含：
+- SC 阶段仅使用 `templates/scenario-tree-json-template.json`，其 `scenarios[]` 节点只允许 `id`、`title`、可选 `fields[]` 和 `children[]`。
+- Step 6-8 的最终交付件是 `test-analysis-solution`，使用 schemaVersion `2.0`，叶子场景的 `testPoints[]` 每项包含：
   - `id`
   - `title`
   - `objective`

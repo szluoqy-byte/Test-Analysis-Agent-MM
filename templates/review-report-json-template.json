@@ -1,7 +1,10 @@
 {
   "artifactType": "test-analysis-solution-review",
   "alternateArtifactTypes": [
-    "test-design-solution-review"
+    "test-design-solution-review",
+    "scenario-tree-review",
+    "test-point-review",
+    "test-case-review"
   ],
   "schemaVersion": "1.0",
   "title": "测试方案语义评审",
@@ -19,7 +22,17 @@
       "recommendation": ""
     }
   ],
-  "blockingIssues": [],
+  "blockingIssues": [
+    {
+      "id": "RV-001",
+      "severity": "blocking",
+      "dimension": "",
+      "location": "process/test-point-slices/<SC-ID>.json 或 process/test-case-slices/<TP-ID>.json",
+      "description": "",
+      "evidence": "",
+      "recommendation": ""
+    }
+  ],
   "recommendations": [],
   "evidenceRefs": [
     {

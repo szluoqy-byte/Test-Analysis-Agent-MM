@@ -128,7 +128,7 @@ description: 当用户提供已评审测试分析方案并要求扩展 TC 测试
 
 ## 输出要求
 
-- 主输出使用 `templates/test-design-solution-json-template.json` 生成 JSON。
+- 当前 TP 的 `process/test-case-slices/<TP-ID>.json` 是唯一 live template；模型只填写 `testPoint.testCases[]`，主交付件由固定合并脚本生成，不读取或套用完整 `templates/test-design-solution-json-template.json`。
 - 主输出必须继承分析方案中的 `SC-*` 场景树和 `TP-*` 测试点，不新增、删除、合并或改写分析层级。
 - 每个 `TP-*` 必须包含至少 1 个 `TC-*`，但“至少 1 个”只是最低结构门槛，不代表覆盖充分。
 - 每个 TP 下应生成覆盖该验证目标所有适用测试设计因子的最小充分 TC 集合；只有当输入依据、业务不变量和模型测试经验都不能支持额外独立因子拆分时，才允许该 TP 下只有 1 个 TC。

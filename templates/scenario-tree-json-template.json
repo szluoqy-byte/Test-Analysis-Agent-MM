@@ -1,0 +1,34 @@
+{
+  "artifactType": "scenario-tree",
+  "schemaVersion": "1.0",
+  "title": "<冻结 SC 场景树标题>",
+  "runDir": "outputs/runs/<run-id>",
+  "analysisSource": "",
+  "scope": [],
+  "scenarios": [
+    {
+      "id": "SC-001",
+      "title": "<一级业务场景>",
+      "fields": [
+        {
+          "field": "<场景业务说明>",
+          "content": ""
+        }
+      ],
+      "children": []
+    }
+  ],
+  "generationContext": {
+    "stage": "test-analysis-solution-generation",
+    "targetType": "scenario-tree",
+    "targetId": "scenario-tree",
+    "inputArtifacts": [],
+    "applicableRules": [],
+    "visibleSources": [],
+    "relevantFacts": [],
+    "constraints": [],
+    "readPlan": []
+  },
+  "rulesApplications": [],
+  "dynamicSourceApplications": []
+}

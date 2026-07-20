@@ -178,6 +178,7 @@ def default_constraints(kind: str) -> list[str]:
         return [
             "只生成 scope[] 和 scenarios[]。",
             "SC 最多 3 层，任何 SC 节点不得包含 testPoints/testCases/steps/testData/expectedResult。",
+            "SC 编号按数组顺序从 SC-001 开始，同级连续递增；子场景使用父 SC ID 加连续三级后缀，不得跳号、重号或改写既有编号。",
             "场景树通过 review 后冻结，后续 TP 阶段不得改写 SC。",
         ]
     if kind == "test-point":
@@ -199,6 +200,8 @@ def default_constraints(kind: str) -> list[str]:
     if kind == "review":
         return [
             "只做语义评审，不重复 deterministic lint 已覆盖的结构校验。",
+            "result 只能为 通过、需修正、失败、警告 或 不适用；findings、blockingIssues、recommendations、evidenceRefs 必须保留为数组。",
+            "blockingIssues[] 中每项复用 findings 的对象格式，并填写 id、severity=blocking、location、description 和 recommendation；需要重开工作项时 location 必须指向对应 slice，非 blocking finding 才可指向主交付 canonical JSON。",
             "发现必须修复的问题时，location 指向 canonical JSON 或对应 slice。",
         ]
     if kind == "coverage":

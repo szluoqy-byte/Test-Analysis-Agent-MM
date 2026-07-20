@@ -27,7 +27,7 @@ description: 在测试分析 workflow 中读取需求文档和可选设计方案
 
 1. 读取 `process/rules-pack.json`，筛选 `ruleSources[]` 中 `availableStages` 包含 `input-fact-modeling` 或 `"*"` 的 core/project/user rules，并读取对应 `path` 的 Markdown 正文；rules 是强制约束，优先于输入文档和 knowledge。
 2. 读取 `process/context-pack.json`，筛选 `availableStages` 包含 `input-fact-modeling` 或 `"*"` 的动态来源；如需使用，按来源文件、相关章节、关键词或标题读取正文，不全量复制大文件。
-3. 识别输入来源、需求范围、可选设计方案范围和明确非范围；事实清单按输入来源抽取和展示，但 `FACT-*` 仍保持全局连续编号。
+3. 识别输入来源、需求范围、可选设计方案范围和明确非范围；事实清单按输入来源抽取和展示，但 FACT 编号必须从 `FACT-001` 开始、使用三位数字并按表格行全局连续递增，例如 `FACT-001`、`FACT-002`，不得跳号、重号或使用 `FACT-1` 等其他格式。
 4. 从需求文档提取事实：模块、业务对象、角色、流程、规则、状态、输入输出、异常路径、外部依赖和可观察结果。
 5. 如果提供设计方案，从设计文档提取事实：接口、字段、状态、权限、数据依赖、配置、异常处理、非功能约束和架构决策。
 6. 不给事实预先标注测试技术或分析维度；只记录事实内容、约束条件和可观察结果，让 `testing-method-router` 后续自行判断测试技术。
