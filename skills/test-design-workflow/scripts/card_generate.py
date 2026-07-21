@@ -212,11 +212,11 @@ def main():
     logger.info(f"脚本开始执行: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
     """参数校验"""
-    # if "/" in sys.argv[0] or "\\" in sys.argv[0]:
-    #     print(json.dumps({"success": False,
-    #                       "message": "python脚本不能包含路径，只能是python文件名称。先进入脚本所在目录，再重新执行python脚本"},
-    #                      ensure_ascii=False))
-    #     return
+    if "/" in sys.argv[0] or "\\" in sys.argv[0]:
+        print(json.dumps({"success": False,
+                          "message": "python脚本不能包含路径，只能是python文件名称。先进入脚本所在目录，再重新执行python脚本"},
+                         ensure_ascii=False))
+        return
     if len(sys.argv) < 4:
         logger.error("参数不足，需要传入 json_file_path、cida_info、spec_info 三个参数")
         print(
