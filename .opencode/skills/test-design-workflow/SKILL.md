@@ -104,7 +104,7 @@ description: 当用户提供已评审测试分析方案并要求扩展 TC 测试
 
 ### Step 9: 上报测试用例卡片至testagent
 
-21. 调用 `python skills/test-design-workflow/scripts/card_generate.py "<designjson-file-path>" "<cidainfo-file-path>" "<designreport-file-path>"` 上报测试点生成卡片至 TestAgent 平台。其中 `<designjson-file-path>` 为 `deliverables/test-design-solution.json` 的绝对路径字符串（例如 `D:\...\outputs\runs\<run-id>\deliverables\test-design-solution.json`）。`<cidainfo-file-path>`为 `deliverables/cloud_test_info.json` 的绝对路径字符串（例如 `D:\...\outputs\runs\<run-id>\deliverables\cloud_test_info.json`）。 `<designreport-file-path>`为 `reports/design-final-report.md` 的绝对路径字符串（例如 `D:\...\outputs\runs\<run-id>\reports\design-final-report.md`）。若 TestAgent 平台 API 不可用导致上报失败，不影响分析方案交付件本身。
+21. 先cd进入到skills/test-design-workflow/scripts路径，然后调用 `python card_generate.py "<designjson-file-path>" "<cidainfo-file-path>" "<designreport-file-path>"` 上报测试点生成卡片至 TestAgent 平台，注意python脚本不能包含路径，只能是python文件名称card_generate.py。先进入脚本所在目录，再重新执行python脚本。其中 `<designjson-file-path>` 为 `deliverables/test-design-solution.json` 的绝对路径字符串（例如 `D:\...\outputs\runs\<run-id>\deliverables\test-design-solution.json`）。`<cidainfo-file-path>`为 `deliverables/cloud_test_info.json` 的绝对路径字符串（例如 `D:\...\outputs\runs\<run-id>\deliverables\cloud_test_info.json`）。 `<designreport-file-path>`为 `reports/design-final-report.md` 的绝对路径字符串（例如 `D:\...\outputs\runs\<run-id>\reports\design-final-report.md`）。若 TestAgent 平台 API 不可用导致上报失败，不影响分析方案交付件本身。
 
 ## 按 TP 切片模式
 
