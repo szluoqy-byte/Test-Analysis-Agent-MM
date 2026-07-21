@@ -10,10 +10,10 @@
     "coverageReview": "process/reviews/analysis-coverage-review.json"
   },
   "summary": {
-    "totalFacts": 0,
+    "totalFacts": 1,
     "coveredFacts": 0,
     "partialFacts": 0,
-    "gapFacts": 0,
+    "gapFacts": 1,
     "notApplicableFacts": 0
   },
   "factCoverage": [
@@ -28,19 +28,9 @@
       "factSummary": "",
       "condition": "",
       "observableResult": "",
-      "coverageTree": [
-        {
-          "leafScenarioId": "SC-001-001",
-          "testPoints": [
-            {
-              "testPointId": "TP-001",
-              "testCases": []
-            }
-          ]
-        }
-      ],
+      "coverageTree": [],
       "coverageStatus": "gap",
-      "coverageReason": "待覆盖审查确认。"
+      "coverageReason": "尚未完成覆盖判断，暂未建立 SC/TP 覆盖链路。"
     }
   ]
 }

@@ -64,43 +64,43 @@ description: 当用户提供已评审测试分析方案并要求扩展 TC 测试
    - 如果用户未显式指定，则只检查当前 run 是否已存在 `deliverables/test-analysis-solution.json`。
    - 如果两者都不存在，停止流程并输出失败原因：测试设计必须先取得完整 `test-analysis-solution.json`，本 workflow 不自动生成测试分析方案。
 4. 运行 `python bin/update-run-task.py outputs/runs/<run-id> --flow design --stage 固定 PROJECT_ROOT 与运行目录 --action start --evidence outputs/runs/<run-id>/` 创建或补齐 `process/design-task-list.json`，后续继续用同一脚本维护阶段状态；复用分析 run 时不得覆盖 `process/analysis-task-list.json`。
-5. 读取并校验 `deliverables/test-analysis-solution.json`；未通过 schema `2.0` 时不进入测试设计生成，直接输出失败原因和“需用当前测试分析 workflow 重新生成分析方案”的建议，不尝试旧格式迁移。
+5. 以 `--stage 测试分析方案校验 --action start` 更新任务清单后，读取并校验 `deliverables/test-analysis-solution.json`；未通过 schema `2.0` 时不进入测试设计生成，直接输出失败原因和“需用当前测试分析 workflow 重新生成分析方案”的建议，不尝试旧格式迁移。通过后以该 JSON 为证据标记 `测试分析方案校验` 为 `done`，并以 `process/run-plan.json` 为证据标记 `固定 PROJECT_ROOT 与运行目录` 为 `done`。
 
 ### Step 2: 初始化设计任务、工作项和共享上下文
 
 6. 运行 `python skills/test-design-solution-generation/scripts/extract-test-case-work-items.py outputs/runs/<run-id>` 写入 `process/test-case-work-items.json`；每个 `TP-*` 都必须成为独立 TC 生成工作项。TP 内容 hash 变化会自动重开；analysis hash、design framework 或上下文变化时按 `run-plan.json` 使用 `bin/reopen-run-items.py --scope design` 重开受影响 TP，无法可靠定位时重开全部。
-7. 读取或生成 `process/rules-pack.json`；如果缺失，必须调用 `bin/build-rules-pack.py` 生成，不能手工拼写 JSON。
-8. 读取或生成 `process/context-pack.json`；如果缺失，必须调用 `context-source-indexing` 脚本生成，不能手工拼写 JSON。
-9. 受控补读 `process/run-manifest.json` 中全部可用 requirement/design 输入和结构化过程记录中与当前分析方案相关的依据；本次未重复传入的历史输入仍然有效，除非已通过 `remove-source` 显式删除。
+7. 以 `--stage 强制规则加载 --action start` 更新任务清单后，读取或生成 `process/rules-pack.json`；如果缺失，必须调用 `bin/build-rules-pack.py` 生成，不能手工拼写 JSON。成功后以 `process/rules-pack.json` 为证据标记 `强制规则加载` 为 `done`。
+8. 以 `--stage 上下文来源索引 --action start` 更新任务清单后，读取或生成 `process/context-pack.json`；如果缺失，必须调用 `context-source-indexing` 脚本生成，不能手工拼写 JSON。成功后以 `process/context-pack.json` 为证据标记 `上下文来源索引` 为 `done`。
+9. 以 `--stage 设计依据补读 --action start` 更新任务清单后，受控补读 `process/run-manifest.json` 中全部可用 requirement/design 输入和结构化过程记录中与当前分析方案相关的依据；本次未重复传入的历史输入仍然有效，除非已通过 `remove-source` 显式删除。完成补读后以补读记录标记该阶段为 `done`；没有新增补读需要时必须显式标记为 `skipped`。
 
 ### Step 3: 初始化并填写当前 TP 的 TC 切片
 
-10. 运行 `python bin/init-staged-slices.py outputs/runs/<run-id> --scope design --pending` 批量初始化带 `generationContext` 的 `process/test-case-slices/<TP-ID>.json`；需要查看状态时运行 `python bin/list-staged-work-items.py outputs/runs/<run-id> --scope design --status all`。
+10. 以 `--stage 测试设计方案生成 --action start` 更新任务清单后，运行 `python bin/init-staged-slices.py outputs/runs/<run-id> --scope design --pending` 批量初始化带 `generationContext` 的 `process/test-case-slices/<TP-ID>.json`；需要查看状态时运行 `python bin/list-staged-work-items.py outputs/runs/<run-id> --scope design --status all`。
 11. 使用 `test-design-solution-generation` 读取当前阶段可见 rules 正文和动态来源正文，只填写当前 TP 切片的 `testPoint.testCases[]`；不得新增、删除、合并或改写 SC/TP。
 
 ### Step 4: 评审并合并 TC 切片
 
-12. 对每个 TC 切片先运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-case-review --target-id <TP-ID> --force` 初始化评审骨架，再使用 `test-design-solution-review` 独立评审；通过后运行 `python bin/merge-staged-slices.py outputs/runs/<run-id> --scope design --ids <TP-ID>`。合并器先按最新 analysis 对齐 SC/TP，并保留既有 TC 编号；新增 TC 从历史最大编号后追加，退役编号不复用。
+12. 对每个 TC 切片先运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-case-review --target-id <TP-ID> --force` 初始化评审骨架，再使用 `test-design-solution-review` 独立评审；JSON 写入后立即运行 `python bin/render-run-markdown.py outputs/runs/<run-id> --artifact process/reviews/test-case-reviews/<TP-ID>.json`，通过后运行 `python bin/merge-staged-slices.py outputs/runs/<run-id> --scope design --ids <TP-ID>`。全部 TP 合并后，以 `deliverables/test-design-solution.json`、`process/test-case-work-items.json` 和切片评审结果为证据标记 `测试设计方案生成` 为 `done`。合并器先按最新 analysis 对齐 SC/TP，并保留既有 TC 编号；新增 TC 从历史最大编号后追加，退役编号不复用。
 
 ### Step 5: 执行确定性校验和 Markdown 写作
 
-13. 运行 `bin/lint-run-json.py`；失败时只修正 JSON canonical，不进入 Markdown 写作、最终独立评审或覆盖审查。
-14. 使用 `test-case-writing` 将 canonical JSON 写作为标准 Markdown，并运行 `bin/render-run-markdown.py --check` 和 `bin/lint-test-design-solution.py`；失败时回到 `test-design-solution.json` 修正后重新渲染，不手工编辑 Markdown。
+13. 以 `--stage 确定性校验 --action start` 更新任务清单后，运行 `bin/lint-run-json.py`；失败时只修正 JSON canonical，不进入 Markdown 写作、最终独立评审或覆盖审查。
+14. 使用 `test-case-writing` 将 canonical JSON 写作为标准 Markdown，并运行 `python bin/render-run-markdown.py outputs/runs/<run-id> --check` 和 `python bin/lint-test-design-solution.py outputs/runs/<run-id>/deliverables/test-design-solution.md`；失败时回到 `test-design-solution.json` 修正后重新渲染，不手工编辑 Markdown。通过后以 lint 与渲染结果为证据标记 `确定性校验` 为 `done`。
 
 ### Step 6: 执行最终设计评审与 coverage 闭环
 
-15. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-design-solution-review --force` 初始化最终评审骨架，再使用 `test-design-solution-review` 独立评审最终测试设计方案 JSON，结果写入 `process/reviews/test-design-solution-review.json`；如发现必须修正的问题，回到 Step 3 的操作 11 更新对应 TC 切片。
-16. 运行 `python bin/build-fact-coverage-map.py outputs/runs/<run-id> --scope design` 生成 `process/design-fact-coverage-map.json` 骨架；使用 `coverage-review` 逐 FACT 填写或修正 `coverageTree[]`、`coverageStatus` 和 `coverageReason`，其中 `gap` 表示过程门禁缺口。
-17. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind coverage --scope design --force` 初始化 coverage 骨架，再使用 `coverage-review` 基于 `process/design-fact-coverage-map.json` 检查需求到测试点、测试点到测试用例的覆盖关系，结果写入 `process/reviews/design-coverage-review.json`；如切片 review 或最终 review 存在 blocking findings/issues，先运行 `python bin/apply-review-findings.py outputs/runs/<run-id> --scope design --all` 重开对应工作项；如发现覆盖缺口，必须先运行 `python bin/apply-coverage-gaps.py outputs/runs/<run-id> --scope design`，再按被重开的 `process/test-case-slices/<TP-ID>.json` 修复。不得直接编辑最终 Markdown，也不得跳过切片回写直接手改 `deliverables/test-design-solution.json`；修复后重新执行对应 TC 切片 review、`bin/merge-staged-slices.py`、确定性校验、最终设计 review、`bin/build-fact-coverage-map.py`、coverage-review 和一致性检查。
+15. 以 `--stage 独立评审 --action start` 更新任务清单。运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-design-solution-review --force` 初始化最终评审骨架，再使用 `test-design-solution-review` 独立评审最终测试设计方案 JSON，结果写入 `process/reviews/test-design-solution-review.json`；如发现必须修正的问题，回到 Step 3 的操作 11 更新对应 TC 切片。JSON 写入后立即运行 `python bin/render-run-markdown.py outputs/runs/<run-id> --artifact process/reviews/test-design-solution-review.json`，再以该 JSON、Markdown 和评审结论为证据标记 `独立评审` 为 `done`。
+16. 以 `--stage 覆盖审查 --action start` 更新任务清单。运行 `python bin/build-fact-coverage-map.py outputs/runs/<run-id> --scope design` 生成 `process/design-fact-coverage-map.json` 骨架；使用 `coverage-review` 前必须读取 `skills/coverage-review/references/fact-coverage-tree-contract.md`，逐 FACT 填写或修正既有行的 `coverageTree[]`、`coverageStatus` 和 `coverageReason`。design 的 `coverageStatus=covered` 链路固定为 `leafScenarioId -> testPoints[].testPointId -> testCases: [TC-*]`，且至少关联一个真实 TC；`gap` 或 `not_applicable` 必须使用空 `coverageTree[]`。修改后立即运行 `python bin/render-run-markdown.py outputs/runs/<run-id> --artifact process/design-fact-coverage-map.json`，再运行 `python bin/lint-run-json.py outputs/runs/<run-id>`。
+17. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind coverage --scope design --force` 初始化 coverage 骨架，再使用 `coverage-review` 基于 `process/design-fact-coverage-map.json` 检查需求到测试点、测试点到测试用例的覆盖关系，结果写入 `process/reviews/design-coverage-review.json`；JSON 写入后立即运行 `python bin/render-run-markdown.py outputs/runs/<run-id> --artifact process/reviews/design-coverage-review.json`，再运行 `python bin/lint-run-json.py outputs/runs/<run-id>`。如切片 review 或最终 review 存在 blocking findings/issues，先运行 `python bin/apply-review-findings.py outputs/runs/<run-id> --scope design --all` 重开对应工作项；如发现覆盖缺口，必须先运行 `python bin/apply-coverage-gaps.py outputs/runs/<run-id> --scope design`，再按被重开的 `process/test-case-slices/<TP-ID>.json` 修复。不得直接编辑最终 Markdown，也不得跳过切片回写直接手改 `deliverables/test-design-solution.json`；修复后重新执行对应 TC 切片 review、`bin/merge-staged-slices.py`、确定性校验、最终设计 review、`bin/build-fact-coverage-map.py`、coverage-review 和一致性检查；每次写入 review 或 coverage JSON 后都必须先渲染其对应 Markdown，再运行现有 lint。coverage-review 通过后以覆盖图、coverage review JSON/Markdown 和 lint 结果为证据标记 `覆盖审查` 为 `done`。
 
 ### Step 7: 生成设计最终报告
 
-18. coverage-review 通过且返工闭环完成后，使用 `final-report-generation` 运行 `python bin/build-final-report.py outputs/runs/<run-id> --scope design`，从 `process/design-fact-coverage-map.json` 生成 `reports/design-final-report.json` 并渲染 `reports/design-final-report.md`。最终报告只供人工审阅，不输出 `coverageGaps[]`，不触发返工。
+18. 只有 `process/design-fact-coverage-map.json` 与 `process/reviews/design-coverage-review.json` 已完成 JSON 写入、Markdown 渲染并通过现有 lint 后，coverage-review 才可视为通过。之后使用 `final-report-generation` 运行 `python bin/build-final-report.py outputs/runs/<run-id> --scope design`，从 `process/design-fact-coverage-map.json` 生成 `reports/design-final-report.json` 并渲染 `reports/design-final-report.md`。最终报告只供人工审阅，不输出 `coverageGaps[]`，不触发返工。
 19. 通过 `bin/update-run-task.py` 将 `process/design-task-list.json` 的 `最终报告生成` 阶段标记为 done，证据必须包含 `reports/design-final-report.json` 和 `reports/design-final-report.md`。
 
 ### Step 8: 收口 run 并固化生命周期状态
 
-20. 最终输出前通过 `bin/update-run-task.py` 刷新 `process/design-task-list.json` 的 `输出收口` 阶段，运行 `bin/check-staged-run.py outputs/runs/<run-id> --scope design`；通过后运行 `python bin/manage-run.py finalize outputs/runs/<run-id> --flow design`，记录 design hash 和它使用的 analysis hash。失败退出前运行 `python bin/manage-run.py abort outputs/runs/<run-id> --flow design` 释放锁。
+20. 最终输出前以 `deliverables/test-design-solution.json`、`reports/design-final-report.json` 和对应 Markdown 为证据标记 `输出收口` 为 `done`，再运行 `bin/check-staged-run.py outputs/runs/<run-id> --scope design`；通过后运行 `python bin/manage-run.py finalize outputs/runs/<run-id> --flow design`，记录 design hash 和它使用的 analysis hash。失败退出前运行 `python bin/manage-run.py abort outputs/runs/<run-id> --flow design` 释放锁。
 
 ### Step 9: 上报测试用例卡片至testagent
 

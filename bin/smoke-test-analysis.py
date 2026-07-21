@@ -57,6 +57,7 @@ REQUIRED_FILES = [
     "docs/drafts/test-eval-agent.md",
     "knowledge/README.md",
     "skills/coverage-review/references/basic-test-types.md",
+    "skills/coverage-review/references/fact-coverage-tree-contract.md",
     "knowledge/test-workflow-boundaries.md",
     "knowledge/test-analysis-solution-standard.md",
     "knowledge/test-design-solution-standard.md",
@@ -197,6 +198,17 @@ def check_one_requirement(repo_root: Path, requirement: Path) -> bool:
 
     ok = run_command([sys.executable, "bin/lint-run-json.py", str(run_dir)], repo_root)
     ok &= run_command([sys.executable, "bin/render-run-markdown.py", str(run_dir), "--check"], repo_root)
+    ok &= run_command(
+        [
+            sys.executable,
+            "bin/render-run-markdown.py",
+            str(run_dir),
+            "--artifact",
+            "process/analysis-fact-coverage-map.json",
+            "--check",
+        ],
+        repo_root,
+    )
     ok &= run_command([sys.executable, "bin/lint-test-analysis-solution.py", str(solution)], repo_root)
     if design_solution.exists():
         ok &= run_command([sys.executable, "bin/lint-test-design-solution.py", str(design_solution)], repo_root)
