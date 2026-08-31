@@ -75,7 +75,7 @@ libreoffice --headless --convert-to png --outdir <media-dir> <media-dir>/image2.
 如果适合转 Mermaid，请给出 Mermaid；如果不适合，请给出可用于测试分析/测试设计的结构化文字描述。
 ```
 
-7. 将当前批次补充结果合并回归一化 Markdown 中对应的 `DOCX_IMAGE_START` / `DOCX_IMAGE_END` 占位块。不要把 Mermaid 或图片事实只放在单独补充文件、过程记录、`process/context-pack.json` 或文末统一章节中；这些位置只能记录索引、状态和证据路径。
+7. 将当前批次补充结果合并回归一化 Markdown 中对应的 `DOCX_IMAGE_START` / `DOCX_IMAGE_END` 占位块。不要把 Mermaid 或图片事实只放在单独补充文件、过程记录、`process/context-pack.md` 或文末统一章节中；这些位置只能记录索引、状态和证据路径。
 
 8. 当前批次完成后，重新检查本批占位块状态：
 
@@ -178,7 +178,7 @@ flowchart TD
 
 - 不得把 Mermaid 图统一追加到 Markdown 文末。
 - 不得只维护独立 `image-supplement.md`。
-- 不得只在 `process/context-pack.json` 里登记图片事实。
+- 不得只在 `process/context-pack.md` 里登记图片事实。
 - 不得删除 `DOCX_IMAGE_START` / `DOCX_IMAGE_END` 注释锚点；后续审查需要通过锚点确认每张图的处理状态。
 - 如果图片在表格单元格中，脚本会尽量把占位块放在该表格之后并标明单元格位置；补充内容必须留在该占位块处，不要挪到其他章节。
 

@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
-"""Build process/context-pack.json from project/personal source metadata."""
+"""Build process/context-pack.md from project/personal source metadata."""
 
 from __future__ import annotations
 
 import argparse
-import json
-import os
 import re
-import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -321,33 +318,58 @@ def build_index(args: argparse.Namespace, root: Path) -> dict[str, Any]:
     }
 
 
-def write_json(path: Path, data: dict[str, Any]) -> None:
+def cell(value: Any) -> str:
+    if isinstance(value, list):
+        value = "、".join(str(item) for item in value)
+    return str(value or "").replace("|", "\\|").replace("\n", "<br>")
+
+
+def write_markdown(path: Path, data: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="\n") as handle:
-        handle.write(json.dumps(data, ensure_ascii=False, indent=2) + "\n")
-
-
-def render_markdown(run_dir: Path, root: Path) -> int:
-    script = root / "bin" / "render-run-markdown.py"
-    result = subprocess.run(
-        [sys.executable, str(script), str(run_dir)],
-        cwd=root,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        env={**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"},
-        capture_output=True,
-    )
-    if result.stdout.strip():
-        print(result.stdout.strip())
-    if result.stderr.strip():
-        print(result.stderr.strip(), file=sys.stderr)
-    return result.returncode
+        requirement = data["requirement"]
+        binding = data["projectBinding"]
+        lines = [
+            f"# {data['title']}",
+            "",
+            "## 本次需求",
+            "",
+            "| 路径 | 标题 | 关键词 |",
+            "|---|---|---|",
+            f"| {cell(requirement.get('path'))} | {cell(requirement.get('title'))} | {cell(requirement.get('keywords'))} |",
+            "",
+            "## Project 绑定",
+            "",
+            "| 状态 | project-key | 原因 |",
+            "|---|---|---|",
+            f"| {cell(binding.get('status'))} | {cell(binding.get('projectKey'))} | {cell(binding.get('reason'))} |",
+            "",
+            "## 动态来源索引",
+            "",
+            "| 路径 | 名称 | 描述 | 可用阶段 |",
+            "|---|---|---|---|",
+        ]
+        for source in data["sources"]:
+            lines.append(
+                "| " + " | ".join(cell(source.get(key)) for key in ("path", "name", "description", "availableStages")) + " |"
+            )
+        lines.extend(["", "## 未扫描项目来源", ""])
+        if data["unscannedProjectSources"]:
+            lines.extend(["| 路径 | 原因 |", "|---|---|"])
+            for item in data["unscannedProjectSources"]:
+                lines.append(f"| {cell(item.get('path'))} | {cell(item.get('reason'))} |")
+        else:
+            lines.append("无。")
+        lines.extend(["", "## 告警", ""])
+        lines.extend(f"- {warning}" for warning in data["warnings"])
+        if not data["warnings"]:
+            lines.append("无告警。")
+        handle.write("\n".join(lines).rstrip() + "\n")
 
 
 def main() -> int:
     configure_stdio()
-    parser = ChineseArgumentParser(description="生成 process/context-pack.json 动态来源索引")
+    parser = ChineseArgumentParser(description="生成 process/context-pack.md 动态来源索引")
     parser.add_argument("--run-dir", required=True, type=Path, help="outputs/runs/<run-id>")
     parser.add_argument("--requirement", type=Path, help="需求 Markdown 路径")
     parser.add_argument("--requirement-title", default="", help="需求标题")
@@ -355,7 +377,6 @@ def main() -> int:
     parser.add_argument("--project", default="", help="已唯一确定的 project-key")
     parser.add_argument("--project-reason", default="", help="project 绑定或未绑定原因")
     parser.add_argument("--title", default="", help="context-pack 标题")
-    parser.add_argument("--no-render", action="store_true", help="只写 JSON，不渲染 Markdown")
     args = parser.parse_args()
 
     root = repo_root()
@@ -365,13 +386,11 @@ def main() -> int:
     run_dir.mkdir(parents=True, exist_ok=True)
 
     data = build_index(args, root)
-    output_path = run_dir / "process" / "context-pack.json"
-    write_json(output_path, data)
+    output_path = run_dir / "process" / "context-pack.md"
+    write_markdown(output_path, data)
     print(f"通过: 已生成 {rel_path(output_path, root)}，动态来源 {len(data['sources'])} 个，告警 {len(data['warnings'])} 个")
 
-    if args.no_render:
-        return 0
-    return render_markdown(run_dir, root)
+    return 0
 
 
 if __name__ == "__main__":

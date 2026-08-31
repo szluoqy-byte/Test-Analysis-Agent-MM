@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 from encoding_utils import configure_stdio
-from run_artifacts import dump_json, load_json, render_json_artifact
+from run_artifacts import dump_json, load_json
 from staged_workflow import item_id, repo_root, resolve_path, scope_config
 
 
@@ -42,7 +42,8 @@ def main() -> int:
         if not args.all and current_id not in selected:
             continue
         item["status"] = "pending"
-        item["mergedAt"] = ""
+        item.pop("completedAt", None)
+        item.pop("mergedAt", None)
         item["contentChanged"] = True
         item["reopenReason"] = args.reason
         reopened.append(current_id)
@@ -51,7 +52,6 @@ def main() -> int:
         print(f"失败: 未知工作项 ID: {', '.join(missing)}", file=sys.stderr)
         return 1
     dump_json(path, data)
-    path.with_suffix(".md").write_text(render_json_artifact(data), encoding="utf-8")
     print(f"通过: 已重开 {args.scope} 工作项 {', '.join(reopened) if reopened else '无'}")
     return 0
 

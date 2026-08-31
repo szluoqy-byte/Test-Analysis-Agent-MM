@@ -28,11 +28,11 @@ def next_command(run_dir: Path, scope_name: str, current_id: str, status: str, s
     run_arg = rel_path(run_dir, repo_root())
     if not slice_exists:
         return f"python bin/init-staged-slices.py {run_arg} --scope {scope_name} --ids {current_id}"
-    if status != "done":
-        return f"填写 slice 后运行: python bin/init-report-artifact.py {run_arg} --kind review --review-type {'test-point-review' if scope_name == 'analysis' else 'test-case-review'} --target-id {current_id} --force"
     if not review_exists:
-        return f"python bin/init-report-artifact.py {run_arg} --kind review --review-type {'test-point-review' if scope_name == 'analysis' else 'test-case-review'} --target-id {current_id} --force"
-    return "已完成；如需重跑可使用 merge/check 固定脚本"
+        return "填写 Markdown 评审文件并写入 `- 结论：通过`"
+    if status != "done":
+        return f"python bin/complete-staged-items.py {run_arg} --scope {scope_name} --ids {current_id}"
+    return "已完成；如需返工可使用 reopen-run-items.py"
 
 
 def main() -> int:
@@ -69,7 +69,7 @@ def main() -> int:
                     f"status={status}",
                     f"slice={rel_path(slice_path, root) if slice_exists else 'missing'}",
                     f"review={rel_path(review_path, root) if review_exists else 'missing'}",
-                    f"mergedAt={item.get('mergedAt') or ''}",
+                    f"completedAt={item.get('completedAt') or ''}",
                 ]
             )
         )

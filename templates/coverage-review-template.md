@@ -1,55 +1,16 @@
-# 覆盖审查模板
+# 覆盖审查报告
 
-构建当前运行目录下的 `process/reviews/analysis-coverage-review.json` 或 `process/reviews/design-coverage-review.json` 时使用 `templates/coverage-review-json-template.json`；本文件只作为覆盖审查 Markdown 派生阅读版样式参考。Markdown 由 `bin/render-run-markdown.py` 渲染。
+- 审查范围：analysis/design
+- 结论：通过/需修正/失败/警告/不适用
 
-```markdown
-## 覆盖审查结果
+## 门禁结果
 
-| 检查项 | 结果 | 说明 | 建议 |
-|---|---|---|---|
-| 确定性校验 | 通过/警告/失败 | lint 结果；最终一致性检查在输出收口阶段补充 |  |
-| 独立语义评审 | 通过/警告/失败 | 引用独立评审结论，不重复结构检查 |  |
-| 模块覆盖 | 通过/警告/失败 |  |  |
-| 主流程覆盖 | 通过/警告/失败 |  |  |
-| 异常覆盖 | 通过/警告/失败 |  |  |
-| 边界覆盖 | 通过/警告/失败 |  |  |
-| 状态覆盖 | 通过/警告/失败 |  |  |
-| 权限覆盖 | 通过/警告/失败 |  |  |
-| 接口覆盖 | 通过/警告/失败 |  |  |
-| 测试技术应用 | 通过/警告/失败 |  |  |
-| 需求追踪 | 通过/警告/失败 |  |  |
-| 方法参考记录链 | 通过/警告/失败 |  |  |
-| 测试用例粒度 | 通过/警告/失败 |  |  |
-| 预期结果依据 | 通过/警告/失败 |  |  |
-| 非用例化 | 通过/警告/失败 |  |  |
-| Rules Pack 应用 | 通过/警告/失败 | 当前阶段可见 rules 是否已按 `process/rules-pack.json` 的 `ruleSources[]` 读取正文并遵守、解释或被当前用户明确指令覆盖 |  |
-| 动态来源应用 | 通过/警告/失败 | `sources[]` 可见动态来源是否已被对应阶段读取、应用或解释跳过 |  |
-| 动态 Checklist 覆盖 | 通过/警告/失败 | 对覆盖审查可见的 project/personal checklist 是否已处理 |  |
-| 任务清单 | 通过/警告/失败 | 固定阶段顺序、最终状态和证据路径 |  |
-
-## 质量门禁结果
-
-| 门禁 | 结果 | 失败/警告项 | 修正建议 |
+| 检查项 | 结果 | 说明 | 修正建议 |
 |---|---|---|---|
 
-## 独立语义评审结果
+## 覆盖缺口
 
-| 维度 | 结果 | 说明 | 修正建议 |
+| FACT | 返工位置 | 缺口说明 | 修正建议 |
 |---|---|---|---|
 
-## 动态来源应用记录
-
-| 来源类型 | 来源文件 | 阶段 | 应用状态 | 应用位置 | 说明 |
-|---|---|---|---|---|---|
-| project/personal source |  |  | applied/not_applicable/insufficient_evidence/conflict_with_requirement/deferred_to_review |  |  |
-
-## Rules Pack 应用记录
-
-| 规则 ID | 来源文件 | 阶段 | 应用状态 | 应用位置 | 说明 |
-|---|---|---|---|---|---|
-
-## 专家评审评分（仅深度评估）
-
-| 维度 | 得分 | 说明 |
-|---|---|---|
-```
+返工位置只能指向 `process/test-point-slices/<SC-ID>.md` 或 `process/test-case-slices/<TP-ID>.md`。存在缺口时使用 `reopen-run-items.py` 重开对应工作项。

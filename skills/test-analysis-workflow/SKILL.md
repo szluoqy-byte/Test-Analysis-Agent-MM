@@ -1,142 +1,94 @@
 ---
 name: test-analysis-workflow
-description: 当用户提供需求文档和可选设计方案文档，并要求生成“SC 场景树 -> TP 测试点”的测试分析方案时使用；该 skill 编排上下文、输入事实、测试技术路由、测试分析方案 JSON 生成、独立评审和 Markdown 渲染。
+description: 当用户提供 Markdown 需求和可选设计方案并要求生成 SC/TP 测试分析方案时，使用 Markdown 过程件完成事实建模、场景与测试点分析，只在阶段边界生成测试分析 JSON。
 ---
 
-# 需求到测试分析方案主入口
+# 测试分析 Workflow
 
-本 skill 是 `test-analysis-agent` 的完整链路入口。目标是从 `$ARGUMENTS` 指定的需求文档和可选设计方案文档中，生成 `测试分析方案`。
+## 何时使用
 
-测试分析方案回答 what to test：输出最多 3 层 `SC-*` 场景树和 run 内全局唯一、增量稳定的 `TP-*` 测试点。它不输出测试用例、测试数据、操作步骤或预期结果。
+用于从 Markdown 需求和可选设计方案生成 `SC -> TP` 测试分析方案。Office 输入必须先归一化。若用户直接要求测试用例而没有完整分析方案，不由本 workflow 自动进入测试设计。
 
-## 必需输入
+## 核心契约
 
-- `$ARGUMENTS`：新 run 至少包含一份 `.md` 或 `.markdown` 需求文档路径；指定已有 `runid` 时可继承 manifest 中的历史输入。
-- 可额外包含一份或多份 `.md` 或 `.markdown` 设计方案文档路径。
-- 如果输入包含 `.docx` 或 `.xlsx`，不得在本 workflow 中转换；必须先由 `@file-normalization-agent` 归一化为 Markdown。
-- 可选 `--project <project-key>`，必须传递给 `bin/build-rules-pack.py` 和 `context-source-indexing`；personal rules 来自 `rules/user/**/*.md`，personal 动态补充来源来自 `knowledge/user/**/*.md`。
-- 可选 `runid=<requirement-id>` 和 `mode=auto|resume|extend|rebuild`；默认 `auto`。新输入默认追加，同路径更新版本，删除历史输入使用 `remove-source=<path>`。
+- 模型编写的语义过程件只使用 Markdown，不生成同名 JSON，也不执行 JSON→Markdown 渲染。
+- `run-manifest.json`、`run-plan.json`、`id-registry.json`、task-list 和 work-items 是脚本控制状态，模型不得手工编辑。
+- 阶段结果只通过 `deliverables/test-analysis-solution.json` 传递；其 Markdown 是结果人读版。
+- Review 或 coverage 返工必须回到对应 Markdown 切片，不直接修最终结果 Markdown。
+
+## 输入
+
+- 一份或多份 Markdown 需求文档。
+- 可选 Markdown 设计方案。
+- 可选 `runid`、`mode`、`project-key`、`remove-source`。
 
 ## 执行阶段
 
-- [ ] Step 1: 准备持久 run 与分析任务清单
-- [ ] Step 2: 构建基础上下文并完成事实建模、方法路由
-- [ ] Step 3: 生成并评审冻结 SC 树
-- [ ] Step 4: 初始化、生成、评审并合并 TP 切片
-- [ ] Step 5: 执行确定性校验和 Markdown 渲染
-- [ ] Step 6: 执行最终语义评审与 coverage 闭环
-- [ ] Step 7: 生成分析最终报告
-- [ ] Step 8: 收口 run 并固化生命周期状态
-- [ ] Step 9: 上报测试点卡片至testagent
+- [ ] Step 1: 准备持久 run
+- [ ] Step 2: 建立 Markdown 输入上下文
+- [ ] Step 3: 完成事实建模与方法分析
+- [ ] Step 4: 冻结 Markdown 场景树
+- [ ] Step 5: 生成并评审 TP 切片
+- [ ] Step 6: 固化分析结果 JSON
+- [ ] Step 7: 完成整体语义评审
+- [ ] Step 8: 完成覆盖闭环
+- [ ] Step 9: 生成最终人审报告
+- [ ] Step 10: 校验并结束 run
 
-> 本节是本 skill 的静态执行契约，不记录 run 的真实状态；真实状态以 `process/analysis-task-list.json` 为准。
-
-## 职责边界
-
-- 本 skill 只负责编排完整分析链路和写出本次运行产物。
-- 强制规则由 `process/rules-pack.json` 独立索引，后续每个阶段必须筛选当前阶段可见的 `ruleSources[]`，读取对应 Markdown 正文并遵守适用 rules。
-- project/personal knowledge 扩展来源来自 `context-source-indexing` 生成的 `sources[]` 索引。
-- `input-fact-modeling` 负责建立统一输入事实模型。
-- `test-analysis-solution-generation` 负责先生成并冻结 `SC-*` 场景树，再按每个叶子 SC 生成 `TP-*` 切片并合并。
-- `test-analysis-solution-review` 负责分段语义评审：先评审 SC 树，再评审 TP 覆盖和粒度，最后评审主交付件整体语义。
-- `coverage-review` 负责基于 `process/analysis-fact-coverage-map.json` 执行覆盖、追踪、rules-pack 和动态来源应用状态收口。
-- `final-report-generation` 负责在 coverage-review 闭环后基于已审查的覆盖证据图生成最终人审报告，只展示 FACT 到 SC/TP 的最终覆盖关系，不触发返工。
-- 主交付件事实源是 `outputs/runs/<run-id>/deliverables/test-analysis-solution.json`；人读版由 `bin/render-run-markdown.py` 生成。
-
-## 易错点
-
-- 不要在本 workflow 中处理 Office 输入；看到 `.docx` 或 `.xlsx` 时先转给 `@file-normalization-agent`。
-- 不要跳过 SC 树冻结直接生成 TP；SC review 通过后，TP 阶段不得改写 SC。
-- 不要把 testing-method-router 的方法清单写成最终字段；方法是参考，不是交付件来源表。
-- 不要直接修 `deliverables/test-analysis-solution.json` 或 Markdown 来处理 review/coverage 问题；必须回到对应 TP 切片。
-- 不要看到已有 run 就直接覆盖或从头生成；必须遵守 `run-plan.json` 的 reuse/resume/extend/rebuild 决策，并在失败退出前释放 run lock。
+> 阶段索引是静态执行契约；真实状态只写入 `process/analysis-task-list.json`。
 
 ## 各阶段执行要求
 
-### Step 1: 准备持久 run 与分析任务清单
+### Step 1: 准备持久 run
 
-1. 校验新 run 至少包含一份 Markdown 需求文档；已有 `runid` 可继承 `process/run-manifest.json` 中的 requirement/design 输入。若发现 Office 输入，输出需先使用 `@file-normalization-agent` 的阻断说明，不创建测试分析 run。
-2. 固定 `PROJECT_ROOT`，把 `runid`、`mode`、project、requirement/design 和 `remove-source` 参数传给 `python bin/manage-run.py prepare --flow analysis ...`，读取生成的 `process/run-plan.json`。`action=reuse` 时只运行最终一致性检查并返回既有交付件；其他 action 持有 `process/run.lock` 后继续。`extend/rebuild` 必须确认 revision 快照已创建。
-3. 运行 `python bin/update-run-task.py outputs/runs/<run-id> --flow analysis --stage 固定 PROJECT_ROOT 与运行目录 --action start --evidence outputs/runs/<run-id>/` 创建或补齐 `process/analysis-task-list.json`，后续继续用同一脚本维护阶段状态；确认 run-plan、run lock 和运行目录已就绪后，以 `--action done` 和 `process/run-plan.json` 作为证据完成该阶段。不要覆盖历史 run 中可能由测试设计维护的 `process/design-task-list.json`。
+运行 `python bin/manage-run.py prepare --flow analysis ...`，读取 `process/run-plan.json` 并遵守 create/resume/reuse/extend/rebuild 决策。创建或更新 `process/analysis-task-list.json`。失败退出前执行 `manage-run.py abort`。
 
-### Step 2: 构建基础上下文并完成事实建模、方法路由
+### Step 2: 建立 Markdown 输入上下文
 
-4. 调用 `python bin/build-rules-pack.py ...` 生成 `process/rules-pack.json`，并把同一 `project-key` 传入脚本。执行前以 `--stage 强制规则加载 --action start` 更新任务清单，成功后以 `process/rules-pack.json` 为证据标记 `done`。
-5. 调用 `python skills/context-source-indexing/scripts/build-context-source-index.py ...` 生成 `process/context-pack.json`。执行前以 `--stage 上下文来源索引 --action start` 更新任务清单，成功后以 `process/context-pack.json` 为证据标记 `done`。
-6. 使用 `input-fact-modeling` 读取 `process/run-manifest.json` 中全部 `status=available` 的历史与本次 requirement/design 输入，以及 `process/rules-pack.json` 中当前阶段可见的规则正文，生成或增量更新 `process/input-fact-model.json`；不能因为本次参数未重复传入旧路径就丢弃历史事实。执行前以 `--stage 输入事实建模 --action start` 更新任务清单，成功后以 `process/input-fact-model.json` 为证据标记 `done`。
-7. 使用 `testing-method-router` 基于输入事实模型和 `process/rules-pack.json` 中当前阶段可见的规则正文，对需求事实和设计事实进行测试技术路由。执行前以 `--stage 测试技术路由 --action start` 更新任务清单，成功后以路由结果为证据标记 `done`。
-8. 使用路由选中的专项方法参考产出覆盖维度建议、候选 SC/TP 方向和按源补读记录；方法只作为生成参考，不要求最终 TP 完全来自或逐项绑定这些方法。执行前以 `--stage 专项分析 --action start` 更新任务清单，成功后以专项分析记录为证据标记 `done`。确有按源补读时，以补读记录标记 `按源补读` 为 `done`；无需补读时必须显式标记 `--stage 按源补读 --action skipped`。
+运行 `bin/build-rules-pack.py` 生成 `process/rules-pack.md`，再运行 `context-source-indexing` 的固定脚本生成 `process/context-pack.md`。按阶段可见性读取其中列出的规则和动态来源正文，不把索引复制成新的 JSON。
 
-### Step 3: 生成并评审冻结 SC 树
+### Step 3: 完成事实建模与方法分析
 
-9. 执行前以 `--stage 测试分析方案生成 --action start` 更新任务清单。`create/rebuild` 或场景树缺失时，运行 `python skills/test-analysis-solution-generation/scripts/init-scenario-tree.py outputs/runs/<run-id>` 初始化带 `generationContext` 的 `process/scenario-tree.json`；`resume/extend` 时读取并增量更新既有场景树，保留未变化 SC 的 ID。使用 `test-analysis-solution-generation` 读取新旧输入事实和 `run-plan.json` 的变化文件，填写或补充 `scope[]` 与 `scenarios[]`。该文件只允许 SC 树，不得包含 `testPoints[]`。
-10. 运行 `python skills/test-analysis-solution-generation/scripts/lint-scenario-tree.py outputs/runs/<run-id>/process/scenario-tree.json`，再运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type scenario-tree-review --force` 初始化评审骨架，并使用 `test-analysis-solution-review` 填写 `process/reviews/scenario-tree-review.json`。JSON 写入后立即运行 `python bin/render-run-markdown.py outputs/runs/<run-id> --artifact process/reviews/scenario-tree-review.json`。SC review 通过后，后续阶段不得新增、删除、合并或改写 SC。
+使用 `input-fact-modeling` 直接编写 `process/input-fact-model.md`，FACT 从 `FACT-001` 连续编号。使用 `testing-method-router` 将方法选择、专项分析和补读说明写入 `process/testing-method-routing.md`；这些内容不得进入最终分析 JSON 的 schema。
 
-### Step 4: 初始化、生成、评审并合并 TP 切片
+### Step 4: 冻结 Markdown 场景树
 
-11. 运行 `python skills/test-analysis-solution-generation/scripts/extract-test-point-work-items.py outputs/runs/<run-id>` 生成 `process/test-point-work-items.json`。`contentHash` 变化会自动重开；若 `run-plan.defaultReopen=all`，运行 `python bin/reopen-run-items.py outputs/runs/<run-id> --scope analysis --all --reason <reason>`；若要求语义影响分析，则按新旧 FACT、sourceRefs 和 coverage map 重开受影响叶子 SC，无法可靠定位时保守 `--all`。再运行 `python bin/init-staged-slices.py outputs/runs/<run-id> --scope analysis --pending`，变化项会自动强制刷新并从既有交付件预填。
-12. 使用 `test-analysis-solution-generation` 逐个填写 `process/test-point-slices/<SC-ID>.json` 的 `scenario.testPoints[]`；每个切片必须读取当前阶段适用 rules 和动态来源，不得改写 SC。
-13. 对每个 TP 切片先运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-point-review --target-id <SC-ID> --force` 初始化评审骨架，再使用 `test-analysis-solution-review` 执行覆盖和粒度评审；JSON 写入后立即运行 `python bin/render-run-markdown.py outputs/runs/<run-id> --artifact process/reviews/test-point-reviews/<SC-ID>.json`，切片通过后可运行 `python bin/merge-staged-slices.py outputs/runs/<run-id> --scope analysis --ids <SC-ID>`。全部叶子 SC 合并后，以 `deliverables/test-analysis-solution.json`、`process/test-point-work-items.json` 和切片评审结果为证据标记 `测试分析方案生成` 为 `done`。合并脚本保留既有 TP 编号，只为新增 TP 从历史最大编号后追加，退役编号不复用。
+运行 `init-scenario-tree.py` 初始化 `process/scenario-tree.md`，填写最多三层的 `###/####/##### SC-*` 场景树，再运行 `lint-scenario-tree.py`。使用 `test-analysis-solution-review` 编写 `process/reviews/scenario-tree-review.md`；结论通过后不得在 TP 阶段改写 SC。
 
-### Step 5: 执行确定性校验和 Markdown 渲染
+### Step 5: 生成并评审 TP 切片
 
-14. 所有叶子 SC 合并后，以 `--stage 确定性校验 --action start` 更新任务清单，再运行 `bin/lint-run-json.py outputs/runs/<run-id>`。失败时先修正 JSON，不进入最终评审。
-15. 运行 `bin/render-run-markdown.py outputs/runs/<run-id>`，再运行 `bin/lint-test-analysis-solution.py outputs/runs/<run-id>/deliverables/test-analysis-solution.md`。通过后以 lint 与渲染结果为证据标记 `确定性校验` 为 `done`。
+运行 `extract-test-point-work-items.py` 生成脚本控制的 `process/test-point-work-items.json`，再用 `bin/init-staged-slices.py --scope analysis --pending` 初始化 `process/test-point-slices/<SC-ID>.md`。逐叶子 SC 填写测试点并在 `process/reviews/test-point-reviews/<SC-ID>.md` 评审。通过后运行 `bin/complete-staged-items.py --scope analysis --ids <SC-ID>`。过程切片不分配 TP 编号。
 
-### Step 6: 执行最终语义评审与 coverage 闭环
+### Step 6: 固化分析结果 JSON
 
-16. 以 `--stage 独立评审 --action start` 更新任务清单。运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind review --review-type test-analysis-solution-review --force` 初始化最终评审骨架，再使用 `test-analysis-solution-review` 独立语义评审最终测试分析方案 JSON，评审结果写入 `process/reviews/test-analysis-solution-review.json`。JSON 写入后立即运行 `python bin/render-run-markdown.py outputs/runs/<run-id> --artifact process/reviews/test-analysis-solution-review.json`，再以该 JSON、Markdown 和评审结论为证据标记 `独立评审` 为 `done`。
-17. 以 `--stage 覆盖审查 --action start` 更新任务清单。运行 `python bin/build-fact-coverage-map.py outputs/runs/<run-id> --scope analysis` 生成 `process/analysis-fact-coverage-map.json` 骨架；使用 `coverage-review` 前必须读取 `skills/coverage-review/references/fact-coverage-tree-contract.md`，逐 FACT 填写或修正既有行的 `coverageTree[]`、`coverageStatus` 和 `coverageReason`。analysis 的 `covered` 链路固定为 `leafScenarioId -> testPoints[].testPointId -> testCases: []`；`gap` 或 `not_applicable` 必须使用空 `coverageTree[]`。修改后立即运行 `python bin/render-run-markdown.py outputs/runs/<run-id> --artifact process/analysis-fact-coverage-map.json`，再运行 `python bin/lint-run-json.py outputs/runs/<run-id>`。
-18. 运行 `python bin/init-report-artifact.py outputs/runs/<run-id> --kind coverage --scope analysis --force` 初始化 coverage 骨架，再使用 `coverage-review` 基于 `process/analysis-fact-coverage-map.json` 执行覆盖、追踪、rules-pack 应用、动态来源应用和过程门禁收口，结果写入 `process/reviews/analysis-coverage-review.json`。JSON 写入后立即运行 `python bin/render-run-markdown.py outputs/runs/<run-id> --artifact process/reviews/analysis-coverage-review.json`，再运行 `python bin/lint-run-json.py outputs/runs/<run-id>`；通过后以覆盖图、coverage review JSON/Markdown 和 lint 结果为证据标记 `覆盖审查` 为 `done`。
-19. 如果切片 review 或最终 review 存在 blocking findings/issues，先运行 `python bin/apply-review-findings.py outputs/runs/<run-id> --scope analysis --all` 重开对应工作项；如果 `process/reviews/analysis-coverage-review.json` 中存在 `coverageGaps[]`，必须先运行 `python bin/apply-coverage-gaps.py outputs/runs/<run-id> --scope analysis`。之后按被重开的 `process/test-point-slices/<SC-ID>.json` 修复；不得直接编辑最终 Markdown，也不得跳过切片回写直接手改 `deliverables/test-analysis-solution.json`。修复后重新执行对应 TP 切片 review、`bin/merge-staged-slices.py`、确定性校验、最终分析 review、`bin/build-fact-coverage-map.py`、coverage-review 和一致性检查；每次写入 review 或 coverage JSON 后都必须先渲染其对应 Markdown，再运行现有 lint。
+所有工作项完成后，基于场景树和 TP 切片一次性写出 `deliverables/test-analysis-solution.draft.json`，结构只允许 schema 2.0 的 `SC -> TP`。运行 `python bin/finalize-deliverable.py outputs/runs/<run-id> --scope analysis --draft outputs/runs/<run-id>/deliverables/test-analysis-solution.draft.json` 复用或追加稳定 TP 编号并写入 `deliverables/test-analysis-solution.json/.md`；成功后草稿自动删除。随后运行 JSON lint 和分析方案 Markdown lint；不得把过程 Markdown 反复转换为 JSON。
 
-### Step 7: 生成分析最终报告
+### Step 7: 完成整体语义评审
 
-20. 只有 `process/analysis-fact-coverage-map.json` 与 `process/reviews/analysis-coverage-review.json` 已完成 JSON 写入、Markdown 渲染并通过现有 lint 后，coverage-review 才可视为通过。之后使用 `final-report-generation` 运行 `python bin/build-final-report.py outputs/runs/<run-id> --scope analysis`，从 `process/analysis-fact-coverage-map.json` 生成 `reports/analysis-final-report.json` 并渲染 `reports/analysis-final-report.md`。最终报告只供人工审阅，不输出 `coverageGaps[]`，不触发返工。
-21. 通过 `bin/update-run-task.py` 将 `process/analysis-task-list.json` 的 `最终报告生成` 阶段标记为 done，证据必须包含 `reports/analysis-final-report.json` 和 `reports/analysis-final-report.md`。
+使用 `test-analysis-solution-review` 直接编写 `process/reviews/test-analysis-solution-review.md`。若结论为需修正或失败，根据发现项运行 `reopen-run-items.py --scope analysis --ids ...`，修复对应 TP Markdown 切片后重新完成工作项并重新固化结果。
 
-### Step 8: 收口 run 并固化生命周期状态
+### Step 8: 完成覆盖闭环
 
-22. 最终输出前以 `deliverables/test-analysis-solution.json`、`reports/analysis-final-report.json` 和对应 Markdown 为证据标记 `输出收口` 为 `done`，再运行 `bin/check-staged-run.py outputs/runs/<run-id> --scope analysis`。通过后运行 `python bin/manage-run.py finalize outputs/runs/<run-id> --flow analysis` 固化指纹、analysis hash 和 revision 状态；任何失败退出前运行 `python bin/manage-run.py abort outputs/runs/<run-id> --flow analysis` 释放锁。
+使用 `coverage-review` 基于输入事实和最终分析 JSON 编写 `process/analysis-fact-coverage-map.md` 与 `process/reviews/analysis-coverage-review.md`。缺口返工位置必须指向 TP Markdown 切片；重开、修复、重新评审并重新固化结果后，再更新覆盖 Markdown。
 
-### Step 9: 上报测试点卡片至testagent
+### Step 9: 生成最终人审报告
 
-23. 先cd进入到skills/test-analysis-workflow/scripts路径，然后调用 `python card_generate.py "<analysisjson-file-path>" "<cidainfo-file-path>" "<analysisreport-file-path>"` 上报测试点生成卡片至 TestAgent 平台，注意python脚本不能包含路径，只能是python文件名称card_generate.py。先进入脚本所在目录，再重新执行python脚本。其中 `<analysisjson-file-path>` 为 `deliverables/test-analysis-solution.json` 的绝对路径字符串（例如 `D:\...\outputs\runs\<run-id>\deliverables\test-analysis-solution.json`）。`<cidainfo-file-path>`为 `deliverables/cloud_test_info.json` 的绝对路径字符串（例如 `D:\...\outputs\runs\<run-id>\deliverables\cloud_test_info.json`）。 `<analysisreport-file-path>`为 `reports/analysis-final-report.md` 的绝对路径字符串（例如 `D:\...\outputs\runs\<run-id>\reports\analysis-final-report.md`）。若 TestAgent 平台 API 不可用导致上报失败，不影响分析方案交付件本身。
+coverage-review 通过后，使用 `final-report-generation` 从已审查的覆盖 Markdown 编写 `reports/analysis-final-report.md`。报告不生成 JSON，不新增缺口判断，也不触发返工。
 
-## 阶段产物契约
+### Step 10: 校验并结束 run
 
-| 阶段 | 必须产出 | 交给下一阶段 |
-|---|---|---|
-| `task-list` | `process/analysis-task-list.json`、派生 `process/analysis-task-list.md` | 测试分析阶段顺序与状态追踪 |
-| `rules-pack` | `process/rules-pack.json`、派生 `process/rules-pack.md` | 后续所有阶段筛选 `ruleSources[]`，读取规则正文并遵守适用 rules |
-| `context-source-indexing` | `process/context-pack.json` | 后续阶段按阶段可见性读取 project/personal knowledge 动态来源 |
-| `input-fact-modeling` | `process/input-fact-model.json` | 测试技术路由、测试分析方案生成 |
-| `testing-method-router` | 测试技术路由表 | 专项方法参考、测试分析方案生成 |
-| 专项方法参考 | 覆盖维度建议、测试点候选 | 测试分析方案生成 |
-| `SC 树生成与评审` | `process/scenario-tree.json`、`process/reviews/scenario-tree-review.json` | 叶子 SC 工作项生成 |
-| `TP 切片生成与评审` | `process/test-point-work-items.json`、`process/test-point-slices/<SC-ID>.json`、`process/reviews/test-point-reviews/<SC-ID>.json`；可选汇总 `process/reviews/test-point-review.json` | 测试分析方案合并 |
-| `test-analysis-solution-generation` | `deliverables/test-analysis-solution.json`、场景树、测试点 | JSON 校验 |
-| 确定性校验 | JSON lint、Markdown render、Markdown lint | 独立语义评审 |
-| `test-analysis-solution-review` | `process/reviews/test-analysis-solution-review.json` | 覆盖审查 |
-| `fact-coverage-map` | `process/analysis-fact-coverage-map.json`、派生 `process/analysis-fact-coverage-map.md` | 覆盖审查 |
-| `coverage-review` | `process/reviews/analysis-coverage-review.json` | 最终报告生成 |
-| `final-report-generation` | `reports/analysis-final-report.json`、派生 `reports/analysis-final-report.md` | 输出收口 |
+运行 `bin/check-staged-run.py --scope analysis`，其中只校验控制 JSON、结果 JSON、结果 Markdown 和语义过程 Markdown 的一致性。通过后运行 `manage-run.py finalize --flow analysis`。TestAgent 卡片上报如启用，只消费分析结果 JSON 和最终报告 Markdown；平台失败不影响本地交付。
 
-## 脚本稳定性规则
+## 输出
 
-- analysis 流程不得临时创建 `.py`、`.js`、`.ps1`、`.bat` 或其他可执行脚本来拼接、修复、循环处理或拆分 JSON。
-- 只能调用仓库固定脚本：`bin/manage-run.py`、`bin/reopen-run-items.py`、`bin/build-rules-pack.py`、`skills/test-analysis-solution-generation/scripts/init-scenario-tree.py`、`skills/test-analysis-solution-generation/scripts/lint-scenario-tree.py`、`skills/test-analysis-solution-generation/scripts/extract-test-point-work-items.py`、`skills/test-analysis-solution-generation/scripts/init-test-point-slice.py`、`bin/init-staged-slices.py`、`bin/list-staged-work-items.py`、`bin/build-generation-context.py`、`bin/init-report-artifact.py`、`bin/build-fact-coverage-map.py`、`bin/build-final-report.py`、`bin/apply-review-findings.py`、`bin/apply-coverage-gaps.py`、`bin/update-run-task.py`、`skills/test-analysis-solution-generation/scripts/merge-test-point-slice.py`、`bin/merge-staged-slices.py`、`bin/check-staged-run.py`、`bin/lint-run-json.py`、`bin/render-run-markdown.py`、`bin/lint-test-analysis-solution.py` 和 `bin/check-artifact-consistency.py`。
-- 正常 analysis run 不得调用 `bin/sync-opencode-skills.py`、`bin/validate-agent-runtime.py` 或 `bin/smoke-test-analysis.py`；它们是仓库开发校验，不属于本 workflow。
-- 如果固定脚本能力不足，必须修改仓库 `bin/` 或对应 skill `scripts/` 下的固定脚本并运行校验；不得在 `outputs/`、`process/`、`reports/`、临时目录或当前工作目录写一次性脚本。
+- 结果：`deliverables/test-analysis-solution.json/.md`。
+- 最终人审报告：`reports/analysis-final-report.md`。
+- 语义过程件：`process/*.md`、`process/test-point-slices/*.md`、`process/reviews/**/*.md`。
+- 脚本控制状态：manifest、plan、registry、task-list、work-items JSON。
 
-## 输出要求
+## 约束
 
-- SC 树生成只使用 `templates/scenario-tree-json-template.json`；`templates/test-analysis-solution-json-template.json` 只作为 TP 合并后的最终主交付件参考，SC 阶段不得读取其 `testPoints[]` 示例。
-- `process/scenario-tree.json` 是冻结 SC 树，最多 3 层，任何层级都不得包含 `testPoints[]`。
-- `deliverables/test-analysis-solution.json` 的 `scenarios[]` 是场景树，最多 3 层；非叶子场景只允许有 `children[]`，叶子场景必须有 `testPoints[]`。
-- `TP-*` 在 run 内全局唯一且增量稳定；既有编号保持不变，新编号追加且退役编号不复用。每个叶子场景必须包含 `E2E场景测试`。
-- `TP-*` 必须包含 `id`、`title`、`objective` 和 `basisRefs[]`。
-- 测试技术和专项方法是生成参考，不是主交付字段；不得在 `TP-*` 中输出 `methodRefs[]` 或方法字段表格。
-- 分析方案不得包含测试用例、测试数据、步骤、预期结果或 schemaVersion 2.0 之外的字段。
-- 主输出不得使用 Markdown 加粗语法。
-- 全流程不调用用户交互能力，不创建问题队列，不直接向用户提问，不暂停主流程。
+- 分析阶段不输出 TC、步骤、测试数据或预期结果。
+- 每个叶子 SC 必须包含 `E2E场景测试`。
+- 不为过程 Markdown 建立等价 JSON schema；只约定少量标题、编号和表格列。
+- 不临时创建脚本处理过程件；固定脚本不足时修改仓库脚本。

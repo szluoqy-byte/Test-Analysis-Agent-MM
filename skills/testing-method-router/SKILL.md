@@ -18,9 +18,9 @@ description: 在需求结构化之后使用，用于根据需求片段的分析�
 ## 输入
 
 - 输入事实模型。
-- `process/rules-pack.json` 中对 `testing-method-router` 可见的 core/project/user rules 索引及对应 Markdown 正文。
+- `process/rules-pack.md` 中对 `testing-method-router` 可见的 core/project/user rules 索引及对应规则正文。
 - 上下文来源索引。
-- `process/context-pack.json` 中 `sources[]` 对 `testing-method-router` 可见的 project/personal 覆盖策略、风险画像、个人关注点和路由补充。
+- `process/context-pack.md` 中对 `testing-method-router` 可见的 project/personal 覆盖策略、风险画像、个人关注点和路由补充。
 - `knowledge/test-workflow-boundaries.md`。
 - `references/test-method-routing-matrix.md`。
 - `references/*.md` 中的专项方法参考。
@@ -28,8 +28,8 @@ description: 在需求结构化之后使用，用于根据需求片段的分析�
 
 ## 分析步骤
 
-1. 读取 `process/rules-pack.json`，筛选 `ruleSources[]` 中 `availableStages` 包含 `testing-method-router` 或 `"*"` 的 rules，并读取对应 `path` 的 Markdown 正文；路由选择必须遵守适用 rules。
-2. 读取 `process/context-pack.json`，筛选 `availableStages` 包含 `testing-method-router` 或 `"*"` 的动态来源；如需使用，按来源文件、相关章节、关键词或标题读取正文，不全量复制大文件。
+1. 读取 `process/rules-pack.md`，筛选阶段包含 `testing-method-router` 或 `*` 的规则，并读取对应来源正文；路由选择必须遵守适用 rules。
+2. 读取 `process/context-pack.md`，筛选阶段包含 `testing-method-router` 或 `*` 的动态来源；如需使用，按来源文件、相关章节、关键词或标题读取正文，不全量复制大文件。
 3. 逐条扫描输入事实模型中的事实、约束/条件和可观察结果，先识别分析维度：需求可测性、风险、业务场景、数据域、规则组合、状态、权限、接口、数据一致性、组合兼容、非功能质量属性和经验缺陷模式。
 4. 识别每个分析维度下的触发信号。
 5. 结合本阶段可见的 project/personal 动态来源，补充识别项目特有风险、覆盖要求或测试技术倾向；补充只能提高关注度，不能覆盖 rules、根目录 knowledge 的路由矩阵和核心标准。
@@ -56,6 +56,8 @@ description: 在需求结构化之后使用，用于根据需求片段的分析�
 
 ## 输出
 
+输出写入 `process/testing-method-routing.md`，至少包含：
+
 | 需求片段 | 分析维度 | 触发信号 | 适用测试技术 | 方法参考 | 必要性 | 置信度 | 说明 |
 |---|---|---|---|---|---|---|---|
 
@@ -67,10 +69,10 @@ description: 在需求结构化之后使用，用于根据需求片段的分析�
 ## 路由规则
 
 - 工作流术语和分析/设计边界以 `knowledge/test-workflow-boundaries.md` 为准。
-- 强制规则以 `process/rules-pack.json` 为准；rules 与输入文档冲突时，默认遵守 rules 并记录覆盖原因。
+- 强制规则以 `process/rules-pack.md` 为准；rules 与输入文档冲突时，默认遵守 rules 并记录覆盖原因。
 - 分析维度和路由矩阵以 `references/test-method-routing-matrix.md` 为准。
 - 覆盖要求以 `skills/coverage-review/references/coverage-check.md` 为准。
-- project/personal 动态来源补充以当前 run 的 `process/context-pack.json` `sources[]` 为准，只能补充关注点和原因；personal 层不能覆盖 project 层或 core 层约束。
+- project/personal 动态来源补充以当前 run 的 `process/context-pack.md` 来源索引为准，只能补充关注点和原因；personal 层不能覆盖 project 层或 core 层约束。
 - 对本阶段可见且被读取的动态来源必须留痕；如果未应用，必须使用 `not_applicable`、`insufficient_evidence`、`conflict_with_requirement` 或 `deferred_to_review` 解释。
 - 本 skill 只负责把当前需求片段映射到测试技术和专项方法参考，并说明选择或跳过原因。
 - 同一需求片段可路由到多个测试技术；后续由 `test-analysis-solution-generation` 合并重复测试点。
@@ -85,7 +87,7 @@ description: 在需求结构化之后使用，用于根据需求片段的分析�
 
 ## 验证闭环
 
-路由结果交给 `test-analysis-solution-generation` 前，检查每条被标记为 `必选` 的技术都有明确事实依据和说明；被跳过的明显相关技术必须有原因。若读取了 project/personal 动态来源，记录应用状态，避免后续阶段误以为所有来源都已被正文读取。若路由依据不足，不要反复追问用户，按 `可选` 或 `不适用` 自动收口。
+路由结果交给 `test-analysis-solution-generation` 前，检查 `process/testing-method-routing.md` 中每条被标记为 `必选` 的技术都有明确事实依据和说明；被跳过的明显相关技术必须有原因。若读取了 project/personal 动态来源，记录应用状态，避免后续阶段误以为所有来源都已被正文读取。若路由依据不足，不要反复追问用户，按 `可选` 或 `不适用` 自动收口。
 
 ## 易错点
 
@@ -94,4 +96,4 @@ description: 在需求结构化之后使用，用于根据需求片段的分析�
 - 不要把弱信号升级成必选，除非输入事实、rules 或动态来源能支撑。
 - 本 skill 不直接向用户提问。
 - 不直接生成最终测试点，只输出测试技术路由和动态来源应用记录。
-- 如果可见动态来源中的 project/personal 覆盖策略不足，只能按 `sources[]` 记录的可见来源或当前需求明确指向的文件补读相关章节，并在路由说明中记录来源；不得全目录搜索或全量复制大文件。
+- 如果可见动态来源中的 project/personal 覆盖策略不足，只能按 `context-pack.md` 记录的可见来源或当前需求明确指向的文件补读相关章节，并在路由说明中记录来源；不得全目录搜索或全量复制大文件。

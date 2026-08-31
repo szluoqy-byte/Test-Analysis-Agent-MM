@@ -1,76 +1,90 @@
 # 输出产物契约
 
-本文件说明 run 目录内主要产物的职责边界。字段细节以 `templates/`、`bin/run_artifacts.py`、`bin/lint-run-json.py` 和渲染脚本为准。
+run 产物分为三类：语义过程 Markdown、脚本控制 JSON、阶段结果 JSON。字段细节以 `templates/`、`bin/run_artifacts.py`、`bin/lint-run-json.py` 和工作流为准。
 
-## 主交付件
+## 核心原则
 
-| 产物 | 职责 |
-|---|---|
-| `deliverables/test-analysis-solution.json` | 测试分析方案，schema `2.0`，结构为 `SC -> TP` |
-| `deliverables/test-analysis-solution.md` | 分析方案人读版，由 JSON 渲染 |
-| `deliverables/test-design-solution.json` | 测试设计方案，schema `2.0`，结构为 `SC -> TP -> TC` |
-| `deliverables/test-design-solution.md` | 设计方案人读版，由 JSON 渲染 |
-
-JSON 是唯一事实源；Markdown 不手工维护。二者不一致时，以 JSON 为准并重新运行 `bin/render-run-markdown.py`。
+- 分析、设计和评审过程直接维护 Markdown，不再先写 JSON 再渲染。
+- JSON 只用于脚本控制状态和阶段结果传递。
+- 分析结果固定为 `SC -> TP`；设计结果固定为 `SC -> TP -> TC`。
+- `deliverables/*.md` 是结果 JSON 的人读派生版，不手工维护。
 
 ## 运行目录
 
 ```text
 outputs/runs/<run-id>/
-  revisions/
   inputs/
-  deliverables/
+  revisions/
   process/
     run-manifest.json
     run-plan.json
     id-registry.json
-    analysis-task-list.json/.md
-    design-task-list.json/.md
-    rules-pack.json/.md
-    context-pack.json/.md
-    input-fact-model.json/.md
-    scenario-tree.json/.md
-    test-point-work-items.json/.md
-    test-point-slices/
-    test-case-work-items.json/.md
-    test-case-slices/
-    analysis-fact-coverage-map.json/.md
-    design-fact-coverage-map.json/.md
-    reviews/
+    analysis-task-list.json
+    design-task-list.json
+    test-point-work-items.json
+    test-case-work-items.json
+    rules-pack.md
+    context-pack.md
+    input-fact-model.md
+    testing-method-routing.md
+    scenario-tree.md
+    test-point-slices/<SC-ID>.md
+    test-case-slices/<TP-ID>.md
+    analysis-fact-coverage-map.md
+    design-fact-coverage-map.md
+    reviews/*.md
+  deliverables/
+    test-analysis-solution.json
+    test-analysis-solution.md
+    test-design-solution.json
+    test-design-solution.md
   reports/
-    analysis-final-report.json/.md
-    design-final-report.json/.md
+    analysis-final-report.md
+    design-final-report.md
 ```
 
-`process/reviews/` 保存过程评审和 coverage-review 产物；`reports/` 只保存最终人审报告。
+## 语义过程 Markdown
 
-持久 run 可由 `runid=<requirement-id>` 定位。`process/run-manifest.json` 记录输入和依赖指纹，`process/run-plan.json` 记录本次 create/resume/reuse/extend/rebuild 决策；每次 extend/rebuild 前把当前 JSON 和 run-local inputs 快照到 `revisions/rNNNN/`。
+以下产物由模型直接生成和审阅：
 
-## 过程件
+- `rules-pack.md`、`context-pack.md`：规则与动态来源索引。
+- `input-fact-model.md`、`testing-method-routing.md`：事实建模和方法分析。
+- `scenario-tree.md`：冻结的 SC 场景树。
+- `test-point-slices/<SC-ID>.md`：单个叶子 SC 的 TP 草稿。
+- `test-case-slices/<TP-ID>.md`：单个 TP 的 TC 草稿。
+- `process/reviews/*.md`：切片、整体方案和覆盖评审。
+- `*-fact-coverage-map.md`：逐 FACT 覆盖证据。
+- `reports/*-final-report.md`：最终人审报告。
 
-- `process/scenario-tree.json`：冻结 SC 场景树，不包含 `testPoints[]`。
-- `process/test-point-slices/<SC-ID>.json`：单个叶子 SC 的 TP 切片。
-- `process/test-case-slices/<TP-ID>.json`：单个 TP 的 TC 切片。
-- `process/analysis-fact-coverage-map.json` / `process/design-fact-coverage-map.json`：coverage-review 使用的 FACT 覆盖证据图。
-- `generationContext`：由固定脚本生成的阶段工作包，只服务当前产物生成或评审，不合并进 deliverables。
+过程 Markdown 不维护同名 JSON，不持久化 `generationContext`。返工时修改对应 Markdown 切片并重新评审。
 
-## Review、Coverage 和 Final Report
+## 控制 JSON
 
-- review 产物位于 `process/reviews/`，用于语义评审和返工定位。
-- coverage-review 基于 fact-coverage-map 审查需求事实到 SC/TP/TC 的覆盖关系。
-- coverage gap 必须通过 `coverageGaps[].artifactLocation` 定位回 slice，再用固定脚本重开工作项。
-- final-report 位于 `reports/`，从已审查的 fact-coverage-map 生成，只供人工审阅，不输出 `coverageGaps[]`，不触发自动返工。
+`run-manifest.json`、`run-plan.json`、`id-registry.json`、`*-task-list.json` 和 `*-work-items.json` 由固定脚本维护。它们记录生命周期、锁、编号、状态和内容哈希，不承载测试语义，也不生成同名 Markdown。
 
-## Markdown 渲染
+## 结果 JSON
 
-- 测试分析 Markdown 保留 SC/TP 层级。
-- 测试设计 Markdown 面向脑图导入优化，避免超过 Markdown 标题层级上限。
-- review、coverage、final-report Markdown 均由 JSON 派生。
+| 产物 | 用途 |
+|---|---|
+| `deliverables/test-analysis-solution.json` | 分析阶段向设计阶段传递已固化的 SC/TP 结果 |
+| `deliverables/test-design-solution.json` | 对外传递完整 SC/TP/TC 设计结果 |
 
-## 校验入口
+阶段结束时，模型根据已通过评审的过程 Markdown 写一次 `deliverables/test-*-solution.draft.json`，`bin/finalize-deliverable.py` 负责稳定编号、schema 校验、正式写入、人读 Markdown 渲染和草稿删除。后续机器流程只读取正式结果 JSON。
 
-- `python bin/lint-run-json.py outputs/runs/<run-id>`
-- `python bin/render-run-markdown.py outputs/runs/<run-id> --check`
-- `python bin/check-artifact-consistency.py outputs/runs/<run-id>`
-- `python bin/check-staged-run.py outputs/runs/<run-id> --scope analysis|design`
-- `python bin/smoke-test-analysis.py`
+## Review、Coverage 与返工
+
+- review 结论固定写入 Markdown，首要结论使用 `- 结论：通过`、`需修正`、`失败`、`警告` 或 `不适用`。
+- `bin/complete-staged-items.py` 只在切片和对应 review 均存在且结论为“通过”时关闭工作项。
+- review 或 coverage 发现缺口时，使用 `bin/reopen-run-items.py` 重开对应 SC/TP，再回到 Markdown 切片修复。
+- final report 只展示已审查的覆盖关系，不新增缺口判断，也不触发返工。
+
+## Revision 与校验
+
+每次 `extend/rebuild` 前，`manage-run.py` 快照当前 JSON、Markdown 和输入文件到 `revisions/rNNNN/`。
+
+```bash
+python bin/lint-run-json.py outputs/runs/<run-id>
+python bin/render-run-markdown.py outputs/runs/<run-id> --check
+python bin/check-artifact-consistency.py outputs/runs/<run-id>
+python bin/check-staged-run.py outputs/runs/<run-id> --scope analysis|design
+```

@@ -23,7 +23,7 @@ Supported argument hints:
 
 This command accepts JSON canonical analysis input plus optional normalized Markdown requirement/design evidence. If the user provides `.docx` or `.xlsx`, stop and ask them to run `@file-normalization-agent` or `/normalize-input-documents` first, then pass the normalized Markdown path back to this command.
 
-When `project=<project-key>` is present, pass it through explicitly to `bin/build-rules-pack.py` and `context-source-indexing`. The generated or reused `process/rules-pack.json` must contain applicable core/project/user rules. The generated or reused `process/context-pack.json` must record `projectBinding`, dynamic project/personal knowledge `sources[]`, unscanned project sources, and warnings. Personal dynamic sources are represented only by `knowledge/user/**` paths in `sources[]`; personal rules are loaded through `process/rules-pack.json`.
+When `project=<project-key>` is present, pass it through explicitly to `bin/build-rules-pack.py` and `context-source-indexing`. The generated or reused `process/rules-pack.md` must index applicable core/project/user rules. The generated or reused `process/context-pack.md` must record project binding, dynamic project/personal knowledge sources, unscanned project sources, and warnings. Personal dynamic sources use `knowledge/user/**` paths; personal rules are loaded through `process/rules-pack.md`.
 
 Example:
 
@@ -31,4 +31,4 @@ Example:
 runid=IR-2026-001 requirement=requirements/order-cancel.md design=design/order-cancel.md project=mall-order mode=auto
 ```
 
-Keep `PROJECT_ROOT` fixed to the current repository root. Require a reviewed `deliverables/test-analysis-solution.json` as design input; if only requirement/design documents are provided, stop and ask the user to run `@test-analysis-agent` first or use `@test-e2e-analysis-design-agent` / `/test-analysis-design-workflow` for the full flow. Do not auto-run the analysis workflow from this design command. Ensure `process/rules-pack.json` exists before design generation, write the design deliverable fact source at `deliverables/test-design-solution.json`, and render `deliverables/test-design-solution.md` with `bin/render-run-markdown.py`. Run JSON lint, render drift check, Markdown lint, and consistency checks from `bin/`, and report the JSON and Markdown design solution paths plus check results.
+Keep `PROJECT_ROOT` fixed to the current repository root. Require a reviewed `deliverables/test-analysis-solution.json` as design input; if only requirement/design documents are provided, stop and ask the user to run `@test-analysis-agent` first or use the full flow. Do not auto-run analysis from this command. Write TC generation, review and coverage as process Markdown, then finalize `deliverables/test-design-solution.json` once at the stage boundary and render its result Markdown. Run the fixed checks and report the result paths.

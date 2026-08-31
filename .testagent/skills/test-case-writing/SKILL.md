@@ -24,8 +24,8 @@ description: 在测试设计方案 JSON 已生成后使用，负责将 canonical
 
 - 当前 run 目录：`outputs/runs/<run-id>/`。
 - 主事实源：`outputs/runs/<run-id>/deliverables/test-design-solution.json`。
-- `process/rules-pack.json` 中对 `test-case-writing` 可见的 core/project/user rules 索引及对应 Markdown 正文。
-- 可选：`process/context-pack.json` 中对 `test-case-writing` 可见的 project/personal 写作偏好、平台字段映射、命名风格或导入约束。
+- `process/rules-pack.md` 中对 `test-case-writing` 可见的 core/project/user rules 索引及对应规则正文。
+- 可选：`process/context-pack.md` 中对 `test-case-writing` 可见的 project/personal 写作偏好、平台字段映射、命名风格或导入约束。
 - 模板：`templates/test-design-solution-template.md` 作为标准 Markdown 阅读版样式参考。
 - 公共写作标准：`knowledge/test-case-writing-standard.md`，用于理解 canonical JSON 中所有 TC 字段的通用写法。
 - 共享写作风格：`knowledge/test-case-writing-styles/`，用于理解 canonical JSON 中 GUI、API、CLI 用例字段的表达约束。
@@ -38,7 +38,7 @@ description: 在测试设计方案 JSON 已生成后使用，负责将 canonical
 - [ ] Step 3: 校验 Markdown 并回到 canonical JSON 或渲染器修复
 - [ ] Step 4: 按需输出不改变事实的扩展写作风格
 
-> 阶段索引是静态写作契约；实时状态仍由 `process/design-task-list.json` 维护，Markdown 始终是 JSON 的派生产物。
+> 阶段索引是静态写作契约；实时状态仍由 `process/design-task-list.json` 维护；此处的结果 Markdown 始终是结果 JSON 的派生产物。
 
 ## 默认标准 Markdown 写作
 
@@ -90,7 +90,7 @@ python bin/lint-test-design-solution.py outputs/runs/<run-id>/deliverables/test-
 - 所有 TC 字段表达不得背离 `knowledge/test-case-writing-standard.md` 的公共写作规范。
 - GUI、API、CLI 字段表达不得背离 `knowledge/test-case-writing-styles/` 中对应执行形态的约束。
 - 最终预期不新增无依据业务事实。
-- 写作表达必须先筛选 `process/rules-pack.json` 的 `ruleSources[]`，读取对 `test-case-writing` 可见的规则正文并遵守；rules 与个人偏好或动态来源冲突时，以 rules 为准。
+- 写作表达必须先筛选 `process/rules-pack.md` 中对 `test-case-writing` 可见的规则正文并遵守；rules 与个人偏好或动态来源冲突时，以 rules 为准。
 - 来源引用不丢失；如目标格式不支持完整来源引用，必须在配套说明或 sidecar 文件中保留。
 
 ## 输出
@@ -101,7 +101,7 @@ python bin/lint-test-design-solution.py outputs/runs/<run-id>/deliverables/test-
 
 ## 动态来源应用
 
-如果 `process/context-pack.json` 中存在对 `test-case-writing` 可见的 project/personal 来源，只能读取与写作表达、平台字段映射或风格偏好相关的正文。读取后必须在 review、coverage 或写作产物说明中记录应用状态。
+如果 `process/context-pack.md` 中存在对 `test-case-writing` 可见的 project/personal 来源，只能读取与写作表达、平台字段映射或风格偏好相关的正文。读取后必须在 review、coverage 或写作产物说明中记录应用状态。
 
 personal 偏好只影响表达风格，不得改变测试覆盖事实。project 写作约束只影响字段映射、命名口径或导入格式，不得覆盖 schemaVersion 2.0 的 canonical 字段。
 

@@ -31,15 +31,15 @@ description: 全流程测试分析与测试设计门面 Agent；当用户希望�
 ## 全流程生成时
 
 - 需求 Markdown 和可选设计 Markdown 是全流程输入。
-- 先启动 analysis subagent 执行测试分析，产出 `deliverables/test-analysis-solution.json/.md` 和 `reports/analysis-final-report.json/.md`。
-- 再启动 design subagent，把刚生成的 `deliverables/test-analysis-solution.json`、需求 Markdown、可选设计 Markdown、project-key 和同一 run 目录显式传给测试设计，产出 `deliverables/test-design-solution.json/.md` 和 `reports/design-final-report.json/.md`。
+- 先启动 analysis subagent 执行测试分析，产出 `deliverables/test-analysis-solution.json/.md` 和 `reports/analysis-final-report.md`。
+- 再启动 design subagent，把刚生成的 `deliverables/test-analysis-solution.json`、需求 Markdown、可选设计 Markdown、project-key 和同一 run 目录显式传给测试设计，产出 `deliverables/test-design-solution.json/.md` 和 `reports/design-final-report.md`。
 - 阶段交接只确认上一阶段已完成并产出下一阶段必需路径；不重复实现分析或设计 workflow 内部校验。
 - 如果分析阶段失败，不进入设计阶段；如果设计阶段失败，保留已完成的分析产物并报告失败位置。
-- subagent 之间不得通过自然语言总结、上一阶段聊天记录或隐式上下文传递业务事实；阶段交接只依赖 run 目录下的 canonical JSON 和固定报告文件。
+- subagent 之间不得通过自然语言总结、上一阶段聊天记录或隐式上下文传递业务事实；阶段交接只依赖分析结果 JSON。
 
 ## 执行约束
 
 - 所有路径从仓库根目录解析。
-- 正常 analysis-design 业务任务不得运行 `bin/sync-opencode-skills.py`、`bin/validate-agent-runtime.py` 或 `bin/smoke-test-analysis.py`；两个阶段只执行各自 workflow 规定的当前 run 校验。
+- 正常 analysis-design 业务任务不得运行 `bin/sync-opencode-skills.py`；两个阶段只执行各自 workflow 规定的当前 run 校验。
 - 只有用户任务明确要求修改仓库框架文件时，才按根目录 `AGENTS.md` 的“仓库开发校验”执行相应脚本。
 - 不直接编辑 `.opencode/agents/`、`.opencode/skills/`、`.testagent/agents/` 或 `.testagent/skills/`；它们由同步脚本生成。

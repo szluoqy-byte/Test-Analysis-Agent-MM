@@ -11,8 +11,7 @@ BIN_DIR = Path(__file__).resolve().parents[3] / "bin"
 if str(BIN_DIR) not in sys.path:
     sys.path.insert(0, str(BIN_DIR))
 
-from run_artifacts import dump_json, load_json
-from staged_workflow import render_markdown_for_json
+from run_artifacts import dump_json, load_json, render_json_artifact, validate_artifact
 
 
 def configure_stdio() -> None:
@@ -62,14 +61,12 @@ def main() -> int:
         print(f"失败: 无法读取分析方案 JSON: {exc}", file=sys.stderr)
         return 1
 
-    if analysis.get("artifactType") != "test-analysis-solution":
-        print("失败: --analysis 必须是 test-analysis-solution JSON", file=sys.stderr)
-        return 1
-    if str(analysis.get("schemaVersion")) != "2.0":
-        print("失败: --analysis 必须使用 schemaVersion 2.0", file=sys.stderr)
-        return 1
-    if not isinstance(analysis.get("scenarios"), list):
-        print("失败: --analysis 缺少 scenarios[]", file=sys.stderr)
+    validation_errors, validation_warnings = validate_artifact(analysis)
+    for warning in validation_warnings:
+        print(f"警告: {warning}")
+    if validation_errors:
+        for error in validation_errors:
+            print(f"失败: {error}", file=sys.stderr)
         return 1
     if target_path.exists() and analysis_path.resolve() != target_path.resolve():
         existing = load_json(target_path)
@@ -83,7 +80,7 @@ def main() -> int:
 
     target_path.parent.mkdir(parents=True, exist_ok=True)
     dump_json(target_path, analysis)
-    render_markdown_for_json(target_path)
+    target_path.with_suffix(".md").write_text(render_json_artifact(analysis, target_path), encoding="utf-8")
     print(f"通过: 已绑定 {rel_path(analysis_path, root)} -> {rel_path(target_path, root)}")
     return 0
 

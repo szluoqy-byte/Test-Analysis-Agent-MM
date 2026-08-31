@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
-"""Build process/rules-pack.json as the mandatory rules source index for a run."""
+"""Build process/rules-pack.md as the mandatory rules source index for a run."""
 
 from __future__ import annotations
 
 import argparse
-import json
-import os
 import re
-import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -344,33 +341,64 @@ def build_rules_pack(args: argparse.Namespace, root: Path) -> dict[str, Any]:
     }
 
 
-def write_json(path: Path, data: dict[str, Any]) -> None:
+def cell(value: Any) -> str:
+    if isinstance(value, list):
+        value = "、".join(str(item) for item in value)
+    return str(value or "").replace("|", "\\|").replace("\n", "<br>")
+
+
+def write_markdown(path: Path, data: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="\n") as handle:
-        handle.write(json.dumps(data, ensure_ascii=False, indent=2) + "\n")
-
-
-def render_markdown(run_dir: Path, root: Path) -> int:
-    script = root / "bin" / "render-run-markdown.py"
-    result = subprocess.run(
-        [sys.executable, str(script), str(run_dir)],
-        cwd=root,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        env={**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"},
-        capture_output=True,
-    )
-    if result.stdout.strip():
-        print(result.stdout.strip())
-    if result.stderr.strip():
-        print(result.stderr.strip(), file=sys.stderr)
-    return result.returncode
+        binding = data["projectBinding"]
+        lines = [
+            f"# {data['title']}",
+            "",
+            "## Project 绑定",
+            "",
+            "| 状态 | project-key | 原因 |",
+            "|---|---|---|",
+            f"| {cell(binding.get('status'))} | {cell(binding.get('projectKey'))} | {cell(binding.get('reason'))} |",
+            "",
+            "## 规则来源",
+            "",
+            "| 路径 | 层级 | 名称 | 描述 | 可用阶段 | 优先级 |",
+            "|---|---|---|---|---|---|",
+        ]
+        for source in data["ruleSources"]:
+            lines.append(
+                "| " + " | ".join(
+                    cell(source.get(key))
+                    for key in ("path", "layer", "name", "description", "availableStages", "priority")
+                ) + " |"
+            )
+        lines.extend(["", "## 未扫描项目规则", ""])
+        if data["unscannedProjectRules"]:
+            lines.extend(["| 路径 | 原因 |", "|---|---|"])
+            for item in data["unscannedProjectRules"]:
+                lines.append(f"| {cell(item.get('path'))} | {cell(item.get('reason'))} |")
+        else:
+            lines.append("无。")
+        lines.extend(["", "## 告警", ""])
+        lines.extend(f"- {warning}" for warning in data["warnings"])
+        if not data["warnings"]:
+            lines.append("无告警。")
+        lines.extend(
+            [
+                "",
+                "## 使用约束",
+                "",
+                "- 本文件只索引规则元数据，不复制规则正文。",
+                "- 每个阶段筛选可用阶段包含当前阶段或 `*` 的规则，并读取对应 Markdown 正文。",
+                "- 优先级：当前用户明确指令 > rules > 输入文档 > project/personal knowledge > core knowledge。",
+            ]
+        )
+        handle.write("\n".join(lines).rstrip() + "\n")
 
 
 def main() -> int:
     configure_stdio()
-    parser = ChineseArgumentParser(description="生成 process/rules-pack.json 强制规则索引")
+    parser = ChineseArgumentParser(description="生成 process/rules-pack.md 强制规则索引")
     parser.add_argument("--run-dir", required=True, type=Path, help="outputs/runs/<run-id>")
     parser.add_argument("--requirement", type=Path, help="需求 Markdown 路径")
     parser.add_argument("--requirement-title", default="", help="需求标题")
@@ -378,7 +406,6 @@ def main() -> int:
     parser.add_argument("--project", default="", help="已唯一确定的 project-key")
     parser.add_argument("--project-reason", default="", help="project 绑定或未绑定原因")
     parser.add_argument("--title", default="", help="rules-pack 标题")
-    parser.add_argument("--no-render", action="store_true", help="只写 JSON，不渲染 Markdown")
     args = parser.parse_args()
 
     root = repo_root()
@@ -388,14 +415,12 @@ def main() -> int:
     run_dir.mkdir(parents=True, exist_ok=True)
 
     data = build_rules_pack(args, root)
-    output_path = run_dir / "process" / "rules-pack.json"
-    write_json(output_path, data)
+    output_path = run_dir / "process" / "rules-pack.md"
+    write_markdown(output_path, data)
     count = len(data["ruleSources"])
     print(f"通过: 已生成 {rel_path(output_path, root)}，规则索引 {count} 条，告警 {len(data['warnings'])} 个")
 
-    if args.no_render:
-        return 0
-    return render_markdown(run_dir, root)
+    return 0
 
 
 if __name__ == "__main__":

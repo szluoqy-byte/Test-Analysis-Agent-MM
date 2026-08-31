@@ -24,7 +24,7 @@ description: 定义 GUI、API 和 CLI 测试用例在 canonical JSON 中的字�
 ## 判定优先级
 
 1. 优先依据当前用户明确指令。
-2. 其次依据当前 `TP-*` 标题、`objective`、`basisRefs[]`、`generationContext.relevantFacts[]` 和需求/设计来源。
+2. 其次依据当前 `TP-*` 标题、`objective`、`basisRefs[]`、`process/input-fact-model.md` 中的相关 FACT 和需求/设计来源。
 3. 如果一个 TC 同时包含 GUI 操作和接口/数据库验证，按测试人员实际发起动作确定主风格：从页面发起则为 GUI，用接口或数据库步骤作为取数验证动作；直接调用接口则为 API；直接执行命令则为 CLI。
 4. 不因为验证手段改变主风格。例如：GUI 提交交易后查询数据库确认状态，仍是 GUI 用例；API 创建交易后查询数据库确认副作用，仍是 API 用例；CLI 执行批处理命令后读取日志，仍是 CLI 用例。
 5. 如果无法唯一判断，不强行补造 GUI 菜单、接口路径或 CLI 命令；使用通用可执行动作规范，并在可见事实不足处使用稳定数据槽位或保守预期。

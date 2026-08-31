@@ -30,7 +30,7 @@ Git 中可审阅的 Markdown / 结构化知识源
 当前机制具有几个值得保留的优点：
 
 - `knowledge/`、`rules/`、`memory/` 边界明确。
-- core knowledge 由 Workflow/Skill 固定引用，project/personal 动态来源经 `context-pack.json` 暴露。
+- core knowledge 由 Workflow/Skill 固定引用，project/personal 动态来源经 `context-pack.md` 暴露。
 - `context-source-indexing` 只索引路径、名称、描述和阶段可见性，不把动态来源静默注入上下文。
 - 后续阶段必须记录来源应用状态，业务事实仍以当前输入为准。
 - 所有来源都可在 Git 或 run 产物中追踪，不依赖黑盒知识服务。
@@ -47,7 +47,7 @@ Git 中可审阅的 Markdown / 结构化知识源
 | 增量影响较弱 | 输入和工作项有 hash，知识内容缺少细粒度依赖 | 知识更新后难以精确判断需重开哪些 SC/TP |
 | 经验沉淀链路不足 | memory 可保存历史经验，但缺少候选晋级机制 | Review、coverage、缺陷结果无法稳定转化为高质量知识 |
 
-Knowledge 2.0 应扩展当前机制，而不是推翻它。`context-pack.json` 仍可承担来源绑定和可见性索引，新增的检索计划、知识证据包和派生索引围绕它工作。
+Knowledge 2.0 应扩展当前机制，而不是推翻它。`context-pack.md` 承担来源绑定和可见性索引，新增的检索计划、知识证据包和派生索引围绕它工作。
 
 ## 3. 哪些知识对 AI 辅助测试真正有用
 
@@ -75,7 +75,7 @@ Knowledge 2.0 应扩展当前机制，而不是推翻它。`context-pack.json` �
 
 以下内容必须与长期知识区分：
 
-- **当前需求/设计事实**：属于当前 run 的 `input-fact-model.json`，不能因为被索引就变成长期真理。
+- **当前需求/设计事实**：属于当前 run 的 `input-fact-model.md`，不能因为被索引就变成长期真理。
 - **强制规则**：继续属于 `rules/`，优先级和加载链路不能被普通 RAG 排名稀释。
 - **未审查的模型推断**：只能作为 candidate，不得直接成为 active knowledge。
 - **单次 run 的 SC/TP/TC**：是交付产物，不自动晋级为知识；只有抽象出的、经人审确认的模式才可沉淀。
@@ -329,19 +329,19 @@ Hybrid retrieval 能同时覆盖精确词法与语义相关性，RRF 是缺少�
 
 ### 6.4 与现有 Generation Context 的结合
 
-建议保留当前 `generationContext`，但把知识部分由“可见文件列表”演进为“本工作项已选择的 evidence pack”：
+建议在生成当前工作项时按需组装临时 evidence pack，但不把它持久化为过程 JSON 字段：
 
 ```text
-context-pack.json
+context-pack.md
   负责 project/personal 来源绑定和可见性
 
 knowledge-retrieval-plan.json
   负责本阶段的检索策略、预算和重开条件
 
-process/knowledge-evidence/<stage>/<work-item>.json
+process/knowledge-evidence/<stage>/<work-item>.md
   负责当前 SC/TP/review 工作项的检索证据
 
-generationContext
+临时工作上下文（仅会话内）
   引用或内联最终选择的少量证据，并保留 source/hash/section
 ```
 
@@ -475,7 +475,7 @@ Review finding、coverage gap、线上缺陷和执行结果可以生成 candidat
 
 ## 10. 评测体系：证明知识架构确实提升效果
 
-Knowledge 2.0 上线前应建立专门的 retrieval/grounding eval，不应只跑现有结构 smoke。
+Knowledge 2.0 上线前应建立专门的 retrieval/grounding eval，不应只依赖现有结构校验。
 
 ### 10.1 三层指标
 
@@ -489,7 +489,7 @@ RAGAS 将 RAG 评估拆为检索上下文、忠实性和回答质量等维度，
 
 ### 10.2 建议的评测数据集
 
-1. 从现有 example fixture 提取 30-50 个明确的知识检索问题。
+1. 从实际业务输入中提取 30-50 个明确的知识检索问题。
 2. 增加精确型查询：接口、字段、状态、错误码、配置项。
 3. 增加语义型查询：相似风险、历史缺陷模式、质量属性。
 4. 增加多跳型查询：角色-动作-状态-接口-风险路径。
@@ -657,4 +657,3 @@ Workflow 只依赖统一查询和 evidence pack 契约，不绑定 SQLite、Post
 - [pgvector](https://github.com/pgvector/pgvector)
 - [Qdrant Hybrid Queries](https://qdrant.tech/documentation/search/hybrid-queries/)
 - [RAGAS: Automated Evaluation of Retrieval Augmented Generation](https://arxiv.org/abs/2309.15217)
-

@@ -18,7 +18,7 @@
 
 ```text
 当前用户明确指令
-  > process/rules-pack.json 中当前阶段可见且已读取正文的适用 rules
+  > process/rules-pack.md 中当前阶段可见且已读取正文的适用 rules
   > 当前输入文档（需求 / 设计方案 / 已评审测试分析方案）
   > project/personal knowledge
   > core knowledge
@@ -28,13 +28,13 @@ rules 内部按 `core > project > user` 处理；project/personal rules 可以�
 
 ## Project / User Knowledge
 
-`knowledge/projects/<project-key>/` 和 `knowledge/user/` 是动态补充来源，必须声明 `name`、`description`，可选 `stages`。`context-source-indexing` 只索引 frontmatter；后续阶段按 `context-pack.json` 中的 `sources[]` 读取正文并记录应用状态。
+`knowledge/projects/<project-key>/` 和 `knowledge/user/` 是动态补充来源，必须声明 `name`、`description`，可选 `stages`。`context-source-indexing` 只索引 frontmatter；后续阶段按 `context-pack.md` 中的来源表读取正文并记录应用状态。
 
 - project knowledge 可以保存经确认的项目术语、历史缺陷、复盘经验、风险画像、测试策略和测试设计启发，但不能替代当前需求或设计方案的业务事实。
 - user knowledge 可以保存个人测试方法、检查清单和测试关注点；用户明确要求长期遵守的输出偏好、审查要求或本地限制必须保存到 `rules/user/`。
 - knowledge 只提供风险、方法和经验补充；与当前输入文档或 rules 冲突时不得覆盖。
 
-rules 不进入 `context-pack.json`，由 `process/rules-pack.json` 独立索引强制规则；后续阶段按 `ruleSources[]` 读取当前阶段适用规则正文并记录应用状态。
+rules 不进入 `context-pack.md`，由 `process/rules-pack.md` 独立索引强制规则；后续阶段按规则表读取当前阶段适用规则正文并记录应用状态。
 
 ## 当前主标准
 

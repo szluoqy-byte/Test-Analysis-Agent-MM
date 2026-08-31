@@ -34,8 +34,7 @@
 - `skills/` 是唯一手工维护的 skill 源。
 - `.opencode/agents/`、`.opencode/skills/`、`.testagent/agents/` 和 `.testagent/skills/` 是生成镜像，不直接手工编辑。
 - 只有当前任务实际修改了 `agents/*.md`、`skills/*/SKILL.md` 或根目录 `codearts.json`，才运行 `python bin/sync-opencode-skills.py`。
-- 只有当前任务实际修改了运行时 wiring，才运行 `python bin/validate-agent-runtime.py`。
-- 正常执行文件归一化、测试分析、测试设计或 analysis-design 业务 run 时，不得运行 `bin/sync-opencode-skills.py`、`bin/validate-agent-runtime.py` 或 `bin/smoke-test-analysis.py`；这些脚本不校验当前 run 的业务产物。
+- 正常执行文件归一化、测试分析、测试设计或 analysis-design 业务 run 时，不得运行 `bin/sync-opencode-skills.py`；该脚本不校验当前 run 的业务产物。
 - 每个 `skills/<skill-name>/SKILL.md` 必须保持 Agent Skills 兼容 frontmatter：`name` 与目录名一致，`description` 说明做什么和何时使用，正文保持核心指令而不是长篇资料。
 - 每个 skill 正文必须能快速定位：何时使用、输入、执行步骤、输出、验证闭环和约束/易错点；详细参考放入该 skill 的 `references/`，可执行 helper 放入该 skill 的 `scripts/`，并在正文说明何时读取或调用。
 - 多步骤 workflow、生成、coverage、final-report 和写作类 skill 必须用 `## 执行阶段`、`## 生成阶段`、`## 审查阶段`、`## 报告生成阶段`、`## 归一化阶段` 或 `## 写作阶段` 之一列出连续的 `- [ ] Step N: ...` 阶段索引，并在 `## 各阶段执行要求` 中以同编号、同标题展开执行、原则、脚本门禁和必要的失败回退。`### Step N` 是唯一顶层 Step 编号；其下可使用连续的操作编号，但不得形成第二套阶段清单。阶段索引是静态执行契约，不是运行状态；真实状态只写入 `process/*-task-list.json`。不得再维护独立的 `Progress:` 或“计划-校验-执行模式”流程副本。
@@ -57,45 +56,44 @@
 
 - 测试分析主交付件固定为 `outputs/runs/<run-id>/deliverables/test-analysis-solution.json`，由 `bin/render-run-markdown.py` 渲染同名 `.md` 人读版。
 - 测试设计主交付件固定为 `outputs/runs/<run-id>/deliverables/test-design-solution.json`，由 `test-case-writing` 调用 `bin/render-run-markdown.py` 渲染同名 `.md` 人读版；优先复用上游测试分析方案所在 run。
-- JSON 是 run 过程产物、主交付件、review 和 coverage 的事实源；Markdown 是脚本派生产物，不手工维护。
-- 持久 run 的生命周期事实源是 `process/run-manifest.json`；每次 `extend/rebuild` 修改前必须在 `revisions/rNNNN/` 创建 JSON/input 快照，当前交付路径保持不变。
+- 模型编写的语义过程件以 Markdown 为唯一事实源；只有分析/设计结果方案使用 JSON 作为阶段边界和跨 Agent 传递格式。结果 Markdown 可由 JSON 渲染。
+- 持久 run 的生命周期事实源是 `process/run-manifest.json`；每次 `extend/rebuild` 修改前必须在 `revisions/rNNNN/` 创建当前 JSON、过程 Markdown 和 input 快照，当前交付路径保持不变。
 - `process/run-manifest.json` 记录输入、project 绑定、analysis/design 依赖指纹、交付件 hash 和 revision；输入默认追加，同路径视为版本更新，删除旧来源必须显式使用 `remove-source=<path>`。
-- 创建 run 目录后必须维护阶段化任务清单和共享过程产物：测试分析使用 `process/analysis-task-list.json/.md`，测试设计使用 `process/design-task-list.json/.md`；共享过程产物包括 `process/rules-pack.json/.md`、`process/context-pack.json/.md` 和 `process/input-fact-model.json/.md`。历史 `process/task-list.json/.md` 只作为兼容读取路径，不作为新流程写入目标。
-- 测试分析必须先生成并评审冻结 `process/scenario-tree.json`，再按叶子 SC 生成 `process/test-point-slices/<SC-ID>.json`，最后合并为 `deliverables/test-analysis-solution.json`。
-- 测试设计必须按每个已冻结 TP 生成 `process/test-case-slices/<TP-ID>.json`，评审后合并为 `deliverables/test-design-solution.json`。
-- `process/scenario-tree.json`、`process/test-point-slices/<SC-ID>.json`、`process/test-case-slices/<TP-ID>.json` 以及 review/coverage JSON 必须包含由固定脚本生成的 `generationContext`；它只用于生成前工作包、规则正文、动态来源索引和事实候选，不作为最终业务事实合并进 deliverables。
-- 测试设计流程固定按 `process/test-case-work-items.json` 和 `process/test-case-slices/<TP-ID>.json` 逐 TP 生成并合并，最终事实源仍是 `deliverables/test-design-solution.json`。
+- 创建 run 目录后必须维护脚本控制 JSON：`run-manifest.json`、`run-plan.json`、`id-registry.json`、analysis/design task-list 和 TP/TC work-items。模型不得手工编辑这些控制文件，也不为它们渲染 Markdown 副本。
+- 共享语义过程件固定为 `process/rules-pack.md`、`process/context-pack.md`、`process/input-fact-model.md` 和按需生成的 `process/testing-method-routing.md`。
+- 测试分析先生成并评审 `process/scenario-tree.md`，再按叶子 SC 编写 `process/test-point-slices/<SC-ID>.md`，全部通过后一次性固化 `deliverables/test-analysis-solution.json`。
+- 测试设计按每个已冻结 TP 编写 `process/test-case-slices/<TP-ID>.md`，全部通过后一次性固化 `deliverables/test-design-solution.json`。
+- 过程 Markdown 不持久化 `generationContext`，不建立同名 JSON schema；需要的规则、动态来源和 FACT 在生成当前工作单元时按需读取。
 - 增量 run 中工作项使用 `contentHash` 判断上游内容变化；变化项必须自动重开。输入/context 变化由 workflow 做语义影响分析并用 `bin/reopen-run-items.py` 重开受影响 SC/TP，不能判定影响范围时保守重开全部。
-- 测试分析和测试设计流程不得临时生成 `.py`、`.js`、`.ps1`、`.bat` 或其他可执行脚本来处理 JSON、循环切片、汇总状态或定位返工；固定脚本能力不足时修改仓库 `bin/` 脚本并运行校验。
-- 主交付件 schema 使用 `2.0`；process、review 和 coverage 产物继续使用各自当前 schema。
+- 测试分析和测试设计流程不得临时生成 `.py`、`.js`、`.ps1`、`.bat` 或其他可执行脚本处理切片、状态或返工；固定脚本能力不足时修改仓库 `bin/` 脚本并运行校验。
+- 只有主结果交付件使用 schema `2.0`；过程 Markdown 不使用 JSON schema。
 - 新 run 只支持 schemaVersion 2.0；历史 run 需要按新模型重新生成。
 
 ## Project/Personal 上下文
 
 - 支持可选 `project-key`：确定后可扫描 `*/projects/<project-key>/**/*.md`；未唯一确定时不得读取所有项目目录正文。
-- `rules/` 是强制规则源，按 `core / project / personal` 三层加载，必须由 `bin/build-rules-pack.py` 写入 `process/rules-pack.json` 规则索引；后续每个阶段筛选 `ruleSources[]` 中对当前阶段可见的规则，读取对应 Markdown 正文并遵守。
-- `project` 和 `personal` knowledge 是当前 run 的动态补充输入源：必须由 `context-source-indexing` 在 `process/context-pack.json` 中记录绑定结果和动态来源索引。
+- `rules/` 是强制规则源，按 `core / project / personal` 三层加载，由 `bin/build-rules-pack.py` 直接写入 `process/rules-pack.md`；后续阶段按其中的可用阶段读取对应规则正文。
+- `project` 和 `personal` knowledge 是当前 run 的动态补充输入源，由 `context-source-indexing` 在 `process/context-pack.md` 中记录绑定结果和动态来源索引。
 - 优先级分两层理解：workflow、skill、schema 和固定脚本定义运行时执行契约；业务与输出约束按 `当前用户明确指令 > rules > 当前输入文档 > project/personal knowledge > core knowledge` 处理。
 - `knowledge/projects/<project-key>/` 和 `knowledge/user/` 只能作为测试知识补充，不得覆盖根目录 `knowledge/` 的核心标准、字段和质量门禁。
 - 动态来源必须声明 `name`、`description`，可选 `stages`；未配置 `stages` 时默认全部阶段可用。
-- `context-source-indexing` 只读取 project/personal knowledge 动态来源 frontmatter 生成 `sources[]`，不扫描 rules，不扫描 core 层，不摘录正文，也不替后续阶段判断具体命中。
-- 后续 skill 只读取 `sources[]` 中对本阶段可见的文件正文，并输出应用状态。
+- `context-source-indexing` 只读取 project/personal knowledge 动态来源 frontmatter 生成 Markdown 索引，不扫描 rules，不扫描 core 层，不摘录正文，也不替后续阶段判断具体命中。
+- 后续 skill 只读取 Markdown 索引中对本阶段可见的文件正文，并输出应用状态。
 
 ## 主流程
 
 - 当用户要求把 `.docx` / `.xlsx` / `.md` 输入整理为可供下游读取的 Markdown 输入事实源时，使用 `@file-normalization-agent`。
 - 当用户要求基于需求和设计方案生成测试场景、测试点粒度的方案时，使用 `test-analysis-workflow`。该 workflow 只接受 Markdown 输入；Office 输入必须先归一化。
 - 当用户要求从需求和设计方案一次性完成测试分析与测试设计时，使用 `test-analysis-design-workflow`。该 workflow 优先用独立 subagent 隔离执行 analysis/design，只做全流程编排和阶段交接，不复制 analysis/design 内部校验、review、coverage 或 final-report 逻辑；若运行环境不支持真实 subagent，才 fallback 为同会话 workflow 串联并在最终回复说明。
-- 测试分析阶段依次使用 `rules-pack`、`context-source-indexing`、`input-fact-modeling`、`testing-method-router`、路由选中的专项方法参考、`test-analysis-solution-generation` 生成冻结 SC 树、`test-analysis-solution-review` 评审 SC、按叶子 SC 生成并评审 TP 切片、合并分析方案、JSON lint、Markdown render、派生 Markdown lint、最终 `test-analysis-solution-review`、构建并审查 `analysis-fact-coverage-map`、`coverage-review` 和 `final-report-generation`。
-- 分段工作项状态查看、批量切片初始化、批量合并、review blocking 返工重开和分段 run 固定检查分别使用 `bin/list-staged-work-items.py`、`bin/init-staged-slices.py`、`bin/merge-staged-slices.py`、`bin/apply-review-findings.py` 和 `bin/check-staged-run.py`。
+- 测试分析阶段依次生成 rules/context/FACT/method Markdown、冻结 SC Markdown、逐叶子 SC 编写并评审 TP Markdown 切片，再一次性固化分析 JSON，完成整体评审、coverage Markdown、最终报告 Markdown 和固定检查。
+- 分段工作项状态查看、切片初始化、完成、重开和固定检查分别使用 `bin/list-staged-work-items.py`、`bin/init-staged-slices.py`、`bin/complete-staged-items.py`、`bin/reopen-run-items.py` 和 `bin/check-staged-run.py`。
 - 持久 run 生命周期、revision、依赖变化和并发锁由 `bin/manage-run.py` 管理；不得绕过有效的 `process/run.lock` 并发写同一 run。
-- 覆盖证据过程件按阶段拆分：测试分析写入 `process/analysis-fact-coverage-map.json/.md`，测试设计写入 `process/design-fact-coverage-map.json/.md`。它是 coverage-review 的工作底稿，不是最终人审报告。
-- 覆盖审查产物按阶段拆分：测试分析写入 `process/reviews/analysis-coverage-review.json/.md`，测试设计写入 `process/reviews/design-coverage-review.json/.md`。coverage-review 必须基于对应 fact-coverage-map 做门禁，避免 final-report 阶段才新增 missing 判断。
-- coverage-review 发现覆盖缺口后，不直接编辑最终 Markdown 或主交付件 JSON；必须通过 `coverageGaps[].artifactLocation` 定位到 `process/test-point-slices/<SC-ID>.json` 或 `process/test-case-slices/<TP-ID>.json`，先运行 `bin/apply-coverage-gaps.py` 重开对应工作项，再修复切片并重新执行切片 review、脚本合并、最终 review、coverage 和一致性检查。
-- 最终审阅报告产物按阶段拆分：测试分析写入 `reports/analysis-final-report.json/.md`，测试设计写入 `reports/design-final-report.json/.md`。final-report 只消费已审查的 fact-coverage-map 并展示输入 FACT 最终被哪些 SC/TP/TC 覆盖，不输出 `coverageGaps[]`，不触发 `apply-coverage-gaps.py`，也不参与自动返工链路。
+- 覆盖证据过程件分别为 `process/analysis-fact-coverage-map.md` 和 `process/design-fact-coverage-map.md`；覆盖审查分别为 `process/reviews/analysis-coverage-review.md` 和 `process/reviews/design-coverage-review.md`。
+- coverage-review 发现缺口后，必须在 Markdown 表格中定位到 TP/TC 切片，并用 `reopen-run-items.py` 重开工作项；修复切片、重新评审和重新固化结果后再更新覆盖文件。
+- 最终审阅报告分别为 `reports/analysis-final-report.md` 和 `reports/design-final-report.md`。final-report 只展示已审查覆盖关系，不生成 JSON、不新增缺口判断、不触发返工。
 - 当用户要求基于已评审测试分析方案生成测试用例时，使用 `test-design-workflow`。该 workflow 优先使用用户显式指定的 `test-analysis-solution.json`，否则只读取当前 run 已存在的 `deliverables/test-analysis-solution.json`。
-- 测试设计阶段使用 `test-design-solution-generation` 按 TP 生成 TC 切片，`test-design-solution-review` 按切片评审，切片通过后由固定脚本合并并统一 TC 编号。
-- 测试设计 coverage-review 闭环后使用 `final-report-generation` 从 `process/design-fact-coverage-map.json` 生成 `reports/design-final-report.json`，最终 Markdown 仍由脚本从 JSON 渲染。
+- 测试设计阶段使用 `test-design-solution-generation` 按 TP 编写 TC Markdown 切片，评审通过后由完成脚本更新 work-items；全部完成后通过 `finalize-deliverable.py` 一次性固化结果 JSON 和稳定 TC 编号。
+- 测试设计 coverage-review 闭环后由 `final-report-generation` 直接生成 `reports/design-final-report.md`。
 - 如果用户只提供需求/设计方案且要求测试设计，不得自动调用测试分析 workflow；必须先取得完整 `test-analysis-solution.json`，再进入测试设计。
 - 只有 `test-analysis-design-workflow` 可以在同一全流程中先运行分析再运行设计；`test-design-workflow` 本身不得自动运行分析。全流程阶段之间只通过 canonical JSON 和固定报告文件交接，不通过聊天上下文、自然语言总结或隐式记忆交接业务事实。
 - 设计方案输入用于补充接口、字段、状态、权限、数据依赖、配置开关、异常处理和非功能指标；没有设计方案时继续生成，预期结果只写输入可支撑的保守判定。
@@ -123,10 +121,7 @@
 
 ### 仓库开发校验
 
-以下命令只在当前任务修改了 Agent、Skill、runtime wiring、固定脚本、模板或示例 fixture 时按变更范围执行，不属于测试分析/设计业务 run：
+以下命令只在当前任务修改了 Agent 或 Skill 时按变更范围执行，不属于测试分析/设计业务 run：
 
-- Runtime wiring：`python bin/validate-agent-runtime.py`
 - Skill 阶段契约：`python bin/lint-skill-step-contract.py`
 - OpenCode/TestAgent skill 镜像：`python bin/sync-opencode-skills.py --check`
-- 持久 run 生命周期回归：`python bin/test-persistent-run.py`
-- 框架回归/示例 fixture smoke：`python bin/smoke-test-analysis.py`

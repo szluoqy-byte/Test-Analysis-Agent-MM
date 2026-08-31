@@ -15,7 +15,6 @@ if str(BIN_DIR) not in sys.path:
     sys.path.insert(0, str(BIN_DIR))
 
 from run_artifacts import dump_json, load_json
-from staged_workflow import render_markdown_for_json
 
 
 def configure_stdio() -> None:
@@ -54,7 +53,7 @@ def load_existing_statuses(path: Path) -> dict[str, dict[str, str]]:
             statuses[str(item["testPointId"])] = {
                 "status": str(item.get("status") or "pending"),
                 "slicePath": str(item.get("slicePath") or ""),
-                "mergedAt": str(item.get("mergedAt") or ""),
+                "completedAt": str(item.get("completedAt") or ""),
                 "contentHash": str(item.get("contentHash") or ""),
                 "contentChanged": bool(item.get("contentChanged", False)),
                 "reopenReason": str(item.get("reopenReason") or ""),
@@ -86,7 +85,7 @@ def iter_items(nodes: list[Any], scenario_path: list[dict[str, str]] | None = No
                     "basisRefs": point.get("basisRefs", []),
                     "status": "pending",
                     "slicePath": "",
-                    "mergedAt": "",
+                    "completedAt": "",
                 }
             hash_payload = {
                 "scenarioPath": next_path,
@@ -130,7 +129,7 @@ def main() -> int:
         changed = bool(previous.get("contentHash")) and previous.get("contentHash") != item["contentHash"]
         item["status"] = "pending" if changed else previous.get("status", item["status"])
         item["slicePath"] = previous.get("slicePath", item["slicePath"])
-        item["mergedAt"] = "" if changed else previous.get("mergedAt", item["mergedAt"])
+        item["completedAt"] = "" if changed else previous.get("completedAt", item["completedAt"])
         item["contentChanged"] = changed or bool(previous.get("contentChanged", False))
         if previous.get("reopenReason"):
             item["reopenReason"] = previous["reopenReason"]
@@ -144,7 +143,6 @@ def main() -> int:
         "workItems": items,
     }
     dump_json(output_path, data)
-    render_markdown_for_json(output_path)
     print(f"通过: 已生成 {rel_path(output_path, root)}，TP {len(items)} 个")
     return 0
 

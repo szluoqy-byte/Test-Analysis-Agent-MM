@@ -12,7 +12,7 @@
 
 - 输入事实模型。
 - 角色与权限相关片段。
-- `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.json` 中 `sources[]` 对 `testing-method-router` 可见的项目术语、角色和权限上下文来源。
+- `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.md` 中对 `testing-method-router` 可见的项目术语、角色和权限上下文来源。
 
 ## 分析步骤
 

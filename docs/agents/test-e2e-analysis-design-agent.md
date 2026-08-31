@@ -41,8 +41,8 @@
 | 测试分析 Markdown | `outputs/runs/<run-id>/deliverables/test-analysis-solution.md` |
 | 测试设计 JSON | `outputs/runs/<run-id>/deliverables/test-design-solution.json` |
 | 测试设计 Markdown | `outputs/runs/<run-id>/deliverables/test-design-solution.md` |
-| 分析最终报告 | `outputs/runs/<run-id>/reports/analysis-final-report.json/.md` |
-| 设计最终报告 | `outputs/runs/<run-id>/reports/design-final-report.json/.md` |
+| 分析最终报告 | `outputs/runs/<run-id>/reports/analysis-final-report.md` |
+| 设计最终报告 | `outputs/runs/<run-id>/reports/design-final-report.md` |
 
 同一端到端流程优先复用分析阶段创建的 run 目录，让分析和设计产物位于同一 `outputs/runs/<run-id>/` 下。
 
@@ -78,7 +78,7 @@ flowchart TD
     Q --> R["说明是否使用真实 subagent 或 fallback"]
 ```
 
-analysis subagent 负责完整分析内部闭环，包括 rules/context/fact、SC 树、TP 切片、合并、review、coverage 和 analysis final report。design subagent 只在分析交付成功后启动，显式读取完整分析 JSON，并负责 TC 切片、合并、写作、review、coverage 和 design final report。
+analysis subagent 负责完整分析内部闭环，包括 rules/context/fact、SC 树、TP Markdown 切片、结果固化、review、coverage 和 analysis final report。design subagent 只在分析交付成功后启动，显式读取完整分析 JSON，并负责 TC Markdown 切片、结果固化、写作、review、coverage 和 design final report。
 
 ## 阶段交接设计
 

@@ -268,20 +268,20 @@ def task_complete(run_dir: Path, flow: str) -> bool:
         data = read_json(task_list)
     except Exception:
         return False
-    return any(
-        isinstance(stage, dict) and stage.get("stage") == "输出收口" and stage.get("status") == "done"
-        for stage in data.get("stages", [])
+    stages = data.get("stages", [])
+    return bool(stages) and all(
+        isinstance(stage, dict) and stage.get("status") == "done" for stage in stages
     )
 
 
-def snapshot_json_tree(source: Path, destination: Path, exclude: set[str] | None = None) -> None:
+def snapshot_artifact_tree(source: Path, destination: Path, exclude: set[str] | None = None) -> None:
     if not source.is_dir():
         return
     excluded = exclude or set()
     for path in source.rglob("*"):
         if not path.is_file() or path.name in excluded:
             continue
-        if source.name != "inputs" and path.suffix.lower() != ".json":
+        if source.name != "inputs" and path.suffix.lower() not in {".json", ".md"}:
             continue
         target = destination / path.relative_to(source)
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -296,14 +296,14 @@ def create_revision(
     if revision_dir.exists():
         raise ValueError(f"revision 快照已存在，拒绝覆盖: {revision_dir}")
     revision_dir.mkdir(parents=True)
-    snapshot_json_tree(run_dir / "deliverables", revision_dir / "deliverables")
-    snapshot_json_tree(
+    snapshot_artifact_tree(run_dir / "deliverables", revision_dir / "deliverables")
+    snapshot_artifact_tree(
         run_dir / "process",
         revision_dir / "process",
         exclude={"run.lock", "run-plan.json"},
     )
-    snapshot_json_tree(run_dir / "reports", revision_dir / "reports")
-    snapshot_json_tree(run_dir / "inputs", revision_dir / "inputs")
+    snapshot_artifact_tree(run_dir / "reports", revision_dir / "reports")
+    snapshot_artifact_tree(run_dir / "inputs", revision_dir / "inputs")
     for item in manifest.get("inputs", []):
         if not isinstance(item, dict) or item.get("status") != "available" or not item.get("path"):
             continue
@@ -338,14 +338,16 @@ def reset_scope(run_dir: Path, flow: str) -> None:
             [
                 run_dir / "deliverables" / "test-analysis-solution.json",
                 run_dir / "deliverables" / "test-analysis-solution.md",
-                run_dir / "process" / "scenario-tree.json",
                 run_dir / "process" / "scenario-tree.md",
+                run_dir / "process" / "input-fact-model.md",
+                run_dir / "process" / "testing-method-routing.md",
                 run_dir / "process" / "test-point-work-items.json",
-                run_dir / "process" / "test-point-work-items.md",
                 run_dir / "process" / "test-point-slices",
-                run_dir / "process" / "analysis-fact-coverage-map.json",
                 run_dir / "process" / "analysis-fact-coverage-map.md",
-                run_dir / "reports" / "analysis-final-report.json",
+                run_dir / "process" / "reviews" / "scenario-tree-review.md",
+                run_dir / "process" / "reviews" / "test-point-reviews",
+                run_dir / "process" / "reviews" / "test-analysis-solution-review.md",
+                run_dir / "process" / "reviews" / "analysis-coverage-review.md",
                 run_dir / "reports" / "analysis-final-report.md",
             ]
         )
@@ -356,11 +358,11 @@ def reset_scope(run_dir: Path, flow: str) -> None:
                 run_dir / "deliverables" / "test-design-solution.json",
                 run_dir / "deliverables" / "test-design-solution.md",
                 run_dir / "process" / "test-case-work-items.json",
-                run_dir / "process" / "test-case-work-items.md",
                 run_dir / "process" / "test-case-slices",
-                run_dir / "process" / "design-fact-coverage-map.json",
                 run_dir / "process" / "design-fact-coverage-map.md",
-                run_dir / "reports" / "design-final-report.json",
+                run_dir / "process" / "reviews" / "test-case-reviews",
+                run_dir / "process" / "reviews" / "test-design-solution-review.md",
+                run_dir / "process" / "reviews" / "design-coverage-review.md",
                 run_dir / "reports" / "design-final-report.md",
             ]
         )

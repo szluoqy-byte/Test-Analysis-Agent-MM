@@ -1,110 +1,50 @@
 ---
 name: test-analysis-design-workflow
-description: 编排测试分析与测试设计全流程；优先以独立 subagent 执行分析和设计阶段，通过 test-analysis-solution.json 显式交接，最终输出两套交付件和最终审阅报告。
+description: 编排从 Markdown 需求到测试分析 JSON、再到测试设计 JSON 的全流程；优先隔离执行两个阶段，并只通过分析结果 JSON 交接业务事实。
 ---
 
-# 测试分析与测试设计全流程入口
+# 测试分析与测试设计全流程
 
-本 skill 是 `test-e2e-analysis-design-agent` 的完整链路编排契约。它面向用户“一次性完成测试分析和测试设计”的请求，优先使用独立 subagent 隔离执行分析和设计阶段；不支持真实 subagent 的运行环境才 fallback 为同会话 workflow 串联。本 skill 不重新实现 `test-analysis-workflow` 或 `test-design-workflow` 的内部生成、校验、评审、coverage 和 final-report 逻辑。
+## 何时使用
 
-## 必需输入
-
-- `$ARGUMENTS`：新 run 至少包含一份 `.md` 或 `.markdown` 需求文档路径；已有 `runid` 可继承 manifest 输入。
-- 可额外包含一份或多份 `.md` 或 `.markdown` 设计方案文档路径。
-- 可选 `--project <project-key>`，必须原样传递给测试分析和测试设计阶段。
-- 可选 `runid=<requirement-id>`、`mode=auto|resume|extend|rebuild` 和 `remove-source=<path>`，必须原样传递给两个阶段。
-- 如果输入包含 `.docx` 或 `.xlsx`，不得在本 workflow 中转换；必须先由 `@file-normalization-agent` 归一化为 Markdown。
+用户明确要求从需求和可选设计方案一次性完成测试分析与测试设计时使用。Office 输入先归一化。
 
 ## 执行阶段
 
-- [ ] Step 1: 校验输入并准备分析阶段参数
-- [ ] Step 2: 启动 analysis subagent 并等待分析收口
-- [ ] Step 3: 校验分析交接文件
-- [ ] Step 4: 启动 design subagent 并显式交接分析 JSON
-- [ ] Step 5: 汇总全流程交付件与阶段状态
-- [ ] Step 6: 处理阶段失败或同会话 fallback
+- [ ] Step 1: 准备输入与统一 run
+- [ ] Step 2: 完成测试分析阶段
+- [ ] Step 3: 通过分析 JSON 交接设计阶段
+- [ ] Step 4: 核对完整结果
 
-> 阶段索引是静态执行契约，不表示本次 run 的实时完成状态。analysis/design 的实时状态分别写入 `process/analysis-task-list.json` 和 `process/design-task-list.json`。
-
-## 职责边界
-
-- 本 skill 负责全流程 subagent 编排和阶段交接。
-- analysis subagent 使用 `test-analysis-agent` 职责边界，执行 `test-analysis-workflow`，负责生成并收口测试分析方案，包括 JSON lint、Markdown render、独立评审、analysis-fact-coverage-map、coverage-review、analysis-final-report 和一致性检查。
-- design subagent 使用 `test-design-agent` 职责边界，执行 `test-design-workflow`，负责生成并收口测试设计方案，包括 JSON lint、Markdown render、独立评审、design-fact-coverage-map、coverage-review、design-final-report 和一致性检查。
-- 本 skill 只做轻量交接检查：确认上一阶段成功完成，并确认下一阶段必需路径存在。
-- 本 skill 不新增 SC/TP/TC，不直接编辑主交付件 JSON 或 Markdown，不重复执行 analysis/design 内部质量门禁。
-- subagent 隔离的是会话上下文，不隔离文件系统；同一全流程优先复用同一个 `outputs/runs/<run-id>/`。
-- subagent 之间不得通过聊天记录、自然语言总结或隐式上下文交接业务事实；阶段交接只依赖 canonical JSON 和固定报告文件。
-
-## 易错点
-
-- 不要把同一会话里提到 `@test-analysis-agent` / `@test-design-agent` 当成真实 subagent 隔离。
-- 不要把 analysis subagent 的聊天总结传给 design subagent 作为业务事实；只传完整分析 JSON 和输入文件路径。
-- 不要在 e2e 层重复实现 analysis/design 内部 lint、review、coverage 或 final-report 逻辑。
+> 实时状态分别写入 `process/analysis-task-list.json` 与 `process/design-task-list.json`。
 
 ## 各阶段执行要求
 
-### Step 1: 校验输入并准备分析阶段参数
+### Step 1: 准备输入与统一 run
 
-1. 校验输入至少包含一份 Markdown 需求文档；若发现 Office 输入，输出需先使用 `@file-normalization-agent` 的阻断说明，不创建全流程 run。
-2. 固定 `PROJECT_ROOT`，整理传给分析阶段的参数：需求 Markdown、可选设计 Markdown、`runid`、`mode`、`remove-source` 和可选 `project=<project-key>`。
+确定 Markdown 需求、可选设计、runid、mode 和 project-key。两个阶段必须使用同一 run；本层不复制 analysis/design 内部生成、评审或覆盖逻辑。
 
-### Step 2: 启动 analysis subagent 并等待分析收口
+### Step 2: 完成测试分析阶段
 
-3. 优先启动 analysis subagent 完成测试分析阶段。显式传入同一组持久 run 参数；analysis subagent 内部执行 `test-analysis-workflow`，按 run plan 创建、复用、续作或增量补充 `outputs/runs/<run-id>/`，并负责 revision、锁、分析校验和返工闭环。
+优先由独立 analysis subagent 执行 `test-analysis-workflow`；环境不支持时在同会话完整执行。阶段完成标志是 `deliverables/test-analysis-solution.json/.md` 和 `reports/analysis-final-report.md` 均存在且固定检查通过。
 
-### Step 3: 校验分析交接文件
+### Step 3: 通过分析 JSON 交接设计阶段
 
-4. 分析阶段完成后，只做阶段交接检查：
-   - 确认 `outputs/runs/<run-id>/deliverables/test-analysis-solution.json` 存在。
-   - 确认 `outputs/runs/<run-id>/reports/analysis-final-report.json` 和同名 Markdown 已生成。
-   - 不重新实现 `lint-run-json.py`、Markdown lint、review 或 coverage。
-### Step 4: 启动 design subagent 并显式交接分析 JSON
+把完整 `deliverables/test-analysis-solution.json`、同一 run、manifest 输入和 project-key 显式交给 design 阶段。聊天总结、分析 Markdown 或隐式记忆都不能替代该 JSON。
 
-5. 优先启动 design subagent 完成测试设计阶段。传入内容只包含：阶段目标、上一步生成的 `deliverables/test-analysis-solution.json`、同一 `runid`、`mode`、同一 run 目录、manifest 输入、可选 `project=<project-key>`、仓库根路径和本 skill 的交接要求。design subagent 内部执行 `test-design-workflow`，必须基于最新 analysis hash 判断增量影响。
+### Step 4: 核对完整结果
 
-### Step 5: 汇总全流程交付件与阶段状态
+确认分析与设计结果 JSON/Markdown、两个最终报告 Markdown 均存在，设计 JSON 完整继承分析 SC/TP，并确认两个阶段分别完成自己的 review、coverage 和一致性检查。
 
-6. 设计阶段完成后，只做最终路径汇总：
-   - `deliverables/test-analysis-solution.json/.md`
-   - `deliverables/test-design-solution.json/.md`
-   - `reports/analysis-final-report.json/.md`
-   - `reports/design-final-report.json/.md`
-### Step 6: 处理阶段失败或同会话 fallback
+## 输出
 
-7. 如果分析阶段失败，不进入设计阶段；如果设计阶段失败，保留并报告已完成的分析产物路径和设计失败位置。
-8. 如果运行环境不支持真实独立 subagent，允许在同一会话内按上述顺序直接执行 `test-analysis-workflow` 和 `test-design-workflow`，但最终回复必须说明使用了 fallback，未获得 analysis/design 会话隔离收益。
-
-## 阶段交接规则
-
-- 测试设计必须显式使用分析阶段生成的 `test-analysis-solution.json`，不得依赖碎片化 TP 输入。
-- 不调用 `test-design-workflow` 的“缺失分析方案”失败分支；本 workflow 在进入设计前必须已经拿到完整分析 JSON。
-- 不要求 `test-design-workflow` 自动运行 `test-analysis-workflow`；自动串联只存在于本全流程 workflow。
-- 同一全流程优先复用分析阶段创建的 run 目录，让分析和设计产物落在同一个 `outputs/runs/<run-id>/` 下。
-- analysis/design 各自通过 `manage-run.py` 获取和释放阶段锁；analysis finalize 后 design 才能 prepare。不得同时写同一持久 run。
-- analysis subagent 不输出 TC、不关心测试步骤；design subagent 不重新分析或改写 SC/TP，只读取完整 `test-analysis-solution.json` 生成 TC。
-- “调用 subagent”必须代表真实独立执行上下文；在同一会话里提到 `@test-analysis-agent` 或 `@test-design-agent` 不视为隔离执行。
-
-## 输出要求
-
-最终回复必须汇总：
-
-- run 目录。
-- 测试分析 JSON/Markdown 路径。
-- 测试设计 JSON/Markdown 路径。
-- 分析最终报告 JSON/Markdown 路径。
-- 设计最终报告 JSON/Markdown 路径。
-- 分析阶段和设计阶段各自的收口状态。
-- 是否使用真实 subagent；如果使用 fallback，说明未获得会话隔离收益。
-
-## 验证闭环
-
-分析 subagent 完成后只检查交接文件是否存在，不重复实现分析内部 review、coverage 或 final-report。设计 subagent 完成后检查最终四类路径均存在，并确认 `test-design-solution.json` 使用的是同一 run 下的完整 `test-analysis-solution.json`。如果 fallback 为同会话串联，最终回复必须明确说明。
+- `deliverables/test-analysis-solution.json/.md`。
+- `deliverables/test-design-solution.json/.md`。
+- `reports/analysis-final-report.md`。
+- `reports/design-final-report.md`。
 
 ## 约束
 
-- 不直接处理 `.docx` / `.xlsx`。
-- 不复制 analysis/design workflow 内部校验逻辑。
-- 不手工维护 Markdown；Markdown 仍由 `bin/render-run-markdown.py` 或对应 workflow 内部脚本从 JSON 渲染。
-- 正常 analysis-design run 不得调用 `bin/sync-opencode-skills.py`、`bin/validate-agent-runtime.py` 或 `bin/smoke-test-analysis.py`；只执行两个阶段各自规定的当前 run 校验。
-- 不临时创建脚本处理 JSON、循环切片、汇总状态或定位返工；如固定脚本能力不足，修改仓库固定脚本并运行校验。
+- 语义过程件全部是 Markdown；只有结果方案 JSON 跨阶段传递。
+- 本层不直接编辑切片、review 或 coverage 文件。
+- fallback 为同会话串联时必须在最终回复说明。

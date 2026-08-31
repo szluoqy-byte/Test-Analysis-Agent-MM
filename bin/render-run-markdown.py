@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render Markdown artifacts from run JSON canonical files."""
+"""Render human-readable Markdown from analysis/design result JSON only."""
 
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ def select_artifact_pairs(run_dir: Path, artifacts: list[str]) -> tuple[list[tup
 
 def main() -> int:
     configure_stdio()
-    parser = argparse.ArgumentParser(description="从 run JSON canonical 渲染 Markdown")
+    parser = argparse.ArgumentParser(description="从分析/设计结果 JSON 渲染人读 Markdown")
     parser.add_argument("run_dir", type=Path, help="outputs/runs/<run-id>")
     parser.add_argument("--check", action="store_true", help="只检查现有 Markdown 是否与 JSON 渲染结果一致")
     parser.add_argument(
@@ -47,7 +47,7 @@ def main() -> int:
         action="append",
         default=[],
         metavar="RELATIVE_JSON",
-        help="只渲染或检查指定 run 内的 JSON 产物；可重复传入",
+        help="只渲染或检查指定 run 内的结果 JSON；可重复传入",
     )
     args = parser.parse_args()
 
@@ -62,7 +62,7 @@ def main() -> int:
             print(f"失败: {error}")
         return 1
     if not pairs:
-        print(f"失败: 未找到可渲染 JSON 产物: {run_dir}")
+        print(f"失败: 未找到可渲染的分析/设计结果 JSON: {run_dir}")
         return 1
 
     errors = []

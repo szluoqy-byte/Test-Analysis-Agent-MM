@@ -12,7 +12,7 @@
 
 - 输入事实模型。
 - 上下文来源索引。
-- `process/context-pack.json` 中 `sources[]` 对 `testing-method-router` 可见的 project/personal 风险画像、个人关注点、oracle 补充和风险类 checklist。
+- `process/context-pack.md` 中对 `testing-method-router` 可见的 project/personal 风险画像、个人关注点、oracle 补充和风险类 checklist。
 - `knowledge/testpoint-standard.md`。
 - `knowledge/test-techniques/README.md`。
 - `knowledge/test-techniques/risk-based/risk-based-testing.md`。
@@ -22,7 +22,7 @@
 
 - 使用 `knowledge/test-techniques/README.md` 中的专家审视顺序和 Oracle 规则判断风险覆盖方向。
 - 使用 `knowledge/test-techniques/experience-based/error-guessing-checklist.md` 匹配通用缺陷模式。
-- 使用 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.json` 中对本阶段可见的动态来源修正风险关注点。
+- 使用 `${PROJECT_ROOT}/outputs/runs/<run-id>/process/context-pack.md` 中对本阶段可见的动态来源修正风险关注点。
 - 使用已读取的 project/personal 动态来源补充识别项目级风险画像、个人关注点、覆盖策略和判定依据启发；补充不得写成已确认业务事实。
 - 对本阶段可见且被读取的风险类动态来源，必须输出应用状态。
 - 使用 `knowledge/test-techniques/risk-based/risk-based-testing.md` 判断建议级别，级别定义仍以 `knowledge/testpoint-standard.md` 为准。

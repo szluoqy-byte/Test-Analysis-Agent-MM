@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from run_artifacts import dump_json, load_json, render_json_artifact
+from run_artifacts import dump_json, load_json
 
 
 @dataclass(frozen=True)
@@ -20,7 +20,6 @@ class StageScope:
     review_dir_relative: str
     init_script: str
     init_id_arg: str
-    merge_script: str
     markdown_lint_script: str
     markdown_relative: str
 
@@ -35,7 +34,6 @@ SCOPES = {
         review_dir_relative="process/reviews/test-point-reviews",
         init_script="skills/test-analysis-solution-generation/scripts/init-test-point-slice.py",
         init_id_arg="--leaf-sc",
-        merge_script="skills/test-analysis-solution-generation/scripts/merge-test-point-slice.py",
         markdown_lint_script="bin/lint-test-analysis-solution.py",
         markdown_relative="deliverables/test-analysis-solution.md",
     ),
@@ -48,7 +46,6 @@ SCOPES = {
         review_dir_relative="process/reviews/test-case-reviews",
         init_script="skills/test-design-solution-generation/scripts/init-test-case-slice.py",
         init_id_arg="--tp",
-        merge_script="skills/test-design-solution-generation/scripts/merge-test-case-slice.py",
         markdown_lint_script="bin/lint-test-design-solution.py",
         markdown_relative="deliverables/test-design-solution.md",
     ),
@@ -82,11 +79,11 @@ def work_items_path(run_dir: Path, scope: StageScope) -> Path:
 
 
 def slice_path_for(run_dir: Path, scope: StageScope, item_id: str) -> Path:
-    return run_dir / scope.slice_dir_relative / f"{item_id}.json"
+    return run_dir / scope.slice_dir_relative / f"{item_id}.md"
 
 
 def review_path_for(run_dir: Path, scope: StageScope, item_id: str) -> Path:
-    return run_dir / scope.review_dir_relative / f"{item_id}.json"
+    return run_dir / scope.review_dir_relative / f"{item_id}.md"
 
 
 def load_work_items(run_dir: Path, scope: StageScope) -> dict[str, Any]:
@@ -101,14 +98,6 @@ def load_work_items(run_dir: Path, scope: StageScope) -> dict[str, Any]:
 
 def dump_work_items(run_dir: Path, scope: StageScope, data: dict[str, Any]) -> None:
     dump_json(work_items_path(run_dir, scope), data)
-
-
-def render_markdown_for_json(json_path: Path) -> Path:
-    markdown_path = json_path.with_suffix(".md")
-    markdown_path.parent.mkdir(parents=True, exist_ok=True)
-    with markdown_path.open("w", encoding="utf-8", newline="\n") as handle:
-        handle.write(render_json_artifact(load_json(json_path), json_path))
-    return markdown_path
 
 
 def item_id(item: dict[str, Any], scope: StageScope) -> str:

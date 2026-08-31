@@ -87,7 +87,9 @@ def assign_stable_ids(
     for raw_item in incoming:
         item = dict(raw_item)
         candidate = str(item.get("id") or "")
-        if _id_number(candidate, prefix) is None or candidate in used_elsewhere or candidate in assigned or candidate in retired:
+        # The model may copy an existing identifier for the same work item, but
+        # it must never choose an identifier for a newly introduced item.
+        if candidate not in previous_ids or candidate in used_elsewhere or candidate in assigned or candidate in retired:
             candidate = ""
         if not candidate:
             matches = semantic_matches.get(_semantic_key(item), [])

@@ -24,5 +24,4 @@
 ## 维护规则
 
 - 修改 `agents/*.md`、`skills/*/SKILL.md` 或镜像相关配置后，运行 `python bin/sync-opencode-skills.py`。
-- 修改框架 wiring、必备文件或 docs 路径后，运行 `python bin/validate-agent-runtime.py` 和 `python bin/smoke-test-analysis.py`。
 - docs 中的流程描述应保持高层，不重复 `skills/*-workflow/SKILL.md` 的完整命令清单。

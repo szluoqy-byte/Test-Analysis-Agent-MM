@@ -32,4 +32,4 @@ Example:
 requirements/order-cancel.md design=design/order-cancel.md project=mall-order runid=IR-2026-001 mode=auto
 ```
 
-Keep `PROJECT_ROOT` fixed to the current repository root. Prefer one shared `outputs/runs/<run-id>/` for both phases. Report the final run directory, analysis solution JSON/Markdown, design solution JSON/Markdown, analysis final report JSON/Markdown, and design final report JSON/Markdown.
+Keep `PROJECT_ROOT` fixed to the current repository root. Prefer one shared `outputs/runs/<run-id>/` for both phases. Report the final run directory, analysis solution JSON/Markdown, design solution JSON/Markdown, `analysis-final-report.md`, and `design-final-report.md`.

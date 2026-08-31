@@ -49,6 +49,6 @@ description: 测试分析方案门面 Agent；当用户希望生成 SC/TP 测试
 
 - 所有路径从仓库根目录解析。
 - 当前 run 相关 lint 包括 `bin/lint-run-json.py`、`bin/render-run-markdown.py --check`、派生 Markdown lint 和 `bin/check-artifact-consistency.py`。
-- 正常测试分析任务不得运行 `bin/sync-opencode-skills.py`、`bin/validate-agent-runtime.py` 或 `bin/smoke-test-analysis.py`；它们属于仓库开发校验，不检查当前 run 的业务产物。
+- 正常测试分析任务不得运行 `bin/sync-opencode-skills.py`；它属于仓库开发校验，不检查当前 run 的业务产物。
 - 只有用户任务明确要求修改仓库框架文件时，才按根目录 `AGENTS.md` 的“仓库开发校验”执行相应脚本。
 - 不直接编辑 `.opencode/skills/`、`.opencode/agents/`、`.testagent/skills/` 或 `.testagent/agents/`；它们由同步脚本生成。
