@@ -30,6 +30,7 @@
 - 至少一份已归一化需求 Markdown。
 - 可选一份或多份已归一化设计方案 Markdown。
 - 可选 `project-key`，必须原样传递给分析和设计阶段。
+- 可选 `runid`，只用于选择统一输出目录；未提供时由当前会话使用时间戳。
 
 如果输入包含 `.docx` 或 `.xlsx`，e2e Agent 必须阻断并路由到 `@file-normalization-agent`，不在端到端流程中直接转换 Office 文件。
 
@@ -44,7 +45,7 @@
 | 分析最终报告 | `outputs/runs/<run-id>/reports/analysis-final-report.md` |
 | 设计最终报告 | `outputs/runs/<run-id>/reports/design-final-report.md` |
 
-同一端到端流程优先复用分析阶段创建的 run 目录，让分析和设计产物位于同一 `outputs/runs/<run-id>/` 下。
+同一端到端流程先直接确定统一 run 目录，让分析和设计产物位于同一 `outputs/runs/<run-id>/` 下。准备目录时不探测 Python、Bash 或执行其他 shell 命令。
 
 ## 编排模型
 

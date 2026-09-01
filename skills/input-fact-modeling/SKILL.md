@@ -11,7 +11,7 @@ description: 在测试分析前把需求、可选设计、规则和动态知识�
 
 ## 输入
 
-- run manifest 中全部可用的需求和设计 Markdown。
+- 当前 workflow 显式传入的全部需求和设计 Markdown。
 - `process/rules-pack.md` 与适用规则正文。
 - `process/context-pack.md` 中本阶段可见的动态来源正文。
 - `templates/input-fact-model-template.md`。

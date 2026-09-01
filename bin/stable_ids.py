@@ -1,4 +1,4 @@
-"""Stable TP/TC identifier allocation for persistent runs."""
+"""Stable TP/TC identifier allocation within one run directory."""
 
 from __future__ import annotations
 

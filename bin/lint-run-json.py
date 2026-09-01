@@ -14,11 +14,7 @@ from run_artifacts import load_json, validate_artifact
 
 
 CONTROL_JSON = {
-    "process/run-manifest.json",
-    "process/run-plan.json",
     "process/id-registry.json",
-    "process/analysis-task-list.json",
-    "process/design-task-list.json",
     "process/test-point-work-items.json",
     "process/test-case-work-items.json",
 }
@@ -31,32 +27,6 @@ STATUS_VALUES = {"pending", "in_progress", "done", "blocked", "skipped"}
 
 def relative(path: Path, run_dir: Path) -> str:
     return path.relative_to(run_dir).as_posix()
-
-
-def validate_task_list(data: dict[str, Any], path: str) -> list[str]:
-    errors: list[str] = []
-    if data.get("artifactType") != "task-list" or data.get("schemaVersion") != "1.0":
-        errors.append(f"{path}: task-list artifactType/schemaVersion 非法")
-    stages = data.get("stages")
-    if not isinstance(stages, list) or not stages:
-        return errors + [f"{path}: 缺少 stages[]"]
-    in_progress = 0
-    for index, stage in enumerate(stages, start=1):
-        if not isinstance(stage, dict):
-            errors.append(f"{path}: stages[{index}] 不是对象")
-            continue
-        if stage.get("order") != index:
-            errors.append(f"{path}: stages[{index}].order 应为 {index}")
-        status = stage.get("status")
-        if status not in STATUS_VALUES:
-            errors.append(f"{path}: stages[{index}].status 非法: {status}")
-        if status == "in_progress":
-            in_progress += 1
-        if status in {"done", "blocked", "skipped"} and not stage.get("evidence"):
-            errors.append(f"{path}: stages[{index}] 已结束但 evidence 为空")
-    if in_progress > 1:
-        errors.append(f"{path}: 同时存在多个 in_progress 阶段")
-    return errors
 
 
 def validate_work_items(data: dict[str, Any], path: str) -> list[str]:
@@ -88,8 +58,6 @@ def validate_work_items(data: dict[str, Any], path: str) -> list[str]:
 
 def validate_control(path: Path, run_dir: Path, data: dict[str, Any]) -> list[str]:
     rel = relative(path, run_dir)
-    if rel.endswith("task-list.json"):
-        return validate_task_list(data, rel)
     if rel.endswith("work-items.json"):
         return validate_work_items(data, rel)
     if not isinstance(data, dict):
@@ -116,7 +84,7 @@ def main() -> int:
 
     for path in sorted(run_dir.rglob("*.json")):
         rel = relative(path, run_dir)
-        if rel.startswith("revisions/") or rel.startswith("inputs/"):
+        if rel.startswith("inputs/"):
             continue
         if rel not in CONTROL_JSON and rel not in RESULT_JSON:
             errors.append(f"发现不允许的过程 JSON: {rel}；语义过程件必须使用 Markdown")

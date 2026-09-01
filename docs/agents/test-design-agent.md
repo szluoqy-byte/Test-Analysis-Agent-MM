@@ -14,7 +14,7 @@
 
 ## 流程
 
-1. `manage-run.py prepare --flow design` 绑定分析结果并检查上游变化。
+1. 直接确定输出目录并读取分析结果：显式分析 JSON 直接使用，不复制或绑定；未指定 runid 时优先复用分析结果所在 run。
 2. 加载或补齐 `rules-pack.md`、`context-pack.md` 和 `input-fact-model.md`。
 3. 从分析结果提取 `test-case-work-items.json`。
 4. 逐 TP 填写 `test-case-slices/<TP-ID>.md`，每个切片只生成当前 TP 的 TC。

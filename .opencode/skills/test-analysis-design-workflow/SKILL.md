@@ -16,13 +16,13 @@ description: 编排从 Markdown 需求到测试分析 JSON、再到测试设计 
 - [ ] Step 3: 通过分析 JSON 交接设计阶段
 - [ ] Step 4: 核对完整结果
 
-> 实时状态分别写入 `process/analysis-task-list.json` 与 `process/design-task-list.json`。
+> 阶段索引是执行契约，不再维护重复的阶段状态文件。
 
 ## 各阶段执行要求
 
 ### Step 1: 准备输入与统一 run
 
-确定 Markdown 需求、可选设计、runid、mode 和 project-key。两个阶段必须使用同一 run；本层不复制 analysis/design 内部生成、评审或覆盖逻辑。
+本阶段不执行 Python、bash 或其他 shell 命令。确定 Markdown 需求、可选设计、可选 runid 和 project-key：显式 runid 直接映射到 `outputs/runs/<runid>/`，未提供时使用当前会话时间戳，碰撞时追加顺序后缀。两个阶段必须使用同一输出目录；若该目录已有本次将执行阶段的正式结果，默认停止并要求新 runid。本层不复制 analysis/design 内部生成、评审或覆盖逻辑。
 
 ### Step 2: 完成测试分析阶段
 
@@ -30,7 +30,7 @@ description: 编排从 Markdown 需求到测试分析 JSON、再到测试设计 
 
 ### Step 3: 通过分析 JSON 交接设计阶段
 
-把完整 `deliverables/test-analysis-solution.json`、同一 run、manifest 输入和 project-key 显式交给 design 阶段。聊天总结、分析 Markdown 或隐式记忆都不能替代该 JSON。
+把完整 `deliverables/test-analysis-solution.json`、同一 run 目录、需求/设计 Markdown 和 project-key 显式交给 design 阶段。聊天总结、分析 Markdown 或隐式记忆都不能替代该 JSON。
 
 ### Step 4: 核对完整结果
 

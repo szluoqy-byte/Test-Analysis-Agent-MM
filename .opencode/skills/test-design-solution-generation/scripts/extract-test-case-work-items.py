@@ -14,7 +14,7 @@ BIN_DIR = Path(__file__).resolve().parents[3] / "bin"
 if str(BIN_DIR) not in sys.path:
     sys.path.insert(0, str(BIN_DIR))
 
-from run_artifacts import dump_json, load_json
+from run_artifacts import dump_json, load_json, validate_artifact
 
 
 def configure_stdio() -> None:
@@ -118,8 +118,12 @@ def main() -> int:
         print(f"失败: 分析方案不存在: {analysis_path}", file=sys.stderr)
         return 1
     analysis = load_json(analysis_path)
-    if analysis.get("artifactType") != "test-analysis-solution":
-        print("失败: --analysis 必须是 test-analysis-solution JSON", file=sys.stderr)
+    validation_errors, validation_warnings = validate_artifact(analysis)
+    for warning in validation_warnings:
+        print(f"警告: {warning}")
+    if validation_errors:
+        for error in validation_errors:
+            print(f"失败: {error}", file=sys.stderr)
         return 1
 
     existing = load_existing_statuses(output_path)

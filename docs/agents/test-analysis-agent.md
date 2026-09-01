@@ -13,14 +13,14 @@
 
 ## 流程
 
-1. `manage-run.py prepare --flow analysis` 准备或恢复持久 run。
+1. 直接确定 `outputs/runs/<run-id>/`：显式 `runid` 原样使用，未指定则采用当前会话时间戳；不调用 shell 准备 run。
 2. 生成 `rules-pack.md`、`context-pack.md`、`input-fact-model.md` 和 `testing-method-routing.md`。
 3. 生成并评审 `scenario-tree.md`，冻结最多 3 层的 SC 树。
 4. 从叶子 SC 建立 `test-point-work-items.json`，逐项填写 `test-point-slices/<SC-ID>.md`。
 5. 每个切片通过 `test-point-reviews/<SC-ID>.md` 后，由 `complete-staged-items.py` 关闭工作项。
 6. 基于已通过的过程 Markdown 写一次分析结果草稿，由 `finalize-deliverable.py --scope analysis` 分配稳定 TP ID、校验并固化结果 JSON。
 7. 完成整体评审、FACT 覆盖图、coverage review 和最终 Markdown 报告。
-8. 运行 staged check 后 finalize run。
+8. 运行 staged check 并报告结果路径。
 
 ## 关键过程件
 

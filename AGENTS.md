@@ -37,7 +37,7 @@
 - 正常执行文件归一化、测试分析、测试设计或 analysis-design 业务 run 时，不得运行 `bin/sync-opencode-skills.py`；该脚本不校验当前 run 的业务产物。
 - 每个 `skills/<skill-name>/SKILL.md` 必须保持 Agent Skills 兼容 frontmatter：`name` 与目录名一致，`description` 说明做什么和何时使用，正文保持核心指令而不是长篇资料。
 - 每个 skill 正文必须能快速定位：何时使用、输入、执行步骤、输出、验证闭环和约束/易错点；详细参考放入该 skill 的 `references/`，可执行 helper 放入该 skill 的 `scripts/`，并在正文说明何时读取或调用。
-- 多步骤 workflow、生成、coverage、final-report 和写作类 skill 必须用 `## 执行阶段`、`## 生成阶段`、`## 审查阶段`、`## 报告生成阶段`、`## 归一化阶段` 或 `## 写作阶段` 之一列出连续的 `- [ ] Step N: ...` 阶段索引，并在 `## 各阶段执行要求` 中以同编号、同标题展开执行、原则、脚本门禁和必要的失败回退。`### Step N` 是唯一顶层 Step 编号；其下可使用连续的操作编号，但不得形成第二套阶段清单。阶段索引是静态执行契约，不是运行状态；真实状态只写入 `process/*-task-list.json`。不得再维护独立的 `Progress:` 或“计划-校验-执行模式”流程副本。
+- 多步骤 workflow、生成、coverage、final-report 和写作类 skill 必须用 `## 执行阶段`、`## 生成阶段`、`## 审查阶段`、`## 报告生成阶段`、`## 归一化阶段` 或 `## 写作阶段` 之一列出连续的 `- [ ] Step N: ...` 阶段索引，并在 `## 各阶段执行要求` 中以同编号、同标题展开执行、原则、脚本门禁和必要的失败回退。`### Step N` 是唯一顶层 Step 编号；其下可使用连续的操作编号，但不得形成第二套阶段清单。阶段索引是静态执行契约；不得再维护阶段级状态 JSON、独立 `Progress:` 或“计划-校验-执行模式”等重复状态副本。
 - 本仓库命令仍从仓库根目录执行，因此命令示例使用仓库相对路径；skill 私有参考资料在说明中优先使用 `references/...`、`scripts/...` 的相对写法。
 
 ## 路径规则
@@ -45,9 +45,10 @@
 - 所有 `skills/...`、`rules/...`、`knowledge/...`、`templates/...`、`bin/...` 和 `outputs/...` 路径都从仓库根目录解析。
 - 不要基于 skill 目录、`.claude-plugin/`、`.opencode/`、`.testagent/` 或输入文件目录解析路径。
 - 运行产物写入 `outputs/runs/<run-id>/`。
-- analysis/design/E2E 入口支持可选 `runid=<requirement-id>`，用于把同一需求的多次分析和设计维护在 `outputs/runs/<runid>/`；未提供时由 `bin/manage-run.py prepare` 调用固定时间戳规则生成 `<YYYYMMDD-HHMMSS>`。
+- analysis/design/E2E 入口支持可选 `runid=<requirement-id>`，它只用于确定 `outputs/runs/<runid>/` 输出目录；未提供时由当前会话直接采用 `<YYYYMMDD-HHMMSS>`，发生碰撞时追加 `-01`、`-02`。
 - `runid` 只允许 1-64 位字母、数字、点、下划线和连字符，并以字母或数字开头；不得包含路径分隔符、`..` 或 Windows 保留名称。
-- 持久 run 固定先执行 `python bin/manage-run.py prepare --flow analysis|design ...`，读取 `process/run-plan.json` 的 `create/resume/reuse/extend/rebuild` 决策；结束时执行 `finalize`，失败退出前执行 `abort` 释放锁。
+- analysis/design workflow 的 Step 1 不得为了确定 run 目录而探测 Python、Bash 或执行其他 shell 命令；后续首次写入产物时自然创建目录。
+- 已存在同阶段正式结果时默认停止并要求使用新 `runid`，不得静默覆盖；只有当前 workflow 内 review/coverage 返工才允许显式替换并沿用 `id-registry.json` 保持编号稳定。
 - Office 输入归一化复用缓存写入 `outputs/input-cache/<sha256-12>/`；绑定既有 run 时写入 `outputs/runs/<run-id>/inputs/`。
 - DOCX 图片、流程图、架构图、状态图、截图或 EMF/Visio 图形解析后的 Mermaid/结构化事实必须合并回同一个归一化 Markdown 的原文占位位置。
 - DOCX 图片理解和 Mermaid 转换必须按原文顺序分批处理：普通图片每批最多 3-5 张，复杂图每批 1-2 张。
@@ -57,14 +58,12 @@
 - 测试分析主交付件固定为 `outputs/runs/<run-id>/deliverables/test-analysis-solution.json`，由 `bin/render-run-markdown.py` 渲染同名 `.md` 人读版。
 - 测试设计主交付件固定为 `outputs/runs/<run-id>/deliverables/test-design-solution.json`，由 `test-case-writing` 调用 `bin/render-run-markdown.py` 渲染同名 `.md` 人读版；优先复用上游测试分析方案所在 run。
 - 模型编写的语义过程件以 Markdown 为唯一事实源；只有分析/设计结果方案使用 JSON 作为阶段边界和跨 Agent 传递格式。结果 Markdown 可由 JSON 渲染。
-- 持久 run 的生命周期事实源是 `process/run-manifest.json`；每次 `extend/rebuild` 修改前必须在 `revisions/rNNNN/` 创建当前 JSON、过程 Markdown 和 input 快照，当前交付路径保持不变。
-- `process/run-manifest.json` 记录输入、project 绑定、analysis/design 依赖指纹、交付件 hash 和 revision；输入默认追加，同路径视为版本更新，删除旧来源必须显式使用 `remove-source=<path>`。
-- 创建 run 目录后必须维护脚本控制 JSON：`run-manifest.json`、`run-plan.json`、`id-registry.json`、analysis/design task-list 和 TP/TC work-items。模型不得手工编辑这些控制文件，也不为它们渲染 Markdown 副本。
+- 脚本控制 JSON 只保留 `process/id-registry.json`、`process/test-point-work-items.json` 和 `process/test-case-work-items.json`。模型不得手工编辑这些控制文件，也不为它们渲染 Markdown 副本。
 - 共享语义过程件固定为 `process/rules-pack.md`、`process/context-pack.md`、`process/input-fact-model.md` 和按需生成的 `process/testing-method-routing.md`。
 - 测试分析先生成并评审 `process/scenario-tree.md`，再按叶子 SC 编写 `process/test-point-slices/<SC-ID>.md`，全部通过后一次性固化 `deliverables/test-analysis-solution.json`。
 - 测试设计按每个已冻结 TP 编写 `process/test-case-slices/<TP-ID>.md`，全部通过后一次性固化 `deliverables/test-design-solution.json`。
 - 过程 Markdown 不持久化 `generationContext`，不建立同名 JSON schema；需要的规则、动态来源和 FACT 在生成当前工作单元时按需读取。
-- 增量 run 中工作项使用 `contentHash` 判断上游内容变化；变化项必须自动重开。输入/context 变化由 workflow 做语义影响分析并用 `bin/reopen-run-items.py` 重开受影响 SC/TP，不能判定影响范围时保守重开全部。
+- 工作项使用 `contentHash` 判断其 SC/TP 上游内容变化；变化项自动重开。review/coverage 返工使用 `bin/reopen-run-items.py` 重开受影响工作项，不能判定影响范围时保守重开全部。
 - 测试分析和测试设计流程不得临时生成 `.py`、`.js`、`.ps1`、`.bat` 或其他可执行脚本处理切片、状态或返工；固定脚本能力不足时修改仓库 `bin/` 脚本并运行校验。
 - 只有主结果交付件使用 schema `2.0`；过程 Markdown 不使用 JSON schema。
 - 新 run 只支持 schemaVersion 2.0；历史 run 需要按新模型重新生成。
@@ -87,7 +86,7 @@
 - 当用户要求从需求和设计方案一次性完成测试分析与测试设计时，使用 `test-analysis-design-workflow`。该 workflow 优先用独立 subagent 隔离执行 analysis/design，只做全流程编排和阶段交接，不复制 analysis/design 内部校验、review、coverage 或 final-report 逻辑；若运行环境不支持真实 subagent，才 fallback 为同会话 workflow 串联并在最终回复说明。
 - 测试分析阶段依次生成 rules/context/FACT/method Markdown、冻结 SC Markdown、逐叶子 SC 编写并评审 TP Markdown 切片，再一次性固化分析 JSON，完成整体评审、coverage Markdown、最终报告 Markdown 和固定检查。
 - 分段工作项状态查看、切片初始化、完成、重开和固定检查分别使用 `bin/list-staged-work-items.py`、`bin/init-staged-slices.py`、`bin/complete-staged-items.py`、`bin/reopen-run-items.py` 和 `bin/check-staged-run.py`。
-- 持久 run 生命周期、revision、依赖变化和并发锁由 `bin/manage-run.py` 管理；不得绕过有效的 `process/run.lock` 并发写同一 run。
+- 同一输出目录不得由多个执行者并发写入；目录选择和协作协调由当前 workflow 负责。
 - 覆盖证据过程件分别为 `process/analysis-fact-coverage-map.md` 和 `process/design-fact-coverage-map.md`；覆盖审查分别为 `process/reviews/analysis-coverage-review.md` 和 `process/reviews/design-coverage-review.md`。
 - coverage-review 发现缺口后，必须在 Markdown 表格中定位到 TP/TC 切片，并用 `reopen-run-items.py` 重开工作项；修复切片、重新评审和重新固化结果后再更新覆盖文件。
 - 最终审阅报告分别为 `reports/analysis-final-report.md` 和 `reports/design-final-report.md`。final-report 只展示已审查覆盖关系，不生成 JSON、不新增缺口判断、不触发返工。

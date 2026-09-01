@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reopen persistent analysis/design work items for incremental regeneration."""
+"""Reopen analysis/design work items for workflow rework."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ def main() -> int:
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--all", action="store_true")
     group.add_argument("--ids", nargs="+")
-    parser.add_argument("--reason", default="持久 run 依赖变化")
+    parser.add_argument("--reason", default="review 或 coverage 返工")
     args = parser.parse_args()
 
     root = repo_root()

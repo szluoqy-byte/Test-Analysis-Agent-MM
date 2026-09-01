@@ -13,7 +13,7 @@ description: 基于输入事实和方法分析，使用 Markdown 冻结 SC 树�
 
 - `process/input-fact-model.md`、`process/testing-method-routing.md`。
 - `process/rules-pack.md`、`process/context-pack.md` 及适用正文。
-- 当前 run 输入、既有分析结果和 `process/run-plan.json`。
+- 当前输入和当前 run 内已生成的 Markdown 过程件。
 
 ## 生成阶段
 

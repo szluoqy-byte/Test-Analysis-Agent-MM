@@ -1,6 +1,6 @@
 # 框架总览
 
-本仓库是测试分析与测试设计 Agent 包。用户入口是 Agent，workflow 组织语义工作，固定脚本只负责生命周期、控制状态、稳定编号和结果校验。
+本仓库是测试分析与测试设计 Agent 包。用户入口是 Agent，workflow 组织语义工作，固定脚本只负责必要控制状态、稳定编号和结果校验。
 
 ## Agent 能力边界
 
@@ -25,7 +25,8 @@
 - 生成时按需读取规则、上下文和 `input-fact-model.md`，不持久化生成上下文副本。
 - review 处理语义质量；确定性脚本处理控制状态、编号、结果 schema 和派生 Markdown 一致性。
 - coverage-review 直接审阅 Markdown 覆盖证据；final-report 是 Markdown 人审展示。
-- run 的真实状态只写入 `process/*-task-list.json` 和 `process/*-work-items.json`。
+- 分段进度只写入 `process/*-work-items.json`；不维护重复的阶段状态文件。
+- `runid` 只标识输出目录。
 - `.opencode/` 和 `.testagent/` 是生成镜像，手工源在根目录 `agents/` 和 `skills/`。
 
 ## 事实源边界

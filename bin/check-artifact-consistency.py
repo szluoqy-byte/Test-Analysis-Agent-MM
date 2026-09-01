@@ -93,6 +93,17 @@ def check_fact_trace(run_dir: Path, scope: str, errors: list[str]) -> None:
         errors.append(f"{scope} 最终报告缺少 FACT: {', '.join(missing_report)}")
 
 
+def design_analysis_source(run_dir: Path) -> Path:
+    root = Path(__file__).resolve().parents[1]
+    work_items_path = run_dir / "process/test-case-work-items.json"
+    if work_items_path.is_file():
+        source = str(load_json(work_items_path).get("analysisSource") or "").strip()
+        if source:
+            path = Path(source)
+            return path if path.is_absolute() else root / path
+    return run_dir / "deliverables/test-analysis-solution.json"
+
+
 def main() -> int:
     configure_stdio()
     parser = argparse.ArgumentParser(description="检查 Markdown 过程件与结果 JSON 一致性")
@@ -122,15 +133,16 @@ def main() -> int:
                 errors.append("测试分析结果中的 SC 树与 process/scenario-tree.md 不一致")
 
     if design_path.is_file():
-        if not analysis_path.is_file():
-            errors.append("测试设计结果缺少上游 test-analysis-solution.json")
+        upstream_analysis = design_analysis_source(run_dir)
+        if not upstream_analysis.is_file():
+            errors.append(f"测试设计结果缺少上游分析结果: {upstream_analysis}")
         check_render(run_dir, design_path, errors)
         check_work_items(run_dir, "design", errors)
         check_review(run_dir / "process/reviews/test-design-solution-review.md", errors)
         check_review(run_dir / "process/reviews/design-coverage-review.md", errors)
         check_fact_trace(run_dir, "design", errors)
-        if analysis_path.is_file():
-            analysis_nodes = flatten_scenarios(load_json(analysis_path).get("scenarios", []))
+        if upstream_analysis.is_file():
+            analysis_nodes = flatten_scenarios(load_json(upstream_analysis).get("scenarios", []))
             design_nodes = flatten_scenarios(load_json(design_path).get("scenarios", []))
             if len(analysis_nodes) != len(design_nodes):
                 errors.append("测试设计结果未完整继承分析方案的 SC 树")
@@ -147,11 +159,7 @@ def main() -> int:
 
     for path in run_dir.glob("process/**/*.json"):
         if path.name in {
-            "run-manifest.json",
-            "run-plan.json",
             "id-registry.json",
-            "analysis-task-list.json",
-            "design-task-list.json",
             "test-point-work-items.json",
             "test-case-work-items.json",
         }:

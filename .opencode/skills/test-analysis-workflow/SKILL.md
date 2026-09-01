@@ -12,7 +12,7 @@ description: 当用户提供 Markdown 需求和可选设计方案并要求生成
 ## 核心契约
 
 - 模型编写的语义过程件只使用 Markdown，不生成同名 JSON，也不执行 JSON→Markdown 渲染。
-- `run-manifest.json`、`run-plan.json`、`id-registry.json`、task-list 和 work-items 是脚本控制状态，模型不得手工编辑。
+- `id-registry.json` 和 TP work-items 是脚本控制状态，模型不得手工编辑。
 - 阶段结果只通过 `deliverables/test-analysis-solution.json` 传递；其 Markdown 是结果人读版。
 - Review 或 coverage 返工必须回到对应 Markdown 切片，不直接修最终结果 Markdown。
 
@@ -20,11 +20,11 @@ description: 当用户提供 Markdown 需求和可选设计方案并要求生成
 
 - 一份或多份 Markdown 需求文档。
 - 可选 Markdown 设计方案。
-- 可选 `runid`、`mode`、`project-key`、`remove-source`。
+- 可选 `runid`、`project-key`。
 
 ## 执行阶段
 
-- [ ] Step 1: 准备持久 run
+- [ ] Step 1: 确定输出目录
 - [ ] Step 2: 建立 Markdown 输入上下文
 - [ ] Step 3: 完成事实建模与方法分析
 - [ ] Step 4: 冻结 Markdown 场景树
@@ -35,13 +35,15 @@ description: 当用户提供 Markdown 需求和可选设计方案并要求生成
 - [ ] Step 9: 生成最终人审报告
 - [ ] Step 10: 校验并结束 run
 
-> 阶段索引是静态执行契约；真实状态只写入 `process/analysis-task-list.json`。
+> 阶段索引是执行契约，不再维护重复的阶段状态文件。
 
 ## 各阶段执行要求
 
-### Step 1: 准备持久 run
+### Step 1: 确定输出目录
 
-运行 `python bin/manage-run.py prepare --flow analysis ...`，读取 `process/run-plan.json` 并遵守 create/resume/reuse/extend/rebuild 决策。创建或更新 `process/analysis-task-list.json`。失败退出前执行 `manage-run.py abort`。
+本阶段不执行 Python、bash 或其他 shell 命令。用户提供 `runid` 时直接使用 `outputs/runs/<runid>/`；未提供时由当前会话按本地时间生成 `<YYYYMMDD-HHMMSS>`，若目录已存在则追加 `-01`、`-02`。`runid` 仍须满足 1-64 位字母、数字、点、下划线和连字符，并以字母或数字开头。目录由后续首次写入按需创建。
+
+若目标目录已经存在 `deliverables/test-analysis-solution.json`，默认停止并改用新 runid，不接受生命周期 mode 或静默覆盖。仅当前 workflow 内部因 review/coverage 返工而重新固化结果时允许复用同一目录。
 
 ### Step 2: 建立 Markdown 输入上下文
 
@@ -65,7 +67,7 @@ description: 当用户提供 Markdown 需求和可选设计方案并要求生成
 
 ### Step 7: 完成整体语义评审
 
-使用 `test-analysis-solution-review` 直接编写 `process/reviews/test-analysis-solution-review.md`。若结论为需修正或失败，根据发现项运行 `reopen-run-items.py --scope analysis --ids ...`，修复对应 TP Markdown 切片后重新完成工作项并重新固化结果。
+使用 `test-analysis-solution-review` 直接编写 `process/reviews/test-analysis-solution-review.md`。若结论为需修正或失败，根据发现项运行 `reopen-run-items.py --scope analysis --ids ...`，修复对应 TP Markdown 切片后重新完成工作项，并以 `finalize-deliverable.py --scope analysis --replace` 重新固化结果。
 
 ### Step 8: 完成覆盖闭环
 
@@ -77,14 +79,14 @@ coverage-review 通过后，使用 `final-report-generation` 从已审查的覆�
 
 ### Step 10: 校验并结束 run
 
-运行 `bin/check-staged-run.py --scope analysis`，其中只校验控制 JSON、结果 JSON、结果 Markdown 和语义过程 Markdown 的一致性。通过后运行 `manage-run.py finalize --flow analysis`。TestAgent 卡片上报如启用，只消费分析结果 JSON 和最终报告 Markdown；平台失败不影响本地交付。
+运行 `bin/check-staged-run.py --scope analysis`，其中只校验 work-items / ID registry、结果 JSON、结果 Markdown 和语义过程 Markdown 的一致性。无需额外生命周期收尾命令。TestAgent 卡片上报如启用，只消费分析结果 JSON 和最终报告 Markdown；平台失败不影响本地交付。
 
 ## 输出
 
 - 结果：`deliverables/test-analysis-solution.json/.md`。
 - 最终人审报告：`reports/analysis-final-report.md`。
 - 语义过程件：`process/*.md`、`process/test-point-slices/*.md`、`process/reviews/**/*.md`。
-- 脚本控制状态：manifest、plan、registry、task-list、work-items JSON。
+- 脚本控制状态：ID registry、TP work-items JSON。
 
 ## 约束
 

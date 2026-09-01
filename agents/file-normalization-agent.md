@@ -55,4 +55,4 @@ description: 文件归一化门面 Agent；当用户提供 .docx / .xlsx / .md �
 
 - `@test-analysis-agent`、`@test-design-agent` 和 `@test-e2e-analysis-design-agent` 只消费已归一化 Markdown 或 JSON canonical 输入。
 - 如果用户直接把 `.docx` / `.xlsx` 交给分析或设计 Agent，应先切换到本 Agent 完成归一化，再把输出 Markdown 路径交回分析或设计 Agent。
-- 本 Agent 不维护分析/设计 run 的 `process/analysis-task-list.json` 或 `process/design-task-list.json` 阶段状态；归一化状态以缓存 metadata、可选 run-local manifest 和最终摘要为准。历史 `process/task-list.json` 只作为兼容读取路径。
+- 本 Agent 不维护分析/设计阶段状态；归一化状态以缓存 metadata、可选 run-local 输入清单和最终摘要为准。

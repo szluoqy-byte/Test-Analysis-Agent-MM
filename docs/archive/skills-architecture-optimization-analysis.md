@@ -18,6 +18,6 @@
 核心收敛原则：
 
 - 过程语义只维护 Markdown，避免 JSON 语法修复和 Markdown 派生的双重成本。
-- 控制 JSON 只记录生命周期、状态、内容哈希和稳定编号。
+- 控制 JSON 只记录分段状态、内容哈希和稳定编号。
 - 结果 JSON 只在阶段边界固化，作为跨阶段和机器消费接口。
 - review 或 coverage 缺口通过 `reopen-run-items.py` 回到具体 Markdown 切片返工。

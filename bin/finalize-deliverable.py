@@ -82,10 +82,21 @@ def analysis_tree_errors(run_dir: Path, draft: dict[str, Any]) -> list[str]:
     return [] if process_nodes == result_nodes else ["结果草稿中的 SC 编号/标题与 process/scenario-tree.md 不一致"]
 
 
+def design_analysis_source(run_dir: Path) -> Path:
+    root = Path(__file__).resolve().parents[1]
+    work_items_path = run_dir / "process" / "test-case-work-items.json"
+    if work_items_path.is_file():
+        source = str(load_json(work_items_path).get("analysisSource") or "").strip()
+        if source:
+            path = Path(source)
+            return path if path.is_absolute() else root / path
+    return run_dir / "deliverables" / "test-analysis-solution.json"
+
+
 def design_inheritance_errors(run_dir: Path, draft: dict[str, Any]) -> list[str]:
-    path = run_dir / "deliverables" / "test-analysis-solution.json"
+    path = design_analysis_source(run_dir)
     if not path.is_file():
-        return ["设计固化缺少 deliverables/test-analysis-solution.json"]
+        return [f"设计固化缺少上游分析结果: {path}"]
     analysis_nodes = list(flatten_scenarios(load_json(path).get("scenarios", [])).values())
     design_nodes = list(flatten_scenarios(draft.get("scenarios", [])).values())
     if len(analysis_nodes) != len(design_nodes):
@@ -140,6 +151,7 @@ def main() -> int:
     parser.add_argument("run_dir", type=Path)
     parser.add_argument("--scope", required=True, choices=["analysis", "design"])
     parser.add_argument("--draft", required=True, type=Path, help="模型一次性生成的结果草稿 JSON")
+    parser.add_argument("--replace", action="store_true", help="明确替换当前 run 已存在的同阶段结果")
     parser.add_argument("--keep-draft", action="store_true")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
@@ -147,6 +159,12 @@ def main() -> int:
     draft_path = args.draft if args.draft.is_absolute() else root / args.draft
     target_name = "test-analysis-solution.json" if args.scope == "analysis" else "test-design-solution.json"
     target = run_dir / "deliverables" / target_name
+    if target.is_file() and not args.replace:
+        print(
+            f"失败: 当前 run 已存在 {target_name}；请使用新 runid，或在明确返工覆盖时添加 --replace",
+            file=sys.stderr,
+        )
+        return 1
     if not draft_path.is_file():
         print(f"失败: 草稿不存在: {draft_path}", file=sys.stderr)
         return 1

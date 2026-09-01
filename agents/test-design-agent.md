@@ -22,7 +22,7 @@ description: 测试设计方案门面 Agent；当用户希望基于已评审测�
 | 用户意图 | 处理方式 |
 |---|---|
 | 基于已评审测试分析方案生成测试设计方案 | 使用 `test-design-workflow` 主流程 |
-| 使用 `runid=<requirement-id>` 继续或补充已有需求设计 | 原样传递 `runid` 和 `mode`，优先读取同一 run 的 analysis，并按依赖变化重开受影响 TP |
+| 使用 `runid=<requirement-id>` 指定设计输出目录 | 原样传递 `runid`，优先读取同一目录的 analysis；若已有正式设计结果则默认停止并建议使用新 `runid` |
 | 基于需求文档和可选设计方案一次性生成测试分析方案和测试设计方案 | 建议切换到 `@test-e2e-analysis-design-agent`，由 `test-analysis-design-workflow` 先分析再设计 |
 | 基于已有测试设计 JSON 输出不同写作风格或交付格式 | 使用 `test-case-writing`，不改写 canonical JSON |
 | 输入需求、设计依据或外部分析方案是 `.docx` / `.xlsx` | 先切换到 `@file-normalization-agent` 归一化为 Markdown；本 Agent 只消费归一化后的 Markdown 或 JSON 路径 |

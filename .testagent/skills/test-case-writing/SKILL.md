@@ -38,7 +38,7 @@ description: 在测试设计方案 JSON 已生成后使用，负责将 canonical
 - [ ] Step 3: 校验 Markdown 并回到 canonical JSON 或渲染器修复
 - [ ] Step 4: 按需输出不改变事实的扩展写作风格
 
-> 阶段索引是静态写作契约；实时状态仍由 `process/design-task-list.json` 维护；此处的结果 Markdown 始终是结果 JSON 的派生产物。
+> 阶段索引是静态写作契约；不维护额外阶段状态文件；此处的结果 Markdown 始终是结果 JSON 的派生产物。
 
 ## 默认标准 Markdown 写作
 

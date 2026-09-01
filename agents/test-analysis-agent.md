@@ -20,7 +20,7 @@ description: 测试分析方案门面 Agent；当用户希望生成 SC/TP 测试
 | 用户意图 | 处理方式 |
 |---|---|
 | 基于需求文档和可选设计方案生成测试分析方案 | 使用 `test-analysis-workflow` 主流程 |
-| 使用 `runid=<requirement-id>` 继续或补充已有需求分析 | 原样传递 `runid`、`mode`、project 和输入来源，由 `test-analysis-workflow` 按 run plan 执行 reuse/resume/extend/rebuild |
+| 使用 `runid=<requirement-id>` 指定分析输出目录 | 原样传递 `runid`、project 和输入来源；`runid` 只标识输出目录，若其中已有正式分析结果则默认停止并建议使用新 `runid` |
 | 基于需求文档和可选设计方案一次性生成测试分析方案和测试设计方案 | 建议切换到 `@test-e2e-analysis-design-agent`，由 `test-analysis-design-workflow` 编排全流程 |
 | 输入需求文档或设计方案是 `.docx` / `.xlsx` | 先切换到 `@file-normalization-agent` 归一化为 Markdown；本 Agent 只消费归一化后的 Markdown 路径 |
 | 基于已评审测试分析方案生成测试设计方案或测试用例 | 建议切换到 `@test-design-agent`，由 `test-design-workflow` 生成 `TC-*` |

@@ -16,9 +16,7 @@ Supported argument hints:
 - Requirement document: `<requirement.md>` or `requirement=<path>`.
 - Optional design document: `--design <path>`, `design=<path>`, or `设计方案：<path>`.
 - Optional project binding: `--project <project-key>`, `project=<project-key>`, or `项目：<project-key>`.
-- Optional persistent run: `--runid <requirement-id>` or `runid=<requirement-id>`.
-- Optional run mode: `mode=auto|resume|extend|rebuild`; default is `auto`.
-- Optional input removal for an existing run: `remove-source=<path>`; repeat when removing multiple historical inputs.
+- Optional output directory id: `--runid <requirement-id>` or `runid=<requirement-id>`.
 
 This command only accepts Markdown inputs. If the user provides `.docx` or `.xlsx`, stop and ask them to run `@file-normalization-agent` or `/normalize-input-documents` first, then pass the normalized Markdown path back to this command.
 
@@ -27,7 +25,7 @@ When `project=<project-key>` is present, pass it through explicitly to `bin/buil
 Example:
 
 ```text
-requirements/order-cancel.md design=design/order-cancel.md project=mall-order runid=IR-2026-001 mode=auto
+requirements/order-cancel.md design=design/order-cancel.md project=mall-order runid=IR-2026-001
 ```
 
-Keep `PROJECT_ROOT` fixed to the current repository root. Write semantic process artifacts as Markdown under `outputs/runs/<run-id>/process/`; keep JSON only for script-owned control state and the final analysis result. Generate `process/rules-pack.md` before `process/context-pack.md`, finalize `deliverables/test-analysis-solution.json` once at the stage boundary, render its result Markdown, run the fixed checks, and report the result paths.
+Keep `PROJECT_ROOT` fixed to the current repository root. `runid` only selects `outputs/runs/<run-id>/`; without it, use a session timestamp and do not invoke a shell just to prepare the directory. If that directory already contains a formal analysis result, stop and ask for a new `runid`. Write semantic process artifacts as Markdown under `process/`; keep JSON only for `id-registry/work-items` control state and the final analysis result. Generate `process/rules-pack.md` before `process/context-pack.md`, finalize `deliverables/test-analysis-solution.json` once at the stage boundary, render its result Markdown, run the fixed checks, and report the result paths.

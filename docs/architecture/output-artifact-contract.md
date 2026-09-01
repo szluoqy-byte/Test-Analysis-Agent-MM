@@ -14,13 +14,8 @@ run 产物分为三类：语义过程 Markdown、脚本控制 JSON、阶段结�
 ```text
 outputs/runs/<run-id>/
   inputs/
-  revisions/
   process/
-    run-manifest.json
-    run-plan.json
     id-registry.json
-    analysis-task-list.json
-    design-task-list.json
     test-point-work-items.json
     test-case-work-items.json
     rules-pack.md
@@ -60,7 +55,7 @@ outputs/runs/<run-id>/
 
 ## 控制 JSON
 
-`run-manifest.json`、`run-plan.json`、`id-registry.json`、`*-task-list.json` 和 `*-work-items.json` 由固定脚本维护。它们记录生命周期、锁、编号、状态和内容哈希，不承载测试语义，也不生成同名 Markdown。
+`id-registry.json` 和 `*-work-items.json` 由固定脚本维护。它们只记录稳定编号、分段状态和内容哈希，不承载测试语义，也不生成同名 Markdown。
 
 ## 结果 JSON
 
@@ -78,9 +73,9 @@ outputs/runs/<run-id>/
 - review 或 coverage 发现缺口时，使用 `bin/reopen-run-items.py` 重开对应 SC/TP，再回到 Markdown 切片修复。
 - final report 只展示已审查的覆盖关系，不新增缺口判断，也不触发返工。
 
-## Revision 与校验
+## runid 与校验
 
-每次 `extend/rebuild` 前，`manage-run.py` 快照当前 JSON、Markdown 和输入文件到 `revisions/rNNNN/`。
+`runid` 只确定 `outputs/runs/<run-id>/`。未指定时使用当前会话时间戳，目录碰撞时追加顺序后缀。若目标目录已有同阶段正式结果，默认改用新 `runid`；workflow 内 review/coverage 返工通过显式替换重新固化结果并保留稳定编号。
 
 ```bash
 python bin/lint-run-json.py outputs/runs/<run-id>

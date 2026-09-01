@@ -30,7 +30,7 @@ permission:
 | 用户意图 | 处理方式 |
 |---|---|
 | 基于需求文档和可选设计方案，一次性生成测试分析方案和测试设计方案 | 使用 `test-analysis-design-workflow` 主流程；优先用独立 subagent 分别执行 analysis/design |
-| 使用 `runid=<requirement-id>` 补充同一需求的全流程产物 | 把同一 `runid`、`mode` 和输入来源显式传给 analysis/design 阶段，analysis 完成后再让 design 基于最新 analysis hash 判断增量影响 |
+| 使用 `runid=<requirement-id>` 指定全流程输出目录 | 把同一 `runid` 和输入来源显式传给 analysis/design 阶段；若其中已有同阶段正式结果则默认停止并建议使用新 `runid` |
 | 输入包含 `.docx` 或 `.xlsx` | 先切换到 `@file-normalization-agent` 归一化为 Markdown；本 Agent 只消费归一化后的 Markdown 路径 |
 | 只要求生成测试分析方案 | 建议切换到 `@test-analysis-agent`，由 `test-analysis-workflow` 处理 |
 | 只要求基于已有 `test-analysis-solution.json` 生成测试设计方案 | 建议切换到 `@test-design-agent`，由 `test-design-workflow` 处理 |

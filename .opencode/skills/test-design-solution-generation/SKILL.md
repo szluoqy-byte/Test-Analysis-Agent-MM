@@ -11,7 +11,7 @@ description: 基于已评审测试分析 JSON，按 TP 编写 Markdown 测试用
 
 ## 输入
 
-- `deliverables/test-analysis-solution.json`。
+- 完整分析结果 JSON 路径；可以是当前 run 的 `deliverables/test-analysis-solution.json`，也可以是用户显式指定的其他路径。
 - 需求、可选设计方案、rules/context Markdown。
 - `knowledge/test-case-writing-standard.md` 和对应 GUI/API/CLI 风格。
 
@@ -26,7 +26,7 @@ description: 基于已评审测试分析 JSON，按 TP 编写 Markdown 测试用
 
 ### Step 1: 建立 TP 工作项
 
-运行固定脚本从分析 JSON 生成 `process/test-case-work-items.json`，每个 TP 一个工作项；内容 hash 变化时重开对应 TP。
+运行固定脚本并显式传入 `--analysis <analysis-json>`，从分析 JSON 生成 `process/test-case-work-items.json`。每个 TP 一个工作项，控制文件记录分析来源路径；内容 hash 变化时重开对应 TP。
 
 ### Step 2: 识别测试设计因子
 
@@ -38,7 +38,7 @@ description: 基于已评审测试分析 JSON，按 TP 编写 Markdown 测试用
 
 ### Step 4: 一次性固化设计结果 JSON
 
-所有工作项完成后一次性编写 `deliverables/test-design-solution.draft.json`，完整继承分析 SC/TP，再运行 `finalize-deliverable.py --scope design` 复用或追加 TC 编号并写入最终交付；固化成功后删除草稿。
+所有工作项完成后一次性编写 `deliverables/test-design-solution.draft.json`，完整继承分析 SC/TP，再运行 `finalize-deliverable.py --scope design` 复用或追加 TC 编号并写入最终交付；固化成功后删除草稿。仅 workflow 内部返工覆盖既有结果时添加 `--replace`。
 
 ## 输出
 

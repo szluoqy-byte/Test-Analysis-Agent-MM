@@ -20,7 +20,7 @@
 | Agent 门面 | 识别意图、校验入口条件、路由 workflow | `agents/*.md` |
 | Workflow | 组织阶段、门禁、返工和结果交接 | `skills/*-workflow/SKILL.md` |
 | 语义 Skill | 事实建模、方法路由、生成、review、coverage、报告 | `skills/*/SKILL.md`、`knowledge/` |
-| Harness | run 生命周期、控制状态、稳定编号、schema 校验 | `bin/` |
+| Harness | 必要控制状态、稳定编号、schema 校验 | `bin/` |
 | Artifact | 持久化过程和结果 | `outputs/runs/<run-id>/` |
 
 根目录 `agents/` 和 `skills/` 是手工事实源；`.opencode/`、`.testagent/` 是同步镜像。
@@ -40,9 +40,7 @@
 
 ### 3.2 控制 JSON
 
-- `run-manifest.json` / `run-plan.json`：生命周期、输入与依赖指纹。
 - `id-registry.json`：稳定 TP/TC 编号。
-- `analysis-task-list.json` / `design-task-list.json`：阶段状态。
 - `test-point-work-items.json` / `test-case-work-items.json`：分段状态和内容哈希。
 
 控制 JSON 由脚本维护，不承载测试语义。
@@ -57,7 +55,7 @@
 ## 4. 测试分析流程
 
 ```text
-prepare run
+确定输出目录
   -> rules/context Markdown
   -> FACT Markdown
   -> testing method routing Markdown
@@ -70,7 +68,7 @@ prepare run
   -> final review
   -> FACT coverage Markdown + coverage review
   -> analysis final report Markdown
-  -> check + finalize
+  -> fixed checks
 ```
 
 关键门禁：
@@ -83,7 +81,7 @@ prepare run
 ## 5. 测试设计流程
 
 ```text
-prepare/bind analysis result
+确定输出目录并直接读取分析结果
   -> load Markdown context
   -> TP work items
   -> TC Markdown slices + reviews
@@ -93,7 +91,7 @@ prepare/bind analysis result
   -> final review
   -> FACT coverage Markdown + coverage review
   -> design final report Markdown
-  -> check + finalize
+  -> fixed checks
 ```
 
 关键门禁：
@@ -115,17 +113,16 @@ review 或 coverage 发现问题时：
 
 不得直接编辑派生结果 Markdown，也不得绕过过程切片手改正式结果 JSON。
 
-## 7. 增量与 Revision
+## 7. runid 与返工状态
 
-`manage-run.py` 负责 `create/resume/reuse/extend/rebuild`、锁和输入指纹。输入或上游内容变化时，workflow 做语义影响分析，`reopen-run-items.py` 重开受影响工作项；无法确定影响范围时保守重开全部。
+`runid` 只确定输出目录。显式指定时直接使用 `outputs/runs/<runid>/`；未指定时使用当前会话时间戳，碰撞时追加顺序后缀。Step 1 不为此探测 Python、Bash 或调用 shell。
 
-`extend/rebuild` 前快照当前 JSON、Markdown 和 inputs 到 `revisions/rNNNN/`，当前交付路径保持稳定。
+若目录已有同阶段正式结果，默认停止并要求新 `runid`。当前 workflow 内 review/coverage 返工复用 `id-registry.json` 和 work-items，并由结果固化脚本显式替换同阶段结果。
 
 ## 8. 确定性边界
 
 固定脚本负责：
 
-- run 锁、revision、指纹和状态。
 - Markdown 切片骨架及工作项状态。
 - TP/TC 稳定编号。
 - 结果 JSON schema、结果 Markdown 渲染与一致性。

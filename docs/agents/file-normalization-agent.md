@@ -21,7 +21,7 @@
 | run 绑定 | 可把归一化结果复制到 `outputs/runs/<run-id>/inputs/` 并写入 manifest。 |
 | 下游交接 | 输出归一化完成摘要，明确下游应读取的 Markdown 路径与 warning 状态。 |
 
-本 Agent 不生成 `SC-*`、`TP-*` 或 `TC-*`，不维护 `analysis-task-list` / `design-task-list`，不读取 project/personal 动态知识，也不执行 coverage 或 review。
+本 Agent 不生成 `SC-*`、`TP-*` 或 `TC-*`，不维护分析/设计阶段状态，不读取 project/personal 动态知识，也不执行 coverage 或 review。
 
 ## 输入与输出契约
 

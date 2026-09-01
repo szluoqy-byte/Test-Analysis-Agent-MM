@@ -17,10 +17,11 @@
 - 只有当前任务实际修改了 agents 或 skills，才运行 `python bin/sync-opencode-skills.py`。
 - 正常执行文件归一化、测试分析、测试设计或 analysis-design 业务 run 时，不运行 `bin/sync-opencode-skills.py`，只执行对应 workflow 规定的当前 run 校验。
 - `SKILL.md` 必须保持 Agent Skills 兼容：frontmatter 的 `name` 匹配目录名，`description` 说明做什么和何时用；正文保留核心流程，并包含何时使用、输入、执行步骤、输出、验证闭环和约束/易错点。
-- 多步骤 workflow、生成、coverage、final-report 和写作类 skill 必须使用阶段索引与同编号的 `各阶段执行要求`；阶段索引是静态执行契约，run 真实状态只写入 `process/*-task-list.json`，不再使用 `Progress:` 或独立的“计划-校验-执行模式”流程副本。
+- 多步骤 workflow、生成、coverage、final-report 和写作类 skill 必须使用阶段索引与同编号的 `各阶段执行要求`；阶段索引是静态执行契约，不维护阶段级状态 JSON、`Progress:` 或独立的“计划-校验-执行模式”状态副本。
 - 从仓库根目录解析路径，不要从 `.claude-plugin/`、`.opencode/`、skill 目录或输入文件目录解析。
 - `test-analysis-workflow` 和 `test-design-workflow` 不直接处理 `.docx` / `.xlsx`；它们只消费已归一化 Markdown 或 JSON canonical 输入。
-- 每次 run 必须维护脚本控制 task-list/work-items JSON，以及 `process/rules-pack.md`、`process/context-pack.md`、`process/input-fact-model.md` 等语义 Markdown。
+- 每次 run 只维护必要的脚本控制 `id-registry/work-items` JSON，以及 `process/rules-pack.md`、`process/context-pack.md`、`process/input-fact-model.md` 等语义 Markdown。
+- `runid` 只确定 `outputs/runs/<runid>/` 输出目录；未提供时直接使用当前会话时间戳。workflow 的 Step 1 不为此探测 Python、Bash 或调用 shell。
 - 只有结果方案使用 JSON 作为阶段边界；过程、review、coverage 和 final-report 直接使用 Markdown。
 - 测试分析主交付件固定为 `deliverables/test-analysis-solution.json/.md`，输出粒度是 `SC 场景树 -> TP 测试点`。
 - 测试设计主交付件固定为 `deliverables/test-design-solution.json/.md`，输出粒度是 `SC 场景树 -> TP 测试点 -> TC 测试用例`。
